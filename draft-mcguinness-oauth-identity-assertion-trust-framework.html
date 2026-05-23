@@ -11,10 +11,9 @@
 server publishes to describe the conditions under which it accepts
 identity assertion JWT authorization grants. The policy expresses trust
 criteria, including trust methods, trust anchors, subject identifier
-formats, grant profiles, and client requirements, that an Assertion
-Issuer and the presenting client have to satisfy. This enables scalable
-issuer discovery for deployments backed by OpenID Federation, trust
-mark registries, or Domain-Authorized Issuer Discovery. 
+formats, and grant profiles, that an Assertion Issuer has to satisfy.
+This enables scalable issuer discovery for deployments backed by
+OpenID Federation or Domain-Authorized Issuer Discovery. 
        This document also defines Domain-Authorized Issuer
 Discovery, a DNS and HTTPS mechanism by which the owner of a subject
 namespace (for example, an email domain) authorizes one or more Assertion
@@ -1100,10 +1099,9 @@ svg :is([fill="white"], [fill^="#fff"]) {
 server publishes to describe the conditions under which it accepts
 identity assertion JWT authorization grants. The policy expresses trust
 criteria, including trust methods, trust anchors, subject identifier
-formats, grant profiles, and client requirements, that an Assertion
-Issuer and the presenting client have to satisfy. This enables scalable
-issuer discovery for deployments backed by OpenID Federation, trust
-mark registries, or Domain-Authorized Issuer Discovery.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+formats, and grant profiles, that an Assertion Issuer has to satisfy.
+This enables scalable issuer discovery for deployments backed by
+OpenID Federation or Domain-Authorized Issuer Discovery.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 <p id="section-abstract-2">This document also defines Domain-Authorized Issuer
 Discovery, a DNS and HTTPS mechanism by which the owner of a subject
 namespace (for example, an email domain) authorizes one or more Assertion
@@ -1613,8 +1611,14 @@ Method.<a href="#section-2-1.10.1" class="pilcrow">¶</a></p>
         <dd class="break"></dd>
 <dt id="section-2-1.11">Subject Identifier:</dt>
         <dd style="margin-left: 1.5em" id="section-2-1.12">
-          <p id="section-2-1.12.1">A claim or claim value identifying the asserted subject. Subject
-Identifier formats are registered per <span>[<a href="#RFC9493" class="cite xref">RFC9493</a>]</span>.<a href="#section-2-1.12.1" class="pilcrow">¶</a></p>
+          <p id="section-2-1.12.1">A claim or claim value identifying the asserted subject. This
+document uses Subject Identifier format names from the registry
+established by <span>[<a href="#RFC9493" class="cite xref">RFC9493</a>]</span> as labels in <code>subject_identifier_formats_supported</code>,
+even when the subject identifier itself is carried as a top-level JWT
+claim (for example, the <code>email</code> format identifies the top-level <code>email</code>
+and <code>email_verified</code> claims used by <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>) rather than as an
+<span>[<a href="#RFC9493" class="cite xref">RFC9493</a>]</span> Subject Identifier JSON object. Grant profiles and other
+specifications define which carriage applies in their context.<a href="#section-2-1.12.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-2-1.13">Subject Authority:</dt>
@@ -2212,7 +2216,7 @@ Server.<a href="#section-5.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-5.1-4.3">
             <p id="section-5.1-4.3.1">Verify that the email attribution carried by the ID-JAG, when
-present or required, uses a subject identifier shape registered
+present or required, uses a Subject Identifier format registered
 in <code>subject_identifier_formats_supported</code>, if that trust policy
 member is present.<a href="#section-5.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
@@ -2363,7 +2367,12 @@ Assertion Issuer is authorized for this subject namespace?"). The
 <code>email_verification_dns</code> Trust Method
 (<a href="#trust-method-email-verification-dns" class="auto internal xref">Section 3.3.4</a>) lets verifiers honor
 existing Email Verification Protocol records without requiring a
-parallel <code>_oauth-issuer-policy</code> record.<a href="#section-6.1-3.4.1" class="pilcrow">¶</a></p>
+parallel <code>_oauth-issuer-policy</code> record. Because the Email
+Verification Protocol is a non-IETF specification still under
+active development, interoperability for the
+<code>email_verification_dns</code> Trust Method depends on the stability of
+<span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span>; implementations should track that
+specification for breaking changes.<a href="#section-6.1-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-6.1-4">These precedents motivate the use of an underscored DNS owner name,
@@ -2789,9 +2798,8 @@ reject the assertion. A client reports that no policy exists.<a href="#section-6
               <p id="section-6.5.1-2.4.1">A DNS recognized record missing <code>authority=</code>, with a mismatched
 <code>authority=</code> when no recognized record for the same query name has a
 matching <code>authority=</code>, with neither <code>uri=</code> nor <code>issuer=</code> after
-parsing, with multiple distinct <code>uri=</code>, <code>id=</code>, or <code>mode=</code> values, with
-a malformed <code>uri=</code> or <code>issuer=</code> directive,
-or otherwise unparseable; or an HTTPS response with an unsupported
+parsing, with multiple distinct <code>uri=</code> values, with a malformed
+<code>uri=</code> or <code>issuer=</code> directive, or otherwise unparseable; or an HTTPS response with an unsupported
 media type, an entity body larger than the consumer's configured
 maximum, an HTTP status other than success, redirect, 404, 410, or
 5xx, or a redirect loop or redirect target that is not HTTPS; or an
@@ -3833,10 +3841,6 @@ have a well-defined namespace authority.<a href="#section-9.2.3-5" class="pilcro
         <dd>
 <span class="refAuthor">Nottingham, M.</span>, <span class="refTitle">"Well-Known Uniform Resource Identifiers (URIs)"</span>, <span class="seriesInfo">RFC 8615</span>, <span class="seriesInfo">DOI 10.17487/RFC8615</span>, <time datetime="2019-05" class="refDate">May 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8615">https://www.rfc-editor.org/rfc/rfc8615</a>&gt;</span>. </dd>
 <dd class="break"></dd>
-<dt id="RFC9068">[RFC9068]</dt>
-        <dd>
-<span class="refAuthor">Bertocci, V.</span>, <span class="refTitle">"JSON Web Token (JWT) Profile for OAuth 2.0 Access Tokens"</span>, <span class="seriesInfo">RFC 9068</span>, <span class="seriesInfo">DOI 10.17487/RFC9068</span>, <time datetime="2021-10" class="refDate">October 2021</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9068">https://www.rfc-editor.org/rfc/rfc9068</a>&gt;</span>. </dd>
-<dd class="break"></dd>
 <dt id="RFC9493">[RFC9493]</dt>
         <dd>
 <span class="refAuthor">Backman, A., Ed.</span>, <span class="refAuthor">Scurtescu, M.</span>, and <span class="refAuthor">P. Jain</span>, <span class="refTitle">"Subject Identifiers for Security Event Tokens"</span>, <span class="seriesInfo">RFC 9493</span>, <span class="seriesInfo">DOI 10.17487/RFC9493</span>, <time datetime="2023-12" class="refDate">December 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9493">https://www.rfc-editor.org/rfc/rfc9493</a>&gt;</span>. </dd>
@@ -4568,8 +4572,7 @@ grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
             <p id="appendix-C.4-1.3.1">The tool provider validates the ID-JAG: signature (key
 resolved via
 <code>https://agentprovider.example/.well-known/oauth-authorization-server</code>
-or OpenID Connect Discovery), <code>aud</code>, <code>exp</code>, <code>iat</code>, replay
-protection.<a href="#appendix-C.4-1.3.1" class="pilcrow">¶</a></p>
+JWKS), <code>aud</code>, <code>exp</code>, <code>iat</code>, replay protection.<a href="#appendix-C.4-1.3.1" class="pilcrow">¶</a></p>
 </li>
           <li id="appendix-C.4-1.4">
             <p id="appendix-C.4-1.4.1">The tool provider evaluates the trust policy's

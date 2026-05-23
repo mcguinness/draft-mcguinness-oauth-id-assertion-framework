@@ -3,6 +3,8 @@ title: "OAuth Identity Assertion Issuer Trust Framework"
 abbrev: "Identity Assertion Trust Framework"
 docname: draft-mcguinness-oauth-identity-assertion-trust-framework-latest
 category: std
+submissiontype: IETF
+v: 3
 
 ipr: trust200902
 area: Security
@@ -79,7 +81,7 @@ informative:
 
 ---
 
-.# Abstract
+--- abstract
 
 This document defines a trust policy that an OAuth authorization
 server publishes to describe the conditions under which it accepts
@@ -96,7 +98,7 @@ namespace (for example, an email domain) authorizes one or more Assertion
 Issuers and, through the same records, enables clients to discover the
 Assertion Issuer for an identifier in that namespace.
 
-{mainmatter}
+--- middle
 
 # Introduction
 
@@ -374,9 +376,15 @@ identifier registered in {{iana-trust-methods-registry}}, together with
 any additional members required by that identifier. Each Trust Method
 object MUST be a JSON object and MUST contain exactly one `method`
 member whose value is a string. Unrecognized Trust Method identifiers
-and unrecognized members within a recognized object MUST be ignored.
-If no recognized Trust Method object remains after this processing,
-the policy does not identify any usable issuer trust method. This
+and unrecognized members within a recognized object MUST be ignored,
+except when required by a future extension's criticality mechanism.
+For a recognized Trust Method identifier, consumers MUST reject the
+Trust Method object as malformed if any member required by that
+identifier is absent, has the wrong JSON type, or has a value outside
+the constraints defined for that identifier. Malformed Trust Method
+objects are not usable. If no recognized and well-formed Trust Method
+object remains after this processing, the policy does not identify any
+usable issuer trust method. This
 document defines four Trust Methods, presented below grouped by
 category. The `issuer_authentication` methods are
 {{trust-method-openid-federation}} and
@@ -405,9 +413,13 @@ Each Trust Method identifier is registered in
 trust policy MAY list methods from one or both categories. The
 combination rule in {{rasp}} requires the Assertion Issuer to satisfy
 at least one Trust Method from EACH category that is both present in
-the policy and applicable to the asserted Subject Identifier. Within a
-single category, OR-semantics apply: satisfying any one listed method
-in that category is sufficient.
+the policy and applicable to the assertion. The
+`issuer_authentication` category applies unconditionally. The
+`subject_namespace_authorization` category applies when the assertion
+carries a Subject Identifier; if the Subject Authority cannot be
+determined, the assertion fails closed as described in {{rasp}}.
+Within a single category, OR-semantics apply: satisfying any one listed
+method in that category is sufficient.
 
 This separation prevents an Assertion Issuer that is authenticated by
 federation or trust-mark membership from being treated as
@@ -767,24 +779,30 @@ the Resource Authorization Server MUST:
       multiple categories belongs to each.
 
    b. For each category that is BOTH present in the partitioned policy
-      AND applicable to the assertion (a
-      `subject_namespace_authorization` method applies only when the
-      assertion carries a Subject Identifier whose Subject Authority
-      can be determined per {{dii-authority}} or an equivalent
-      registry; an `issuer_authentication` method applies
-      unconditionally), the Assertion Issuer MUST satisfy at least
-      one Trust Method from that category.
+      AND applicable to the assertion, the Assertion Issuer MUST
+      satisfy at least one Trust Method from that category. An
+      `issuer_authentication` method applies unconditionally. A
+      `subject_namespace_authorization` method applies when the
+      assertion carries a Subject Identifier.
 
-   c. If no Trust Method object in the policy is both recognized,
+   c. If the assertion carries a Subject Identifier and the policy
+      contains a recognized `subject_namespace_authorization` Trust
+      Method, but no Subject Authority can be determined for the
+      assertion per {{dii-authority}} or an equivalent registry, the
+      Resource Authorization Server MUST reject the assertion. The
+      Resource Authorization Server MUST NOT treat the
+      `subject_namespace_authorization` category as inapplicable in
+      this case.
+
+   d. If no Trust Method object in the policy is both recognized,
       present in a category, and applicable to the assertion, the
       policy provides no trust evaluation basis for this assertion;
       the Resource Authorization Server MUST reject the assertion.
       This case can arise when, for example, the policy lists only
       `subject_namespace_authorization` methods and the assertion
-      carries a Subject Identifier with no registered Subject
-      Authority extraction procedure.
+      does not carry a Subject Identifier.
 
-   d. Local policy MAY require satisfaction of additional Trust
+   e. Local policy MAY require satisfaction of additional Trust
       Methods for specific clients, subjects, or scopes.
 
    When the policy lists only `issuer_authentication` methods and the
@@ -1185,11 +1203,18 @@ object. It has the following members:
 object has:
 
   `issuer`
-  : REQUIRED. String. The Assertion Issuer identifier. Compared to the
-  JWT `iss` claim using the issuer identifier comparison rules of the
-  applicable assertion grant profile. For JWT authorization grants that
-  use OAuth authorization server issuer identifiers, this is
-  case-sensitive string comparison, consistent with {{RFC8414}}.
+  : REQUIRED. String. The Assertion Issuer identifier. For OAuth
+  authorization server issuer identifiers, this value MUST be an
+  absolute HTTPS URL with no fragment component. The URL MAY contain a
+  path component; if the path is empty it is equivalent only to an
+  issuer identifier that uses the same string form according to the
+  applicable profile's issuer comparison rules. Query components are
+  NOT RECOMMENDED because many issuer metadata profiles do not use
+  them. The value is compared to the JWT `iss` claim using the issuer
+  identifier comparison rules of the applicable assertion grant
+  profile. For JWT authorization grants that use OAuth authorization
+  server issuer identifiers, this is case-sensitive string comparison,
+  consistent with {{RFC8414}}.
 
   `subject_identifier_formats`
   : OPTIONAL. JSON array of Subject Identifier format names
@@ -1244,13 +1269,23 @@ publisher ensure that future critical IAP-document extensions are
 not silently ignored by older consumers.
 
 Unrecognized members MUST be ignored, except when listed in `crit`.
-Consumers MUST reject a policy whose `authorized_issuers` member is
-absent, empty, not an array, or contains an element that is not an
-object or lacks a string `issuer` member. Consumers MUST reject
-`valid_from`, `valid_until`, and `last_updated` values that are
-present but are not valid RFC 3339 date-times. Consumers MUST reject
-a `mode` value other than `enforce`, `testing`, or `none`. Consumers
-MUST reject a `crit` value that is not an array of strings.
+Consumers MUST reject a policy whose `subject_authority` member is
+absent or is not a string, or whose `subject_authority` value does not
+match the computed Subject Authority. Consumers MUST reject a policy
+whose `authorized_issuers` member is absent, empty, not an array, or
+contains an element that is not an object. Consumers MUST reject an
+authorized issuer object that lacks a string `issuer` member or whose
+`issuer` member is not a syntactically valid issuer identifier for the
+applicable assertion grant profile. For OAuth authorization server
+issuer identifiers, a non-HTTPS URL, a relative URL, or a URL with a
+fragment component is malformed. Consumers MUST reject a
+`subject_identifier_formats` value that is present but is not an array
+of strings. Consumers MUST reject `valid_from`, `valid_until`, and
+`last_updated` values that are present but are not valid RFC 3339
+date-times. Consumers MUST reject a `mode` value other than `enforce`,
+`testing`, or `none`. Consumers MUST reject an `id` value outside the
+character set or length range defined above. Consumers MUST reject a
+`crit` value that is not an array of strings.
 
 Example:
 
@@ -1393,11 +1428,13 @@ The following directives are defined:
 `uri=URL`
 : OPTIONAL. An HTTPS URL identifying an Issuer Authorization Policy
   document. The URL MAY be on a different host than `A`. MUST use the
-  `https://` scheme.
+  `https://` scheme and MUST NOT contain a fragment component.
 
 `issuer=ISSUER_URL`
 : OPTIONAL. An Assertion Issuer identifier authorized by the Subject
-Authority for `A`. MAY appear multiple times within a record and
+Authority for `A`. For OAuth authorization server issuer identifiers,
+the value MUST be an absolute HTTPS URL and MUST NOT contain a
+fragment component. MAY appear multiple times within a record and
 across records.
 
 `id=POLICY_ID`
@@ -1499,12 +1536,12 @@ discovery ({{dii-hrd}}), with one asymmetry noted at the end.
 
       Before continuing, validate the remaining recognized records
       against the directive rules in {{dii-dns-record}}. This includes
-      rejecting malformed `id=`, `mode=`, and `crit=` values; records
-      whose `crit=` lists an unknown or absent directive; records with
-      neither `uri=` nor `issuer=`; multiple distinct `id=` values
-      across the remaining records; and multiple distinct `mode=`
-      values across the remaining records. Any such condition is a
-      `malformed` outcome.
+      rejecting malformed `uri=`, `issuer=`, `id=`, `mode=`, and
+      `crit=` values; records whose `crit=` lists an unknown or absent
+      directive; records with neither `uri=` nor `issuer=`; multiple
+      distinct `id=` values across the remaining records; and multiple
+      distinct `mode=` values across the remaining records. Any such
+      condition is a `malformed` outcome.
 
    b. If any remaining record contains a `uri=` directive:
 
@@ -1568,17 +1605,21 @@ Outcomes other than retrieval of a valid policy are categorized as:
 
 `no-policy`
 : A `negative-authoritative` DNS response combined with an HTTPS
-retrieval that yields HTTP 404 or equivalent. A verifier MUST reject
-the assertion. A client reports that no policy exists.
+retrieval that yields HTTP 404, 410, or equivalent. A verifier MUST
+reject the assertion. A client reports that no policy exists.
 
 `malformed`
 : A DNS recognized record missing `authority=`, with a mismatched
 `authority=` when no recognized record for the same query name has a
 matching `authority=`, with neither `uri=` nor `issuer=` after
 parsing, with multiple distinct `uri=`, `id=`, or `mode=` values, with
-a malformed `id=`, `mode=`, or `crit=` directive, or otherwise
-unparseable; or an HTTPS response body that is not a syntactically
-valid Issuer Authorization Policy document; or a JSON policy whose
+a malformed `uri=`, `issuer=`, `id=`, `mode=`, or `crit=` directive,
+or otherwise unparseable; or an HTTPS response with an unsupported
+media type, an entity body larger than the consumer's configured
+maximum, an HTTP status other than success, redirect, 404, 410, or
+5xx, or a redirect loop or redirect target that is not HTTPS; or an
+HTTPS response body that is not a syntactically valid Issuer
+Authorization Policy document; or a JSON policy whose
 `subject_authority` does not match `A`. Consumers MUST NOT use a
 fallback channel to recover, since a malformed authoritative result may
 indicate an attack. A verifier MUST reject the assertion.
@@ -1590,6 +1631,12 @@ server error (5xx). Consumers MUST NOT fall back to a channel that
 might be under a different adversary's control. A verifier MUST
 reject the assertion unless a fresh cached policy is available
 ({{dii-caching}}); a client SHOULD report a retryable error.
+
+Consumers MAY follow HTTPS redirects when retrieving an Issuer
+Authorization Policy, subject to a local redirect limit. Every
+redirect target MUST use the `https` scheme and MUST NOT contain a
+fragment component. The final response MUST have a successful HTTP
+status and a media type compatible with `application/json`.
 
 ### Examples
 
@@ -2017,6 +2064,24 @@ mechanism for that restriction. A future extension MAY add an
 audience-scoping field to the Issuer Authorization Policy
 document.
 
+## Email Authority Granularity
+
+For `email` Subject Identifiers, this document uses the registrable
+domain derived from a current Public Suffix List as the Subject
+Authority. This is a conservative choice: it prevents a party that
+controls only a subdomain from publishing Domain-Authorized Issuer
+Discovery records that override the organizational domain's issuer
+policy. The tradeoff is that independently operated subdomains cannot
+publish separate `email` authority policies unless the parent domain
+delegates operational control through its own policy or the relevant
+suffix is represented in the Public Suffix List.
+
+Subject Authorities that require independent policy control for
+subdomains SHOULD publish separate Subject Identifiers whose authority
+extraction procedure preserves that delegation boundary, or use
+out-of-band arrangements until such a procedure is registered in
+{{iana-authority-registry}}.
+
 ## Trust Policy Enumeration
 
 Trust policies are typically published as unauthenticated HTTPS
@@ -2324,7 +2389,7 @@ Initial entries:
 | `email` | DNS domain | {{dii-authority}} of this document |
 | `iss_sub` | URL host | {{dii-authority}} of this document |
 
-{backmatter}
+--- back
 
 # OpenID Federation End-to-End Example
 

@@ -30,11 +30,8 @@ normative:
   RFC7521:
   RFC7523:
   RFC8414:
-  RFC8417:
   RFC8615:
-  RFC8705:
   RFC9068:
-  RFC9449:
   RFC9493:
   RFC9728:
   RFC1035:
@@ -56,9 +53,6 @@ normative:
     title: "OAuth Actor Profile for Delegation"
     target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-actor-profile/
     date: false
-  CIMD:
-    title: "OAuth Client ID Metadata Document"
-    target: https://datatracker.ietf.org/doc/draft-ietf-oauth-client-id-metadata-document/
 
 informative:
   RFC5234:
@@ -69,9 +63,6 @@ informative:
     title: "Transaction Tokens"
     target: https://datatracker.ietf.org/doc/draft-ietf-oauth-transaction-tokens/
     date: false
-  SSF:
-    title: "OpenID Shared Signals Framework Specification 1.0"
-    target: https://openid.net/specs/openid-sharedsignals-framework-1_0.html
   WICG-EMAIL-VERIF:
     title: "Email Verification Protocol"
     target: https://wicg.github.io/email-verification-protocol/
@@ -123,8 +114,8 @@ that a Resource Authorization Server publishes to describe its trust
 criteria. The Resource Authorization Server does not say "these are
 all the Assertion Issuers I trust"; it says "these are the conditions
 an Assertion Issuer must satisfy." Conditions are evaluated by validating concrete evidence - a
-federation trust chain, a trust mark, a domain-authorized issuer
-record - when an assertion is presented.
+federation trust chain or a domain-authorized issuer record - when
+an assertion is presented.
 
 This document also defines Domain-Authorized Issuer
 Discovery, a self-contained mechanism for one of those conditions, by
@@ -164,14 +155,13 @@ access.
 Assertion Issuer:
 : The authorization server, identity provider, or other service that
 issues an identity-bearing assertion or token consumed under this
-framework, identified by the JWT `iss` claim. The specific local term
-varies by context: an authorization server in OAuth grant flows, a
-"transmitter" in Security Event Token deployments
-({{set-binding}}), an authorization server in JWT access token
-verification ({{jwt-access-token-binding}}), and an "issuer" in the
-Email Verification Protocol ({{WICG-EMAIL-VERIF}}). For trust
-evaluation purposes, all are Assertion Issuers and the JWT `iss` value
-serves as the unifying identifier. The same string serves as the
+framework, identified by the JWT `iss` claim. The specific local
+term varies by context: an authorization server in OAuth grant
+flows, an authorization server in JWT access token verification
+({{related-token-contexts}}), and an "issuer" in the Email
+Verification Protocol ({{WICG-EMAIL-VERIF}}). For trust evaluation
+purposes, all are Assertion Issuers and the JWT `iss` value serves
+as the unifying identifier. The same string serves as the
 issuer's identifier across the discovery and federation mechanisms
 referenced by this document: the `issuer` value in OAuth
 Authorization Server Metadata {{RFC8414}}, the `issuer` value in
@@ -284,19 +274,8 @@ Example:
     {
       "method": "domain_authorized_issuer",
       "dns_discovery": true
-    },
-    {
-      "method": "registry_trust_mark",
-      "trust_anchors": ["https://agent-registry.example"],
-      "trust_mark_types": [
-        "https://agent-registry.example/trust-marks/agent-provider"
-      ]
     }
-  ],
-  "client_authentication_methods_supported": ["private_key_jwt"],
-  "sender_constraining_methods_supported": ["dpop"],
-  "client_identifier_methods_supported": ["client_id_metadata_document"],
-  "required_claims": ["acr"]
+  ]
 }
 ~~~
 
@@ -329,46 +308,6 @@ the Trust Method combination rule in {{rasp}}. Local policy MAY impose
 additional requirements for specific clients, subjects, or scopes; see
 {{downgrade}}.
 
-`client_authentication_methods_supported`
-: OPTIONAL. JSON array of client authentication method identifiers
-  accepted at the token endpoint when this policy is used (see
-  {{client-authentication}}). If omitted, requirements are determined by
-  local policy or the applicable grant profile.
-
-`sender_constraining_methods_supported`
-: OPTIONAL. JSON array of sender-constraining method identifiers
-  supported for access tokens issued in response to the assertion (see
-  {{sender-constraining}}). If omitted, requirements are
-  determined by local policy or the applicable grant profile.
-
-`client_identifier_methods_supported`
-: OPTIONAL. JSON array of client identifier method identifiers
-  describing how `client_id` values presented at the token endpoint are
-  interpreted and resolved (see {{client-identifier}}). If omitted,
-  requirements are determined by local policy or the applicable grant
-  profile.
-
-`required_claims`
-: OPTIONAL. JSON array of claim names that the Resource Authorization
-Server requires in the identity assertion JWT in addition to the claims
-mandated by the applicable grant profile. Claims defined as REQUIRED by
-the grant profile (for ID-JAG: `iss`, `aud`, `exp`, `iat`, and so on)
-are always required and SHOULD NOT be duplicated here.
-
-`crit`
-: OPTIONAL. JSON array of strings. Each string names a top-level
-member of this policy document, a Trust Method identifier, or a
-Trust Method category identifier whose recognition the publisher
-considers critical. Modeled on the CAA {{RFC8659}} critical flag.
-If a consumer does not recognize any string listed in `crit`, the
-consumer MUST reject the policy as malformed. Members defined in
-this document, Trust Method identifiers registered in
-{{iana-trust-methods-registry}}, and Trust Method categories
-defined in {{trust-method-categories}} are always recognized;
-`crit` exists to let publishers ensure that future critical
-extensions are not silently ignored. Consumers MUST reject a `crit`
-value that is not an array of strings.
-
 ## Trust Methods {#trust-methods}
 
 Each Trust Method object has a `method` member containing a Trust Method
@@ -385,10 +324,9 @@ the constraints defined for that identifier. Malformed Trust Method
 objects are not usable. If no recognized and well-formed Trust Method
 object remains after this processing, the policy does not identify any
 usable issuer trust method. This
-document defines four Trust Methods, presented below grouped by
-category. The `issuer_authentication` methods are
-{{trust-method-openid-federation}} and
-{{trust-method-registry-trust-mark}}; the
+document defines three Trust Methods, presented below grouped by
+category. The `issuer_authentication` method is
+{{trust-method-openid-federation}}; the
 `subject_namespace_authorization` methods are
 {{trust-method-domain-authorized-issuer}} and
 {{trust-method-email-verification-dns}}.
@@ -436,11 +374,7 @@ recognized Trust Method objects listed in
 `issuer_trust_methods_supported`. Future specifications MAY register
 additional categories, but adding a category to the registry does not
 impose new requirements on existing trust policies that do not list
-methods from that category. A publisher that wishes to ensure
-consumers honor a newly registered Trust Method MUST list its
-identifier (or the new category's name) in the `crit` member of the
-trust policy document; consumers that do not recognize a critical
-identifier reject the policy as malformed.
+methods from that category.
 
 ### openid_federation {#trust-method-openid-federation}
 
@@ -470,50 +404,6 @@ verify that the Assertion Issuer's federation entity configuration
 declares an entity type appropriate for an OAuth authorization server
 or OpenID provider.
 
-### registry_trust_mark {#trust-method-registry-trust-mark}
-
-Category: `issuer_authentication`.
-
-The `registry_trust_mark` method indicates that the Assertion Issuer
-is acceptable if it holds a valid trust mark issued by an accepted
-registry.
-
-~~~ json
-{
-  "method": "registry_trust_mark",
-  "trust_anchors": ["https://agent-registry.example"],
-  "trust_mark_types": [
-    "https://agent-registry.example/trust-marks/agent-provider"
-  ]
-}
-~~~
-
-`trust_anchors`
-: REQUIRED. Non-empty JSON array of trust mark issuer identifiers,
-expressed as URLs using OpenID Federation entity identifier
-conventions.
-
-`trust_mark_types`
-: REQUIRED. Non-empty JSON array of trust mark type identifiers
-(URLs).
-
-This Trust Method is defined in terms of OpenID Federation
-{{OIDF-FEDERATION}} trust marks. The Resource Authorization Server
-MUST validate the trust mark per the trust mark mechanism defined in
-{{OIDF-FEDERATION}}, verifying signature, issuer, type, expiration,
-and (where applicable) revocation status. The trust mark issuer MUST
-match one of the listed `trust_anchors` and the trust mark type MUST
-match one of the listed `trust_mark_types`. Validity MUST be
-re-evaluated when the assertion is processed, subject to
-{{caching}}.
-
-Future specifications MAY define alternate trust mark profiles by
-registering additional Trust Method identifiers (for example,
-`acme_attested_trust_mark`) in {{iana-trust-methods-registry}}. This
-document does not define such alternate profiles; the
-`registry_trust_mark` identifier denotes the OpenID Federation
-profile specifically.
-
 ### domain_authorized_issuer {#trust-method-domain-authorized-issuer}
 
 Category: `subject_namespace_authorization`.
@@ -532,6 +422,16 @@ JSON document at `.well-known/oauth-issuer-policy` on the Subject
 Authority's host. The full mechanism — record syntax, lookup
 procedure, failure handling, and security considerations - is
 specified in {{dii}}.
+
+This Trust Method supports path-bearing issuer identifiers (for
+example,
+`https://login.microsoftonline.com/{tenant-id}/v2.0`) directly: the
+`authorized_issuers[].issuer` field accepts any absolute HTTPS URL
+issuer identifier, and case-sensitive comparison against the JWT
+`iss` claim distinguishes tenants under the same host. Single-issuer
+multi-tenant Identity Providers that carry the tenant in a top-level
+JWT claim (rather than in the issuer URL) are also supported, with
+the caveats described in {{dii-multi-tenant}}.
 
 ~~~ json
 {
@@ -621,81 +521,6 @@ Methods, the cross-category combination rule of {{rasp}} treats them
 as alternatives within the same category (OR-semantics): satisfying
 either is sufficient.
 
-## Client Requirements
-
-The trust policy expresses requirements on the client presenting the
-assertion in three orthogonal dimensions: how the client authenticates
-at the token endpoint, how the resulting access token is
-sender-constrained, and how the client identifier is resolved. Each
-dimension is independent and can be combined with the others. Within a
-single array, values are alternatives unless the applicable grant
-profile or local policy says otherwise. Across arrays, requirements are
-cumulative: for example, a client can be required to authenticate with
-one listed client authentication method and receive an access token
-sender-constrained with one listed sender-constraining method.
-
-This document registers no new authentication,
-sender-constraining, or identifier mechanism; the identifiers below
-name existing or separately specified mechanisms.
-
-### Client Authentication Methods {#client-authentication}
-
-The `client_authentication_methods_supported` array lists identifiers
-drawn from the IANA "OAuth Token Endpoint Authentication Methods"
-registry. If this member is present and non-empty, the Resource
-Authorization Server MUST authenticate the presenting client using one
-of the listed methods unless the client is a public client and the
-applicable grant profile explicitly permits unauthenticated clients.
-Identifiers of particular relevance include:
-
-`private_key_jwt`
-: The client authenticates using a JWT signed with its private key per
-{{RFC7521}} and {{RFC7523}}.
-
-`tls_client_auth`, `self_signed_tls_client_auth`
-: The client authenticates using a mutually authenticated TLS
-connection.
-
-### Sender-Constraining Methods {#sender-constraining}
-
-The `sender_constraining_methods_supported` array lists identifiers
-registered in the registry defined in
-{{iana-sender-constraining-registry}}. If this member is present and
-non-empty, the Resource Authorization Server MUST sender-constrain any
-access token issued in response to an accepted assertion using one of
-the listed methods. Initial identifiers:
-
-`dpop`
-: The client presents a DPoP proof {{RFC9449}}; the Resource
-Authorization Server issues a DPoP-bound access token.
-
-`mtls`
-: The Resource Authorization Server issues a certificate-bound access
-token using mutual TLS {{RFC8705}}.
-
-Sender-constraining is distinct from client authentication: a client
-MAY authenticate using one mechanism and have its access token
-sender-constrained using another.
-
-### Client Identifier Methods {#client-identifier}
-
-The `client_identifier_methods_supported` array lists identifiers
-registered in the registry defined in
-{{iana-client-identifier-registry}}. If this member is present and
-non-empty, the Resource Authorization Server MUST resolve the
-presenting client's `client_id` using one of the listed methods.
-Initial identifiers:
-
-`registered_client_id`
-: The `client_id` identifies a client previously registered with the
-Resource Authorization Server, by static configuration, dynamic
-registration, or out-of-band provisioning. Defined by this
-document.
-
-`client_id_metadata_document`
-: The `client_id` is an HTTPS URL that dereferences to an OAuth Client
-ID Metadata Document {{CIMD}}.
-
 # Trust Policy Processing
 
 The trust policy governs whether an Assertion Issuer's identity
@@ -733,12 +558,7 @@ Authorization Server:
    `subject_identifier_formats_supported`, if that member is present,
    and required by the applicable grant profile.
 
-6. Determines whether the client itself can satisfy any applicable
-   `client_authentication_methods_supported`,
-   `sender_constraining_methods_supported`, and
-   `client_identifier_methods_supported` requirements.
-
-7. Requests an identity assertion JWT from the selected Assertion
+6. Requests an identity assertion JWT from the selected Assertion
    Issuer.
 
 The client MUST NOT treat the trust policy as a guarantee that a
@@ -761,16 +581,12 @@ the Resource Authorization Server MUST:
 3. Verify that the applicable grant profile is listed in
    `grant_profiles_supported`.
 
-4. Verify that the assertion contains all claims listed in
-   `required_claims` in addition to claims required by the applicable
-   grant profile and local policy.
-
-5. If `subject_identifier_formats_supported` is present, verify that
+4. If `subject_identifier_formats_supported` is present, verify that
    the Subject Identifier format used by the assertion is listed,
    unless the applicable grant profile defines a different format
    selection rule.
 
-6. Verify that the Assertion Issuer identified by `iss` satisfies the
+5. Verify that the Assertion Issuer identified by `iss` satisfies the
    Trust Method combination rule:
 
    a. Partition the recognized Trust Method objects in
@@ -811,20 +627,16 @@ the Resource Authorization Server MUST:
    a stricter local policy, since federation membership alone does not
    establish authority over a particular subject namespace.
 
-7. Verify that the presenting client satisfies any applicable
-   `client_authentication_methods_supported`,
-   `sender_constraining_methods_supported`, and
-   `client_identifier_methods_supported` requirements.
+6. Apply account-linking, consent, authorization, risk, and local
+   business policy. Client authentication, sender-constraining, and
+   client identifier resolution are governed by the applicable
+   grant profile and OAuth client-authentication mechanisms; they
+   are not specified by this trust framework.
 
-8. Apply account-linking, consent, authorization, risk, and local
-   business policy.
-
-Failure to satisfy issuer trust, subject identifier, or assertion claim
-requirements in the trust policy MUST result in an OAuth
-`invalid_grant` error unless another error is defined by the applicable
-grant profile. Failure to authenticate the client MUST use the OAuth
-error defined for the client authentication failure, such as
-`invalid_client`.
+Failure to satisfy issuer trust, subject identifier, or assertion
+claim requirements in the trust policy MUST result in an OAuth
+`invalid_grant` error unless another error is defined by the
+applicable grant profile.
 
 # Grant Profile and Token Bindings {#bindings}
 
@@ -833,14 +645,11 @@ preceding sections are profile-agnostic. This section provides
 bindings to the grant profiles and token contexts in which this
 document expects to be deployed.
 
-The first two bindings - ID-JAG ({{id-jag-profile}}) and the OAuth
-Actor Profile ({{actor-profile-binding}}) - are normative for
-deployments using those features. The remaining bindings -
-Transaction Tokens ({{txn-tokens-binding}}), Security Event Token
-Receivers ({{set-binding}}), and JWT Access Token Verification
-({{jwt-access-token-binding}}) - are informative descriptions of how
-the same machinery applies to related token contexts; they introduce
-no new on-the-wire requirements.
+The bindings — ID-JAG ({{id-jag-profile}}) and the OAuth Actor
+Profile ({{actor-profile-binding}}) — are normative for deployments
+using those features. {{related-token-contexts}} describes how the
+same machinery applies informally to other token contexts
+(Transaction Tokens, JWT access tokens).
 
 ## ID-JAG {#id-jag-profile}
 
@@ -852,8 +661,10 @@ evaluation.
 
 For ID-JAG {{ID-JAG}}, `grant_profiles_supported` contains the value
 `urn:ietf:params:oauth:grant-profile:id-jag`. When the trust policy
-requires Subject Identifier evaluation, the Resource Authorization
-Server applies the policy to the ID-JAG `sub_id` claim.
+requires subject identifier evaluation, the Resource Authorization
+Server applies the policy to the email attribution carried by the
+ID-JAG. The email is taken from the top-level `email` claim,
+accompanied by `email_verified=true`, per {{dii-authority}}.
 
 In addition to the processing in {{rasp}}, the Resource Authorization
 Server MUST:
@@ -864,20 +675,22 @@ Server MUST:
 2. Verify that the ID-JAG `aud` identifies the Resource Authorization
    Server.
 
-3. Verify that the ID-JAG `sub_id`, when present or required, uses a
-   format listed in `subject_identifier_formats_supported`, if that
-   trust policy member is present.
+3. Verify that the email attribution carried by the ID-JAG, when
+   present or required, uses a subject identifier shape registered
+   in `subject_identifier_formats_supported`, if that trust policy
+   member is present.
 
-4. Use `sub_id` only for subject resolution and Subject Authority
-   evaluation. The Resource Authorization Server MUST NOT treat the
-   mere presence or value of `sub_id` as proof that the ID-JAG issuer
-   is authoritative for the subject; issuer acceptability is established
-   only by evaluating the Trust Methods.
+4. Use the email attribution only for subject resolution and Subject
+   Authority evaluation. The Resource Authorization Server MUST NOT
+   treat the mere presence or value of the email claim as proof
+   that the ID-JAG issuer is authoritative for the subject; issuer
+   acceptability is established only by evaluating the Trust Methods.
 
 If the `domain_authorized_issuer` Trust Method is used with ID-JAG,
-the Subject Authority is determined from `sub_id` according to its
-Subject Identifier format, and the Resource Authorization Server
-validates the delegation using the procedure in {{dii}}.
+the Subject Authority is determined from the top-level
+`email`/`email_verified` claims per {{dii-authority}} and the
+Resource Authorization Server validates the delegation using the
+procedure in {{dii}}.
 
 ## OAuth Actor Profile {#actor-profile-binding}
 
@@ -939,155 +752,6 @@ Whether the actor identified by `(act.iss, act.sub)` is permitted to
 act on behalf of the token's subject for a specific scope or
 resource remains a local authorization decision, consistent with the
 scope rules of {{ACTOR-PROFILE}}.
-
-## Transaction Tokens {#txn-tokens-binding}
-
-Transaction Tokens {{TXN-TOKENS}} carry authorization context across
-calls in an identity-chained transaction. A txn-token typically
-includes an `act` object identifying the actor that initiated the
-chain together with the subject's identity claims.
-
-A receiver verifying a txn-token applies:
-
-- The OAuth Actor Profile Binding ({{actor-profile-binding}}) when
-  the txn-token carries an `act` object, treating `act.sub` as the
-  Subject Identifier for namespace authorization.
-- The Resource Authorization Server Processing rules ({{rasp}}) for
-  evaluating the txn-token issuer's authority over the carried
-  Subject Identifier.
-
-A deployment using txn-tokens MAY list a txn-token profile identifier
-in the trust policy's `grant_profiles_supported` so that a single
-trust policy document can scope itself to both grant-endpoint and
-txn-token verification.
-
-## Security Event Token Receivers {#set-binding}
-
-A Security Event Token (SET) {{RFC8417}} receiver verifying a SET
-that carries an RFC 9493 Subject Identifier faces a trust question
-structurally identical to a Resource Authorization Server's: is this
-transmitter authorized to send events about subjects in this
-namespace? The Shared Signals Framework {{SSF}} and related event
-delivery specifications surface this question across many SET
-deployments.
-
-For the purposes of this binding, the SET transmitter (identified by
-the SET's `iss` claim) is treated as the Assertion Issuer; Trust
-Method evaluation proceeds against this identifier as it would
-against the `iss` of an identity assertion.
-
-The Trust Method machinery, Trust Method categories, and
-Domain-Authorized Issuer Discovery apply to SET reception. When a
-SET carries a Subject Identifier whose format has a registered
-Subject Authority Extraction Procedure ({{iana-authority-registry}}),
-the receiver:
-
-1. Determines the Subject Authority from the SET's Subject
-   Identifier per {{dii-authority}}.
-
-2. Retrieves the Issuer Authorization Policy by applying
-   {{dii-lookup}}. The receiver assumes the role of consumer; the
-   asymmetry in {{dii-lookup}} between verifier and discovery
-   client applies with the receiver acting as the verifier.
-
-3. Verifies that the SET's `iss` matches an entry in
-   `authorized_issuers` per {{dii-verification}}.
-
-A SET receiver MAY additionally evaluate `issuer_authentication`
-methods (such as `openid_federation` or `registry_trust_mark`)
-against the SET's `iss` and combine them with
-`subject_namespace_authorization` methods per the cross-category
-combination rule of {{rasp}}.
-
-A SET receiver applying this binding requires configuration that
-identifies which Trust Methods to evaluate against an incoming SET.
-This configuration is not delivered by the SET itself and is not
-implicit in the SET subject; SET receivers MUST establish it
-out-of-band. Recommended channels:
-
-- For Shared Signals Framework {{SSF}} deployments, the receiver's
-  stream registration metadata MAY carry an
-  `identity_assertion_trust_policy_uri` member referencing the
-  trust policy that governs the stream's events. The trust policy
-  consumed via that URI applies to all SETs delivered over the
-  stream until the stream's metadata is updated.
-
-- For non-SSF deployments, the receiver maintains a local mapping
-  from transmitter identity (or transmitter `iss` value) to the
-  applicable trust policy. Updates to that mapping are operational
-  configuration tasks.
-
-In the absence of any configured trust policy, a SET receiver
-applying this binding MUST reject the SET. Defining a discovery
-channel from the SET's `iss` to a trust policy URI is out of scope
-for this document.
-
-## JWT Access Token Verification {#jwt-access-token-binding}
-
-A resource server that verifies JWT access tokens {{RFC9068}}
-carrying identity claims faces the same issuer-trust questions as a
-Resource Authorization Server: is the token's `iss` an authentic
-issuer, and is it entitled to assert the identity claims the token
-carries about the subject?
-
-For the purposes of this binding, the JWT access token's issuing
-authorization server (identified by the token's `iss` claim) is
-treated as the Assertion Issuer; Trust Method evaluation proceeds
-against this identifier as it would against the `iss` of an identity
-assertion.
-
-A resource server MAY:
-
-1. Reuse the trust policy published by its associated authorization
-   server, when an exclusive AS-RS pairing exists. In this case the
-   resource server consumes the trust policy at the URI in the AS
-   metadata.
-
-2. Publish its own Identity Assertion Issuer Trust Policy by
-   including the `identity_assertion_trust_policy_uri` member in its
-   Protected Resource Metadata {{RFC9728}}. The policy expresses the
-   trust criteria the resource server applies to incoming JWT access
-   tokens, independently of (or in addition to) any authorization
-   server's policy.
-
-   In this case, the `resource_authorization_server` member of the
-   policy document names the authorization server whose tokens this
-   particular policy governs - not the publisher of the policy. The
-   publisher is implicit: it is the Protected Resource whose
-   metadata carries the `identity_assertion_trust_policy_uri`
-   pointing at the document. A resource server that accepts tokens
-   from multiple authorization servers MAY publish multiple policy
-   documents, each naming a different `resource_authorization_server`,
-   and reference them from Protected Resource Metadata extensions or
-   per-AS variants of `identity_assertion_trust_policy_uri` defined
-   by deployment convention.
-
-When the JWT access token carries an RFC 9493 Subject Identifier in
-`sub_id`, the resource server applies the trust policy as described
-in {{rasp}}, with the JWT access token in place of an identity
-assertion JWT. When the JWT access token carries an actor object,
-the OAuth Actor Profile Binding in {{actor-profile-binding}}
-applies.
-
-A resource-server-published trust policy MAY use
-`grant_profiles_supported` to list the access token profiles it
-accepts (for example, a JWT access token profile identifier). The
-IANA Identity Assertion Issuer Trust Methods registry, Subject
-Authority Extraction Procedures registry, and Domain-Authorized
-Issuer Discovery machinery apply unchanged.
-
-A resource server that accepts JWT access tokens from multiple
-authorization servers MAY require different `required_claims` from
-different authorization servers. Because `required_claims` is set per
-trust policy document, this is expressed by publishing a separate
-policy per authorization server (as described in option 2 above);
-attempting to express different requirements for different issuers
-within a single policy is not supported by this document.
-Resource servers that require a claim (such as `acr` or a
-deployment-specific value) MUST publish that requirement only in
-policies governing authorization servers that actually issue the
-claim; requiring a claim no Assertion Issuer in scope can produce
-will cause all assertions to be rejected.
 
 # Domain-Authorized Issuer Discovery {#dii}
 
@@ -1158,33 +822,32 @@ determined as registered in {{iana-authority-registry}}. Initial
 extractions:
 
 `email`
-: The Subject Authority is derived from the domain part of the email
-  address (the portion after the `@`). Consumers MUST reject an `email`
-  Subject Identifier that does not contain exactly one `@` character or
-  whose domain part is empty. The local-part is not used. The domain
-  is then normalized to the registrable domain ("eTLD+1") using a
-  current Public Suffix List {{PSL}}: the Subject Authority is the
-  shortest suffix of the email's domain that is not itself a public
-  suffix. The result is converted to A-label form per {{RFC5891}} and
-  compared using case-insensitive ASCII comparison. Normalization to
-  the registrable domain is consistent with the email-domain handling
-  in the Email Verification Protocol {{WICG-EMAIL-VERIF}} and prevents
-  an attacker who controls a subdomain (for example, via subdomain
-  takeover) from publishing a Subject Authority record that would
-  override the legitimate record at the registrable domain. Consumers
-  MUST reject `email` Subject Identifiers whose domain is itself a
+: The Subject Authority is derived from the assertion's top-level
+  `email` claim, which MUST be accompanied by a top-level
+  `email_verified` claim with the boolean value `true`. If the
+  `email_verified` claim is absent or has any value other than
+  `true`, the email extraction does not apply.
+  
+  Consumers MUST reject an `email` claim value that does not contain
+  exactly one `@` character or whose domain part is empty. The
+  local-part is not used. The domain is then normalized to the
+  registrable domain ("eTLD+1") using a current Public Suffix List
+  {{PSL}}: the Subject Authority is the shortest suffix of the
+  email's domain that is not itself a public suffix. The result is
+  converted to A-label form per {{RFC5891}} and compared using
+  case-insensitive ASCII comparison. Normalization to the
+  registrable domain is consistent with the email-domain handling
+  in the Email Verification Protocol {{WICG-EMAIL-VERIF}} and
+  prevents an attacker who controls a subdomain (for example, via
+  subdomain takeover) from publishing a Subject Authority record
+  that would override the legitimate record at the registrable
+  domain. Consumers MUST reject an email whose domain is itself a
   public suffix (no registrable domain exists).
 
-`iss_sub`
-: The Subject Authority is the host component of the `iss` URL of the
-  Subject Identifier as defined in {{RFC9493}}. Consumers MUST reject
-  an `iss_sub` Subject Identifier whose `iss` value is not an absolute
-  URL with a non-empty host. The host is converted to A-label form per
-  {{RFC5891}} and compared using case-insensitive ASCII comparison.
-
-Subject Identifier formats not registered for this purpose MUST NOT be
-evaluated under this Trust Method; the Resource Authorization Server
-MUST reject the assertion with an OAuth `invalid_grant` error.
+Subject identifier shapes not registered for this purpose MUST NOT
+be evaluated under this Trust Method; the Resource Authorization
+Server MUST reject the assertion with an OAuth `invalid_grant`
+error.
 
 ## Issuer Authorization Policy Document {#dii-document}
 
@@ -1238,62 +901,27 @@ object has:
 `last_updated`
 : OPTIONAL. RFC 3339 date-time at which the policy was last published.
 
-`mode`
-: OPTIONAL. String. One of `enforce`, `testing`, or `none`. Defaults
-to `enforce` if omitted. Modeled after the `mode` field in
-MTA-STS {{RFC8461}}. Semantics are defined in {{dii-mode}}.
-
-`id`
-: OPTIONAL. String. An opaque token that changes when the policy
-content changes. Modeled after the `id` field in MTA-STS
-{{RFC8461}}. Consumers MAY use this value to detect changes without
-refetching the policy body; see {{dii-dns-record}} for use of the
-matching DNS `id=` directive. The value MUST be 1-64 ASCII
-characters from the set `[A-Za-z0-9._-]`. Consumers MUST reject
-`id` values outside this character set or length range.
-
-`crit`
-: OPTIONAL. JSON array of strings. Each string names a member of
-this policy document (top-level or within an `authorized_issuers`
-entry) whose recognition the publisher considers critical for
-correct interpretation. Inspired by the CAA {{RFC8659}} critical
-flag and parallel to the DNS-side `crit=` directive
-({{dii-dns-record}}). If a consumer does not recognize any string
-listed in `crit`, the consumer MUST treat the policy as
-`malformed` ({{dii-failures}}). Member names defined in this
-document (`subject_authority`, `authorized_issuers`,
-`last_updated`, `mode`, `id`, `crit`, and the nested-object
-members `issuer`, `subject_identifier_formats`, `valid_from`,
-`valid_until`) are always recognized. The `crit` array lets a
-publisher ensure that future critical IAP-document extensions are
-not silently ignored by older consumers.
-
-Unrecognized members MUST be ignored, except when listed in `crit`.
-Consumers MUST reject a policy whose `subject_authority` member is
-absent or is not a string, or whose `subject_authority` value does not
-match the computed Subject Authority. Consumers MUST reject a policy
-whose `authorized_issuers` member is absent, empty, not an array, or
-contains an element that is not an object. Consumers MUST reject an
-authorized issuer object that lacks a string `issuer` member or whose
-`issuer` member is not a syntactically valid issuer identifier for the
-applicable assertion grant profile. For OAuth authorization server
-issuer identifiers, a non-HTTPS URL, a relative URL, or a URL with a
+Unrecognized members MUST be ignored. Consumers MUST reject a policy
+whose `subject_authority` member is absent or is not a string, or
+whose `subject_authority` value does not match the computed Subject
+Authority. Consumers MUST reject a policy whose `authorized_issuers`
+member is absent, empty, not an array, or contains an element that
+is not an object. Consumers MUST reject an authorized issuer object
+that lacks a string `issuer` member or whose `issuer` member is not
+a syntactically valid issuer identifier for the applicable
+assertion grant profile. For OAuth authorization server issuer
+identifiers, a non-HTTPS URL, a relative URL, or a URL with a
 fragment component is malformed. Consumers MUST reject a
-`subject_identifier_formats` value that is present but is not an array
-of strings. Consumers MUST reject `valid_from`, `valid_until`, and
-`last_updated` values that are present but are not valid RFC 3339
-date-times. Consumers MUST reject a `mode` value other than `enforce`,
-`testing`, or `none`. Consumers MUST reject an `id` value outside the
-character set or length range defined above. Consumers MUST reject a
-`crit` value that is not an array of strings.
+`subject_identifier_formats` value that is present but is not an
+array of strings. Consumers MUST reject `valid_from`,
+`valid_until`, and `last_updated` values that are present but are
+not valid RFC 3339 date-times.
 
 Example:
 
 ~~~ json
 {
   "subject_authority": "example.com",
-  "mode": "enforce",
-  "id": "20260501T0000Z",
   "authorized_issuers": [
     {
       "issuer": "https://idp.example.com",
@@ -1304,42 +932,6 @@ Example:
   "last_updated": "2026-05-01T00:00:00Z"
 }
 ~~~
-
-### Policy Mode {#dii-mode}
-
-The `mode` field controls how verifiers apply the policy. The
-mechanism is inspired by MTA-STS {{RFC8461}}'s `mode` field but has
-different semantics in the authorization direction (see {{dii-mode-security}}).
-
-`enforce`
-: The default. Verifiers apply the policy normally: an unauthorized
-issuer causes assertion rejection per {{dii-verification}}.
-
-`testing`
-: Verifiers SHOULD evaluate the policy and SHOULD log what the
-result would have been under `enforce`, but the policy MUST NOT
-satisfy a `subject_namespace_authorization` Trust Method. For
-purposes of the Trust Method combination rule, a `testing` policy
-is ignored as authorization evidence. Used by Subject Authorities to
-validate a draft policy before promoting to `enforce`.
-
-`none`
-: Verifiers MUST NOT apply this policy as evidence for any
-`subject_namespace_authorization` Trust Method evaluation; the
-policy exists only for Assertion Issuer discovery clients
-({{dii-hrd}}). For purposes of the Trust Method combination rule, a
-`none` policy is ignored as authorization evidence. Used when a
-Subject Authority wants its issuer set discoverable but is not yet
-ready to assert delegation.
-
-Assertion Issuer discovery clients ({{dii-hrd}}) ignore the `mode`
-field; the field affects only verifier behavior.
-
-A Subject Authority SHOULD NOT remain in `testing` or `none` mode for
-more than 30 days. Prolonged non-enforcing modes leave the namespace
-without effective `subject_namespace_authorization` evidence, which
-can cause Resource Authorization Servers that depend on this Trust
-Method to reject all assertions about subjects in the namespace.
 
 ## Publication
 
@@ -1437,45 +1029,6 @@ the value MUST be an absolute HTTPS URL and MUST NOT contain a
 fragment component. MAY appear multiple times within a record and
 across records.
 
-`id=POLICY_ID`
-: OPTIONAL. An opaque cache-invalidation token, modeled after the
-`id` field in MTA-STS {{RFC8461}}. Value MUST be 1-64 ASCII
-characters from the set `[A-Za-z0-9._-]`; a malformed `id=` value is a
-`malformed` outcome. For the pointer form, the
-`id=` value SHOULD match the `id` member of the HTTPS-served
-policy and consumers SHOULD use a change in the `id=` value as a
-signal to refetch the HTTPS document before its HTTP cache lifetime
-expires. For the inline form, `id=` is informational; it MAY appear
-to assist deployments that publish DNS and HTTPS forms in parallel.
-At most one `id=` directive is permitted across the recognized
-records for a single Subject Authority; multiple distinct values
-are a `malformed` outcome (see {{dii-failures}}).
-
-`mode=MODE`
-: OPTIONAL. One of `enforce`, `testing`, or `none`. Defaults to
-`enforce`. Same semantics as the `mode` member of the HTTPS-served
-policy (see {{dii-mode}}). For the pointer form, if `mode=` appears in
-DNS, it MUST agree with the effective `mode` of the fetched HTTPS
-document, where an omitted JSON `mode` is interpreted as `enforce`;
-disagreement is a `malformed` outcome. At most one `mode=` directive is
-permitted across the recognized records for a single Subject Authority;
-multiple distinct values are a `malformed` outcome.
-
-`crit=DIRECTIVE_NAMES`
-: OPTIONAL. Comma-separated, case-insensitive list of directive
-names declared by the publisher as critical for correct
-interpretation of this record. Inspired by the critical flag in
-DNS Certification Authority Authorization {{RFC8659}}. Each named
-directive MUST be present in the same record. Directive names in
-`crit=` MUST use the same character set as directive names and MUST NOT
-be empty. If a consumer does not recognize any directive name listed in
-`crit=`, or if a named directive is not present in the same record, the
-consumer MUST treat the record as `malformed` (see {{dii-failures}}).
-Directive names defined by this document (`authority`, `uri`,
-`issuer`, `id`, `mode`, `crit`) are always recognized; `crit=` exists
-to let future extensions add directives whose presence MUST NOT be
-silently ignored.
-
 A recognized record MUST contain at least one `uri=` directive or at
 least one `issuer=` directive. Recognized records containing neither
 MUST be treated as malformed (see {{dii-failures}}).
@@ -1536,12 +1089,9 @@ discovery ({{dii-hrd}}), with one asymmetry noted at the end.
 
       Before continuing, validate the remaining recognized records
       against the directive rules in {{dii-dns-record}}. This includes
-      rejecting malformed `uri=`, `issuer=`, `id=`, `mode=`, and
-      `crit=` values; records whose `crit=` lists an unknown or absent
-      directive; records with neither `uri=` nor `issuer=`; multiple
-      distinct `id=` values across the remaining records; and multiple
-      distinct `mode=` values across the remaining records. Any such
-      condition is a `malformed` outcome.
+      rejecting malformed `uri=` or `issuer=` values and records with
+      neither `uri=` nor `issuer=`. Any such condition is a
+      `malformed` outcome.
 
    b. If any remaining record contains a `uri=` directive:
 
@@ -1554,26 +1104,13 @@ discovery ({{dii-hrd}}), with one asymmetry noted at the end.
         records are ignored.
 
    c. Otherwise (no `uri=` present), construct a virtual Issuer
-      Authorization Policy with `subject_authority` set to `A` and one
-      entry in `authorized_issuers` for each distinct `issuer=` value
-      across the remaining records, in the order first seen. Entries
-      have no `subject_identifier_formats`, `valid_from`, or
-      `valid_until`. The virtual policy's `mode` is set from the
-      `mode=` directive when present and defaults to `enforce`
-      otherwise. The virtual policy's `id` is set from the `id=`
-      directive when present and is absent otherwise. The virtual
-      policy is processed identically to one fetched over HTTPS, except
-      that its cache lifetime is derived from DNS TTLs as described in
-      {{dii-caching}}.
-
-   d. When `uri=` is used and the DNS record carries `mode=`, compare
-      it to the effective `mode` of the fetched HTTPS document, where
-      an omitted JSON `mode` is interpreted as `enforce`. The two
-      values MUST agree; disagreement is a `malformed` outcome. When
-      both carry an `id` (DNS `id=` and policy `id`), the values SHOULD
-      agree; consumers MAY tolerate transient disagreement during
-      publisher rotation but SHOULD treat persistent disagreement as
-      `malformed`.
+      Authorization Policy with `subject_authority` set to `A` and
+      one entry in `authorized_issuers` for each distinct `issuer=`
+      value across the remaining records, in the order first seen.
+      Entries have no `subject_identifier_formats`, `valid_from`, or
+      `valid_until`. The virtual policy is processed identically to
+      one fetched over HTTPS, except that its cache lifetime is
+      derived from DNS TTLs as described in {{dii-caching}}.
 
 3. If the DNS response is `negative-authoritative` (or DNS was not
    consulted), fetch the policy from the default HTTPS well-known URL
@@ -1613,7 +1150,7 @@ reject the assertion. A client reports that no policy exists.
 `authority=` when no recognized record for the same query name has a
 matching `authority=`, with neither `uri=` nor `issuer=` after
 parsing, with multiple distinct `uri=`, `id=`, or `mode=` values, with
-a malformed `uri=`, `issuer=`, `id=`, `mode=`, or `crit=` directive,
+a malformed `uri=` or `issuer=` directive,
 or otherwise unparseable; or an HTTPS response with an unsupported
 media type, an entity body larger than the consumer's configured
 maximum, an HTTP status other than success, redirect, 404, 410, or
@@ -1646,7 +1183,7 @@ Inline form (no HTTPS endpoint required on `acme.example`):
 _oauth-issuer-policy.acme.example.  IN  TXT
   "v=oauth-issuer-policy1;
    authority=acme.example;
-   issuer=https://idp.bigprovider.com;
+   issuer=https://idp.bigprovider.example;
    issuer=https://backup-idp.example.net"
 ~~~
 
@@ -1691,30 +1228,10 @@ Resource Authorization Server MUST:
 Steps 1 and 2 are prerequisites; their failure causes assertion
 rejection per {{dii-failures}} and is not classified as a Trust
 Method satisfaction outcome. The Trust Method is satisfied when
-steps 3 through 6 all succeed. The policy's `mode` (see {{dii-mode}})
-then determines how the result feeds into trust policy evaluation:
-
-`enforce`
-: The Trust Method's success or failure is used directly. A failure
-means this Trust Method object is not satisfied. The Resource
+steps 3 through 6 all succeed. On failure, the Resource
 Authorization Server MUST reject the assertion with an OAuth
 `invalid_grant` error when the cross-category combination rule of
 {{rasp}} is not met.
-
-`testing`
-: The Resource Authorization Server SHOULD log whether steps 3 through
-6 would have succeeded under `enforce` (including the policy's `id` and
-`last_updated` values where present), but MUST NOT treat this policy as
-satisfying the Trust Method. The assertion is then evaluated against
-the remaining policy and the cross-category combination rule of
-{{rasp}}.
-
-`none`
-: The policy MUST NOT contribute evidence for the
-`domain_authorized_issuer` Trust Method at all. The Resource
-Authorization Server skips steps 3 through 6 and treats the Trust
-Method as not satisfied by this policy. The assertion may still be
-accepted if another Trust Method category applies and is satisfied.
 
 ## Assertion Issuer Discovery {#dii-hrd}
 
@@ -1740,13 +1257,24 @@ authorization server(s) for the namespace:
    (`/.well-known/oauth-authorization-server`) first; on `404 Not
    Found` or equivalent the client MAY fall back to OpenID Connect
    Discovery {{OIDC-DISCOVERY}}
-   (`/.well-known/openid-configuration`). The client MUST verify
-   that the discovered document's `issuer` value exactly matches the
-   issuer identifier from the Issuer Authorization Policy
-   using the comparison rules of {{RFC8414}}. A discovery transport
-   failure or HTTP server error (5xx) SHOULD be treated as an
-   `indeterminate` outcome for that candidate; the client MAY try
-   other candidates.
+   (`/.well-known/openid-configuration`). For path-bearing issuer
+   identifiers (for example,
+   `https://login.example.com/{tenant}/v2.0`), the two standards
+   construct the metadata URL differently: {{RFC8414}} inserts
+   `/.well-known/oauth-authorization-server` between the host and
+   the path, yielding
+   `https://login.example.com/.well-known/oauth-authorization-server/{tenant}/v2.0`,
+   while OpenID Connect Discovery appends
+   `/.well-known/openid-configuration` after the path, yielding
+   `https://login.example.com/{tenant}/v2.0/.well-known/openid-configuration`.
+   For such issuers the client SHOULD attempt both constructions in
+   order before declaring a candidate unresolvable. The client MUST
+   verify that the discovered document's `issuer` value exactly
+   matches the issuer identifier from the Issuer Authorization
+   Policy using the comparison rules of {{RFC8414}}. A discovery
+   transport failure or HTTP server error (5xx) SHOULD be treated
+   as an `indeterminate` outcome for that candidate; the client MAY
+   try other candidates.
 
 When the policy lists more than one candidate, selection is
 application-defined. The HTTPS and DNS pointer forms preserve
@@ -1760,11 +1288,6 @@ any relationship with a Resource Authorization Server. The records
 stand on their own; the trust policy in the main body of this
 document governs only how a Resource Authorization Server
 later verifies assertions issued by the discovered issuer.
-
-Assertion Issuer discovery clients ignore the `mode` field; a
-Subject Authority publishing a policy with `mode: testing` or
-`mode: none` still lists the same `authorized_issuers` and is
-discoverable in the same way.
 
 The Assertion Issuer discovery flow defined here is intended for
 back-channel (server-to-server) consumers. It is not
@@ -1899,38 +1422,6 @@ Policy to establish trust in an Assertion Issuer for subjects outside
 the matched Subject Authority. The policy authorizes an Assertion
 Issuer only within the namespace the Subject Authority controls.
 
-### Policy Mode Semantics and Observability {#dii-mode-security}
-
-The `mode` field's semantics differ from MTA-STS {{RFC8461}} in
-important ways. MTA-STS is restrictive: enforce-mode policy
-violations cause mail rejection, and testing-mode violations are
-logged but mail is delivered (soft pass). This document is
-authorizing: enforce-mode policy authorizes specific Assertion
-Issuers, testing-mode and none-mode policies do not contribute
-authorization evidence (soft fail). The directional difference is
-intentional: a soft pass on authorization would let an attacker
-present an assertion from an unauthorized Assertion Issuer and be
-accepted on the strength of a "testing" policy, which would defeat
-the purpose of the Trust Method. The soft-fail semantics ensure that
-testing mode cannot weaken security relative to publishing no
-policy at all.
-
-A consequence is that Subject Authorities have limited
-observability into their policy's correctness during testing. A
-verifier in testing mode evaluates the policy and logs what enforce
-would have decided, but those logs are local to the verifier. This
-document defines no telemetry channel from verifier back to
-Subject Authority comparable to MTA-STS TLS-RPT; Subject Authorities
-that need such observability rely on out-of-band reporting
-arrangements with cooperating verifiers.
-
-Subject Authorities SHOULD NOT publish in `testing` or `none` mode
-for more than 30 days. Prolonged non-enforcing publication leaves
-the namespace effectively unauthorized for Resource Authorization
-Servers that depend on this Trust Method as their sole
-`subject_namespace_authorization` evidence, and forfeits the
-revocation benefits the Trust Method is intended to provide.
-
 ### Email Local-Part Is Not Authenticated by This Trust Method
 
 The Subject Authority Extraction for `email` uses only the domain
@@ -1961,6 +1452,32 @@ The inline DNS form expresses only "issuer X is authorized for
 Subject Authority A." It cannot express `subject_identifier_formats`,
 `valid_from`, or `valid_until`. Subject Authorities needing any of
 those MUST use the HTTPS or DNS pointer form.
+
+### Single-Issuer Multi-Tenant Identity Providers {#dii-multi-tenant}
+
+Some Identity Providers serve many independent tenants under a
+single issuer identifier (for example, `https://accounts.google.com`
+serving every Google Workspace tenant). The tenant is distinguished
+by a top-level JWT claim such as `hd` rather than by the `iss`
+value. When a Subject Authority lists such an Identity Provider in
+`authorized_issuers`, the trust grant is to the Identity Provider as
+a whole, not to a specific tenant: the framework cannot from the JWT
+alone determine which tenant minted the assertion.
+
+Subject Authorities authorizing such Identity Providers MUST trust
+the Identity Provider to enforce email-domain-to-tenant binding (or
+equivalent namespace ownership) at issuance, so that no tenant other
+than the Subject Authority itself can mint assertions about the
+Subject Authority's subjects. Reputable Identity Providers require
+domain-ownership verification before tenant provisioning; Subject
+Authorities SHOULD verify that an Identity Provider performs this
+check before listing it. Identity Providers that publish per-tenant
+issuer identifiers (for example,
+`https://login.microsoftonline.com/{tenant-id}/v2.0`) sidestep this
+issue because each tenant has a distinct `iss` value that can be
+listed individually. Deployments needing wire-format-enforced
+per-tenant binding for single-issuer Identity Providers require a
+future extension; this document does not provide such a mechanism.
 
 ### Assertion Issuer Discovery Threats
 
@@ -2088,8 +1605,8 @@ Trust policies are typically published as unauthenticated HTTPS
 resources. Adversaries can scrape policies across many Resource
 Authorization Servers to map an entire federation deployment
 landscape: which Resource Authorization Servers participate in
-which federations, which trust mark types and trust anchors are
-accepted, which Subject Identifier formats are honored. This
+which federations, which trust anchors are accepted, which Subject
+Identifier formats are honored. This
 information aids targeted attacks against federation infrastructure
 (for example, prioritizing compromise of a heavily-relied-upon trust
 anchor). Operators SHOULD treat the choice of what to publish in a
@@ -2103,8 +1620,8 @@ Clients and Resource Authorization Servers SHOULD respect HTTP
 caching headers on the trust policy document, subject to local
 maximum cache lifetimes. A Resource Authorization Server changing
 its trust policy SHOULD use short cache lifetimes during migration.
-Revocation of a Trust Anchor, trust mark, or federation entity
-SHOULD NOT rely on cached policy expiration alone; revocation status
+Revocation of a Trust Anchor or federation entity SHOULD NOT rely
+on cached policy expiration alone; revocation status
 of validated trust evidence MUST be checked at the cadence required
 by the applicable Trust Method specification. Transport integrity of
 the policy document itself is addressed in {{integrity}}.
@@ -2118,28 +1635,19 @@ this document). The determination MUST avoid wildcard, suffix,
 regular-expression, and substring matching unless explicitly
 specified by the relevant Subject Identifier format.
 
-## Client Requirement Verification
-
-If the trust policy lists client authentication, sender-constraining,
-or client identifier methods, the Resource Authorization Server MUST
-verify that the presenting client satisfies the corresponding
-requirement at token request time. Metadata alone is not proof of
-key possession, of client identity, or of sender-constraining.
-
 ## Observability
 
 Trust policy evaluation is a security-critical decision and SHOULD
 be auditable. Resource Authorization Servers SHOULD log, for each
 processed identity assertion, at minimum: the Assertion Issuer
-identifier; the trust policy URI and its `last_updated` value (or an
-equivalent cache identifier); the Trust Method identifier or
-identifiers that succeeded; the matched trust anchor, trust mark
-type, or Issuer Authorization Policy origin where applicable;
-the Subject Identifier format used for subject-namespace evaluation;
-the client authentication, sender-constraining, and client identifier
-methods accepted; and the outcome (`accepted` or the specific
-rejection reason). Log records SHOULD support correlation across the
-issuance and verification halves of an identity-chain transaction.
+identifier; the trust policy URI and its `last_updated` value (or
+an equivalent cache identifier); the Trust Method identifier or
+identifiers that succeeded; the matched trust anchor or Issuer
+Authorization Policy origin where applicable; the Subject
+Identifier format used for subject-namespace evaluation; and the
+outcome (`accepted` or the specific rejection reason). Log records
+SHOULD support correlation across the issuance and verification
+halves of an identity-chain transaction.
 
 # Privacy Considerations
 
@@ -2255,64 +1763,6 @@ Initial entries:
 | `openid_federation` | `issuer_authentication` | `trust_anchors` (array of string, REQUIRED) | This document |
 | `domain_authorized_issuer` | `subject_namespace_authorization` | `dns_discovery` (boolean, OPTIONAL) | This document |
 | `email_verification_dns` | `subject_namespace_authorization` | (none) | This document, {{WICG-EMAIL-VERIF}} |
-| `registry_trust_mark` | `issuer_authentication` | `trust_anchors` (array of string, REQUIRED); `trust_mark_types` (array of string, REQUIRED) | This document |
-
-### OAuth Token Endpoint Authentication Methods Registry
-
-This document makes no new registrations in the IANA "OAuth
-Token Endpoint Authentication Methods" registry. Values used in
-`client_authentication_methods_supported` are drawn from that
-registry.
-
-### Identity Assertion Sender-Constraining Methods Registry {#iana-sender-constraining-registry}
-
-IANA is requested to establish a new registry titled "Identity
-Assertion Sender-Constraining Methods" under the "OAuth Parameters"
-registry group.
-
-Registration policy: Specification Required {{RFC8126}}.
-
-Each registry entry contains:
-
-Identifier:
-: Short string used as a value in
-`sender_constraining_methods_supported`.
-
-Reference:
-: A reference to the specification defining the sender-constraining
-mechanism.
-
-Initial entries:
-
-| Identifier | Reference |
-|-|-|
-| `dpop` | {{RFC9449}}, this document |
-| `mtls` | {{RFC8705}}, this document |
-
-### Identity Assertion Client Identifier Methods Registry {#iana-client-identifier-registry}
-
-IANA is requested to establish a new registry titled "Identity
-Assertion Client Identifier Methods" under the "OAuth Parameters"
-registry group.
-
-Registration policy: Specification Required {{RFC8126}}.
-
-Each registry entry contains:
-
-Identifier:
-: Short string used as a value in
-`client_identifier_methods_supported`.
-
-Reference:
-: A reference to the specification defining the client identifier
-method.
-
-Initial entries:
-
-| Identifier | Reference |
-|-|-|
-| `registered_client_id` | This document |
-| `client_id_metadata_document` | {{CIMD}}, this document |
 
 ## Issuer Authorization Policy Registrations
 
@@ -2387,7 +1837,6 @@ Initial entries:
 | Subject Identifier Format | Subject Authority Form | Extraction Procedure |
 |-|-|-|
 | `email` | DNS domain | {{dii-authority}} of this document |
-| `iss_sub` | URL host | {{dii-authority}} of this document |
 
 --- back
 
@@ -2457,8 +1906,7 @@ authorization:
       "method": "domain_authorized_issuer",
       "dns_discovery": true
     }
-  ],
-  "client_authentication_methods_supported": ["private_key_jwt"]
+  ]
 }
 ~~~
 
@@ -2494,8 +1942,7 @@ _oauth-issuer-policy.partner.example.  IN  TXT
 
 3. The Client authenticates Alice at `idp.partner.example` (out of
    scope for this document). It then requests an ID-JAG with
-   audience `https://api.resource.example` and `sub_id` carrying
-   Alice's email.
+   audience `https://api.resource.example` and Alice's email.
 
 4. The Assertion Issuer returns the ID-JAG (decoded payload,
    illustrative):
@@ -2508,10 +1955,8 @@ _oauth-issuer-policy.partner.example.  IN  TXT
      "iat": 1748630100,
      "jti": "8e9b...",
      "sub": "user-7c2a4f",
-     "sub_id": {
-       "format": "email",
-       "email": "alice@partner.example"
-     },
+     "email": "alice@partner.example",
+     "email_verified": true,
      "acr": "urn:mace:incommon:iap:silver"
    }
    ~~~
@@ -2544,18 +1989,17 @@ _oauth-issuer-policy.partner.example.  IN  TXT
    matches the listed `trust_anchors` entry.
 
 8. For the `subject_namespace_authorization` category, the Resource
-   Authorization Server extracts `partner.example` from `sub_id.email`,
+   Authorization Server extracts `partner.example` from the
+   assertion's top-level `email` claim (with `email_verified=true`),
    retrieves the Issuer Authorization Policy from
-   `_oauth-issuer-policy.partner.example`, and verifies
-   that `https://idp.partner.example` appears in `authorized_issuers`.
+   `_oauth-issuer-policy.partner.example`, and verifies that
+   `https://idp.partner.example` appears in `authorized_issuers`.
 
-9. The Resource Authorization Server checks
-   `client_authentication_methods_supported`. The client's
-   `client_assertion` is a `private_key_jwt` signed by a registered
-   key, which is accepted.
-
-10. Verification succeeds. The Resource Authorization Server issues
-   an access token in the response body.
+9. Verification succeeds. The Resource Authorization Server issues
+   an access token in the response body. Client authentication
+   (`private_key_jwt`) is handled by the ID-JAG grant profile and
+   the underlying OAuth client-authentication mechanism; trust
+   framework evaluation does not govern it.
 
 ## Failure Variants
 
@@ -2592,7 +2036,7 @@ verify the resulting assertion.
 - **Subject Authority**, `acme.example`. A small organization that owns
   its DNS but does not operate an authorization server capable of
   issuing identity assertions.
-- **Assertion Issuer**, `https://idp.bigprovider.com`. A managed
+- **Assertion Issuer**, `https://idp.bigprovider.example`. A managed
   authorization server service `acme.example` has contracted with.
 - **Resource Authorization Server**, `https://api.resource.example`.
 - **Client**, an agent provider acting on behalf of Alice.
@@ -2606,7 +2050,7 @@ The Subject Authority publishes a single DNS TXT record:
 _oauth-issuer-policy.acme.example.  IN  TXT
   "v=oauth-issuer-policy1;
    authority=acme.example;
-   issuer=https://idp.bigprovider.com"
+   issuer=https://idp.bigprovider.example"
 ~~~
 
 No HTTPS endpoint is operated on `acme.example`.
@@ -2626,9 +2070,7 @@ domain-authorized issuer delegations with DNS-based discovery:
       "method": "domain_authorized_issuer",
       "dns_discovery": true
     }
-  ],
-  "client_authentication_methods_supported": ["private_key_jwt"],
-  "sender_constraining_methods_supported": ["dpop"]
+  ]
 }
 ~~~
 
@@ -2653,34 +2095,31 @@ domain-authorized issuer delegations with DNS-based discovery:
    {
      "subject_authority": "acme.example",
      "authorized_issuers": [
-       { "issuer": "https://idp.bigprovider.com" }
+       { "issuer": "https://idp.bigprovider.example" }
      ]
    }
    ~~~
 
 5. The Client applies OAuth Authorization Server Metadata
-   {{RFC8414}} to `https://idp.bigprovider.com` and resolves its
+   {{RFC8414}} to `https://idp.bigprovider.example` and resolves its
    token endpoint.
 
 ## Assertion Issuance
 
-6. The Client authenticates Alice at `https://idp.bigprovider.com`
+6. The Client authenticates Alice at `https://idp.bigprovider.example`
    and requests an ID-JAG with audience
-   `https://api.resource.example` and `sub_id` carrying Alice's
-   email:
+   `https://api.resource.example` carrying Alice's email:
 
    ~~~ json
    {
-     "iss": "https://idp.bigprovider.com",
+     "iss": "https://idp.bigprovider.example",
      "aud": "https://api.resource.example",
      "exp": 1748630400,
      "iat": 1748630100,
      "jti": "5a17...",
      "sub": "user-9241",
-     "sub_id": {
-       "format": "email",
-       "email": "alice@acme.example"
-     }
+     "email": "alice@acme.example",
+     "email_verified": true
    }
    ~~~
 
@@ -2705,14 +2144,14 @@ domain-authorized issuer delegations with DNS-based discovery:
 
 8. The Resource Authorization Server validates the ID-JAG:
    signature (via
-   `https://idp.bigprovider.com/.well-known/openid-configuration`
+   `https://idp.bigprovider.example/.well-known/openid-configuration`
    JWKS), `aud`, `exp`, `iat`, replay protection.
 
 9. The Resource Authorization Server evaluates the
    `domain_authorized_issuer` Trust Method.
 
-   a. It extracts the Subject Authority from `sub_id.email`:
-      `acme.example`.
+   a. It extracts the Subject Authority from the top-level `email`
+      claim (with `email_verified=true`): `acme.example`.
 
    b. Because the trust policy has `dns_discovery: true`, the
       Resource Authorization Server queries DNS TXT at
@@ -2723,7 +2162,7 @@ domain-authorized issuer delegations with DNS-based discovery:
       present. The Resource Authorization Server constructs the same
       virtual policy the Client used in step 4.
 
-   d. The ID-JAG `iss` value `https://idp.bigprovider.com` matches
+   d. The ID-JAG `iss` value `https://idp.bigprovider.example` matches
       the single `authorized_issuers[0].issuer`. Verification
       succeeds.
 
@@ -2750,7 +2189,7 @@ and publish the richer JSON document at the pointed-at URL:
   "subject_authority": "acme.example",
   "authorized_issuers": [
     {
-      "issuer": "https://idp.bigprovider.com",
+      "issuer": "https://idp.bigprovider.example",
       "subject_identifier_formats": ["email"],
       "valid_until": "2027-01-01T00:00:00Z"
     },
@@ -2784,6 +2223,305 @@ are required at either consumer.
   the old issuer until its cache expires. Subject Authorities
   SHOULD use short DNS TTLs during rotation; consumers SHOULD
   enforce a local cache ceiling ({{dii-caching}}).
+
+# Agent Platform IdP End-to-End Example
+
+This appendix is non-normative.
+
+This example shows how the framework prevents an unauthorized
+provider from impersonating users in a customer's email namespace.
+The protection rests on a single deliberate choice by the customer:
+publishing an Issuer Authorization Policy that lists the specific
+agent platforms permitted to issue identity assertions about its
+users. Without that authorization, no provider — however well-known
+elsewhere — can mint an accepted ID-JAG for the namespace.
+
+## Cast
+
+- **Customer**, `example.com`. Owns the email domain of its users.
+  Decides which agent platforms are authorized to act as Assertion
+  Issuers for its users.
+- **Customer's Primary IdP**, `https://idp.example.com`. Used by
+  the agent platform to federate user authentication. Mentioned
+  only to describe the user-side SSO step; not the ID-JAG issuer
+  and not part of the verification path at the tool provider.
+- **Agent Platform**, `https://agentprovider.example`. Acts as a
+  downstream identity provider for tools. Authenticates users via
+  federated SSO from their primary IdP, then mints ID-JAGs with
+  `iss = https://agentprovider.example` carrying the user's
+  identity.
+- **Tool Provider / Resource Authorization Server**,
+  `https://toolprovider.example`. Verifies presented ID-JAGs
+  against its trust policy and issues access tokens.
+- **End user**, Alice (`alice@example.com`).
+
+## Publication
+
+The customer publishes an Issuer Authorization Policy authorizing
+exactly the providers it has chosen to trust as Assertion Issuers
+for its users:
+
+~~~
+_oauth-issuer-policy.example.com.  IN  TXT
+  "v=oauth-issuer-policy1;
+   authority=example.com;
+   issuer=https://agentprovider.example"
+~~~
+
+This is the gatekeeping mechanism. The customer's domain owner is
+the only party that can publish this record. Any provider not
+listed cannot be authorized for `example.com` subjects, regardless
+of how well-known the provider is in unrelated contexts.
+
+The tool provider publishes a Trust Policy that consults
+Domain-Authorized Issuer Discovery:
+
+~~~ json
+{
+  "resource_authorization_server": "https://toolprovider.example",
+  "grant_profiles_supported": [
+    "urn:ietf:params:oauth:grant-profile:id-jag"
+  ],
+  "subject_identifier_formats_supported": ["email"],
+  "issuer_trust_methods_supported": [
+    {
+      "method": "domain_authorized_issuer",
+      "dns_discovery": true
+    }
+  ]
+}
+~~~
+
+## User-Side SSO (Prerequisite, Out of Scope)
+
+Before any ID-JAG is minted, Alice establishes a session at the
+agent platform. The exact mechanism is out of scope; a typical
+flow:
+
+1. Alice opens the agent platform's interface.
+2. The agent platform performs federated sign-in to
+   `https://idp.example.com` per OpenID Connect.
+3. Alice authenticates at `idp.example.com`; an OIDC ID Token is
+   returned to the agent platform.
+4. The agent platform validates the ID Token, learns Alice's
+   identity (`alice@example.com`), and creates a session.
+
+After this step, `agentprovider.example` knows Alice's
+organizational identity. The primary IdP (`idp.example.com`)
+plays no further role at the tool provider; the agent platform
+relies on its own keys to mint subsequent ID-JAGs.
+
+## Flow
+
+1. Within Alice's session, the agent platform mints an ID-JAG
+   identifying Alice, with audience `https://toolprovider.example`
+   (decoded payload, illustrative):
+
+   ~~~ json
+   {
+     "iss": "https://agentprovider.example",
+     "aud": "https://toolprovider.example",
+     "exp": 1748630400,
+     "iat": 1748630100,
+     "jti": "b9c1...",
+     "sub": "alice-user-id",
+     "email": "alice@example.com",
+     "email_verified": true
+   }
+   ~~~
+
+2. The agent platform (as the OAuth client) posts the ID-JAG to
+   the tool provider's token endpoint with `private_key_jwt`
+   client authentication (governed by the ID-JAG grant profile;
+   outside the trust framework's scope):
+
+   ~~~ http
+   POST /token HTTP/1.1
+   Host: toolprovider.example
+   Content-Type: application/x-www-form-urlencoded
+
+   grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
+   &assertion=eyJhbGciOiJSUzI1NiIs...
+   &client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer
+   &client_assertion=eyJhbGciOiJFUzI1NiIs...
+   ~~~
+
+3. The tool provider validates the ID-JAG: signature (key
+   resolved via
+   `https://agentprovider.example/.well-known/oauth-authorization-server`
+   or OpenID Connect Discovery), `aud`, `exp`, `iat`, replay
+   protection.
+
+4. The tool provider evaluates the trust policy's
+   `subject_namespace_authorization` category against the
+   assertion's subject ({{rasp}}):
+
+   a. Extracts the Subject Authority from the assertion's email
+      attribution. The ID-JAG carries `email = "alice@example.com"`
+      with `email_verified = true` at top level; per
+      {{dii-authority}}, the registrable domain of
+      `alice@example.com` is `example.com`.
+
+   b. Queries `_oauth-issuer-policy.example.com`. The record is
+      `affirmative`, `authority=example.com` matches, and the
+      virtual policy lists `https://agentprovider.example` as an
+      authorized Assertion Issuer.
+
+   c. The JWT `iss` (`https://agentprovider.example`) matches the
+      `authorized_issuers` entry. The Trust Method is satisfied.
+
+5. The tool provider's client authentication and OAuth client
+   identifier resolution proceed per the grant profile and the
+   tool provider's OAuth configuration. Trust framework
+   evaluation does not govern them.
+
+6. Verification succeeds. The tool provider issues an access
+   token scoped according to its local policy.
+
+## What This Protects Against
+
+The key threat is **issuer impersonation**: a provider other than
+the one the customer authorized attempts to mint an ID-JAG
+claiming a user in the customer's namespace.
+
+Suppose an unrelated provider `attacker.example` operates its own
+authorization server and mints an assertion:
+
+~~~ json
+{
+  "iss": "https://attacker.example",
+  "aud": "https://toolprovider.example",
+  "email": "alice@example.com",
+  "email_verified": true,
+  ...
+}
+~~~
+
+The signature validates (the assertion is signed by
+`attacker.example`'s own key, which is resolvable at
+`https://attacker.example/.well-known/oauth-authorization-server`).
+The `aud` is correct. The token superficially names Alice.
+
+The tool provider's Trust Method evaluation rejects it nonetheless:
+
+- Subject Authority extracted from the assertion's email
+  attribution: `example.com`.
+- DNS lookup at `_oauth-issuer-policy.example.com` returns the
+  customer's policy.
+- The JWT `iss` (`https://attacker.example`) is NOT in
+  `authorized_issuers` (which lists only
+  `https://agentprovider.example`).
+- The Trust Method is not satisfied for any
+  `subject_namespace_authorization` method in the policy.
+- The tool provider rejects with OAuth `invalid_grant`.
+
+`attacker.example` has no path to impersonate `alice@example.com`
+unless `example.com`'s DNS publisher adds them to the Issuer
+Authorization Policy. The customer is the sole gatekeeper.
+
+## Additional Failure Variants
+
+- If the customer's DNS record is missing or unreachable, the
+  Trust Method outcome is `no-policy` or `indeterminate` per
+  {{dii-failures}} and the tool provider rejects the assertion.
+  An attacker cannot benefit from disabling the lookup;
+  fail-closed semantics ensure rejection rather than acceptance.
+
+- If `example.com` rotates its authorized agent platform (replaces
+  `agentprovider.example` with a different provider in the
+  policy), assertions from the old provider are rejected at the
+  next cache refresh per {{dii-caching}}.
+
+- The customer might prefer to grant trust transitively via
+  federation rather than authorize each agent platform directly.
+  In that case the tool provider's trust policy lists
+  `openid_federation` as an `issuer_authentication` method with a
+  trust anchor that recognizes `agentprovider.example` as a
+  federated entity. The cross-category combination rule of
+  {{rasp}} still requires a `subject_namespace_authorization`
+  method to be satisfied for namespace-bound subjects; federation
+  membership alone does not establish authority over the
+  customer's namespace.
+
+- If the deployment additionally needs to identify the specific
+  agent instance (for audit, scoping, or downstream attribution),
+  the agent platform MAY add an `act` object to the ID-JAG
+  identifying the agent instance. The OAuth Actor Profile binding
+  ({{actor-profile-binding}}) governs how a Resource Authorization
+  Server interprets such an `act` object. Trust evaluation of the
+  agent's identity by this framework's `subject_namespace_authorization`
+  category applies only when the actor's subject identifier is in a
+  shape with a registered Subject Authority Extraction Procedure
+  ({{iana-authority-registry}}); opaque agent-instance identifiers
+  are typically not in such a shape and are subject to the agent
+  platform's authorization-time logic and the tool provider's local
+  policy.
+
+# Related Token Contexts {#related-token-contexts}
+
+This appendix is non-normative.
+
+The trust framework's mechanics — Trust Method evaluation, Issuer
+Authorization Policy lookup, Subject Authority extraction — apply
+to several token contexts beyond identity assertion JWT
+authorization grants. This appendix sketches how the same
+machinery can be applied to two related contexts.
+
+## Transaction Tokens
+
+Transaction Tokens {{TXN-TOKENS}} carry authorization context
+across calls in an identity-chained transaction. A txn-token
+typically includes an `act` object identifying the actor that
+initiated the chain together with the subject's identity claims.
+
+A receiver verifying a txn-token applies:
+
+- The OAuth Actor Profile binding ({{actor-profile-binding}}) when
+  the txn-token carries an `act` object.
+- The Resource Authorization Server Processing rules ({{rasp}})
+  for evaluating the txn-token issuer's authority over the carried
+  subject.
+
+A deployment using txn-tokens MAY list a txn-token profile
+identifier in the trust policy's `grant_profiles_supported` so
+that a single trust policy document can scope itself to both
+grant-endpoint and txn-token verification.
+
+## JWT Access Token Verification
+
+A resource server that verifies JWT access tokens carrying
+identity claims faces the same issuer-trust questions as a
+Resource Authorization Server: is the token's `iss` an authentic
+issuer, and is it entitled to assert the identity claims the token
+carries about the subject?
+
+For this informal binding, the JWT access token's issuing
+authorization server (identified by the token's `iss` claim) is
+treated as the Assertion Issuer; Trust Method evaluation proceeds
+against this identifier as it would against the `iss` of an
+identity assertion.
+
+A resource server MAY:
+
+1. Reuse the trust policy published by its associated
+   authorization server, when an exclusive AS-RS pairing exists.
+
+2. Publish its own Identity Assertion Issuer Trust Policy by
+   including the `identity_assertion_trust_policy_uri` member in
+   its Protected Resource Metadata {{RFC9728}}. The policy's
+   `resource_authorization_server` member names the authorization
+   server whose tokens this particular policy governs - not the
+   publisher of the policy. A resource server that accepts tokens
+   from multiple authorization servers MAY publish multiple policy
+   documents, each naming a different
+   `resource_authorization_server`.
+
+When the JWT access token carries a subject identifier recognized
+by a registered Subject Authority Extraction Procedure
+({{iana-authority-registry}}) — for example, top-level
+`email`/`email_verified` claims — the resource server applies the
+trust policy as described in {{rasp}}, with the JWT access token
+in place of an identity assertion JWT.
 
 # Document History
 

@@ -827,7 +827,7 @@ extractions:
   `email_verified` claim with the boolean value `true`. If the
   `email_verified` claim is absent or has any value other than
   `true`, the email extraction does not apply.
-  
+
   Consumers MUST reject an `email` claim value that does not contain
   exactly one `@` character or whose domain part is empty. The
   local-part is not used. The domain is then normalized to the
@@ -2393,7 +2393,10 @@ authorization server and mints an assertion:
   "aud": "https://toolprovider.example",
   "email": "alice@example.com",
   "email_verified": true,
-  ...
+  "exp": 1748630400,
+  "iat": 1748630100,
+  "jti": "c21f",
+  "sub": "attacker-local-user"
 }
 ~~~
 

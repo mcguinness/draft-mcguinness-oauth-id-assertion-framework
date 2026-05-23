@@ -31,7 +31,6 @@ normative:
   RFC7523:
   RFC8414:
   RFC8615:
-  RFC9068:
   RFC9493:
   RFC9728:
   RFC1035:
@@ -78,10 +77,9 @@ This document defines a trust policy that an OAuth authorization
 server publishes to describe the conditions under which it accepts
 identity assertion JWT authorization grants. The policy expresses trust
 criteria, including trust methods, trust anchors, subject identifier
-formats, grant profiles, and client requirements, that an Assertion
-Issuer and the presenting client have to satisfy. This enables scalable
-issuer discovery for deployments backed by OpenID Federation, trust
-mark registries, or Domain-Authorized Issuer Discovery.
+formats, and grant profiles, that an Assertion Issuer has to satisfy.
+This enables scalable issuer discovery for deployments backed by
+OpenID Federation or Domain-Authorized Issuer Discovery.
 
 This document also defines Domain-Authorized Issuer
 Discovery, a DNS and HTTPS mechanism by which the owner of a subject
@@ -186,8 +184,14 @@ Trust Anchor:
   Method.
 
 Subject Identifier:
-: A claim or claim value identifying the asserted subject. Subject
-Identifier formats are registered per {{RFC9493}}.
+: A claim or claim value identifying the asserted subject. This
+document uses Subject Identifier format names from the registry
+established by {{RFC9493}} as labels in `subject_identifier_formats_supported`,
+even when the subject identifier itself is carried as a top-level JWT
+claim (for example, the `email` format identifies the top-level `email`
+and `email_verified` claims used by {{ID-JAG}}) rather than as an
+{{RFC9493}} Subject Identifier JSON object. Grant profiles and other
+specifications define which carriage applies in their context.
 
 Subject Authority:
 : An authority for a Subject Identifier namespace, such as a DNS domain
@@ -676,7 +680,7 @@ Server MUST:
    Server.
 
 3. Verify that the email attribution carried by the ID-JAG, when
-   present or required, uses a subject identifier shape registered
+   present or required, uses a Subject Identifier format registered
    in `subject_identifier_formats_supported`, if that trust policy
    member is present.
 
@@ -809,7 +813,12 @@ a DNS namespace is used to publish security policy:
   `email_verification_dns` Trust Method
   ({{trust-method-email-verification-dns}}) lets verifiers honor
   existing Email Verification Protocol records without requiring a
-  parallel `_oauth-issuer-policy` record.
+  parallel `_oauth-issuer-policy` record. Because the Email
+  Verification Protocol is a non-IETF specification still under
+  active development, interoperability for the
+  `email_verification_dns` Trust Method depends on the stability of
+  {{WICG-EMAIL-VERIF}}; implementations should track that
+  specification for breaking changes.
 
 These precedents motivate the use of an underscored DNS owner name,
 a versioned TXT record, an HTTPS well-known URL, explicit
@@ -1149,9 +1158,8 @@ reject the assertion. A client reports that no policy exists.
 : A DNS recognized record missing `authority=`, with a mismatched
 `authority=` when no recognized record for the same query name has a
 matching `authority=`, with neither `uri=` nor `issuer=` after
-parsing, with multiple distinct `uri=`, `id=`, or `mode=` values, with
-a malformed `uri=` or `issuer=` directive,
-or otherwise unparseable; or an HTTPS response with an unsupported
+parsing, with multiple distinct `uri=` values, with a malformed
+`uri=` or `issuer=` directive, or otherwise unparseable; or an HTTPS response with an unsupported
 media type, an entity body larger than the consumer's configured
 maximum, an HTTP status other than success, redirect, 404, 410, or
 5xx, or a redirect loop or redirect target that is not HTTPS; or an
@@ -2349,8 +2357,7 @@ relies on its own keys to mint subsequent ID-JAGs.
 3. The tool provider validates the ID-JAG: signature (key
    resolved via
    `https://agentprovider.example/.well-known/oauth-authorization-server`
-   or OpenID Connect Discovery), `aud`, `exp`, `iat`, replay
-   protection.
+   JWKS), `aud`, `exp`, `iat`, replay protection.
 
 4. The tool provider evaluates the trust policy's
    `subject_namespace_authorization` category against the

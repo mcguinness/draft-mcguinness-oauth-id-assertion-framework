@@ -141,27 +141,27 @@ Table of Contents
    10. References
      10.1.  Normative References
      10.2.  Informative References
-   Appendix A.  OpenID Federation End-to-End Example
+   Appendix A.  DNS-Based Domain-Authorized Issuer End-to-End Example
      A.1.  Cast
      A.2.  Publication
-     A.3.  Flow
-     A.4.  Failure Variants
-   Appendix B.  DNS-Based Domain-Authorized Issuer End-to-End Example
+     A.3.  Assertion Issuer Discovery (Client Side)
+     A.4.  Issuance and Token Request
+     A.5.  Verification (Resource Authorization Server Side)
+     A.6.  Migration Variant: Pointer Form
+     A.7.  Failure Variants
+   Appendix B.  Agent Platform IdP End-to-End Example
      B.1.  Cast
      B.2.  Publication
-     B.3.  Assertion Issuer Discovery (Client Side)
-     B.4.  Assertion Issuance
-     B.5.  Token Exchange
-     B.6.  Verification (Resource Authorization Server Side)
-     B.7.  Migration Variant: Pointer Form
-     B.8.  Failure Variants
-   Appendix C.  Agent Platform IdP End-to-End Example
+     B.3.  User-Side SSO (Prerequisite, Out of Scope)
+     B.4.  Flow
+     B.5.  What This Protects Against
+     B.6.  Additional Failure Variants
+     B.7.  Extensions
+   Appendix C.  OpenID Federation End-to-End Example
      C.1.  Cast
      C.2.  Publication
-     C.3.  User-Side SSO (Prerequisite, Out of Scope)
-     C.4.  Flow
-     C.5.  What This Protects Against
-     C.6.  Additional Failure Variants
+     C.3.  Flow
+     C.4.  Failure Variants
    Appendix D.  Related Token Contexts
      D.1.  Transaction Tokens
      D.2.  JWT Access Token Verification
@@ -1227,8 +1227,8 @@ Table of Contents
    _oauth-issuer-policy.acme.example.  IN  TXT
      "v=oauth-issuer-policy1;
       authority=acme.example;
-      issuer=https://idp.bigprovider.example;
-      issuer=https://backup-idp.example.net"
+      issuer=https://idp.example.net;
+      issuer=https://idp-backup.example.net"
 
    Pointer form (policy document hosted on a third party):
 
@@ -1985,182 +1985,7 @@ Table of Contents
               "Email Verification Protocol", n.d.,
               <https://wicg.github.io/email-verification-protocol/>.
 
-Appendix A.  OpenID Federation End-to-End Example
-
-   This appendix is non-normative.
-
-   This example walks through an end-to-end flow in which a Resource
-   Authorization Server uses OpenID Federation to authenticate the
-   Assertion Issuer and Domain-Authorized Issuer Discovery to verify
-   that the Assertion Issuer is authorized for Alice's email namespace.
-
-A.1.  Cast
-
-   *  *Resource Authorization Server*, https://api.resource.example.
-      Accepts ID-JAGs from Assertion Issuers that prove federation
-      membership under the trust anchor below and are authorized by the
-      asserted subject's namespace.
-
-   *  *Federation Trust Anchor*, https://federation.example.org.  Runs
-      an OpenID Federation deployment that issues Subordinate Statements
-      about intermediates and leaf entities.
-
-   *  *Assertion Issuer*, https://idp.partner.example.  A federation
-      leaf entity registered as an OpenID provider.  Holds an Entity
-      Configuration at https://idp.partner.example/.well-known/openid-
-      federation.
-
-   *  *Client*, an enterprise SaaS application.  Authenticates to the
-      Resource Authorization Server's token endpoint with
-      private_key_jwt.
-
-   *  *End user*, Alice (alice@partner.example).
-
-A.2.  Publication
-
-   The Resource Authorization Server publishes authorization server
-   metadata:
-
-   {
-     "issuer": "https://api.resource.example",
-     "token_endpoint": "https://api.resource.example/token",
-     "grant_types_supported": [
-       "urn:ietf:params:oauth:grant-type:jwt-bearer"
-     ],
-     "authorization_grant_profiles_supported": [
-       "urn:ietf:params:oauth:grant-profile:id-jag"
-     ],
-     "identity_assertion_trust_policy_uri":
-       "https://api.resource.example/.well-known/identity-assertion-trust-policy"
-   }
-
-   It publishes a trust policy listing one Trust Method from each
-   category: OpenID Federation for issuer authentication and Domain-
-   Authorized Issuer Discovery for subject-namespace authorization:
-
-   {
-     "resource_authorization_server": "https://api.resource.example",
-     "grant_profiles_supported": [
-       "urn:ietf:params:oauth:grant-profile:id-jag"
-     ],
-     "subject_identifier_formats_supported": ["email"],
-     "issuer_trust_methods_supported": [
-       {
-         "method": "openid_federation",
-         "trust_anchors": ["https://federation.example.org"]
-       },
-       {
-         "method": "domain_authorized_issuer",
-         "dns_discovery": true
-       }
-     ]
-   }
-
-   The Federation Trust Anchor has previously issued a Subordinate
-   Statement about https://idp.partner.example listing it as an active
-   leaf with openid_provider entity type.  The Assertion Issuer's Entity
-   Configuration includes authority_hints pointing back at the trust
-   anchor.
-
-   The Subject Authority partner.example publishes an inline DNS policy
-   authorizing the federated Assertion Issuer:
-
-   _oauth-issuer-policy.partner.example.  IN  TXT
-     "v=oauth-issuer-policy1;
-      authority=partner.example;
-      issuer=https://idp.partner.example"
-
-A.3.  Flow
-
-   1.  The Client fetches authorization server metadata for the Resource
-       Authorization Server and reads
-       authorization_grant_profiles_supported; ID-JAG is supported.  The
-       Client fetches the trust policy URL.
-
-   2.  The Client sees that the policy requires an issuer_authentication
-       method and a subject_namespace_authorization method.  It selects
-       https://idp.partner.example, which it knows to be federated under
-       https://federation.example.org and authorized by partner.example
-       for email subjects.
-
-   3.  The Client authenticates Alice at idp.partner.example (out of
-       scope for this document).  It then requests an ID-JAG with
-       audience https://api.resource.example and Alice's email.
-
-   4.  The Assertion Issuer returns the ID-JAG (decoded payload,
-       illustrative):
-
-      {
-        "iss": "https://idp.partner.example",
-        "aud": "https://api.resource.example",
-        "exp": 1748630400,
-        "iat": 1748630100,
-        "jti": "8e9b...",
-        "sub": "user-7c2a4f",
-        "email": "alice@partner.example",
-        "email_verified": true,
-        "acr": "urn:mace:incommon:iap:silver"
-      }
-
-   5.  The Client posts to the Resource Authorization Server token
-       endpoint using private_key_jwt:
-
-      POST /token HTTP/1.1
-      Host: api.resource.example
-      Content-Type: application/x-www-form-urlencoded
-
-      grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
-      &assertion=eyJhbGciOiJSUzI1NiIs...
-      &client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer
-      &client_assertion=eyJhbGciOiJFUzI1NiIs...
-
-   6.  The Resource Authorization Server validates the ID-JAG:
-       signature, aud, exp, iat, replay protection.  The signing key is
-       resolved via the Assertion Issuer's federation Entity
-       Configuration.
-
-   7.  The Resource Authorization Server evaluates
-       issuer_trust_methods_supported.  For the issuer_authentication
-       category, it evaluates openid_federation.  It builds a trust
-       chain by walking authority_hints from https://idp.partner.example
-       upward, collecting Subordinate Statements, and terminating at
-       https://federation.example.org.  The terminal trust anchor
-       matches the listed trust_anchors entry.
-
-   8.  For the subject_namespace_authorization category, the Resource
-       Authorization Server extracts partner.example from the
-       assertion's top-level email claim (with email_verified=true),
-       retrieves the Issuer Authorization Policy from _oauth-issuer-
-       policy.partner.example, and verifies that
-       https://idp.partner.example appears in authorized_issuers.
-
-   9.  Verification succeeds.  The Resource Authorization Server issues
-       an access token in the response body.  Client authentication
-       (private_key_jwt) is handled by the ID-JAG grant profile and the
-       underlying OAuth client-authentication mechanism; trust framework
-       evaluation does not govern it.
-
-A.4.  Failure Variants
-
-   *  If the Assertion Issuer's Entity Configuration is unreachable or
-      the federation chain does not terminate at
-      https://federation.example.org, the Resource Authorization Server
-      returns invalid_grant.
-
-   *  If a different trust anchor appears in the chain but the policy
-      lists only https://federation.example.org, the Resource
-      Authorization Server returns invalid_grant.
-
-   *  If partner.example does not authorize https://idp.partner.example
-      in its Issuer Authorization Policy, the Resource Authorization
-      Server returns invalid_grant.
-
-   *  If the federation chain validates but the client's
-      client_assertion is not signed by a registered key (for example
-      because of unfinished key rotation), the Resource Authorization
-      Server returns invalid_client.
-
-Appendix B.  DNS-Based Domain-Authorized Issuer End-to-End Example
+Appendix A.  DNS-Based Domain-Authorized Issuer End-to-End Example
 
    This appendix is non-normative.
 
@@ -2170,29 +1995,29 @@ Appendix B.  DNS-Based Domain-Authorized Issuer End-to-End Example
    Authorization Server uses the same records to verify the resulting
    assertion.
 
-B.1.  Cast
+A.1.  Cast
 
    *  *Subject Authority*, acme.example.  A small organization that owns
       its DNS but does not operate an authorization server capable of
       issuing identity assertions.
 
-   *  *Assertion Issuer*, https://idp.bigprovider.example.  A managed
+   *  *Assertion Issuer*, https://idp.example.net.  A managed
       authorization server service acme.example has contracted with.
 
    *  *Resource Authorization Server*, https://api.resource.example.
 
-   *  *Client*, an agent provider acting on behalf of Alice.
+   *  *Client*, a backend SaaS integration.
 
    *  *End user*, Alice (alice@acme.example).
 
-B.2.  Publication
+A.2.  Publication
 
    The Subject Authority publishes a single DNS TXT record:
 
    _oauth-issuer-policy.acme.example.  IN  TXT
      "v=oauth-issuer-policy1;
       authority=acme.example;
-      issuer=https://idp.bigprovider.example"
+      issuer=https://idp.example.net"
 
    No HTTPS endpoint is operated on acme.example.
 
@@ -2214,7 +2039,7 @@ B.2.  Publication
      ]
    }
 
-B.3.  Assertion Issuer Discovery (Client Side)
+A.3.  Assertion Issuer Discovery (Client Side)
 
    1.  The Client holds alice@acme.example and wants to obtain an ID-
        JAG.
@@ -2233,51 +2058,47 @@ B.3.  Assertion Issuer Discovery (Client Side)
       {
         "subject_authority": "acme.example",
         "authorized_issuers": [
-          { "issuer": "https://idp.bigprovider.example" }
+          { "issuer": "https://idp.example.net" }
         ]
       }
 
    5.  The Client applies OAuth Authorization Server Metadata [RFC8414]
-       to https://idp.bigprovider.example and resolves its token
-       endpoint.
+       to https://idp.example.net and resolves its token endpoint.
 
-B.4.  Assertion Issuance
+A.4.  Issuance and Token Request
 
-   1.  The Client authenticates Alice at https://idp.bigprovider.example
-       and requests an ID-JAG with audience https://api.resource.example
+   1.  The Client authenticates Alice at https://idp.example.net and
+       requests an ID-JAG with audience https://api.resource.example
        carrying Alice's email:
 
       {
-        "iss": "https://idp.bigprovider.example",
+        "iss": "https://idp.example.net",
         "aud": "https://api.resource.example",
-        "exp": 1748630400,
-        "iat": 1748630100,
+        "exp": 1780166400,
+        "iat": 1780166100,
         "jti": "5a17...",
-        "sub": "user-9241",
+        "sub": "user-9241ab",
         "email": "alice@acme.example",
         "email_verified": true
       }
 
-B.5.  Token Exchange
-
-   1.  The Client posts to the Resource Authorization Server's token
-       endpoint with a DPoP proof and private_key_jwt:
+   2.  The Client posts to the Resource Authorization Server's token
+       endpoint with private_key_jwt client authentication:
 
       POST /token HTTP/1.1
       Host: api.resource.example
       Content-Type: application/x-www-form-urlencoded
-      DPoP: eyJ0eXAiOiJkcG9wK2p3dCIs...
 
       grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
       &assertion=eyJhbGciOiJSUzI1NiIs...
       &client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer
       &client_assertion=eyJhbGciOiJFUzI1NiIs...
 
-B.6.  Verification (Resource Authorization Server Side)
+A.5.  Verification (Resource Authorization Server Side)
 
    1.  The Resource Authorization Server validates the ID-JAG: signature
-       (via https://idp.bigprovider.example/.well-known/openid-
-       configuration JWKS), aud, exp, iat, replay protection.
+       (via https://idp.example.net/.well-known/openid-configuration
+       JWKS), aud, exp, iat, replay protection.
 
    2.  The Resource Authorization Server evaluates the
        domain_authorized_issuer Trust Method.
@@ -2294,13 +2115,13 @@ B.6.  Verification (Resource Authorization Server Side)
        present.  The Resource Authorization Server constructs the same
        virtual policy the Client used in step 4.
 
-       d.  The ID-JAG iss value https://idp.bigprovider.example matches
-       the single authorized_issuers[0].issuer.  Verification succeeds.
+       d.  The ID-JAG iss value https://idp.example.net matches the
+       single authorized_issuers[0].issuer.  Verification succeeds.
 
-   3.  The Resource Authorization Server validates the DPoP proof and
-       private_key_jwt, then issues a DPoP-bound access token.
+   3.  The Resource Authorization Server validates private_key_jwt, then
+       issues an access token in the response body.
 
-B.7.  Migration Variant: Pointer Form
+A.6.  Migration Variant: Pointer Form
 
    If acme.example later wants to express validity windows, format
    restrictions, or multiple issuers with ordering, it can switch to the
@@ -2317,23 +2138,23 @@ B.7.  Migration Variant: Pointer Form
      "subject_authority": "acme.example",
      "authorized_issuers": [
        {
-         "issuer": "https://idp.bigprovider.example",
+         "issuer": "https://idp.example.net",
          "subject_identifier_formats": ["email"],
-         "valid_until": "2027-01-01T00:00:00Z"
+         "valid_until": "2027-05-30T00:00:00Z"
        },
        {
-         "issuer": "https://backup-idp.example.net",
+         "issuer": "https://idp-backup.example.net",
          "subject_identifier_formats": ["email"]
        }
      ],
-     "last_updated": "2026-05-22T00:00:00Z"
+     "last_updated": "2026-05-29T00:00:00Z"
    }
 
    Clients and Resource Authorization Servers transparently follow the
    uri= directive and consume the JSON document.  No software changes
    are required at either consumer.
 
-B.8.  Failure Variants
+A.7.  Failure Variants
 
    *  A DNS SERVFAIL at _oauth-issuer-policy.acme.example is classified
       as indeterminate (Section 6.5.1).  The Resource Authorization
@@ -2350,7 +2171,7 @@ B.8.  Failure Variants
       SHOULD use short DNS TTLs during rotation; consumers SHOULD
       enforce a local cache ceiling (Section 6.8).
 
-Appendix C.  Agent Platform IdP End-to-End Example
+Appendix B.  Agent Platform IdP End-to-End Example
 
    This appendix is non-normative.
 
@@ -2362,7 +2183,7 @@ Appendix C.  Agent Platform IdP End-to-End Example
    users.  Without that authorization, no provider — however well-known
    elsewhere — can mint an accepted ID-JAG for the namespace.
 
-C.1.  Cast
+B.1.  Cast
 
    *  *Customer*, example.com.  Owns the email domain of its users.
       Decides which agent platforms are authorized to act as Assertion
@@ -2378,13 +2199,13 @@ C.1.  Cast
       federated SSO from their primary IdP, then mints ID-JAGs with iss
       = https://agentprovider.example carrying the user's identity.
 
-   *  *Tool Provider / Resource Authorization Server*,
-      https://toolprovider.example.  Verifies presented ID-JAGs against
+   *  *Tool Provider*, https://toolprovider.example.  Acts as the
+      Resource Authorization Server.  Verifies presented ID-JAGs against
       its trust policy and issues access tokens.
 
    *  *End user*, Alice (alice@example.com).
 
-C.2.  Publication
+B.2.  Publication
 
    The customer publishes an Issuer Authorization Policy authorizing
    exactly the providers it has chosen to trust as Assertion Issuers for
@@ -2417,7 +2238,7 @@ C.2.  Publication
      ]
    }
 
-C.3.  User-Side SSO (Prerequisite, Out of Scope)
+B.3.  User-Side SSO (Prerequisite, Out of Scope)
 
    Before any ID-JAG is minted, Alice establishes a session at the agent
    platform.  The exact mechanism is out of scope; a typical flow:
@@ -2438,7 +2259,7 @@ C.3.  User-Side SSO (Prerequisite, Out of Scope)
    the tool provider; the agent platform relies on its own keys to mint
    subsequent ID-JAGs.
 
-C.4.  Flow
+B.4.  Flow
 
    1.  Within Alice's session, the agent platform mints an ID-JAG
        identifying Alice, with audience https://toolprovider.example
@@ -2447,10 +2268,10 @@ C.4.  Flow
       {
         "iss": "https://agentprovider.example",
         "aud": "https://toolprovider.example",
-        "exp": 1748630400,
-        "iat": 1748630100,
+        "exp": 1780166400,
+        "iat": 1780166100,
         "jti": "b9c1...",
-        "sub": "alice-user-id",
+        "sub": "user-3f81a2",
         "email": "alice@example.com",
         "email_verified": true
       }
@@ -2498,7 +2319,7 @@ C.4.  Flow
    6.  Verification succeeds.  The tool provider issues an access token
        scoped according to its local policy.
 
-C.5.  What This Protects Against
+B.5.  What This Protects Against
 
    The key threat is *issuer impersonation*: a provider other than the
    one the customer authorized attempts to mint an ID-JAG claiming a
@@ -2512,10 +2333,10 @@ C.5.  What This Protects Against
      "aud": "https://toolprovider.example",
      "email": "alice@example.com",
      "email_verified": true,
-     "exp": 1748630400,
-     "iat": 1748630100,
-     "jti": "c21f",
-     "sub": "attacker-local-user"
+     "exp": 1780166400,
+     "iat": 1780166100,
+     "jti": "c21f...",
+     "sub": "user-58c1bd"
    }
 
    The signature validates (the assertion is signed by
@@ -2540,11 +2361,17 @@ C.5.  What This Protects Against
 
    *  The tool provider rejects with OAuth invalid_grant.
 
+   Note that the attacker setting email_verified: true on its own
+   assertion has no force here; trust comes from the iss-vs-policy
+   check, not from the assertion's self-claim.  The Subject Authority is
+   computed from the email's domain regardless of the email_verified
+   value an unauthorized issuer chooses to assert.
+
    attacker.example has no path to impersonate alice@example.com unless
    example.com's DNS publisher adds them to the Issuer Authorization
    Policy.  The customer is the sole gatekeeper.
 
-C.6.  Additional Failure Variants
+B.6.  Additional Failure Variants
 
    *  If the customer's DNS record is missing or unreachable, the Trust
       Method outcome is no-policy or indeterminate per Section 6.5.1 and
@@ -2556,6 +2383,8 @@ C.6.  Additional Failure Variants
       agentprovider.example with a different provider in the policy),
       assertions from the old provider are rejected at the next cache
       refresh per Section 6.8.
+
+B.7.  Extensions
 
    *  The customer might prefer to grant trust transitively via
       federation rather than authorize each agent platform directly.  In
@@ -2574,11 +2403,218 @@ C.6.  Additional Failure Variants
       governs how a Resource Authorization Server interprets such an act
       object.  Trust evaluation of the agent's identity by this
       framework's subject_namespace_authorization category applies only
-      when the actor's subject identifier is in a shape with a
+      when the actor's subject identifier is in a format with a
       registered Subject Authority Extraction Procedure (Section 9.2.3);
       opaque agent-instance identifiers are typically not in such a
-      shape and are subject to the agent platform's authorization-time
+      format and are subject to the agent platform's authorization-time
       logic and the tool provider's local policy.
+
+Appendix C.  OpenID Federation End-to-End Example
+
+   This appendix is non-normative.
+
+   This example walks through an end-to-end flow in which a Resource
+   Authorization Server uses OpenID Federation to authenticate the
+   Assertion Issuer and Domain-Authorized Issuer Discovery to verify
+   that the Assertion Issuer is authorized for Alice's email namespace.
+
+C.1.  Cast
+
+   *  *Resource Authorization Server*, https://api.resource.example.
+      Accepts ID-JAGs from Assertion Issuers that prove federation
+      membership under the trust anchor below and are authorized by the
+      asserted subject's namespace.
+
+   *  *Federation Trust Anchor*, https://federation.example.org.  Runs
+      an OpenID Federation deployment that issues Subordinate Statements
+      about intermediates and leaf entities.
+
+   *  *Assertion Issuer*, https://idp.partner.example.  A federation
+      leaf entity registered as an OpenID provider.  Holds an Entity
+      Configuration at https://idp.partner.example/.well-known/openid-
+      federation.
+
+   *  *Client*, an enterprise SaaS application.  Authenticates to the
+      Resource Authorization Server's token endpoint with
+      private_key_jwt.
+
+   *  *End user*, Alice (alice@partner.example).
+
+C.2.  Publication
+
+   The Resource Authorization Server publishes authorization server
+   metadata:
+
+   {
+     "issuer": "https://api.resource.example",
+     "token_endpoint": "https://api.resource.example/token",
+     "grant_types_supported": [
+       "urn:ietf:params:oauth:grant-type:jwt-bearer"
+     ],
+     "authorization_grant_profiles_supported": [
+       "urn:ietf:params:oauth:grant-profile:id-jag"
+     ],
+     "identity_assertion_trust_policy_uri":
+       "https://api.resource.example/.well-known/identity-assertion-trust-policy"
+   }
+
+   It publishes a trust policy listing one Trust Method from each
+   category: OpenID Federation for issuer authentication and Domain-
+   Authorized Issuer Discovery for subject-namespace authorization:
+
+   {
+     "resource_authorization_server": "https://api.resource.example",
+     "grant_profiles_supported": [
+       "urn:ietf:params:oauth:grant-profile:id-jag"
+     ],
+     "subject_identifier_formats_supported": ["email"],
+     "issuer_trust_methods_supported": [
+       {
+         "method": "openid_federation",
+         "trust_anchors": ["https://federation.example.org"]
+       },
+       {
+         "method": "domain_authorized_issuer",
+         "dns_discovery": true
+       }
+     ]
+   }
+
+   The Assertion Issuer publishes a federation Entity Configuration at
+   https://idp.partner.example/.well-known/openid-federation (decoded
+   payload, illustrative):
+
+   {
+     "iss": "https://idp.partner.example",
+     "sub": "https://idp.partner.example",
+     "iat": 1780166100,
+     "exp": 1780252500,
+     "authority_hints": ["https://federation.example.org"],
+     "metadata": {
+       "openid_provider": {
+         "issuer": "https://idp.partner.example",
+         "jwks_uri": "https://idp.partner.example/jwks"
+       }
+     }
+   }
+
+   The Federation Trust Anchor has previously issued a Subordinate
+   Statement listing https://idp.partner.example as an active leaf with
+   openid_provider entity type (decoded payload, illustrative):
+
+   {
+     "iss": "https://federation.example.org",
+     "sub": "https://idp.partner.example",
+     "iat": 1780166100,
+     "exp": 1782758100,
+     "metadata_policy": {
+       "openid_provider": {}
+     }
+   }
+
+   The Subject Authority partner.example publishes an inline DNS policy
+   authorizing the federated Assertion Issuer:
+
+   _oauth-issuer-policy.partner.example.  IN  TXT
+     "v=oauth-issuer-policy1;
+      authority=partner.example;
+      issuer=https://idp.partner.example"
+
+C.3.  Flow
+
+   1.  The Client fetches authorization server metadata for the Resource
+       Authorization Server and reads
+       authorization_grant_profiles_supported; ID-JAG is supported.  The
+       Client fetches the trust policy URL.
+
+   2.  The Client sees that the policy requires an issuer_authentication
+       method and a subject_namespace_authorization method.  It selects
+       https://idp.partner.example, which it knows to be federated under
+       https://federation.example.org and authorized by partner.example
+       for email subjects.
+
+   3.  The Client authenticates Alice at idp.partner.example (out of
+       scope for this document).  It then requests an ID-JAG with
+       audience https://api.resource.example and Alice's email.
+
+   4.  The Assertion Issuer returns the ID-JAG (decoded payload,
+       illustrative):
+
+      {
+        "iss": "https://idp.partner.example",
+        "aud": "https://api.resource.example",
+        "exp": 1780166400,
+        "iat": 1780166100,
+        "jti": "8e9b...",
+        "sub": "user-7c2a4f",
+        "email": "alice@partner.example",
+        "email_verified": true
+      }
+
+   5.  The Client posts to the Resource Authorization Server token
+       endpoint using private_key_jwt:
+
+      POST /token HTTP/1.1
+      Host: api.resource.example
+      Content-Type: application/x-www-form-urlencoded
+
+      grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
+      &assertion=eyJhbGciOiJSUzI1NiIs...
+      &client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer
+      &client_assertion=eyJhbGciOiJFUzI1NiIs...
+
+   6.  The Resource Authorization Server validates the ID-JAG:
+       signature, aud, exp, iat, replay protection.  The signing key is
+       resolved via the Assertion Issuer's federation Entity
+       Configuration.
+
+   7.  The Resource Authorization Server evaluates
+       issuer_trust_methods_supported.  For the issuer_authentication
+       category, it evaluates openid_federation.  It builds a trust
+       chain by walking authority_hints from https://idp.partner.example
+       upward, collecting Subordinate Statements, and terminating at
+       https://federation.example.org.  The terminal trust anchor
+       matches the listed trust_anchors entry.  Because the policy also
+       lists a subject_namespace_authorization method, the cross-
+       category combination rule in Section 4.2 requires that category
+       to be satisfied as well; step 8 supplies the additional evidence.
+
+   8.  For the subject_namespace_authorization category, the Resource
+       Authorization Server extracts partner.example from the
+       assertion's top-level email claim (with email_verified=true),
+       retrieves the Issuer Authorization Policy from _oauth-issuer-
+       policy.partner.example, and verifies that
+       https://idp.partner.example appears in authorized_issuers.
+
+   9.  Verification succeeds.  The Resource Authorization Server issues
+       an access token in the response body.  Client authentication
+       (private_key_jwt) is handled by the ID-JAG grant profile and the
+       underlying OAuth client-authentication mechanism; trust framework
+       evaluation does not govern it.
+
+C.4.  Failure Variants
+
+   *  If the Assertion Issuer's Entity Configuration is unreachable or
+      the federation chain does not terminate at
+      https://federation.example.org, the Resource Authorization Server
+      returns invalid_grant.
+
+   *  If a different trust anchor appears in the chain but the policy
+      lists only https://federation.example.org, the Resource
+      Authorization Server returns invalid_grant.
+
+   *  If partner.example does not authorize https://idp.partner.example
+      in its Issuer Authorization Policy, the Resource Authorization
+      Server returns invalid_grant.
+
+   *  If the federation chain validates but the client's
+      client_assertion is not signed by a registered key (for example
+      because of unfinished key rotation), the Resource Authorization
+      Server returns invalid_client.  This is a client-authentication
+      failure governed by the grant profile and OAuth client-
+      authentication mechanisms, not by the trust framework; it is
+      included here only to show how trust-framework outcomes interleave
+      with other token-endpoint errors.
 
 Appendix D.  Related Token Contexts
 

@@ -231,27 +231,14 @@ provides a wire-format alternative for each.
 
 ## Open-World Trust Evaluation
 
-In closed deployments, a Resource Authorization Server can often rely on
-bilateral configuration: each acceptable issuer or integration is
-registered directly with local policy. That model breaks down when the
-acceptable issuer set is large, dynamic, customer-controlled, or
-discovered through external trust infrastructure.
-
-This document targets open-world deployments in which acceptance is
-based on verifiable evidence rather than prior enumeration. Examples
-include a federation trust chain proving issuer authenticity, a DNS or
-HTTPS policy proving subject-namespace authorization, or other
-profile-specific evidence registered as Trust Methods.
-
-Open-world evaluation does not mean open acceptance. A Resource
-Authorization Server still publishes its trust policy, chooses the Trust
-Methods it accepts, applies local authorization policy, and fails closed
-when required evidence is missing, malformed, or indeterminate.
-
-Related open-world problems, such as client-instance attestation or
-workload identity, can reuse the same pattern but require
-profile-specific bindings outside the core subject-namespace
-authorization mechanism defined here.
+This document targets open-world deployments: acceptance is based on
+verifiable evidence (a federation trust chain, a DNS or HTTPS
+authority policy, or other Trust-Method-registered evidence) rather
+than prior bilateral enumeration. Open-world evaluation does not
+mean open acceptance: the Resource Authorization Server publishes
+the Trust Methods it accepts, applies local authorization policy,
+and fails closed when required evidence is missing, malformed, or
+indeterminate.
 
 ## Relationship to Existing Mechanisms
 
@@ -716,16 +703,16 @@ lookup procedure in {{dii-lookup}}: a DNS query at
 `_oauth-issuer-policy.{A}` with HTTPS well-known URL fallback when the
 DNS response is `negative-authoritative`.
 
-#### https_subject_authority {#trust-method-https-subject-authority}
+#### https_authorized_issuer {#trust-method-https-authorized-issuer}
 
-The `https_subject_authority` method indicates that the Assertion
+The `https_authorized_issuer` method indicates that the Assertion
 Issuer is acceptable if the Subject Authority identified by the
 assertion's Subject Identifier publishes an HTTPS well-known Issuer
 Authorization Policy authorizing the Assertion Issuer.
 
 ~~~ json
 {
-  "method": "https_subject_authority"
+  "method": "https_authorized_issuer"
 }
 ~~~
 
@@ -778,48 +765,49 @@ DNS-published authority (inline or DNS pointer). Compared to
 A Resource Authorization Server lists `domain_authorized_issuer`
 instead when it accepts the DNS forms or the canonical DNS-first
 lookup. A Resource Authorization Server MAY list both
-`domain_authorized_issuer` and `https_subject_authority`; see
+`domain_authorized_issuer` and `https_authorized_issuer`; see
 {{combining-dai-methods}}.
 
-##### Combining domain_authorized_issuer and https_subject_authority {#combining-dai-methods}
+#### Combining domain_authorized_issuer and https_authorized_issuer {#combining-dai-methods}
 
-`domain_authorized_issuer` and `https_subject_authority` are peer
+`domain_authorized_issuer` and `https_authorized_issuer` are peer
 Trust Methods in the `subject_namespace_authorization` category;
 within a category, OR-semantics apply ({{trust-method-categories}}).
 A Resource Authorization Server that lists both methods accepts an
 assertion satisfying EITHER.
 
-Concretely, when both methods are listed and the Resource
-Authorization Server processes an assertion with Subject Authority
-`A`:
+Listing both methods produces a weaker combined trust posture than
+listing either alone. `domain_authorized_issuer` fails closed under
+`indeterminate` DNS outcomes (see {{dii-failures}}); adding
+`https_authorized_issuer` to the same Trust Policy creates a path to
+acceptance via the direct HTTPS retrieval, defeating that
+fail-closed property. An attacker who can drive the DNS lookup to
+`indeterminate` (resolver denial-of-service, BGP disruption of the
+authoritative nameserver path, or similar) can force the verifier
+to fall through to `https_authorized_issuer` evaluation; if the
+attacker can additionally substitute the apex HTTPS response
+(through DNS-redirect plus TLS misissuance, for example), the
+attacker reaches assertion acceptance that the fail-closed
+`domain_authorized_issuer` evaluation would have prevented.
 
-- If the canonical lookup ({{dii-lookup}}) yields an affirmative
-  result (DNS inline, DNS pointer, or HTTPS fallback), and the
-  policy authorizes the Assertion Issuer per {{dii-verification}},
-  the request is accepted under `domain_authorized_issuer`.
-
-- If `domain_authorized_issuer` did not produce an authorization
-  (for example, the DNS query returned `indeterminate` and no
-  fresh cached policy is available), but
-  `https_subject_authority` retrieves the HTTPS well-known
-  document directly and that document authorizes the Assertion
-  Issuer, the request is accepted under `https_subject_authority`.
-
-The result is that the OR semantics let `https_subject_authority`
-serve as a recovery path when DNS resolution fails, while
-`domain_authorized_issuer` retains its full set of publication
-forms when DNS is available.
+Resource Authorization Servers SHOULD therefore list only one of
+the two methods. Listing both is appropriate only when the
+deployment has explicitly accepted the weaker combined trust model
+in exchange for higher availability: a Subject Authority is
+reachable when EITHER DNS or apex HTTPS is available, not only
+when both are. Deployments that combine both methods SHOULD
+mitigate by tightening cache freshness and applying enhanced
+local-policy scrutiny.
 
 A Resource Authorization Server that distrusts DNS-published
 authority and wants STRICT HTTPS-only authority resolution lists
-ONLY `https_subject_authority` and omits `domain_authorized_issuer`.
+ONLY `https_authorized_issuer` and omits `domain_authorized_issuer`.
 
 A Resource Authorization Server that accepts DNS-published
-authority without exception lists ONLY `domain_authorized_issuer`;
-the canonical lookup procedure already falls back to the HTTPS
-well-known URL on `negative-authoritative` DNS responses, so the
-"no DNS record, only HTTPS document" Subject Authority case is
-already covered.
+authority lists ONLY `domain_authorized_issuer`; the canonical
+lookup procedure already falls back to the HTTPS well-known URL on
+`negative-authoritative` DNS responses, so the "no DNS record,
+only HTTPS document" Subject Authority case is already covered.
 
 #### email_verification_dns {#trust-method-email-verification-dns}
 
@@ -1668,8 +1656,8 @@ HTTPS well-known URL only on `negative-authoritative` outcomes.
 This is the canonical procedure used by the
 `domain_authorized_issuer` Trust Method. Other Trust Methods in the
 `subject_namespace_authorization` category MAY define alternative
-retrieval procedures; in particular, `https_subject_authority`
-({{trust-method-https-subject-authority}}) skips DNS entirely and
+retrieval procedures; in particular, `https_authorized_issuer`
+({{trust-method-https-authorized-issuer}}) skips DNS entirely and
 retrieves only from the HTTPS well-known URL.
 
 1. Query the DNS TXT resource record set at
@@ -2117,8 +2105,8 @@ permitted to issue for the policy-hosting domain.
 
 ### HTTPS-Only Authority Trust Model {#https-only-trust-model}
 
-The `https_subject_authority` Trust Method
-({{trust-method-https-subject-authority}}) bypasses DNS for
+The `https_authorized_issuer` Trust Method
+({{trust-method-https-authorized-issuer}}) bypasses DNS for
 authority retrieval entirely. The policy is fetched directly from
 the Subject Authority's apex well-known URL over TLS, and DNS is
 not consulted for the authority lookup at all.
@@ -2149,16 +2137,41 @@ The trust model differs from `domain_authorized_issuer`:
 - Subject Authorities that operate their own DNS but cannot
   control the apex web origin (for example, the apex is hosted on
   a marketing CDN with no path control) cannot serve as
-  `https_subject_authority` Subject Authorities. For such
+  `https_authorized_issuer` Subject Authorities. For such
   deployments, `domain_authorized_issuer` with the DNS pointer
   form is the appropriate mechanism.
 
-Resource Authorization Servers selecting `https_subject_authority`
+Resource Authorization Servers selecting `https_authorized_issuer`
 exclusively (omitting `domain_authorized_issuer` from the trust
-policy) are explicitly distrusting DNS-resolved authority
-artifacts. This is a deliberate operational choice; the cost is
-narrower Subject Authority coverage (only those operating their
-own apex web origin can participate).
+policy) are explicitly distrusting DNS-published authority
+artifacts. The cost is narrower Subject Authority coverage (only
+those operating their own apex web origin can participate).
+
+The two methods are NOT strictly ordered by security strength.
+They trade different risks:
+
+- `https_authorized_issuer` is resilient to attacks on the DNS
+  TXT record itself but depends on hostname-to-IP DNS resolution
+  plus the public CA trust system. A DNS-redirect of the apex
+  hostname combined with a misissued TLS certificate succeeds
+  against this method.
+
+- `domain_authorized_issuer` (inline DNS form) is resilient to
+  TLS-misissuance attacks on the apex hostname because the
+  authority artifact is the TXT record itself; an attacker
+  needs DNS write or DNSSEC-bypass capability rather than a
+  forged TLS certificate.
+
+- `domain_authorized_issuer` (DNS pointer form and HTTPS
+  fallback) inherits the TLS-misissuance risk of
+  `https_authorized_issuer` while ALSO depending on DNS for
+  the pointer or for negative-authoritative routing.
+
+The right choice depends on which threats the deployment can
+defend against. A Subject Authority with strong DNSSEC and weak
+TLS issuance controls favors the inline DNS form; a Subject
+Authority with strong CAA/CT monitoring and limited DNS control
+favors HTTPS-only.
 
 ### DNS Integrity and Compromise {#dns-integrity-and-compromise}
 
@@ -2788,7 +2801,7 @@ Initial entries:
 |-|-|-|-|
 | `openid_federation` | `issuer_authentication` | `trust_anchors` (array of string, REQUIRED); `trust_marks` (array of object, OPTIONAL) | This document |
 | `domain_authorized_issuer` | `subject_namespace_authorization` | (none) | This document |
-| `https_subject_authority` | `subject_namespace_authorization` | (none) | This document |
+| `https_authorized_issuer` | `subject_namespace_authorization` | (none) | This document |
 | `email_verification_dns` | `subject_namespace_authorization` | (none) | This document, {{WICG-EMAIL-VERIF}} |
 
 ## Issuer Authorization Policy Registrations

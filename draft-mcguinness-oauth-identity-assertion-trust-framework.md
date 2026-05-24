@@ -160,6 +160,56 @@ each Subject Authority lists its authorized Assertion Issuers directly,
 and the namespace-authorization trust graph is bounded to a depth of
 one. See {{transitive-authz-bounded}}.
 
+## Motivating Use Cases {#motivation}
+
+This document is motivated by deployment patterns where the gap between
+issuer authentication and namespace authorization has practical
+consequences today.
+
+- **Workforce SSO into multi-vendor SaaS.** An enterprise customer
+  federates its workforce Identity Provider (Okta, Entra, Auth0, and
+  similar) into many SaaS vendors. Each vendor configures the accepted
+  Assertion Issuer bilaterally per customer; no vendor can
+  independently verify that the configured Identity Provider is the
+  one the customer's domain authorizes for its email namespace. A
+  misconfiguration or a malicious bilateral arrangement at one vendor
+  is not detectable by the customer or by other vendors.
+
+- **AI agent platforms acting across tool boundaries.** An agent
+  platform authenticates users via federated SSO from their primary
+  Identity Provider, then mints identity assertions toward downstream
+  tools. The tool's Resource Authorization Server needs to know
+  whether the agent platform is entitled to assert about users in the
+  customer's email namespace, not merely that the agent platform is
+  signing with a known key. The Agent Platform appendix walks through
+  this case end to end.
+
+- **B2B integrations carrying end-user identity.** Cross-organization
+  API access where the calling organization's Identity Provider
+  asserts about its users for the called organization's APIs. Without
+  a wire-format namespace authorization, the called organization
+  either accepts any authenticated Identity Provider (no namespace
+  control) or maintains a manual allowlist per customer
+  (operationally expensive and fragile at scale).
+
+- **Shared-issuer multi-tenant Identity Providers.** Identity
+  Providers such as Google Workspace, Microsoft Entra, and Auth0
+  serve many independent customer tenants under shared signing
+  infrastructure. A customer authorizing its Identity Provider for
+  its email namespace today must trust the Identity Provider's
+  tenant-isolation enforcement implicitly. This framework makes the
+  customer's choice of authorized tenant observable on the wire
+  ({{dii-multi-tenant}}).
+
+In each pattern, the deployment state today is one of: bilateral OAuth
+configuration (works at small scale, does not scale across hundreds of
+partners); federation membership treated as a proxy for namespace
+authority (incorrect, since membership does not establish authority
+over any particular subject namespace); or implicit trust in the
+Identity Provider's tenant-domain binding (works in practice but is
+not auditable from outside the Identity Provider). This document
+provides a wire-format alternative for each.
+
 ## Relationship to Existing Mechanisms
 
 This framework is complementary to OpenID Federation: OpenID Federation
@@ -2700,9 +2750,11 @@ extensions are out of scope for this document.
 
 --- back
 
-# Design Background
+# Design Rationale
 
-This appendix is non-normative.
+This appendix is non-normative. It records the design choices that
+shaped the framework, for reviewers and implementers who want to
+understand why specific decisions were made.
 
 ## Relationship to OpenID Federation {#relationship-to-oidf}
 
@@ -2774,6 +2826,78 @@ deploying this framework should treat its records with the
 operational rigor appropriate to a sign-in dependency, including
 change-management review of every record update, monitoring for
 unexpected changes, and rapid-rollback capability for incidents.
+
+## Why Bounded-Depth-1 Namespace Authorization
+
+The Issuer Authorization Policy is a flat list of Assertion Issuer
+identifiers, not a graph. A Subject Authority cannot delegate "to
+whoever Issuer X federates"; it must list each authorized issuer
+directly. This bounding is deliberate:
+
+- A Resource Authorization Server is never required to compute a
+  multi-hop authorization chain to evaluate a namespace claim. There
+  is always a single, customer-published policy that names the
+  Assertion Issuer.
+
+- Revocation latency is bounded by the Subject Authority's own
+  cache lifetime, not by the depth of a delegation chain.
+
+- A compromise at any intermediate party (federation operator,
+  delegated issuer) cannot expand the namespace authorization of an
+  Assertion Issuer the Subject Authority did not list directly.
+
+Federation chains for issuer authentication remain in scope under
+the `issuer_authentication` category; only the namespace-authorization
+graph is bounded. See {{transitive-authz-bounded}} for the full
+treatment.
+
+## Why First-Class Tenant Binding
+
+Shared-issuer multi-tenant Identity Providers (Google Workspace,
+Auth0 in some configurations, Microsoft Entra B2B in some flows)
+serve many customer tenants under a single issuer URL. The
+deployment reality is that these Identity Providers are common;
+authorizing them without tenant binding effectively authorizes
+every tenant of the Identity Provider for the namespace, which is
+almost never the intent.
+
+The `tenant` member on `authorized_issuers[]` entries binds
+authorization to the specific tenant identifier the Identity
+Provider populates in the top-level `tenant` claim defined in
+{{ID-JAG}} §6.1. The binding makes the Subject Authority's choice
+of authorized tenant observable on the wire and verifiable per
+assertion. It does not eliminate the trust assumption on the
+Identity Provider's tenant-isolation enforcement; it makes the
+assumption explicit and auditable. See {{dii-multi-tenant}}.
+
+A generic claim-matching mechanism (matching arbitrary JWT claims
+against publisher-specified values) was considered as an
+alternative. First-class `tenant` was preferred because the claim
+name is standardized in {{ID-JAG}}, the deployment intent is
+unambiguous, and the wire-format expression is simpler than a
+generic claim-matching object.
+
+## Why HTTPS Fallback
+
+The framework supports an HTTPS-hosted Issuer Authorization Policy
+at a well-known URL on the Subject Authority's host. This serves
+two purposes:
+
+- **Backward-compatibility runway.** Subject Authorities that
+  cannot or do not yet operate the DNS record can participate via
+  HTTPS publication only. The lookup procedure consults the HTTPS
+  well-known URL when the DNS query returns
+  `negative-authoritative` ({{dii-lookup}}).
+
+- **Richer policy expression.** The HTTPS form supports the full
+  Issuer Authorization Policy JSON schema (validity windows, tenant
+  binding, format restrictions, critical extensions) that the
+  inline DNS form cannot express.
+
+DNS remains the entry point; HTTPS is consulted only as fallback
+when the DNS query returns `negative-authoritative`. This preserves
+the DNS-authority pattern as the primary channel while
+accommodating deployment variations.
 
 # Operational Background for Domain-Authorized Issuer Discovery
 

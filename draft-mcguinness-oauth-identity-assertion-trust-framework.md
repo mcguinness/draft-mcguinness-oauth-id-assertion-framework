@@ -55,6 +55,8 @@ normative:
 
 informative:
   RFC5234:
+  RFC7009:
+  RFC7662:
   RFC8461:
   RFC8555:
   RFC8659:
@@ -407,51 +409,6 @@ Unrecognized Trust Policy members MUST be ignored, except when the
 member name or an extension identifier governing the member is listed
 in `crit`.
 
-## Critical Extension Identifiers {#critical-extension-identifiers}
-
-A critical extension identifier is a string that names a policy
-feature whose correct processing is required to safely interpret a
-document or DNS record. Critical extension identifiers are used by the
-`crit` member of JSON documents and the `crit=` directive of DNS
-records defined in this document.
-
-A critical extension identifier is recognized when it is either:
-
-- a member or directive name defined by this document for the document
-  or record in which it appears; or
-
-- an absolute URI whose defining specification identifies it as a
-  critical extension identifier for this framework and defines the
-  processing behavior required for recognition.
-
-Future specifications SHOULD use absolute URI identifiers when correct
-processing depends on more than recognizing a single member or DNS
-directive, for example when an extension defines several fields or
-changes the authorization decision procedure.
-
-For example, a future specification could define
-`https://example.net/oauth-issuer-policy/audience-constraints` as a
-critical extension identifier. A policy that depends on that extension
-could include it in `crit` and add the extension-defined members:
-
-~~~ json
-{
-  "subject_authority": "example.com",
-  "crit": [
-    "https://example.net/oauth-issuer-policy/audience-constraints"
-  ],
-  "authorized_issuers": [
-    {
-      "issuer": "https://idp.example.com",
-      "audiences": ["https://api.resource.example"]
-    }
-  ]
-}
-~~~
-
-Consumers that do not recognize the URI would reject the policy rather
-than ignoring `audiences` and over-accepting assertions.
-
 ## Trust Methods {#trust-methods}
 
 This section defines the Trust Method structure, the two categories
@@ -525,7 +482,7 @@ Sections {{issuer-authentication-methods}} and
 {{subject-namespace-authorization-methods}} define the Trust Methods
 this document specifies, grouped by category.
 
-### issuer_authentication Methods {#issuer-authentication-methods}
+### Issuer Authentication Methods {#issuer-authentication-methods}
 
 This section defines Trust Methods in the `issuer_authentication`
 category. A method in this category answers "is the entity named by
@@ -565,7 +522,7 @@ For OpenID Federation deployments, this Trust Method is the primary
 integration point between the federation and this framework; see
 {{relationship-to-oidf}} for positioning.
 
-### subject_namespace_authorization Methods {#subject-namespace-authorization-methods}
+### Subject Namespace Authorization Methods {#subject-namespace-authorization-methods}
 
 This section defines Trust Methods in the `subject_namespace_authorization`
 category. A method in this category answers "does the Assertion Issuer
@@ -707,6 +664,52 @@ Server's trust policy lists both `domain_authorized_issuer` and
 Methods, the cross-category combination rule of {{rasp}} treats them
 as alternatives within the same category (OR-semantics): satisfying
 either is sufficient.
+
+## Critical Extension Identifiers {#critical-extension-identifiers}
+
+A critical extension identifier is a string that names a policy
+feature whose correct processing is required to safely interpret a
+document or DNS record. Critical extension identifiers are used by the
+`crit` member of JSON documents (in both the Trust Policy and the
+Issuer Authorization Policy) and the `crit=` directive of DNS records
+defined in this document.
+
+A critical extension identifier is recognized when it is either:
+
+- a member or directive name defined by this document for the document
+  or record in which it appears; or
+
+- an absolute URI whose defining specification identifies it as a
+  critical extension identifier for this framework and defines the
+  processing behavior required for recognition.
+
+Future specifications SHOULD use absolute URI identifiers when correct
+processing depends on more than recognizing a single member or DNS
+directive, for example when an extension defines several fields or
+changes the authorization decision procedure.
+
+For example, a future specification could define
+`https://example.net/oauth-issuer-policy/audience-constraints` as a
+critical extension identifier. A policy that depends on that extension
+could include it in `crit` and add the extension-defined members:
+
+~~~ json
+{
+  "subject_authority": "example.com",
+  "crit": [
+    "https://example.net/oauth-issuer-policy/audience-constraints"
+  ],
+  "authorized_issuers": [
+    {
+      "issuer": "https://idp.example.com",
+      "audiences": ["https://api.resource.example"]
+    }
+  ]
+}
+~~~
+
+Consumers that do not recognize the URI would reject the policy rather
+than ignoring `audiences` and over-accepting assertions.
 
 # Trust Policy Processing
 
@@ -981,15 +984,13 @@ When evaluating such an assertion, in addition to the processing in
 
 1. Treat the actor as a namespace-bound subject when `act.sub` carries
    a Subject Identifier format with a registered Subject Authority
-   extraction procedure ({{iana-authority-registry}}). The format MAY
-   be carried in `act.sub_profile` or be evident from the structure of
-   `act.sub`; in either case the determination uses the registered
-   extraction procedure for actor carriage. The `email` extraction
-   procedure defined in this document applies only to a top-level
-   subject email accompanied by top-level `email_verified=true`; it
-   does not apply to `act.sub`. Actor email identifiers therefore
-   require a future registered extraction procedure that defines how
-   actor-email verification is carried.
+   extraction procedure ({{iana-authority-registry}}) whose registry
+   entry applies to actor carriage. The format MAY be carried in
+   `act.sub_profile` or be evident from the structure of `act.sub`;
+   in either case the determination uses the registered extraction
+   procedure. See {{actor-coverage}} for the scope and limitations
+   of this document's registered extractions when applied to actor
+   identifiers.
 
 2. If the trust policy lists one or more
    `subject_namespace_authorization` Trust Methods, evaluate at least
@@ -1024,6 +1025,34 @@ Whether the actor identified by `(act.iss, act.sub)` is permitted to
 act on behalf of the token's subject for a specific scope or
 resource remains a local authorization decision, consistent with the
 scope rules of {{ACTOR-PROFILE}}.
+
+### Coverage of Actor Identities {#actor-coverage}
+
+Trust evaluation of an actor's identity by this framework's
+`subject_namespace_authorization` category is supported only when
+`act.sub` uses a Subject Identifier format with a registered Subject
+Authority Extraction Procedure ({{iana-authority-registry}}) AND
+that procedure's registry entry applies to actor carriage (the
+"Applies To" column in the registry).
+
+This document's only registered extraction (`email`,
+{{dii-authority}}) applies to direct Subject Identifiers only; it
+does NOT apply to `act.sub`. As a consequence, this framework
+currently provides NO `subject_namespace_authorization`-category
+trust evaluation for actor identities. Actor identity trust is
+governed entirely by:
+
+- Local policy at the Resource Authorization Server, AND
+- Any trust framework established between the Resource Authorization
+  Server and the actor's claimed namespace outside the scope of this
+  document.
+
+This is a documented gap. A future specification MAY register an
+actor-applicable extraction procedure (for example, an actor-email
+extraction that defines how actor-email verification is carried in
+the assertion's claim shape) to close it. Deployments that need
+wire-format-enforced trust evaluation for actor identities require
+that future work; this document does not provide such a mechanism.
 
 # Domain-Authorized Issuer Discovery {#dii}
 
@@ -1077,49 +1106,24 @@ be extracted into a separate specification in the future without
 breaking changes to existing implementations. Section anchors use the
 `dii-` prefix to make extraction mechanical.
 
-## Relationship to Existing DNS Policy Mechanisms {#dii-prior-art}
+## Relationship to the Email Verification Protocol {#dii-prior-art}
 
 This subsection is non-normative.
 
-Domain-Authorized Issuer Discovery follows the same general
-architecture as several existing IETF mechanisms in which control of
-a DNS namespace is used to publish security policy:
+Domain-Authorized Issuer Discovery follows the DNS authority-publication
+pattern summarized in {{dns-authority-patterns}}: the holder of a DNS
+namespace publishes security policy for that namespace at a predictable
+owner name, optionally pointing to richer HTTPS policy content.
 
-- CAA {{RFC8659}} lets a DNS domain holder authorize which
-  Certification Authorities are permitted to issue certificates for
-  the domain. This document applies the same authorization pattern
-  to Assertion Issuers.
-
-- MTA-STS {{RFC8461}} uses DNS to signal policy state and HTTPS to
-  host richer policy content. This document uses the same
-  DNS-plus-HTTPS split while allowing an inline DNS form for simple
-  delegations.
-
-- ACME {{RFC8555}} uses DNS and HTTPS challenges to prove current
-  control of a domain. This document is not a challenge-response
-  protocol; it publishes a standing authorization policy that
-  verifiers can evaluate when an assertion is presented.
-
-- The Email Verification Protocol {{WICG-EMAIL-VERIF}} (WICG) lets
-  an email domain delegate verification authority to a specific
-  issuer via a DNS TXT record at `_email-verification.{email_domain}`
-  plus issuer metadata at a well-known URL. The trust question it
-  answers ("which issuer can verify emails for this domain?") is a
-  special case of the question this document answers ("which
-  Assertion Issuer is authorized for this subject namespace?"). The
-  `email_verification_dns` Trust Method
-  ({{trust-method-email-verification-dns}}) lets verifiers honor
-  existing Email Verification Protocol records without requiring a
-  parallel `_oauth-issuer-policy` record. Because the Email
-  Verification Protocol is a non-IETF specification still under
-  active development, interoperability for the
-  `email_verification_dns` Trust Method depends on the stability of
-  {{WICG-EMAIL-VERIF}}; implementations should track that
-  specification for breaking changes.
-
-These precedents motivate the use of an underscored DNS owner name,
-a versioned TXT record, an HTTPS well-known URL, explicit
-malformed-result handling, and cache-lifetime guidance.
+The `email_verification_dns` Trust Method
+({{trust-method-email-verification-dns}}) is included for compatibility
+with the Email Verification Protocol {{WICG-EMAIL-VERIF}}, which uses
+the same DNS-authority pattern at a different owner name
+(`_email-verification.{domain}`) and with a different record format.
+Because that protocol is a non-IETF specification still under active
+development, interoperability for `email_verification_dns` depends on
+the stability of {{WICG-EMAIL-VERIF}}; implementations should track
+that specification for breaking changes.
 
 ## Subject Authority Determination {#dii-authority}
 
@@ -1725,19 +1729,72 @@ document governs only how a Resource Authorization Server
 later verifies assertions issued by the discovered issuer.
 
 The Assertion Issuer discovery flow defined here is intended for
-back-channel (server-to-server) consumers. It is not
-privacy-preserving against the resolver path, the policy host, or
-the discovered Assertion Issuer: a client performing this discovery
-on behalf of a specific user exposes the user's Subject Authority
-to each of those parties, and contacting the discovered Assertion
-Issuer reveals which Resource Authorization Server (if any) the
-client intends to target. For browser-mediated identity verification
-flows (for example, RP-side email verification), the Email
-Verification Protocol {{WICG-EMAIL-VERIF}} provides materially
-stronger privacy properties through browser intermediation and
-selective-disclosure tokens. Implementers building user-facing
-verification flows SHOULD use {{WICG-EMAIL-VERIF}} rather than the
-discovery flow defined here.
+back-channel (server-to-server) consumers and is not
+privacy-preserving. A discovery operation on behalf of a specific
+user exposes meaningful information to several parties:
+
+- **The recursive DNS resolver** sees every Subject Authority
+  queried, with timing. Across many queries, this reveals
+  organizational relationships, provider evaluations, and
+  operational patterns of the querying client.
+
+- **The authoritative DNS server** for the Subject Authority's
+  zone sees the same information as the recursive resolver, with
+  finer-grained timing if the resolver does not aggregate queries.
+
+- **The policy host**, when the DNS pointer form is in use, sees
+  every HTTPS retrieval with full HTTP context (User-Agent, source
+  IP, timing). If the policy host is a third party, this is a
+  cross-organization information leak.
+
+- **The discovered Assertion Issuer** sees that the client intends
+  to obtain an assertion for a specific user, before the user has
+  authenticated or consented. This pre-discloses the user's
+  potential interaction with a Resource Authorization Server the
+  user may not be aware of.
+
+For enterprise deployments these leaks can convey business-sensitive
+information — which Identity Providers a customer is evaluating,
+partner relationships, M&A signals — to parties outside the
+customer's trust boundary.
+
+Mitigations available to the discovery client:
+
+- Use a privacy-preserving DNS resolution path (DNS-over-HTTPS,
+  Oblivious DNS-over-HTTPS, or a vetted enterprise resolver) to
+  reduce resolver-path exposure.
+- Defer discovery until a concrete issuance decision is required;
+  do not pre-resolve Subject Authorities speculatively.
+- Cache discovery results aggressively, within the cache lifetime
+  bounds defined in {{dii-caching}}, to reduce the rate of fresh
+  retrievals.
+- Batch or randomize discovery timing where the application allows
+  it, to reduce timing-based correlation across users.
+
+Mitigations available to the Subject Authority:
+
+- Host the policy on infrastructure under the Subject Authority's
+  operational control rather than on a third-party DNS pointer
+  target, to keep retrieval logs within the same trust boundary as
+  the policy.
+- Configure HTTP cache headers permissively (within the
+  {{dii-caching}} bounds) to maximize consumer-side caching and
+  minimize retrieval frequency.
+
+For browser-mediated identity verification flows (for example,
+RP-side email verification), the Email Verification Protocol
+{{WICG-EMAIL-VERIF}} provides materially stronger privacy
+properties through browser intermediation and selective-disclosure
+tokens. Implementers building user-facing verification flows
+SHOULD use {{WICG-EMAIL-VERIF}} rather than the discovery flow
+defined here.
+
+The framework does not provide cryptographic privacy techniques
+(oblivious retrieval, blinded queries, private information
+retrieval) for the discovery flow. Deployments with stringent
+privacy requirements should evaluate whether this framework's
+back-channel discovery is appropriate for their threat model;
+future extensions MAY define such mechanisms.
 
 ## Caching {#dii-caching}
 
@@ -1959,80 +2016,12 @@ change of policy host.
 A Subject Authority's authorized issuers change over time, both
 through planned transfers (provider migrations, acquisitions,
 re-architectures) and through unplanned revocations (security
-incidents). The framework's caching model determines how quickly
-those changes propagate to verifiers and discovery clients.
-
-**Planned transfer.** When a Subject Authority moves authorization
-from Assertion Issuer A to Assertion Issuer B, the RECOMMENDED
-sequence is:
-
-1. Reduce the DNS TTL on `_oauth-issuer-policy.{A}` and HTTP cache
-   lifetimes on the policy document to a small operational value
-   well in advance of the planned change (a TTL multiple before
-   the cutover). This shortens the eventual migration window.
-
-2. Add Assertion Issuer B to `authorized_issuers` while retaining
-   Assertion Issuer A. Both are now valid; clients and verifiers
-   see two candidates. Setting a `valid_until` on Assertion Issuer
-   A's entry scopes the coexistence window deterministically: a
-   verifier rejects Assertion Issuer A after that time regardless
-   of cache state.
-
-3. Migrate clients to Assertion Issuer B (out-of-band signal,
-   monitoring, scheduled cutover).
-
-4. Remove Assertion Issuer A from `authorized_issuers` after the
-   migration is complete.
-
-5. Restore the original TTL after a steady-state cache lifetime
-   has elapsed since step 4.
-
-**Unplanned revocation.** When an authorized Assertion Issuer must
-be removed urgently (key compromise, contract termination, security
-incident):
-
-1. Reduce DNS TTL and HTTP cache lifetimes on the policy to the
-   minimum operational value the Subject Authority is prepared to
-   sustain. This is a precondition for fast revocation; without
-   it, revocation latency is bounded by existing cache lifetimes.
-   Subject Authorities of high-value namespaces SHOULD operate at
-   short steady-state TTLs in anticipation of this need.
-
-2. Publish the policy with the compromised Assertion Issuer
-   removed. Setting `last_updated` on the new policy aids
-   operators inspecting cache state.
-
-3. Notify dependent parties out-of-band (security advisory,
-   incident peering, account-team channels) so that those willing
-   to invalidate cached copies immediately can do so. The
-   framework does not provide a wire-format push mechanism for
-   forced invalidation.
-
-**Revocation latency model.** In the absence of attacks on the
-policy endpoint, the maximum time between publishing a revocation
-and the last verifier honoring the old policy is the consumer's
-maximum cache lifetime (recommended absolute ceiling 24 hours;
-{{dii-caching}}). In the presence of a denial-of-service attack
-that drives the policy endpoint to `indeterminate` outcomes, the
-additional exposure window is bounded by the cumulative cap on
-`indeterminate` retrieval failures (1 hour, {{dii-caching}});
-beyond that window, verifiers treat the policy as `indeterminate`
-and reject assertions, failing closed. The total worst-case
-exposure window is therefore:
-
-> max-cache-lifetime + cumulative-indeterminate-cap
-
-with recommended defaults bounding it at approximately 25 hours
-from the moment the new policy is published. Subject Authorities
-that require tighter bounds MUST run with shorter cache lifetimes
-in steady state — there is no shorter-revocation mechanism
-provided by the framework.
-
-The framework provides NO mechanism to invalidate already-cached
-copies remotely. Revocation cannot be faster than the cache window
-allows; the design choice is deliberate, to keep the framework's
-trust model simple and to avoid an in-band channel that itself
-becomes a denial-of-service or coercion target.
+incidents). The framework provides no remote cache-invalidation
+mechanism; revocation latency is bounded by DNS TTLs, HTTP cache
+lifetimes, and the consumer cache ceilings in {{dii-caching}}.
+Subject Authorities that need fast revocation MUST operate with
+short steady-state cache lifetimes. Detailed operational sequences
+are described in {{dii-operational-lifecycle}}.
 
 ### Policy Conflicts and Determinism {#policy-conflicts}
 
@@ -2044,56 +2033,8 @@ reach the same conclusion about what (if any) policy applies. An
 attacker with partial control of one publication channel cannot
 exploit interpretive ambiguity at the consumer.
 
-Disposition of common conflict scenarios:
-
-- **Multiple recognized TXT records, all `issuer=` only.** Merged
-  into a single virtual policy; `issuer=` values across records
-  are deduplicated, with order preserved by first-seen
-  ({{dii-lookup}}, step 2c).
-
-- **Mix of `uri=` and `issuer=` records.** If any recognized
-  record (after `authority=` filtering) contains `uri=`, the
-  HTTPS document at the `uri=` target is authoritative; all
-  `issuer=` directives across all records are IGNORED
-  ({{dii-lookup}}, step 2b). This rule prevents an attacker who
-  can add an extra TXT record (but not modify existing ones)
-  from injecting issuers when a `uri=` policy is in effect.
-
-- **Multiple distinct `uri=` values.** Treated as `malformed`
-  ({{dii-failures}}). The framework does not attempt to choose;
-  the consumer cannot tell which is legitimate. A verifier
-  rejects the assertion; a discovery client reports an error.
-
-- **DNS and HTTPS well-known URL both populated with differing
-  content.** The lookup procedure consults DNS first; an
-  `affirmative` DNS response (inline or pointer) is
-  authoritative, and the bare HTTPS well-known URL is not
-  consulted. A Subject Authority that publishes both forms MUST
-  keep them consistent; consumers do not reconcile differences.
-
-- **Multiple `authorized_issuers` entries for the same `issuer`
-  value but different `tenant` values.** Each (issuer, tenant)
-  pair is an independent authorization. Verification matches the
-  first entry whose `(issuer, tenant)` matches the assertion
-  ({{dii-verification}}, step 4); entries with `tenant` do not
-  shadow entries without `tenant` for the same `issuer`.
-
-- **Two Subject Authorities publishing for the same subject.**
-  Only the Subject Authority computed by the extraction
-  procedure for the assertion's Subject Identifier applies. An
-  assertion carrying `email=alice@example.com` is evaluated
-  ONLY against `example.com`'s policy; no other namespace's
-  policy can grant authority over `alice@example.com`,
-  regardless of what other Subject Authorities publish. This
-  follows from {{dii-authority}} and is a property of the
-  extraction procedure, not a heuristic.
-
-- **Conflict between the assertion's claims and the matched
-  policy entry.** Resolved by rejecting the assertion. A
-  matched entry whose `tenant` value differs from the
-  assertion's `tenant` claim does not authorize the assertion
-  ({{dii-verification}}, step 4); the assertion fails the
-  Trust Method.
+Common conflict scenarios and their deterministic dispositions are
+summarized in {{dii-operational-conflicts}}.
 
 ### Document Authentication Limits
 
@@ -2174,19 +2115,52 @@ Servers SHOULD log a warning when accepting an assertion under
 such an unconstrained entry, and SHOULD consider rejecting the
 assertion as a matter of local policy.
 
-The framework relies on the Identity Provider to bind users to
-their tenant correctly: a user in tenant X MUST NOT be able to
-mint an assertion carrying `tenant=Y`, and the Identity Provider
-MUST verify the tenant's claim over the relevant namespace (for
-example, by requiring domain-ownership verification before
-provisioning the tenant with rights over a specific email domain).
-This is a standard tenant-isolation requirement of multi-tenant
-Identity Providers. Subject Authorities SHOULD verify out-of-band
-that an Identity Provider enforces both properties before listing
-it. The `tenant` binding makes the Subject Authority's choice of
-authorized tenant observable on the wire but does not eliminate
-this trust assumption on the Identity Provider; it surfaces it
-explicitly.
+The `tenant` binding is a wire-format expression of a trust
+assumption, not a cryptographic guarantee. The framework verifies
+that the assertion's `tenant` claim matches the Subject Authority's
+designated value, but the Subject Authority cannot independently
+verify that the Identity Provider's tenant-isolation enforcement is
+correct, complete, and free of implementation defects. A multi-tenant
+Identity Provider with a tenant-isolation defect — whether a coding
+bug, a misconfigured administrative operation, or an exploitable
+feature — defeats the wire-format check. The framework offers no
+defense against this class of failure beyond the Identity Provider's
+own engineering quality.
+
+This is a structural property of the shared-issuer trust model: when
+many tenants share signing infrastructure, security depends on the
+operator enforcing isolation. The wire-format `tenant` binding makes
+the Subject Authority's CHOICE of authorized tenant explicit and
+verifiable; it does NOT make the Identity Provider's IMPLEMENTATION
+of tenant isolation auditable or enforceable from outside.
+
+Concretely, the Identity Provider MUST:
+
+- Bind users to their tenant correctly: a user in tenant X MUST NOT
+  be able to mint an assertion carrying `tenant=Y`.
+- Verify the tenant's claim over the relevant namespace before
+  provisioning (for example, by requiring domain-ownership
+  verification before granting a tenant rights over a specific
+  email domain).
+- Sustain these properties under operational change (administrative
+  actions, account recovery flows, support tooling) and security
+  incident.
+
+Subject Authorities listing a shared-issuer multi-tenant Identity
+Provider SHOULD:
+
+- Prefer per-tenant issuer identifiers when offered by the
+  Identity Provider (for example,
+  `https://login.microsoftonline.com/{tenant-id}/v2.0`), since these
+  remove the trust assumption: different tenants have different
+  `iss` values and the JWT signature binds to the specific tenant's
+  key.
+- Treat a shared-issuer listing as a long-lived security delegation
+  requiring due diligence on the Identity Provider's tenant-isolation
+  guarantees, including operational practices, audit reports, and
+  incident history.
+- Reduce DAI cache lifetimes during periods of known Identity
+  Provider instability to bound exposure if tenant isolation fails.
 
 ### Assertion Issuer Discovery Threats
 
@@ -2275,6 +2249,35 @@ an assertion's signature, audience, expiration, replay protection,
 subject, or client binding. Resource Authorization Servers MUST
 validate the assertion according to the applicable grant profile
 before issuing an access token.
+
+## Per-Assertion Revocation Is Out of Scope {#per-assertion-revocation}
+
+This framework establishes whether an Assertion Issuer is authorized
+to assert about a subject; it does not define a mechanism to revoke
+an individual assertion. JWT bearer tokens are stateless: once
+issued, they are valid until their `exp` claim regardless of session
+state at the Assertion Issuer, the user logging out, the Identity
+Provider revoking the user's credentials, or the Subject Authority
+withdrawing the issuer's authorization via DAI.
+
+Per-assertion revocation needs are addressed by mechanisms outside
+this framework:
+
+- OAuth 2.0 Token Revocation {{RFC7009}} for tokens whose issuance
+  passed through this framework.
+- OAuth 2.0 Token Introspection {{RFC7662}} for receivers that want
+  real-time validity checks.
+- Short assertion lifetimes (governed by the applicable grant
+  profile) reduce the exposure window for a leaked or compromised
+  assertion.
+
+Subject Authority withdrawal of an issuer's authorization via DAI
+prevents NEW assertions from that issuer being accepted (subject to
+the latency model in {{delegation-lifecycle}}) but does not
+invalidate already-issued assertions still within their `exp`
+window. Resource Authorization Servers that require synchronous
+revocation MUST implement {{RFC7009}}, {{RFC7662}}, or an
+equivalent at a layer outside this framework.
 
 ## Policy Document Integrity {#integrity}
 
@@ -2423,6 +2426,11 @@ query parameters, logs, or telemetry. Resource Authorization Servers
 that verify assertions with the `domain_authorized_issuer` Trust Method
 SHOULD treat the Subject Authority and Assertion Issuer relationship as
 security-sensitive operational data.
+
+A detailed analysis of discovery-flow privacy — including the specific
+information leaks to the recursive DNS resolver, the authoritative
+nameserver, the policy host, and the discovered Assertion Issuer, along
+with available mitigations — is in {{dii-hrd}}.
 
 # IANA Considerations
 
@@ -2751,6 +2759,145 @@ for a domain operates this framework's records the same way: a single
 source of authority (the domain's DNS), a well-known record location
 (`_oauth-issuer-policy.{domain}`), a versioned record format, and
 consumer-side caching bounded by TTLs.
+
+The deployment dynamics nevertheless differ from the precedent
+mechanisms in one respect worth noting: the `_oauth-issuer-policy`
+record is consumed during OAuth token issuance, on a path that is
+end-user-visible and business-process-critical. Misconfiguration or
+staleness directly prevents user sign-in to dependent applications.
+By contrast, CAA misconfiguration prevents certificate issuance —
+typically a deployment-time failure surfaced before production —
+and SPF/DKIM misconfiguration affects spam-filter scoring, a
+degraded but usually non-blocking signal. Subject Authorities
+deploying this framework should treat its records with the
+operational rigor appropriate to a sign-in dependency, including
+change-management review of every record update, monitoring for
+unexpected changes, and rapid-rollback capability for incidents.
+
+# Operational Background for Domain-Authorized Issuer Discovery
+
+This appendix is non-normative.
+
+## Delegation Lifecycle: Transfer and Revocation {#dii-operational-lifecycle}
+
+A Subject Authority's authorized issuers change over time, both through
+planned transfers (provider migrations, acquisitions, re-architectures)
+and through unplanned revocations (security incidents). The framework's
+caching model determines how quickly those changes propagate to
+verifiers and discovery clients.
+
+**Planned transfer.** When a Subject Authority moves authorization from
+Assertion Issuer A to Assertion Issuer B, the RECOMMENDED sequence is:
+
+1. Reduce the DNS TTL on `_oauth-issuer-policy.{A}` and HTTP cache
+   lifetimes on the policy document to a small operational value well
+   in advance of the planned change (a TTL multiple before the
+   cutover). This shortens the eventual migration window.
+
+2. Add Assertion Issuer B to `authorized_issuers` while retaining
+   Assertion Issuer A. Both are now valid; clients and verifiers see
+   two candidates. Setting a `valid_until` on Assertion Issuer A's
+   entry scopes the coexistence window deterministically: a verifier
+   rejects Assertion Issuer A after that time regardless of cache
+   state.
+
+3. Migrate clients to Assertion Issuer B through out-of-band signal,
+   monitoring, or scheduled cutover.
+
+4. Remove Assertion Issuer A from `authorized_issuers` after the
+   migration is complete.
+
+5. Restore the original TTL after a steady-state cache lifetime has
+   elapsed since step 4.
+
+**Unplanned revocation.** When an authorized Assertion Issuer must be
+removed urgently (key compromise, contract termination, security
+incident):
+
+1. Reduce DNS TTL and HTTP cache lifetimes on the policy to the
+   minimum operational value the Subject Authority is prepared to
+   sustain. This is a precondition for fast revocation; without it,
+   revocation latency is bounded by existing cache lifetimes. Subject
+   Authorities of high-value namespaces SHOULD operate at short
+   steady-state TTLs in anticipation of this need.
+
+2. Publish the policy with the compromised Assertion Issuer removed.
+   Setting `last_updated` on the new policy aids operators inspecting
+   cache state.
+
+3. Notify dependent parties out of band (security advisory, incident
+   peering, account-team channels) so that those willing to invalidate
+   cached copies immediately can do so. The framework does not provide
+   a wire-format push mechanism for forced invalidation.
+
+**Revocation latency model.** In the absence of attacks on the policy
+endpoint, the maximum time between publishing a revocation and the last
+verifier honoring the old policy is the consumer's maximum cache
+lifetime (recommended absolute ceiling 24 hours; {{dii-caching}}). In
+the presence of a denial-of-service attack that drives the policy
+endpoint to `indeterminate` outcomes, the additional exposure window is
+bounded by the cumulative cap on `indeterminate` retrieval failures
+(1 hour, {{dii-caching}}); beyond that window, verifiers treat the
+policy as `indeterminate` and reject assertions, failing closed. The
+total worst-case exposure window is therefore:
+
+> max-cache-lifetime + cumulative-indeterminate-cap
+
+with recommended defaults bounding it at approximately 25 hours from
+the moment the new policy is published. Subject Authorities that
+require tighter bounds need shorter cache lifetimes in steady state.
+The framework provides no mechanism to invalidate already-cached copies
+remotely.
+
+## Policy Conflicts and Determinism {#dii-operational-conflicts}
+
+Disposition of common conflict scenarios:
+
+- **Multiple recognized TXT records, all `issuer=` only.** Merged into
+  a single virtual policy; `issuer=` values across records are
+  deduplicated, with order preserved by first-seen ({{dii-lookup}},
+  step 2c).
+
+- **Mix of `uri=` and `issuer=` records.** If any recognized record
+  (after `authority=` filtering) contains `uri=`, the HTTPS document
+  at the `uri=` target is authoritative; all `issuer=` directives
+  across all records are ignored ({{dii-lookup}}, step 2b). This rule
+  prevents an attacker who can add an extra TXT record, but not modify
+  existing ones, from injecting issuers when a `uri=` policy is in
+  effect.
+
+- **Multiple distinct `uri=` values.** Treated as `malformed`
+  ({{dii-failures}}). The framework does not attempt to choose; the
+  consumer cannot tell which is legitimate. A verifier rejects the
+  assertion; a discovery client reports an error.
+
+- **DNS and HTTPS well-known URL both populated with differing
+  content.** The lookup procedure consults DNS first; an `affirmative`
+  DNS response, inline or pointer, is authoritative, and the bare HTTPS
+  well-known URL is not consulted. A Subject Authority that publishes
+  both forms needs to keep them consistent; consumers do not reconcile
+  differences.
+
+- **Multiple `authorized_issuers` entries for the same `issuer` value
+  but different `tenant` values.** Each `(issuer, tenant)` pair is an
+  independent authorization. Verification matches the first entry whose
+  `(issuer, tenant)` matches the assertion ({{dii-verification}},
+  step 4); entries with `tenant` do not shadow entries without `tenant`
+  for the same `issuer`.
+
+- **Two Subject Authorities publishing for the same subject.** Only the
+  Subject Authority computed by the extraction procedure for the
+  assertion's Subject Identifier applies. An assertion carrying
+  `email=alice@example.com` is evaluated only against `example.com`'s
+  policy; no other namespace's policy can grant authority over
+  `alice@example.com`, regardless of what other Subject Authorities
+  publish.
+
+- **Conflict between the assertion's claims and the matched policy
+  entry.** Resolved by rejecting the assertion. A matched entry whose
+  `tenant` value differs from the assertion's `tenant` claim does not
+  authorize the assertion ({{dii-verification}}, step 4); the assertion
+  fails the Trust Method.
 
 # DNS-Based Domain-Authorized Issuer End-to-End Example
 
@@ -3193,7 +3340,7 @@ Authorization Policy. The customer is the sole gatekeeper.
   platform's authorization-time logic and the tool provider's local
   policy.
 
-## Shared-Issuer Variant: Tenant Binding
+## Tenant Binding Variant
 
 In some deployments, the Assertion Issuer is a shared-issuer
 multi-tenant Identity Provider (for example, Google Workspace)
@@ -3261,10 +3408,13 @@ attempts to mint an ID-JAG claiming `alice@example.com`:
 {
   "iss": "https://accounts.google.com",
   "aud": "https://toolprovider.example",
+  "exp": 1780166400,
+  "iat": 1780166100,
+  "jti": "a5d9...",
+  "sub": "user-attacker-tenant",
   "tenant": "attacker-corp",
   "email": "alice@example.com",
-  "email_verified": true,
-  ...
+  "email_verified": true
 }
 ~~~
 

@@ -716,6 +716,111 @@ lookup procedure in {{dii-lookup}}: a DNS query at
 `_oauth-issuer-policy.{A}` with HTTPS well-known URL fallback when the
 DNS response is `negative-authoritative`.
 
+#### https_subject_authority {#trust-method-https-subject-authority}
+
+The `https_subject_authority` method indicates that the Assertion
+Issuer is acceptable if the Subject Authority identified by the
+assertion's Subject Identifier publishes an HTTPS well-known Issuer
+Authorization Policy authorizing the Assertion Issuer.
+
+~~~ json
+{
+  "method": "https_subject_authority"
+}
+~~~
+
+This Trust Method has no parameters. It reuses the Issuer
+Authorization Policy document format ({{dii-document}}), Subject
+Authority determination rules ({{dii-authority}}), HTTPS document URL
+({{dii-https-url}}), verification rules ({{dii-verification}}), and
+caching rules ({{dii-caching}}), but it does not perform the DNS lookup
+defined in {{dii-lookup}}.
+
+When evaluated, the Resource Authorization Server MUST:
+
+1. Determine the Subject Authority `A` from the assertion's Subject
+   Identifier per {{dii-authority}}. If the format is not registered in
+   {{iana-authority-registry}}, reject the assertion.
+
+2. Fetch the Issuer Authorization Policy directly from the default
+   HTTPS well-known URL `https://{A}/.well-known/oauth-issuer-policy`
+   per {{dii-https-url}}. The Resource Authorization Server MUST NOT
+   query `_oauth-issuer-policy.{A}` as part of this Trust Method and
+   MUST NOT use a DNS `uri=` pointer.
+
+3. Classify HTTPS retrieval and document validation failures using
+   {{dii-failures}}. `no-policy`, `malformed`, or `indeterminate`
+   outcomes MUST result in rejection, except that a fresh cached policy
+   MAY be used when live retrieval is `indeterminate`.
+
+4. Verify the fetched policy and match the Assertion Issuer against
+   `authorized_issuers` using steps 3 through 6 of
+   {{dii-verification}}.
+
+A Resource Authorization Server lists this method when it requires
+authority publication via HTTPS only and explicitly does NOT accept
+DNS-published authority (inline or DNS pointer). Compared to
+`domain_authorized_issuer`, this method:
+
+- Eliminates dependence on DNS resolution integrity for the
+  authority lookup. The Subject Authority is determined per
+  {{dii-authority}}, but the authorization itself is retrieved
+  only over TLS-authenticated HTTPS.
+
+- Rejects the inline DNS form (where the policy is carried in the
+  TXT record itself) and the DNS pointer form (where DNS points
+  at a third-party HTTPS host). Both require trusting DNS for the
+  authoritative selection of either issuers or policy host.
+
+- Forces the Subject Authority to control the apex web origin
+  identified by the well-known URL.
+
+A Resource Authorization Server lists `domain_authorized_issuer`
+instead when it accepts the DNS forms or the canonical DNS-first
+lookup. A Resource Authorization Server MAY list both
+`domain_authorized_issuer` and `https_subject_authority`; see
+{{combining-dai-methods}}.
+
+##### Combining domain_authorized_issuer and https_subject_authority {#combining-dai-methods}
+
+`domain_authorized_issuer` and `https_subject_authority` are peer
+Trust Methods in the `subject_namespace_authorization` category;
+within a category, OR-semantics apply ({{trust-method-categories}}).
+A Resource Authorization Server that lists both methods accepts an
+assertion satisfying EITHER.
+
+Concretely, when both methods are listed and the Resource
+Authorization Server processes an assertion with Subject Authority
+`A`:
+
+- If the canonical lookup ({{dii-lookup}}) yields an affirmative
+  result (DNS inline, DNS pointer, or HTTPS fallback), and the
+  policy authorizes the Assertion Issuer per {{dii-verification}},
+  the request is accepted under `domain_authorized_issuer`.
+
+- If `domain_authorized_issuer` did not produce an authorization
+  (for example, the DNS query returned `indeterminate` and no
+  fresh cached policy is available), but
+  `https_subject_authority` retrieves the HTTPS well-known
+  document directly and that document authorizes the Assertion
+  Issuer, the request is accepted under `https_subject_authority`.
+
+The result is that the OR semantics let `https_subject_authority`
+serve as a recovery path when DNS resolution fails, while
+`domain_authorized_issuer` retains its full set of publication
+forms when DNS is available.
+
+A Resource Authorization Server that distrusts DNS-published
+authority and wants STRICT HTTPS-only authority resolution lists
+ONLY `https_subject_authority` and omits `domain_authorized_issuer`.
+
+A Resource Authorization Server that accepts DNS-published
+authority without exception lists ONLY `domain_authorized_issuer`;
+the canonical lookup procedure already falls back to the HTTPS
+well-known URL on `negative-authoritative` DNS responses, so the
+"no DNS record, only HTTPS document" Subject Authority case is
+already covered.
+
 #### email_verification_dns {#trust-method-email-verification-dns}
 
 The `email_verification_dns` method indicates that the Assertion
@@ -1560,6 +1665,13 @@ Resource Authorization Servers performing verification
 discovery ({{dii-hrd}}); both consult DNS first and fall back to the
 HTTPS well-known URL only on `negative-authoritative` outcomes.
 
+This is the canonical procedure used by the
+`domain_authorized_issuer` Trust Method. Other Trust Methods in the
+`subject_namespace_authorization` category MAY define alternative
+retrieval procedures; in particular, `https_subject_authority`
+({{trust-method-https-subject-authority}}) skips DNS entirely and
+retrieves only from the HTTPS well-known URL.
+
 1. Query the DNS TXT resource record set at
    `_oauth-issuer-policy.{A}`. Classify the response as:
 
@@ -1991,7 +2103,7 @@ requiring stronger identity binding (for example, real-world
 legal-entity verification) MUST use out-of-band mechanisms; this
 framework does not substitute for them.
 
-### Transport Integrity
+### Transport Integrity {#transport-integrity}
 
 For HTTPS retrieval, the integrity of the policy depends on TLS
 server authentication of the host serving the policy. For the inline
@@ -2002,6 +2114,51 @@ host named by the `uri=` directive.
 Subject Authorities concerned about TLS misissuance SHOULD publish
 CAA records {{RFC8659}} constraining the certificate authorities
 permitted to issue for the policy-hosting domain.
+
+### HTTPS-Only Authority Trust Model {#https-only-trust-model}
+
+The `https_subject_authority` Trust Method
+({{trust-method-https-subject-authority}}) bypasses DNS for
+authority retrieval entirely. The policy is fetched directly from
+the Subject Authority's apex well-known URL over TLS, and DNS is
+not consulted for the authority lookup at all.
+
+The trust model differs from `domain_authorized_issuer`:
+
+- The DNS-side attacks described in
+  {{dns-integrity-and-compromise}} (cache poisoning, BGP hijack of
+  the resolution path, registrar account compromise, DNSSEC
+  stripping) do NOT directly affect this method's authority
+  retrieval. The TXT record at `_oauth-issuer-policy.{A}` is not
+  fetched; substituting or suppressing it cannot redirect the
+  consumer.
+
+- DNS is still required to resolve the Subject Authority's
+  hostname to an IP address for the HTTPS connection. A DNS
+  compromise that redirects the apex hostname to an
+  attacker-controlled IP can still substitute the policy IF the
+  attacker also obtains a valid TLS certificate for the apex. The
+  CAA-based defense in {{transport-integrity}} and Certificate
+  Transparency monitoring become the primary defenses.
+
+- The DNS pointer form's third-party policy host risk
+  ({{third-party-policy-hosts}}) does not apply. The policy is
+  hosted on the Subject Authority's own apex origin; there is no
+  delegation to a separate host.
+
+- Subject Authorities that operate their own DNS but cannot
+  control the apex web origin (for example, the apex is hosted on
+  a marketing CDN with no path control) cannot serve as
+  `https_subject_authority` Subject Authorities. For such
+  deployments, `domain_authorized_issuer` with the DNS pointer
+  form is the appropriate mechanism.
+
+Resource Authorization Servers selecting `https_subject_authority`
+exclusively (omitting `domain_authorized_issuer` from the trust
+policy) are explicitly distrusting DNS-resolved authority
+artifacts. This is a deliberate operational choice; the cost is
+narrower Subject Authority coverage (only those operating their
+own apex web origin can participate).
 
 ### DNS Integrity and Compromise {#dns-integrity-and-compromise}
 
@@ -2082,7 +2239,7 @@ broader wildcard in the parent zone could shadow their explicit
 record, and SHOULD avoid publishing wildcard TXT records at zones
 participating in this mechanism.
 
-### Third-Party Policy Hosts
+### Third-Party Policy Hosts {#third-party-policy-hosts}
 
 The DNS pointer form lets the Subject Authority delegate policy
 hosting to a different domain. This is intentional and enables
@@ -2631,6 +2788,7 @@ Initial entries:
 |-|-|-|-|
 | `openid_federation` | `issuer_authentication` | `trust_anchors` (array of string, REQUIRED); `trust_marks` (array of object, OPTIONAL) | This document |
 | `domain_authorized_issuer` | `subject_namespace_authorization` | (none) | This document |
+| `https_subject_authority` | `subject_namespace_authorization` | (none) | This document |
 | `email_verification_dns` | `subject_namespace_authorization` | (none) | This document, {{WICG-EMAIL-VERIF}} |
 
 ## Issuer Authorization Policy Registrations

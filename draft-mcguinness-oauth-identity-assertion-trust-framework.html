@@ -3187,12 +3187,12 @@ of itself, not of <code>A</code>.<a href="#section-6.4.2-4" class="pilcrow">¶</
 a consumer performs the following steps. The procedure is shared by
 Resource Authorization Servers performing verification
 (<a href="#dii-verification" class="auto internal xref">Section 6.6</a>) and clients performing Assertion Issuer
-discovery (<a href="#dii-hrd" class="auto internal xref">Section 6.7</a>), with one asymmetry noted at the end.<a href="#section-6.5-1" class="pilcrow">¶</a></p>
+discovery (<a href="#dii-hrd" class="auto internal xref">Section 6.7</a>); both consult DNS first and fall back to the
+HTTPS well-known URL only on <code>negative-authoritative</code> outcomes.<a href="#section-6.5-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-6.5-2">
 <li id="section-6.5-2.1">
-            <p id="section-6.5-2.1.1">If DNS is to be consulted (see asymmetry below), query the DNS TXT
-resource record set at <code>_oauth-issuer-policy.{A}</code>. Classify the
-response as:<a href="#section-6.5-2.1.1" class="pilcrow">¶</a></p>
+            <p id="section-6.5-2.1.1">Query the DNS TXT resource record set at
+<code>_oauth-issuer-policy.{A}</code>. Classify the response as:<a href="#section-6.5-2.1.1" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-6.5-2.1.2">
               <dt id="section-6.5-2.1.2.1"><code>negative-authoritative</code></dt>
               <dd style="margin-left: 1.5em" id="section-6.5-2.1.2.2">
@@ -3254,9 +3254,8 @@ c. Otherwise (no <code>uri=</code> present), construct a virtual Issuer
    derived from DNS TTLs as described in <a href="#dii-caching" class="auto internal xref">Section 6.8</a>.<a href="#section-6.5-2.2.6" class="pilcrow">¶</a></p>
 </li>
           <li id="section-6.5-2.3">
-            <p id="section-6.5-2.3.1">If the DNS response is <code>negative-authoritative</code> (or DNS was not
-consulted), fetch the policy from the default HTTPS well-known URL
-per <a href="#dii-https-url" class="auto internal xref">Section 6.4.2</a>.<a href="#section-6.5-2.3.1" class="pilcrow">¶</a></p>
+            <p id="section-6.5-2.3.1">If the DNS response is <code>negative-authoritative</code>, fetch the policy
+from the default HTTPS well-known URL per <a href="#dii-https-url" class="auto internal xref">Section 6.4.2</a>.<a href="#section-6.5-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-6.5-2.4">
             <p id="section-6.5-2.4.1">If the DNS response is <code>indeterminate</code>, discovery has failed.
@@ -3265,6 +3264,14 @@ suppresses DNS responses could otherwise force the consumer onto a
 path the attacker has compromised separately.<a href="#section-6.5-2.4.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
+<p id="section-6.5-3">A Resource Authorization Server <span class="bcp14">MAY</span> skip the DNS query as a matter of
+local policy (for example, when deployed in an environment with an
+untrusted DNS resolution path), but <span class="bcp14">SHOULD NOT</span> do so in production
+deployments: a Subject Authority that publishes only inline DNS records
+(a common pattern given the operational simplicity of the inline form)
+will be unfindable by such a Resource Authorization Server. A Resource
+Authorization Server that cannot resolve DNS treats the lookup as
+<code>indeterminate</code> and rejects the assertion, fail-closed.<a href="#section-6.5-3" class="pilcrow">¶</a></p>
 <div id="dii-happy-path">
 <section id="section-6.5.1">
           <h4 id="name-happy-path-summary">
@@ -3296,18 +3303,6 @@ Issuer Authorization Policy from that HTTPS URL.<a href="#section-6.5.1-2.4.1" c
 <code>authorized_issuers</code> entry.<a href="#section-6.5.1-2.6.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
-<p id="section-6.5.1-3">The lookup procedure above is canonical for both Resource Authorization
-Servers performing verification and Assertion Issuer discovery clients;
-both consult DNS first and fall back to the HTTPS well-known URL only
-on <code>negative-authoritative</code> outcomes. A Resource Authorization Server
-<span class="bcp14">MAY</span> skip the DNS query as a matter of local policy (for example, when
-deployed in an environment with an untrusted DNS resolution path), but
-<span class="bcp14">SHOULD NOT</span> do so in production deployments: a Subject Authority that
-publishes only inline DNS records (a common pattern given the
-operational simplicity of the inline form) will be unfindable by such
-a Resource Authorization Server. A Resource Authorization Server that
-cannot resolve DNS treats the lookup as <code>indeterminate</code> and rejects
-the assertion, fail-closed.<a href="#section-6.5.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="dii-failures">

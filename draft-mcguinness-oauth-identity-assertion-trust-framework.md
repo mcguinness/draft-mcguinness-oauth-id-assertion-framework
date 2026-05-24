@@ -124,6 +124,14 @@ whether the Assertion Issuer is a member of a recognized federation, or
 whether the Assertion Issuer has authority for the subject namespace
 being asserted.
 
+This is an open-world issuer-trust problem: the Resource Authorization
+Server may receive identity assertions from issuers that were not
+individually configured in advance, but whose acceptability can be
+evaluated from published evidence at request time. The purpose of this
+framework is not to remove policy from the Resource Authorization
+Server, but to give it a standard way to express which evidence it
+requires and how that evidence is evaluated.
+
 This document defines an Identity Assertion Issuer Trust Policy
 that a Resource Authorization Server publishes to describe its trust
 criteria. The Resource Authorization Server does not say "these are
@@ -220,6 +228,30 @@ over any particular subject namespace); or implicit trust in the
 Identity Provider's tenant-domain binding (works in practice but is
 not auditable from outside the Identity Provider). This document
 provides a wire-format alternative for each.
+
+## Open-World Trust Evaluation
+
+In closed deployments, a Resource Authorization Server can often rely on
+bilateral configuration: each acceptable issuer or integration is
+registered directly with local policy. That model breaks down when the
+acceptable issuer set is large, dynamic, customer-controlled, or
+discovered through external trust infrastructure.
+
+This document targets open-world deployments in which acceptance is
+based on verifiable evidence rather than prior enumeration. Examples
+include a federation trust chain proving issuer authenticity, a DNS or
+HTTPS policy proving subject-namespace authorization, or other
+profile-specific evidence registered as Trust Methods.
+
+Open-world evaluation does not mean open acceptance. A Resource
+Authorization Server still publishes its trust policy, chooses the Trust
+Methods it accepts, applies local authorization policy, and fails closed
+when required evidence is missing, malformed, or indeterminate.
+
+Related open-world problems, such as client-instance attestation or
+workload identity, can reuse the same pattern but require
+profile-specific bindings outside the core subject-namespace
+authorization mechanism defined here.
 
 ## Relationship to Existing Mechanisms
 
@@ -497,48 +529,35 @@ usable issuer trust method.
 
 ### Trust Method Categories {#trust-method-categories}
 
-Trust Methods answer two distinct security questions about an Assertion
-Issuer:
+Trust Methods answer two distinct security questions about an
+Assertion Issuer:
 
 `issuer_authentication`
 : Does the entity identified by the JWT `iss` claim authentically
-belong to a recognized ecosystem? Federation membership answers this
-question.
+belong to a recognized ecosystem? Applies unconditionally.
 
 `subject_namespace_authorization`
 : Is this Assertion Issuer entitled to assert about subjects in the
-namespace named by the assertion's Subject Identifier? An attestation
-from the namespace owner answers this question.
+namespace named by the assertion's Subject Identifier? Applies when
+the assertion carries a Subject Identifier; if the Subject Authority
+cannot be determined, the assertion fails closed per {{rasp}}.
 
 Each Trust Method identifier is registered in
-{{iana-trust-methods-registry}} with one or more category values. A
-trust policy MAY list methods from one or both categories. The
-combination rule in {{rasp}} requires the Assertion Issuer to satisfy
-at least one Trust Method from EACH category that is both present in
-the policy and applicable to the assertion. The
-`issuer_authentication` category applies unconditionally. The
-`subject_namespace_authorization` category applies when the assertion
-carries a Subject Identifier; if the Subject Authority cannot be
-determined, the assertion fails closed as described in {{rasp}}.
-Within a single category, OR-semantics apply: satisfying any one listed
-method in that category is sufficient.
+{{iana-trust-methods-registry}} with one or more category values. The
+cross-category combination rule, specified in {{rasp}}, requires the
+Assertion Issuer to satisfy at least one Trust Method from EACH
+category that is both present in the policy and applicable to the
+assertion (AND across categories, OR within). Deployments that
+accept identity assertions about namespace-bound subjects SHOULD
+list at least one `subject_namespace_authorization` method
+alongside any `issuer_authentication` methods; federation
+membership alone does not establish namespace authority.
 
-This separation prevents an Assertion Issuer that is authenticated by
-federation membership from being treated as automatically authorized to
-assert about subjects in a namespace the Assertion Issuer has no
-authority over. Deployments that accept identity assertions about
-namespace-bound subjects (for example, email-domain users) SHOULD list
-at least one
-`subject_namespace_authorization` method in their trust policy in
-addition to any `issuer_authentication` methods.
-
-The set of categories required for an assertion to be accepted is
-publisher-driven: it is exactly the set of categories represented by
-recognized Trust Method objects listed in
-`issuer_trust_methods_supported`. Future specifications MAY register
-additional categories, but adding a category to the registry does not
-impose new requirements on existing trust policies that do not list
-methods from that category.
+Future specifications MAY register additional categories. The
+registering specification defines the category's applicability rule
+and evaluation subject. Adding a category does not impose new
+requirements on existing trust policies that do not list methods
+from that category.
 
 Sections {{issuer-authentication-methods}} and
 {{subject-namespace-authorization-methods}} define the Trust Methods
@@ -557,13 +576,20 @@ over any particular subject namespace; see
 #### openid_federation {#trust-method-openid-federation}
 
 The `openid_federation` method indicates that the Assertion Issuer is
-acceptable if it can establish a valid OpenID Federation
-{{OIDF-FEDERATION}} trust chain to one of the listed trust anchors.
+acceptable if its OpenID Federation {{OIDF-FEDERATION}} trust chain
+validates to a listed trust anchor and (when required by the policy)
+the leaf holds the required Trust Marks.
 
 ~~~ json
 {
   "method": "openid_federation",
-  "trust_anchors": ["https://federation.example.org"]
+  "trust_anchors": ["https://federation.example.org"],
+  "trust_marks": [
+    {
+      "id": "https://federation.example.org/marks/loa3",
+      "issuer": "https://federation.example.org"
+    }
+  ]
 }
 ~~~
 
@@ -571,14 +597,62 @@ acceptable if it can establish a valid OpenID Federation
 : REQUIRED. Non-empty JSON array of OpenID Federation trust anchor
 entity identifiers.
 
-The Resource Authorization Server MUST validate the Assertion Issuer's
-federation trust chain according to {{OIDF-FEDERATION}}. The terminal
-trust anchor of the validated chain MUST exactly match one of the
-listed `trust_anchors` values using the entity identifier comparison
-rules of OpenID Federation. The Resource Authorization Server MUST
-verify that the Assertion Issuer's federation entity configuration
-declares an entity type appropriate for an OAuth authorization server
-or OpenID provider.
+`trust_marks`
+: OPTIONAL. JSON array of Trust Mark requirement objects. When
+present, the leaf's Entity Configuration MUST include at least one
+Trust Mark satisfying every requirement object listed. Each
+requirement object has:
+
+  `id`
+  : REQUIRED. String. The Trust Mark identifier.
+
+  `issuer`
+  : REQUIRED. String. The Entity Identifier of the Trust Mark
+  Issuer expected to have signed the Trust Mark.
+
+Evaluation of this Trust Method delegates to {{OIDF-FEDERATION}} for
+the procedural mechanics: trust chain validation
+({{OIDF-FEDERATION}} §10), metadata policy application
+({{OIDF-FEDERATION}} §6), Trust Mark validation
+({{OIDF-FEDERATION}} §7), and entity identifier comparison. The
+Resource Authorization Server MUST perform those procedures per
+{{OIDF-FEDERATION}}; failure of any of them is failure of this
+Trust Method. Cache freshness and revocation follow the rules of
+{{OIDF-FEDERATION}}.
+
+In addition to the procedures in {{OIDF-FEDERATION}}, the Resource
+Authorization Server MUST apply the following framework-specific
+requirements:
+
+1. **Trust anchor match.** The terminal trust anchor of the
+   validated chain MUST exactly match one of the listed
+   `trust_anchors` values.
+
+2. **Entity type constraint.** The leaf's policy-applied federation
+   metadata MUST declare one of the entity types `openid_provider`
+   or `oauth_authorization_server` ({{OIDF-FEDERATION}} §5). The
+   presence of other entity types alone does not satisfy this
+   requirement.
+
+3. **Federation-bound JWKS resolution.** The signing key for the
+   identity assertion JWT MUST be resolved from the leaf's
+   policy-applied federation metadata (the `jwks` or `jwks_uri`
+   value in `metadata.openid_provider` or
+   `metadata.oauth_authorization_server`). The Resource
+   Authorization Server MUST NOT use a JWKS retrieved outside the
+   federation (for example, fetched from the assertion `iss` URL
+   via {{RFC8414}} Authorization Server Metadata) unless that
+   JWKS exactly matches the federation-resolved JWKS. This
+   prevents a downgrade attack in which an attacker compromises
+   the AS metadata endpoint without compromising the federation
+   infrastructure.
+
+4. **Trust Mark satisfaction.** If the Trust Method object
+   contains `trust_marks`, the leaf's Entity Configuration MUST
+   include Trust Marks satisfying every requirement object: each
+   requirement is satisfied when at least one Trust Mark in the
+   leaf's `trust_marks` array matches both `id` and `issuer` and
+   validates per {{OIDF-FEDERATION}} §7.
 
 For OpenID Federation deployments, this Trust Method is the primary
 integration point between the federation and this framework; see
@@ -820,80 +894,49 @@ Server always applies local policy at token request time.
 
 ## Resource Authorization Server Trust Evaluation Model {#ras-evaluation-model}
 
-This subsection presents the conceptual evaluation a Resource
-Authorization Server performs when an identity assertion is presented.
-{{rasp}} specifies the normative processing order; this subsection
-names the questions being answered, so that implementations remain
-compatible at the conceptual level even when their internal ordering
-or modularization differs.
+A Resource Authorization Server processing an identity assertion
+answers six questions. Each MUST be answered affirmatively; failure
+of any one rejects the assertion. {{rasp}} specifies the normative
+procedure; this section names the questions so implementations
+remain compatible at the conceptual level regardless of internal
+ordering.
 
-Inputs to the evaluation:
+1. **Is the assertion well-formed and fresh?** Grant-profile
+   validation: signature, `aud`, `exp`, `iat`, replay protection.
+   This framework does not replace these checks.
 
-- The identity assertion JWT.
-- The Assertion Issuer identifier (the JWT `iss` claim).
-- The Subject Identifier and any tenant-disambiguating claim the
-  assertion carries.
-
-The Resource Authorization Server evaluates the following questions.
-Each MUST be answered affirmatively before the assertion is accepted;
-failing any one results in rejection.
-
-1. **Is the assertion well-formed and fresh?** Signature, `aud`,
-   `exp`, `iat`, and replay protection are validated per the
-   applicable grant profile. The trust framework does not replace
-   these checks; a trust policy describes issuer acceptability, not
-   assertion validity.
-
-2. **Is the Assertion Issuer authentic?** Does the entity named by
-   the JWT `iss` claim belong to a recognized ecosystem? Answered
-   by Trust Methods in the `issuer_authentication` category
+2. **Is the Assertion Issuer authentic?** Answered by an
+   `issuer_authentication` Trust Method
    ({{issuer-authentication-methods}}).
 
-3. **Does the assertion carry an attribute the Resource
-   Authorization Server is willing to consume?** The Subject
-   Identifier format used by the assertion MUST appear in
-   `subject_identifier_formats_supported`, if that member is
-   present. This is a publisher-driven choice by the Resource
-   Authorization Server, independent of who the Assertion Issuer
-   is.
+3. **Is the assertion's Subject Identifier format accepted?** The
+   format MUST appear in `subject_identifier_formats_supported`
+   when that member is present.
 
 4. **Is the Assertion Issuer authoritative for this subject's
-   namespace?** Answered by Trust Methods in the
-   `subject_namespace_authorization` category
-   ({{subject-namespace-authorization-methods}}). The unit of
-   authorization is the (issuer, tenant) pair when the matched
+   namespace?** Answered by a `subject_namespace_authorization`
+   Trust Method ({{subject-namespace-authorization-methods}}). The
+   authorization unit is the (issuer, tenant) pair when the matched
    `authorized_issuers` entry carries a `tenant` value
    ({{dii-multi-tenant}}); otherwise it is the issuer alone.
 
-5. **Is the authorization still valid?** Validity windows on the
-   matched `authorized_issuers` entry (`valid_from`,
-   `valid_until`) and cache freshness ({{dii-caching}},
-   {{caching}}) together bound the temporal scope of the
-   authorization. A cached policy MUST NOT be used past its
-   effective lifetime, even when live retrieval is unavailable.
+5. **Is the authorization still valid?** `valid_from`/`valid_until`
+   on the matched entry and cache freshness ({{dii-caching}},
+   {{caching}}) together bound the temporal scope.
 
-6. **Does local policy permit this use?** Account-linking,
-   consent, scope grants, risk signals, and other access-control
-   logic remain local-policy decisions. Passing trust-framework
-   evaluation means only that the Resource Authorization Server
-   is willing to consider the assertion as input to its
-   access-control logic, not that any particular outcome follows.
+6. **Does local policy permit this use?** Account-linking, consent,
+   scope, risk, and other access-control logic remain
+   local-policy decisions.
 
-Questions 2 and 4 are independent dimensions of trust and each MUST
-be satisfied when both categories are present in the policy: this
-is the cross-category combination rule
-({{trust-method-categories}}). Federation membership alone (question
-2 satisfied) does NOT establish namespace authority (question 4);
-a namespace authorization in Domain-Authorized Issuer Discovery
-(question 4 satisfied) does NOT establish issuer authenticity
-(question 2). See {{transitive-authz-bounded}} for the security
-properties of this separation.
+Questions 2 and 4 are independent: federation membership does NOT
+establish namespace authority, and namespace authorization does NOT
+establish issuer authenticity. The cross-category combination rule
+in {{rasp}} enforces this independence. See
+{{transitive-authz-bounded}}.
 
-The procedure in {{rasp}} implements these questions in a specific
-order chosen to fail fast on invalid input and to defer expensive
-retrievals until cheap checks have passed. Implementations MAY use
-a different internal order as long as the answer to every question
-is determined and rejection occurs on the first negative answer.
+Implementations MAY use a different internal order from {{rasp}} as
+long as the answer to every applicable question is determined and
+rejection occurs on the first negative answer.
 
 ## Resource Authorization Server Processing {#rasp}
 
@@ -1319,25 +1362,24 @@ for example when an extension defines several members or changes the
 authorization decision procedure. Critical extension identifiers use
 the syntax and recognition rules in {{critical-extension-identifiers}}.
 
-Unrecognized members MUST be ignored, except when the member name or an
-extension identifier governing the member is listed in `crit`.
-Consumers MUST reject a policy whose `subject_authority` member is
-absent or is not a string, or whose `subject_authority` value does not
-match the computed Subject Authority. Consumers MUST reject a policy
-whose `authorized_issuers` member is absent, empty, not an array, or
-contains an element that is not an object. Consumers MUST reject an
-authorized issuer object that lacks a string `issuer` member or whose
-`issuer` member is not a syntactically valid issuer identifier for the
-applicable assertion grant profile. For OAuth authorization server
-issuer identifiers, a non-HTTPS URL, a relative URL, or a URL with a
-fragment component is malformed. Consumers MUST reject a `tenant` value
-that is present but is not a string, and MUST reject a `tenant` value
-that is an empty string. Consumers MUST reject a
-`subject_identifier_formats` value that is present but is not an array
-of strings. Consumers MUST reject `valid_from`, `valid_until`, and
-`last_updated` values that are present but are not valid RFC 3339
-date-times. Consumers MUST reject a `crit` value that is present but
-is not an array of strings.
+Unrecognized members MUST be ignored, except when the member name or
+an extension identifier governing the member is listed in `crit`.
+Consumers MUST reject the policy when any of the following validation
+rules fails:
+
+| Member | Required type / structure | Additional rule |
+|-|-|-|
+| `subject_authority` | string, required | matches the computed Subject Authority |
+| `authorized_issuers` | non-empty array of objects, required | each element has `issuer` |
+| `issuer` | string, required | syntactically valid issuer identifier for the applicable grant profile |
+| `tenant` | string, optional | non-empty |
+| `subject_identifier_formats` | array of strings, optional | |
+| `valid_from`, `valid_until`, `last_updated` | RFC 3339 date-time, optional | |
+| `crit` | array of strings, optional | every value recognized |
+
+For OAuth authorization server issuer identifiers, a non-HTTPS URL,
+a relative URL, or a URL with a fragment component is a malformed
+`issuer` value.
 
 Example:
 
@@ -2587,7 +2629,7 @@ Initial entries:
 
 | Identifier | Categories | Parameters | Reference |
 |-|-|-|-|
-| `openid_federation` | `issuer_authentication` | `trust_anchors` (array of string, REQUIRED) | This document |
+| `openid_federation` | `issuer_authentication` | `trust_anchors` (array of string, REQUIRED); `trust_marks` (array of object, OPTIONAL) | This document |
 | `domain_authorized_issuer` | `subject_namespace_authorization` | (none) | This document |
 | `email_verification_dns` | `subject_namespace_authorization` | (none) | This document, {{WICG-EMAIL-VERIF}} |
 
@@ -3583,13 +3625,29 @@ that the Assertion Issuer is authorized for Alice's email namespace.
   asserted subject's namespace.
 - **Federation Trust Anchor**, `https://federation.example.org`. Runs
   an OpenID Federation deployment that issues Subordinate Statements
-  about intermediates and leaf entities.
+  about intermediates and certifies Trust Marks.
+- **Federation Intermediate**, `https://sector.example.org`. A
+  sector-level intermediate (for example, a national or industry
+  federation operator) chained under the Trust Anchor. Issues
+  Subordinate Statements about leaf entities within its sector.
 - **Assertion Issuer**, `https://idp.partner.example`. A federation
   leaf entity registered as an OpenID provider. Holds an Entity
-  Configuration at `https://idp.partner.example/.well-known/openid-federation`.
+  Configuration at
+  `https://idp.partner.example/.well-known/openid-federation` and a
+  Trust Mark from the Trust Anchor attesting Level of Assurance 3.
 - **Client**, an enterprise SaaS application. Authenticates to the
   Resource Authorization Server's token endpoint with `private_key_jwt`.
 - **End user**, Alice (`alice@partner.example`).
+
+The federation chain in this example is three levels deep:
+
+~~~
+https://idp.partner.example          (leaf, OpenID Provider)
+  authority_hints -> https://sector.example.org
+                                        (intermediate)
+  authority_hints -> https://federation.example.org
+                                        (trust anchor)
+~~~
 
 ## Publication
 
@@ -3612,9 +3670,10 @@ metadata:
 ~~~
 
 It publishes a trust policy listing one Trust Method from each
-category: OpenID Federation for issuer authentication and
-Domain-Authorized Issuer Discovery for subject-namespace
-authorization:
+category. The `openid_federation` method requires both federation
+membership AND a Level of Assurance 3 Trust Mark; the
+`domain_authorized_issuer` method requires the Subject Authority's
+explicit listing of the issuer.
 
 ~~~ json
 {
@@ -3626,7 +3685,13 @@ authorization:
   "issuer_trust_methods_supported": [
     {
       "method": "openid_federation",
-      "trust_anchors": ["https://federation.example.org"]
+      "trust_anchors": ["https://federation.example.org"],
+      "trust_marks": [
+        {
+          "id": "https://federation.example.org/marks/loa3",
+          "issuer": "https://federation.example.org"
+        }
+      ]
     },
     {
       "method": "domain_authorized_issuer"
@@ -3635,8 +3700,13 @@ authorization:
 }
 ~~~
 
-The Assertion Issuer publishes a federation Entity Configuration at
-`https://idp.partner.example/.well-known/openid-federation` (decoded
+The Assertion Issuer, Federation Intermediate, and Federation Trust
+Anchor publish federation artifacts per {{OIDF-FEDERATION}}. The
+following payloads are illustrative; the publication mechanics
+themselves (well-known URLs, federation fetch endpoints, signature
+formats) are specified in {{OIDF-FEDERATION}}.
+
+The Assertion Issuer's federation Entity Configuration (decoded
 payload, illustrative):
 
 ~~~ json
@@ -3645,28 +3715,84 @@ payload, illustrative):
   "sub": "https://idp.partner.example",
   "iat": 1780166100,
   "exp": 1780252500,
-  "authority_hints": ["https://federation.example.org"],
+  "authority_hints": ["https://sector.example.org"],
   "metadata": {
     "openid_provider": {
       "issuer": "https://idp.partner.example",
-      "jwks_uri": "https://idp.partner.example/jwks"
+      "jwks_uri": "https://idp.partner.example/jwks",
+      "token_endpoint_auth_methods_supported": [
+        "private_key_jwt"
+      ]
+    }
+  },
+  "trust_marks": [
+    {
+      "id": "https://federation.example.org/marks/loa3",
+      "trust_mark": "eyJ...(signed Trust Mark JWT issued by federation.example.org)"
+    }
+  ]
+}
+~~~
+
+The Federation Intermediate's Entity Configuration:
+
+~~~ json
+{
+  "iss": "https://sector.example.org",
+  "sub": "https://sector.example.org",
+  "iat": 1780166100,
+  "exp": 1782758100,
+  "authority_hints": ["https://federation.example.org"],
+  "metadata": {
+    "federation_entity": {
+      "federation_fetch_endpoint":
+        "https://sector.example.org/federation/fetch"
     }
   }
 }
 ~~~
 
-The Federation Trust Anchor has previously issued a Subordinate
-Statement listing `https://idp.partner.example` as an active leaf with
-`openid_provider` entity type (decoded payload, illustrative):
+The Federation Intermediate's Subordinate Statement about the
+Assertion Issuer carries a non-trivial `metadata_policy`
+constraining the leaf's `issuer` value and required authentication
+methods (per {{OIDF-FEDERATION}} §6); the policy-applied `issuer`
+value is the one the framework requires to match the identity
+assertion's `iss` claim ({{trust-method-openid-federation}}
+requirement 1):
 
 ~~~ json
 {
-  "iss": "https://federation.example.org",
+  "iss": "https://sector.example.org",
   "sub": "https://idp.partner.example",
   "iat": 1780166100,
   "exp": 1782758100,
   "metadata_policy": {
-    "openid_provider": {}
+    "openid_provider": {
+      "issuer": {
+        "value": "https://idp.partner.example"
+      },
+      "jwks_uri": {
+        "essential": true
+      },
+      "token_endpoint_auth_methods_supported": {
+        "subset_of": ["private_key_jwt", "tls_client_auth"]
+      }
+    }
+  }
+}
+~~~
+
+The Federation Trust Anchor's Subordinate Statement about the
+Federation Intermediate:
+
+~~~ json
+{
+  "iss": "https://federation.example.org",
+  "sub": "https://sector.example.org",
+  "iat": 1780166100,
+  "exp": 1782758100,
+  "metadata_policy": {
+    "federation_entity": {}
   }
 }
 ~~~
@@ -3729,21 +3855,77 @@ _oauth-issuer-policy.partner.example.  IN  TXT
    &client_assertion=eyJhbGciOiJFUzI1NiIs...
    ~~~
 
-6. The Resource Authorization Server validates the ID-JAG:
-   signature, `aud`, `exp`, `iat`, replay protection. The signing
-   key is resolved via the Assertion Issuer's federation Entity
-   Configuration.
-
-7. The Resource Authorization Server evaluates
+6. The Resource Authorization Server evaluates
    `issuer_trust_methods_supported`. For the `issuer_authentication`
-   category, it evaluates `openid_federation`. It builds a trust chain by walking
-   `authority_hints` from `https://idp.partner.example` upward,
-   collecting Subordinate Statements, and terminating at
-   `https://federation.example.org`. The terminal trust anchor
-   matches the listed `trust_anchors` entry. Because the policy also
-   lists a `subject_namespace_authorization` method, the cross-category
-   combination rule in {{rasp}} requires that category to be satisfied
-   as well; step 8 supplies the additional evidence.
+   category, it evaluates `openid_federation` by delegating the
+   procedural mechanics to {{OIDF-FEDERATION}} and then applying
+   the framework-specific checks defined in
+   {{trust-method-openid-federation}}.
+
+   The OIDF chain walk (illustrative, per {{OIDF-FEDERATION}} §10
+   and §6):
+
+   a. Fetch the leaf Entity Configuration at
+      `https://idp.partner.example/.well-known/openid-federation`.
+      Read `authority_hints`: `https://sector.example.org`.
+
+   b. Fetch the Federation Intermediate's Entity Configuration at
+      `https://sector.example.org/.well-known/openid-federation`
+      and the Subordinate Statement from the Intermediate about
+      the leaf (via the Intermediate's `federation_fetch_endpoint`).
+      Read the Intermediate's `authority_hints`:
+      `https://federation.example.org`.
+
+   c. Fetch the Federation Trust Anchor's Entity Configuration at
+      `https://federation.example.org/.well-known/openid-federation`
+      and the Subordinate Statement from the Trust Anchor about
+      the Intermediate.
+
+   d. Validate each Subordinate Statement's signature using the
+      issuing entity's federation keys. All signatures validate.
+
+   e. Apply the metadata policy from the Intermediate's
+      Subordinate Statement about the leaf: `issuer` MUST equal
+      `https://idp.partner.example`, `jwks_uri` MUST be present,
+      `token_endpoint_auth_methods_supported` MUST be a subset of
+      `[private_key_jwt, tls_client_auth]`. The leaf's metadata
+      satisfies all constraints.
+
+   f. Validate the Trust Mark on the leaf: the Trust Mark's
+      signature validates against the Trust Anchor's federation
+      keys.
+
+   The framework-specific checks
+   ({{trust-method-openid-federation}}) then run against the OIDF
+   processing's outputs:
+
+   - The terminal trust anchor `https://federation.example.org`
+     matches the listed `trust_anchors` entry. (Requirement 1.)
+   - The policy-applied metadata declares the `openid_provider`
+     entity type. (Requirement 2.)
+   - The Trust Mark with `id =
+     https://federation.example.org/marks/loa3` issued by
+     `https://federation.example.org` satisfies the policy's
+     `trust_marks` requirement. (Requirement 4.)
+   - The JWKS for ID-JAG signature validation will be taken from
+     the policy-applied `metadata.openid_provider.jwks_uri`
+     (`https://idp.partner.example/jwks`). (Requirement 3.)
+
+   The `openid_federation` Trust Method is satisfied.
+
+7. The Resource Authorization Server validates the ID-JAG's
+   signature using the federation-resolved JWKS. It validates
+   `aud`, `exp`, `iat`, and applies replay protection. The signing
+   key resolution uses ONLY the federation-published JWKS; the
+   Resource Authorization Server does NOT fetch
+   `https://idp.partner.example/.well-known/oauth-authorization-server`
+   for keys, per requirement 3 of
+   {{trust-method-openid-federation}}.
+
+   Because the policy also lists a `subject_namespace_authorization`
+   method, the cross-category combination rule in {{rasp}} requires
+   that category to be satisfied as well; step 8 supplies the
+   additional evidence.
 
 8. For the `subject_namespace_authorization` category, the Resource
    Authorization Server extracts `partner.example` from the
@@ -3768,6 +3950,27 @@ _oauth-issuer-policy.partner.example.  IN  TXT
 - If a different trust anchor appears in the chain but the policy
   lists only `https://federation.example.org`, the Resource
   Authorization Server returns `invalid_grant`.
+
+- If the metadata policy applied during chain walking constrains
+  the leaf's `issuer` value to a different string than the JWT's
+  `iss` claim (for example, the Intermediate's Subordinate
+  Statement requires `issuer = https://idp.partner.example` but
+  the leaf's policy-applied metadata produces a different value),
+  the Trust Method is not satisfied and the Resource Authorization
+  Server returns `invalid_grant`.
+
+- If the leaf's Entity Configuration does not include a Trust Mark
+  matching the policy's `trust_marks` requirement (missing `id`,
+  wrong issuer, or invalid Trust Mark signature), the Trust Method
+  is not satisfied and the Resource Authorization Server returns
+  `invalid_grant`.
+
+- If the ID-JAG signing key resolved from the federation-published
+  JWKS does not match the key used to sign the presented ID-JAG,
+  the Resource Authorization Server returns `invalid_grant`. A
+  separate JWKS published at the assertion `iss` URL outside the
+  federation is not used; this prevents downgrade attacks via the
+  AS metadata endpoint.
 
 - If `partner.example` does not authorize
   `https://idp.partner.example` in its Issuer Authorization Policy,

@@ -1182,16 +1182,19 @@ an identifier in that namespace.<a href="#section-abstract-2" class="pilcrow">¶
                 <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-two-trust-questions" class="internal xref">Two Trust Questions</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.2">
-                <p id="section-toc.1-1.1.2.2.1" class="keepWithNext"><a href="#section-1.2" class="auto internal xref">1.2</a>.  <a href="#name-relationship-to-existing-me" class="internal xref">Relationship to Existing Mechanisms</a></p>
+                <p id="section-toc.1-1.1.2.2.1" class="keepWithNext"><a href="#section-1.2" class="auto internal xref">1.2</a>.  <a href="#name-motivating-use-cases" class="internal xref">Motivating Use Cases</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.3">
-                <p id="section-toc.1-1.1.2.3.1" class="keepWithNext"><a href="#section-1.3" class="auto internal xref">1.3</a>.  <a href="#name-two-documents-defined-here" class="internal xref">Two Documents Defined Here</a></p>
+                <p id="section-toc.1-1.1.2.3.1" class="keepWithNext"><a href="#section-1.3" class="auto internal xref">1.3</a>.  <a href="#name-relationship-to-existing-me" class="internal xref">Relationship to Existing Mechanisms</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.4">
-                <p id="section-toc.1-1.1.2.4.1"><a href="#section-1.4" class="auto internal xref">1.4</a>.  <a href="#name-scope-and-the-broader-autho" class="internal xref">Scope and the Broader Authority-Discovery Pattern</a></p>
+                <p id="section-toc.1-1.1.2.4.1"><a href="#section-1.4" class="auto internal xref">1.4</a>.  <a href="#name-two-documents-defined-here" class="internal xref">Two Documents Defined Here</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.5">
-                <p id="section-toc.1-1.1.2.5.1"><a href="#section-1.5" class="auto internal xref">1.5</a>.  <a href="#name-conventions" class="internal xref">Conventions</a></p>
+                <p id="section-toc.1-1.1.2.5.1"><a href="#section-1.5" class="auto internal xref">1.5</a>.  <a href="#name-scope-and-the-broader-autho" class="internal xref">Scope and the Broader Authority-Discovery Pattern</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.6">
+                <p id="section-toc.1-1.1.2.6.1"><a href="#section-1.6" class="auto internal xref">1.6</a>.  <a href="#name-conventions" class="internal xref">Conventions</a></p>
 </li>
             </ul>
 </li>
@@ -1465,13 +1468,22 @@ an identifier in that namespace.<a href="#section-abstract-2" class="pilcrow">¶
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
-            <p id="section-toc.1-1.12.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-design-background" class="internal xref">Design Background</a></p>
+            <p id="section-toc.1-1.12.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-design-rationale" class="internal xref">Design Rationale</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.1">
                 <p id="section-toc.1-1.12.2.1.1"><a href="#appendix-A.1" class="auto internal xref">A.1</a>.  <a href="#name-relationship-to-openid-fede" class="internal xref">Relationship to OpenID Federation</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.2">
                 <p id="section-toc.1-1.12.2.2.1"><a href="#appendix-A.2" class="auto internal xref">A.2</a>.  <a href="#name-following-existing-dns-auth" class="internal xref">Following Existing DNS Authority Patterns</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.3">
+                <p id="section-toc.1-1.12.2.3.1"><a href="#appendix-A.3" class="auto internal xref">A.3</a>.  <a href="#name-why-bounded-depth-1-namespa" class="internal xref">Why Bounded-Depth-1 Namespace Authorization</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.4">
+                <p id="section-toc.1-1.12.2.4.1"><a href="#appendix-A.4" class="auto internal xref">A.4</a>.  <a href="#name-why-first-class-tenant-bind" class="internal xref">Why First-Class Tenant Binding</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.5">
+                <p id="section-toc.1-1.12.2.5.1"><a href="#appendix-A.5" class="auto internal xref">A.5</a>.  <a href="#name-why-https-fallback" class="internal xref">Why HTTPS Fallback</a></p>
 </li>
             </ul>
 </li>
@@ -1649,54 +1661,113 @@ and the namespace-authorization trust graph is bounded to a depth of
 one. See <a href="#transitive-authz-bounded" class="auto internal xref">Section 7.1</a>.<a href="#section-1.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="relationship-to-existing-mechanisms">
+<div id="motivation">
 <section id="section-1.2">
-        <h3 id="name-relationship-to-existing-me">
-<a href="#section-1.2" class="section-number selfRef">1.2. </a><a href="#name-relationship-to-existing-me" class="section-name selfRef">Relationship to Existing Mechanisms</a>
+        <h3 id="name-motivating-use-cases">
+<a href="#section-1.2" class="section-number selfRef">1.2. </a><a href="#name-motivating-use-cases" class="section-name selfRef">Motivating Use Cases</a>
         </h3>
-<p id="section-1.2-1">This framework is complementary to OpenID Federation: OpenID Federation
+<p id="section-1.2-1">This document is motivated by deployment patterns where the gap between
+issuer authentication and namespace authorization has practical
+consequences today.<a href="#section-1.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1.2-2.1">
+            <p id="section-1.2-2.1.1"><strong>Workforce SSO into multi-vendor SaaS.</strong> An enterprise customer
+federates its workforce Identity Provider (Okta, Entra, Auth0, and
+similar) into many SaaS vendors. Each vendor configures the accepted
+Assertion Issuer bilaterally per customer; no vendor can
+independently verify that the configured Identity Provider is the
+one the customer's domain authorizes for its email namespace. A
+misconfiguration or a malicious bilateral arrangement at one vendor
+is not detectable by the customer or by other vendors.<a href="#section-1.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-1.2-2.2">
+            <p id="section-1.2-2.2.1"><strong>AI agent platforms acting across tool boundaries.</strong> An agent
+platform authenticates users via federated SSO from their primary
+Identity Provider, then mints identity assertions toward downstream
+tools. The tool's Resource Authorization Server needs to know
+whether the agent platform is entitled to assert about users in the
+customer's email namespace, not merely that the agent platform is
+signing with a known key. The Agent Platform appendix walks through
+this case end to end.<a href="#section-1.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-1.2-2.3">
+            <p id="section-1.2-2.3.1"><strong>B2B integrations carrying end-user identity.</strong> Cross-organization
+API access where the calling organization's Identity Provider
+asserts about its users for the called organization's APIs. Without
+a wire-format namespace authorization, the called organization
+either accepts any authenticated Identity Provider (no namespace
+control) or maintains a manual allowlist per customer
+(operationally expensive and fragile at scale).<a href="#section-1.2-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-1.2-2.4">
+            <p id="section-1.2-2.4.1"><strong>Shared-issuer multi-tenant Identity Providers.</strong> Identity
+Providers such as Google Workspace, Microsoft Entra, and Auth0
+serve many independent customer tenants under shared signing
+infrastructure. A customer authorizing its Identity Provider for
+its email namespace today must trust the Identity Provider's
+tenant-isolation enforcement implicitly. This framework makes the
+customer's choice of authorized tenant observable on the wire
+(<a href="#dii-multi-tenant" class="auto internal xref">Section 6.9.12</a>).<a href="#section-1.2-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-1.2-3">In each pattern, the deployment state today is one of: bilateral OAuth
+configuration (works at small scale, does not scale across hundreds of
+partners); federation membership treated as a proxy for namespace
+authority (incorrect, since membership does not establish authority
+over any particular subject namespace); or implicit trust in the
+Identity Provider's tenant-domain binding (works in practice but is
+not auditable from outside the Identity Provider). This document
+provides a wire-format alternative for each.<a href="#section-1.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="relationship-to-existing-mechanisms">
+<section id="section-1.3">
+        <h3 id="name-relationship-to-existing-me">
+<a href="#section-1.3" class="section-number selfRef">1.3. </a><a href="#name-relationship-to-existing-me" class="section-name selfRef">Relationship to Existing Mechanisms</a>
+        </h3>
+<p id="section-1.3-1">This framework is complementary to OpenID Federation: OpenID Federation
 can authenticate that an issuer belongs to a trusted ecosystem, while
 Domain-Authorized Issuer Discovery lets the namespace owner say which
 issuers may assert about subjects in that namespace. The framework also
 follows existing DNS authority-publication patterns such as CAA,
 MTA-STS, SPF, DKIM, and the Email Verification Protocol. Background and
 positioning details are in <a href="#relationship-to-oidf" class="auto internal xref">Appendix A.1</a> and
-<a href="#dns-authority-patterns" class="auto internal xref">Appendix A.2</a>.<a href="#section-1.2-1" class="pilcrow">¶</a></p>
+<a href="#dns-authority-patterns" class="auto internal xref">Appendix A.2</a>.<a href="#section-1.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="two-documents-defined-here">
-<section id="section-1.3">
+<section id="section-1.4">
         <h3 id="name-two-documents-defined-here">
-<a href="#section-1.3" class="section-number selfRef">1.3. </a><a href="#name-two-documents-defined-here" class="section-name selfRef">Two Documents Defined Here</a>
+<a href="#section-1.4" class="section-number selfRef">1.4. </a><a href="#name-two-documents-defined-here" class="section-name selfRef">Two Documents Defined Here</a>
         </h3>
-<p id="section-1.3-1">This document defines two JSON documents that should not be confused:<a href="#section-1.3-1" class="pilcrow">¶</a></p>
+<p id="section-1.4-1">This document defines two JSON documents that should not be confused:<a href="#section-1.4-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.3-2.1">
-            <p id="section-1.3-2.1.1">The Identity Assertion Issuer Trust Policy
+<li class="normal" id="section-1.4-2.1">
+            <p id="section-1.4-2.1.1">The Identity Assertion Issuer Trust Policy
 (<a href="#trust-policy-document" class="auto internal xref">Section 3.2</a>) is published by a Resource Authorization
 Server and describes the conditions under which it accepts identity
-assertions.<a href="#section-1.3-2.1.1" class="pilcrow">¶</a></p>
+assertions.<a href="#section-1.4-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.3-2.2">
-            <p id="section-1.3-2.2.1">The Issuer Authorization Policy (<a href="#dii-document" class="auto internal xref">Section 6.3</a>) is
+          <li class="normal" id="section-1.4-2.2">
+            <p id="section-1.4-2.2.1">The Issuer Authorization Policy (<a href="#dii-document" class="auto internal xref">Section 6.3</a>) is
 published by a Subject Authority and lists Assertion Issuers
-authorized to assert about subjects in its namespace.<a href="#section-1.3-2.2.1" class="pilcrow">¶</a></p>
+authorized to assert about subjects in its namespace.<a href="#section-1.4-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-1.3-3">The first governs what the Resource Authorization Server accepts; the
+<p id="section-1.4-3">The first governs what the Resource Authorization Server accepts; the
 second supplies one kind of evidence that an Assertion Issuer can
-offer to satisfy the first.<a href="#section-1.3-3" class="pilcrow">¶</a></p>
+offer to satisfy the first.<a href="#section-1.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="scope">
-<section id="section-1.4">
+<section id="section-1.5">
         <h3 id="name-scope-and-the-broader-autho">
-<a href="#section-1.4" class="section-number selfRef">1.4. </a><a href="#name-scope-and-the-broader-autho" class="section-name selfRef">Scope and the Broader Authority-Discovery Pattern</a>
+<a href="#section-1.5" class="section-number selfRef">1.5. </a><a href="#name-scope-and-the-broader-autho" class="section-name selfRef">Scope and the Broader Authority-Discovery Pattern</a>
         </h3>
-<p id="section-1.4-1">This document defines a single mechanism: publication by a Subject
+<p id="section-1.5-1">This document defines a single mechanism: publication by a Subject
 Authority of which Assertion Issuers may issue identity assertions
-about subjects in its namespace. It is intentionally narrow.<a href="#section-1.4-1" class="pilcrow">¶</a></p>
-<p id="section-1.4-2">The broader pattern (an authority publishes which issuers may
+about subjects in its namespace. It is intentionally narrow.<a href="#section-1.5-1" class="pilcrow">¶</a></p>
+<p id="section-1.5-2">The broader pattern (an authority publishes which issuers may
 assert a class of claims about subjects in its scope) applies to
 attribute types whose authority is not a namespace owner:
 government-issued credentials, professional certifications,
@@ -1705,30 +1776,30 @@ credentials. The Trust Method category structure
 (<a href="#trust-method-categories" class="auto internal xref">Section 3.3.2</a>) and the Issuer Authorization Policy
 document format (<a href="#dii-document" class="auto internal xref">Section 6.3</a>) are designed to allow other
 specifications to define publication and lookup mechanisms suited
-to those authorities; this document does not attempt to do so.<a href="#section-1.4-2" class="pilcrow">¶</a></p>
-<p id="section-1.4-3">Implementers needing attribute attestation for non-namespace-bound
+to those authorities; this document does not attempt to do so.<a href="#section-1.5-2" class="pilcrow">¶</a></p>
+<p id="section-1.5-3">Implementers needing attribute attestation for non-namespace-bound
 attributes should look to W3C Verifiable Credentials, OpenID for
 Verifiable Credentials, and domain-specific frameworks; this
 document does not replace them. Where their attestations are
 conveyed as OAuth identity assertions whose subject is
 namespace-bound, the trust framework defined here can govern the
 issuer-trust layer regardless of the attribute-attestation layer
-beneath it.<a href="#section-1.4-3" class="pilcrow">¶</a></p>
-<p id="section-1.4-4">Within the scope of namespace-bound subject identity, future
+beneath it.<a href="#section-1.5-3" class="pilcrow">¶</a></p>
+<p id="section-1.5-4">Within the scope of namespace-bound subject identity, future
 extensions to additional Subject Identifier formats are
 straightforward and require no changes to the trust evaluation
-model. See <a href="#extending" class="auto internal xref">Section 10</a>.<a href="#section-1.4-4" class="pilcrow">¶</a></p>
+model. See <a href="#extending" class="auto internal xref">Section 10</a>.<a href="#section-1.5-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="conventions">
-<section id="section-1.5">
+<section id="section-1.6">
         <h3 id="name-conventions">
-<a href="#section-1.5" class="section-number selfRef">1.5. </a><a href="#name-conventions" class="section-name selfRef">Conventions</a>
+<a href="#section-1.6" class="section-number selfRef">1.6. </a><a href="#name-conventions" class="section-name selfRef">Conventions</a>
         </h3>
-<p id="section-1.5-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+<p id="section-1.6-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
 "<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
 described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
-appear in all capitals, as shown here.<a href="#section-1.5-1" class="pilcrow">¶</a></p>
+appear in all capitals, as shown here.<a href="#section-1.6-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -5007,12 +5078,14 @@ extensions are out of scope for this document.<a href="#section-10.2-2" class="p
 </div>
 </section>
 </div>
-<div id="design-background">
+<div id="design-rationale">
 <section id="appendix-A">
-      <h2 id="name-design-background">
-<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-design-background" class="section-name selfRef">Design Background</a>
+      <h2 id="name-design-rationale">
+<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-design-rationale" class="section-name selfRef">Design Rationale</a>
       </h2>
-<p id="appendix-A-1">This appendix is non-normative.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<p id="appendix-A-1">This appendix is non-normative. It records the design choices that
+shaped the framework, for reviewers and implementers who want to
+understand why specific decisions were made.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
 <div id="relationship-to-oidf">
 <section id="appendix-A.1">
         <h3 id="name-relationship-to-openid-fede">
@@ -5120,6 +5193,95 @@ deploying this framework should treat its records with the
 operational rigor appropriate to a sign-in dependency, including
 change-management review of every record update, monitoring for
 unexpected changes, and rapid-rollback capability for incidents.<a href="#appendix-A.2-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="why-bounded-depth-1-namespace-authorization">
+<section id="appendix-A.3">
+        <h3 id="name-why-bounded-depth-1-namespa">
+<a href="#appendix-A.3" class="section-number selfRef">A.3. </a><a href="#name-why-bounded-depth-1-namespa" class="section-name selfRef">Why Bounded-Depth-1 Namespace Authorization</a>
+        </h3>
+<p id="appendix-A.3-1">The Issuer Authorization Policy is a flat list of Assertion Issuer
+identifiers, not a graph. A Subject Authority cannot delegate "to
+whoever Issuer X federates"; it must list each authorized issuer
+directly. This bounding is deliberate:<a href="#appendix-A.3-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-A.3-2.1">
+            <p id="appendix-A.3-2.1.1">A Resource Authorization Server is never required to compute a
+multi-hop authorization chain to evaluate a namespace claim. There
+is always a single, customer-published policy that names the
+Assertion Issuer.<a href="#appendix-A.3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.3-2.2">
+            <p id="appendix-A.3-2.2.1">Revocation latency is bounded by the Subject Authority's own
+cache lifetime, not by the depth of a delegation chain.<a href="#appendix-A.3-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.3-2.3">
+            <p id="appendix-A.3-2.3.1">A compromise at any intermediate party (federation operator,
+delegated issuer) cannot expand the namespace authorization of an
+Assertion Issuer the Subject Authority did not list directly.<a href="#appendix-A.3-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="appendix-A.3-3">Federation chains for issuer authentication remain in scope under
+the <code>issuer_authentication</code> category; only the namespace-authorization
+graph is bounded. See <a href="#transitive-authz-bounded" class="auto internal xref">Section 7.1</a> for the full
+treatment.<a href="#appendix-A.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="why-first-class-tenant-binding">
+<section id="appendix-A.4">
+        <h3 id="name-why-first-class-tenant-bind">
+<a href="#appendix-A.4" class="section-number selfRef">A.4. </a><a href="#name-why-first-class-tenant-bind" class="section-name selfRef">Why First-Class Tenant Binding</a>
+        </h3>
+<p id="appendix-A.4-1">Shared-issuer multi-tenant Identity Providers (Google Workspace,
+Auth0 in some configurations, Microsoft Entra B2B in some flows)
+serve many customer tenants under a single issuer URL. The
+deployment reality is that these Identity Providers are common;
+authorizing them without tenant binding effectively authorizes
+every tenant of the Identity Provider for the namespace, which is
+almost never the intent.<a href="#appendix-A.4-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.4-2">The <code>tenant</code> member on <code>authorized_issuers[]</code> entries binds
+authorization to the specific tenant identifier the Identity
+Provider populates in the top-level <code>tenant</code> claim defined in
+<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §6.1. The binding makes the Subject Authority's choice
+of authorized tenant observable on the wire and verifiable per
+assertion. It does not eliminate the trust assumption on the
+Identity Provider's tenant-isolation enforcement; it makes the
+assumption explicit and auditable. See <a href="#dii-multi-tenant" class="auto internal xref">Section 6.9.12</a>.<a href="#appendix-A.4-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.4-3">A generic claim-matching mechanism (matching arbitrary JWT claims
+against publisher-specified values) was considered as an
+alternative. First-class <code>tenant</code> was preferred because the claim
+name is standardized in <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>, the deployment intent is
+unambiguous, and the wire-format expression is simpler than a
+generic claim-matching object.<a href="#appendix-A.4-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="why-https-fallback">
+<section id="appendix-A.5">
+        <h3 id="name-why-https-fallback">
+<a href="#appendix-A.5" class="section-number selfRef">A.5. </a><a href="#name-why-https-fallback" class="section-name selfRef">Why HTTPS Fallback</a>
+        </h3>
+<p id="appendix-A.5-1">The framework supports an HTTPS-hosted Issuer Authorization Policy
+at a well-known URL on the Subject Authority's host. This serves
+two purposes:<a href="#appendix-A.5-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-A.5-2.1">
+            <p id="appendix-A.5-2.1.1"><strong>Backward-compatibility runway.</strong> Subject Authorities that
+cannot or do not yet operate the DNS record can participate via
+HTTPS publication only. The lookup procedure consults the HTTPS
+well-known URL when the DNS query returns
+<code>negative-authoritative</code> (<a href="#dii-lookup" class="auto internal xref">Section 6.5</a>).<a href="#appendix-A.5-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.5-2.2">
+            <p id="appendix-A.5-2.2.1"><strong>Richer policy expression.</strong> The HTTPS form supports the full
+Issuer Authorization Policy JSON schema (validity windows, tenant
+binding, format restrictions, critical extensions) that the
+inline DNS form cannot express.<a href="#appendix-A.5-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="appendix-A.5-3">DNS remains the entry point; HTTPS is consulted only as fallback
+when the DNS query returns <code>negative-authoritative</code>. This preserves
+the DNS-authority pattern as the primary channel while
+accommodating deployment variations.<a href="#appendix-A.5-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>

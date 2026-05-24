@@ -132,19 +132,20 @@ Table of Contents
      6.9.  Security Considerations
        6.9.1.  Namespace Authority Bootstrap
        6.9.2.  Transport Integrity
-       6.9.3.  DNS Integrity and Compromise
-       6.9.4.  Wildcard DNS Records
-       6.9.5.  Third-Party Policy Hosts
-       6.9.6.  Delegation Lifecycle: Transfer and Revocation
-       6.9.7.  Policy Conflicts and Determinism
-       6.9.8.  Document Authentication Limits
-       6.9.9.  Scope of Authorization
-       6.9.10. Email Local-Part Is Not Authenticated by This Trust
+       6.9.3.  HTTPS-Only Authority Trust Model
+       6.9.4.  DNS Integrity and Compromise
+       6.9.5.  Wildcard DNS Records
+       6.9.6.  Third-Party Policy Hosts
+       6.9.7.  Delegation Lifecycle: Transfer and Revocation
+       6.9.8.  Policy Conflicts and Determinism
+       6.9.9.  Document Authentication Limits
+       6.9.10. Scope of Authorization
+       6.9.11. Email Local-Part Is Not Authenticated by This Trust
                Method
-       6.9.11. Inline-Form Feature Limits
-       6.9.12. Single-Issuer Multi-Tenant Identity Providers
-       6.9.13. Assertion Issuer Discovery Threats
-       6.9.14. Enumeration and Query Privacy
+       6.9.12. Inline-Form Feature Limits
+       6.9.13. Single-Issuer Multi-Tenant Identity Providers
+       6.9.14. Assertion Issuer Discovery Threats
+       6.9.15. Enumeration and Query Privacy
    7.  Security Considerations
      7.1.  Transitive Authorization is Bounded
      7.2.  Trust Policy Is Not An Issuer Allowlist
@@ -330,7 +331,7 @@ Table of Contents
       its email namespace today must trust the Identity Provider's
       tenant-isolation enforcement implicitly.  This framework makes the
       customer's choice of authorized tenant observable on the wire
-      (Section 6.9.12).
+      (Section 6.9.13).
 
    In each pattern, the deployment state today is one of: bilateral
    OAuth configuration (works at small scale, does not scale across
@@ -792,7 +793,7 @@ Table of Contents
       via the top-level tenant claim of [ID-JAG] §6.1): the
       authorized_issuers[].tenant field binds the authorization to a
       specific tenant of the shared issuer, with the security properties
-      described in Section 6.9.12.
+      described in Section 6.9.13.
 
    {
      "method": "domain_authorized_issuer"
@@ -804,7 +805,108 @@ Table of Contents
    issuer-policy.{A} with HTTPS well-known URL fallback when the DNS
    response is negative-authoritative.
 
-3.3.4.2.  email_verification_dns
+3.3.4.2.  https_subject_authority
+
+   The https_subject_authority method indicates that the Assertion
+   Issuer is acceptable if the Subject Authority identified by the
+   assertion's Subject Identifier publishes an HTTPS well-known Issuer
+   Authorization Policy authorizing the Assertion Issuer.
+
+   {
+     "method": "https_subject_authority"
+   }
+
+   This Trust Method has no parameters.  It reuses the Issuer
+   Authorization Policy document format (Section 6.3), Subject Authority
+   determination rules (Section 6.2), HTTPS document URL
+   (Section 6.4.2), verification rules (Section 6.6), and caching rules
+   (Section 6.8), but it does not perform the DNS lookup defined in
+   Section 6.5.
+
+   When evaluated, the Resource Authorization Server MUST:
+
+   1.  Determine the Subject Authority A from the assertion's Subject
+       Identifier per Section 6.2.  If the format is not registered in
+       Section 9.2.3, reject the assertion.
+
+   2.  Fetch the Issuer Authorization Policy directly from the default
+       HTTPS well-known URL https://{A}/.well-known/oauth-issuer-policy
+       per Section 6.4.2.  The Resource Authorization Server MUST NOT
+       query _oauth-issuer-policy.{A} as part of this Trust Method and
+       MUST NOT use a DNS uri= pointer.
+
+   3.  Classify HTTPS retrieval and document validation failures using
+       Section 6.5.2. no-policy, malformed, or indeterminate outcomes
+       MUST result in rejection, except that a fresh cached policy MAY
+       be used when live retrieval is indeterminate.
+
+   4.  Verify the fetched policy and match the Assertion Issuer against
+       authorized_issuers using steps 3 through 6 of Section 6.6.
+
+   A Resource Authorization Server lists this method when it requires
+   authority publication via HTTPS only and explicitly does NOT accept
+   DNS-published authority (inline or DNS pointer).  Compared to
+   domain_authorized_issuer, this method:
+
+   *  Eliminates dependence on DNS resolution integrity for the
+      authority lookup.  The Subject Authority is determined per
+      Section 6.2, but the authorization itself is retrieved only over
+      TLS-authenticated HTTPS.
+
+   *  Rejects the inline DNS form (where the policy is carried in the
+      TXT record itself) and the DNS pointer form (where DNS points at a
+      third-party HTTPS host).  Both require trusting DNS for the
+      authoritative selection of either issuers or policy host.
+
+   *  Forces the Subject Authority to control the apex web origin
+      identified by the well-known URL.
+
+   A Resource Authorization Server lists domain_authorized_issuer
+   instead when it accepts the DNS forms or the canonical DNS-first
+   lookup.  A Resource Authorization Server MAY list both
+   domain_authorized_issuer and https_subject_authority; see
+   Section 3.3.4.2.1.
+
+3.3.4.2.1.  Combining domain_authorized_issuer and
+            https_subject_authority
+
+   domain_authorized_issuer and https_subject_authority are peer Trust
+   Methods in the subject_namespace_authorization category; within a
+   category, OR-semantics apply (Section 3.3.2).  A Resource
+   Authorization Server that lists both methods accepts an assertion
+   satisfying EITHER.
+
+   Concretely, when both methods are listed and the Resource
+   Authorization Server processes an assertion with Subject Authority A:
+
+   *  If the canonical lookup (Section 6.5) yields an affirmative result
+      (DNS inline, DNS pointer, or HTTPS fallback), and the policy
+      authorizes the Assertion Issuer per Section 6.6, the request is
+      accepted under domain_authorized_issuer.
+
+   *  If domain_authorized_issuer did not produce an authorization (for
+      example, the DNS query returned indeterminate and no fresh cached
+      policy is available), but https_subject_authority retrieves the
+      HTTPS well-known document directly and that document authorizes
+      the Assertion Issuer, the request is accepted under
+      https_subject_authority.
+
+   The result is that the OR semantics let https_subject_authority serve
+   as a recovery path when DNS resolution fails, while
+   domain_authorized_issuer retains its full set of publication forms
+   when DNS is available.
+
+   A Resource Authorization Server that distrusts DNS-published
+   authority and wants STRICT HTTPS-only authority resolution lists ONLY
+   https_subject_authority and omits domain_authorized_issuer.
+
+   A Resource Authorization Server that accepts DNS-published authority
+   without exception lists ONLY domain_authorized_issuer; the canonical
+   lookup procedure already falls back to the HTTPS well-known URL on
+   negative-authoritative DNS responses, so the "no DNS record, only
+   HTTPS document" Subject Authority case is already covered.
+
+3.3.4.3.  email_verification_dns
 
    The email_verification_dns method indicates that the Assertion Issuer
    is acceptable if the Subject Authority of the assertion's email
@@ -996,7 +1098,7 @@ Table of Contents
        namespace?* Answered by a subject_namespace_authorization Trust
        Method (Section 3.3.4).  The authorization unit is the (issuer,
        tenant) pair when the matched authorized_issuers entry carries a
-       tenant value (Section 6.9.12); otherwise it is the issuer alone.
+       tenant value (Section 6.9.13); otherwise it is the issuer alone.
 
    5.  *Is the authorization still valid?* valid_from/valid_until on the
        matched entry and cache freshness (Section 6.8, Section 7.11)
@@ -1292,7 +1394,7 @@ Table of Contents
    predictable owner name, optionally pointing to richer HTTPS policy
    content.
 
-   The email_verification_dns Trust Method (Section 3.3.4.2) is included
+   The email_verification_dns Trust Method (Section 3.3.4.3) is included
    for compatibility with the Email Verification Protocol
    [WICG-EMAIL-VERIF], which uses the same DNS-authority pattern at a
    different owner name (_email-verification.{domain}) and with a
@@ -1388,7 +1490,7 @@ Table of Contents
          authorizing a shared-issuer multi-tenant Identity Provider (an
          Assertion Issuer whose iss is shared across many tenants)
          SHOULD set tenant to the specific tenant they intend to
-         authorize; see Section 6.9.12 for the rationale and trust
+         authorize; see Section 6.9.13 for the rationale and trust
          assumptions.  To authorize multiple tenants of the same shared
          issuer, publish one authorized_issuers entry per (issuer,
          tenant) pair.
@@ -1644,6 +1746,13 @@ Table of Contents
    (Section 6.6) and clients performing Assertion Issuer discovery
    (Section 6.7); both consult DNS first and fall back to the HTTPS
    well-known URL only on negative-authoritative outcomes.
+
+   This is the canonical procedure used by the domain_authorized_issuer
+   Trust Method.  Other Trust Methods in the
+   subject_namespace_authorization category MAY define alternative
+   retrieval procedures; in particular, https_subject_authority
+   (Section 3.3.4.2) skips DNS entirely and retrieves only from the
+   HTTPS well-known URL.
 
    1.  Query the DNS TXT resource record set at _oauth-issuer-
        policy.{A}. Classify the response as:
@@ -2095,7 +2204,50 @@ Table of Contents
    CAA records [RFC8659] constraining the certificate authorities
    permitted to issue for the policy-hosting domain.
 
-6.9.3.  DNS Integrity and Compromise
+6.9.3.  HTTPS-Only Authority Trust Model
+
+   The https_subject_authority Trust Method (Section 3.3.4.2) bypasses
+   DNS for authority retrieval entirely.  The policy is fetched directly
+   from the Subject Authority's apex well-known URL over TLS, and DNS is
+   not consulted for the authority lookup at all.
+
+   The trust model differs from domain_authorized_issuer:
+
+   *  The DNS-side attacks described in Section 6.9.4 (cache poisoning,
+      BGP hijack of the resolution path, registrar account compromise,
+      DNSSEC stripping) do NOT directly affect this method's authority
+      retrieval.  The TXT record at _oauth-issuer-policy.{A} is not
+      fetched; substituting or suppressing it cannot redirect the
+      consumer.
+
+   *  DNS is still required to resolve the Subject Authority's hostname
+      to an IP address for the HTTPS connection.  A DNS compromise that
+      redirects the apex hostname to an attacker-controlled IP can still
+      substitute the policy IF the attacker also obtains a valid TLS
+      certificate for the apex.  The CAA-based defense in Section 6.9.2
+      and Certificate Transparency monitoring become the primary
+      defenses.
+
+   *  The DNS pointer form's third-party policy host risk
+      (Section 6.9.6) does not apply.  The policy is hosted on the
+      Subject Authority's own apex origin; there is no delegation to a
+      separate host.
+
+   *  Subject Authorities that operate their own DNS but cannot control
+      the apex web origin (for example, the apex is hosted on a
+      marketing CDN with no path control) cannot serve as
+      https_subject_authority Subject Authorities.  For such
+      deployments, domain_authorized_issuer with the DNS pointer form is
+      the appropriate mechanism.
+
+   Resource Authorization Servers selecting https_subject_authority
+   exclusively (omitting domain_authorized_issuer from the trust policy)
+   are explicitly distrusting DNS-resolved authority artifacts.  This is
+   a deliberate operational choice; the cost is narrower Subject
+   Authority coverage (only those operating their own apex web origin
+   can participate).
+
+6.9.4.  DNS Integrity and Compromise
 
    DNS-published authorization is only as trustworthy as the resolution
    path that delivers it.  An adversary who can substitute a forged DNS
@@ -2140,7 +2292,7 @@ Table of Contents
 
    *  *Mandatory authority= directive.* A wildcard or substituted record
       MUST still carry authority=A matching the queried Subject
-      Authority; see Section 6.9.4.
+      Authority; see Section 6.9.5.
 
    *  *Bounded cache lifetimes.* Cache lifetimes ceiling the exposure
       window from a single successful substitution (Section 6.8,
@@ -2159,7 +2311,7 @@ Table of Contents
    *  Cross-region and cross-resolver checks (querying the record from
       multiple vantage points) to detect localized substitution.
 
-6.9.4.  Wildcard DNS Records
+6.9.5.  Wildcard DNS Records
 
    A permissive DNS wildcard at a parent zone could answer queries for
    every subdomain.  Without an integrity check, every subdomain would
@@ -2174,7 +2326,7 @@ Table of Contents
    record, and SHOULD avoid publishing wildcard TXT records at zones
    participating in this mechanism.
 
-6.9.5.  Third-Party Policy Hosts
+6.9.6.  Third-Party Policy Hosts
 
    The DNS pointer form lets the Subject Authority delegate policy
    hosting to a different domain.  This is intentional and enables
@@ -2206,7 +2358,7 @@ Table of Contents
    SHOULD reduce DNS TTLs in advance of any planned change of policy
    host.
 
-6.9.6.  Delegation Lifecycle: Transfer and Revocation
+6.9.7.  Delegation Lifecycle: Transfer and Revocation
 
    A Subject Authority's authorized issuers change over time, both
    through planned transfers (provider migrations, acquisitions, re-
@@ -2218,7 +2370,7 @@ Table of Contents
    state cache lifetimes.  Detailed operational sequences are described
    in Appendix B.1.
 
-6.9.7.  Policy Conflicts and Determinism
+6.9.8.  Policy Conflicts and Determinism
 
    The lookup procedure (Section 6.5) is deterministic across the common
    conflict scenarios that arise when multiple records or sources
@@ -2231,7 +2383,7 @@ Table of Contents
    Common conflict scenarios and their deterministic dispositions are
    summarized in Appendix B.2.
 
-6.9.8.  Document Authentication Limits
+6.9.9.  Document Authentication Limits
 
    This document does not authenticate the policy document beyond DNS
    and HTTPS.  A future extension MAY define a JWS-signed policy for
@@ -2240,14 +2392,14 @@ Table of Contents
    deployments requiring cryptographic proof of intent SHOULD use HTTPS
    or the DNS pointer form pending such an extension.
 
-6.9.9.  Scope of Authorization
+6.9.10.  Scope of Authorization
 
    A Resource Authorization Server MUST NOT use the Issuer Authorization
    Policy to establish trust in an Assertion Issuer for subjects outside
    the matched Subject Authority.  The policy authorizes an Assertion
    Issuer only within the namespace the Subject Authority controls.
 
-6.9.10.  Email Local-Part Is Not Authenticated by This Trust Method
+6.9.11.  Email Local-Part Is Not Authenticated by This Trust Method
 
    The Subject Authority Extraction for email uses only the domain part
    (registrable domain per Section 6.2).  The local-part of the email
@@ -2270,16 +2422,16 @@ Table of Contents
    or independently verify the local-part through a mechanism outside
    the scope of this document.
 
-6.9.11.  Inline-Form Feature Limits
+6.9.12.  Inline-Form Feature Limits
 
    The inline DNS form expresses only "issuer X is authorized for
    Subject Authority A."  It cannot express tenant,
    subject_identifier_formats, valid_from, or valid_until.  Subject
    Authorities needing any of those, including any binding to a specific
    tenant of a shared-issuer multi-tenant Identity Provider
-   (Section 6.9.12), MUST use the HTTPS or DNS pointer form.
+   (Section 6.9.13), MUST use the HTTPS or DNS pointer form.
 
-6.9.12.  Single-Issuer Multi-Tenant Identity Providers
+6.9.13.  Single-Issuer Multi-Tenant Identity Providers
 
    Some Identity Providers serve many independent tenants under a single
    issuer identifier (for example, https://accounts.google.com serving
@@ -2357,7 +2509,7 @@ Table of Contents
    *  Reduce DAI cache lifetimes during periods of known Identity
       Provider instability to bound exposure if tenant isolation fails.
 
-6.9.13.  Assertion Issuer Discovery Threats
+6.9.14.  Assertion Issuer Discovery Threats
 
    A client performing Assertion Issuer discovery is directed by the
    discovered policy to an authorization server it may not have
@@ -2370,7 +2522,7 @@ Table of Contents
    avoid silently following discovery results across domain boundaries
    the user did not expect.
 
-6.9.14.  Enumeration and Query Privacy
+6.9.15.  Enumeration and Query Privacy
 
    DNS-based lookup exposes the Subject Authority being queried to the
    resolver path.  It does not expose the full subject identifier for
@@ -2469,7 +2621,7 @@ Table of Contents
 
    Subject Authority withdrawal of an issuer's authorization via DAI
    prevents NEW assertions from that issuer being accepted (subject to
-   the latency model in Section 6.9.6) but does not invalidate already-
+   the latency model in Section 6.9.7) but does not invalidate already-
    issued assertions still within their exp window.  Resource
    Authorization Servers that require synchronous revocation MUST
    implement [RFC7009], [RFC7662], or an equivalent at a layer outside
@@ -2715,6 +2867,8 @@ Table of Contents
    +------------------------+-------------------------------+-------------+------------------+
    |domain_authorized_issuer|subject_namespace_authorization|(none)       |This document     |
    +------------------------+-------------------------------+-------------+------------------+
+   |https_subject_authority |subject_namespace_authorization|(none)       |This document     |
+   +------------------------+-------------------------------+-------------+------------------+
    |email_verification_dns  |subject_namespace_authorization|(none)       |This document,    |
    |                        |                               |             |[WICG-EMAIL-VERIF]|
    +------------------------+-------------------------------+-------------+------------------+
@@ -2820,7 +2974,7 @@ Table of Contents
        without modification; the new format simply joins email as a
        value that can appear in subject_identifier_formats on
        authorized_issuers entries.  The email_verification_dns Trust
-       Method (Section 3.3.4.2) is intentionally email-specific and is
+       Method (Section 3.3.4.3) is intentionally email-specific and is
        NOT reusable for other formats; new formats that need a non-
        domain_authorized_issuer mechanism must register their own.  If
        the computed Subject Authority is not a domain or cannot use DNS-
@@ -3145,7 +3299,7 @@ A.4.  Why First-Class Tenant Binding
    on the wire and verifiable per assertion.  It does not eliminate the
    trust assumption on the Identity Provider's tenant-isolation
    enforcement; it makes the assumption explicit and auditable.  See
-   Section 6.9.12.
+   Section 6.9.13.
 
    A generic claim-matching mechanism (matching arbitrary JWT claims
    against publisher-specified values) was considered as an alternative.
@@ -3729,13 +3883,13 @@ D.8.  Tenant Binding Variant
    In some deployments, the Assertion Issuer is a shared-issuer multi-
    tenant Identity Provider (for example, Google Workspace) rather than
    a customer-specific provider.  The framework supports this case via
-   the tenant member on authorized_issuers[] entries (Section 6.9.12).
+   the tenant member on authorized_issuers[] entries (Section 6.9.13).
    This subsection sketches the same gatekeeping flow as the rest of
    this appendix, with https://accounts.google.com substituted for
    https://agentprovider.example as the Assertion Issuer.
 
    Publication uses the DNS pointer form because the inline DNS form
-   cannot express tenant (Section 6.9.11):
+   cannot express tenant (Section 6.9.12):
 
    _oauth-issuer-policy.example.com.  IN  TXT
      "v=oauth-issuer-policy1;
@@ -3800,7 +3954,7 @@ D.8.  Tenant Binding Variant
    attacker cannot set tenant=example.com in their assertion because
    Google enforces that tenant attacker-corp mints tokens with
    tenant=attacker-corp, not with another tenant's identifier.  This is
-   the tenant-isolation property described in Section 6.9.12; the
+   the tenant-isolation property described in Section 6.9.13; the
    framework surfaces the customer's choice of authorized tenant on the
    wire and makes the trust assumption explicit, but does not eliminate
    the assumption.

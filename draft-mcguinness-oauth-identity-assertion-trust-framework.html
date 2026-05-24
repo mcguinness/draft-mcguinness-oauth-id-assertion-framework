@@ -1768,24 +1768,14 @@ provides a wire-format alternative for each.<a href="#section-1.2-3" class="pilc
         <h3 id="name-open-world-trust-evaluation">
 <a href="#section-1.3" class="section-number selfRef">1.3. </a><a href="#name-open-world-trust-evaluation" class="section-name selfRef">Open-World Trust Evaluation</a>
         </h3>
-<p id="section-1.3-1">In closed deployments, a Resource Authorization Server can often rely on
-bilateral configuration: each acceptable issuer or integration is
-registered directly with local policy. That model breaks down when the
-acceptable issuer set is large, dynamic, customer-controlled, or
-discovered through external trust infrastructure.<a href="#section-1.3-1" class="pilcrow">¶</a></p>
-<p id="section-1.3-2">This document targets open-world deployments in which acceptance is
-based on verifiable evidence rather than prior enumeration. Examples
-include a federation trust chain proving issuer authenticity, a DNS or
-HTTPS policy proving subject-namespace authorization, or other
-profile-specific evidence registered as Trust Methods.<a href="#section-1.3-2" class="pilcrow">¶</a></p>
-<p id="section-1.3-3">Open-world evaluation does not mean open acceptance. A Resource
-Authorization Server still publishes its trust policy, chooses the Trust
-Methods it accepts, applies local authorization policy, and fails closed
-when required evidence is missing, malformed, or indeterminate.<a href="#section-1.3-3" class="pilcrow">¶</a></p>
-<p id="section-1.3-4">Related open-world problems, such as client-instance attestation or
-workload identity, can reuse the same pattern but require
-profile-specific bindings outside the core subject-namespace
-authorization mechanism defined here.<a href="#section-1.3-4" class="pilcrow">¶</a></p>
+<p id="section-1.3-1">This document targets open-world deployments: acceptance is based on
+verifiable evidence (a federation trust chain, a DNS or HTTPS
+authority policy, or other Trust-Method-registered evidence) rather
+than prior bilateral enumeration. Open-world evaluation does not
+mean open acceptance: the Resource Authorization Server publishes
+the Trust Methods it accepts, applies local authorization policy,
+and fails closed when required evidence is missing, malformed, or
+indeterminate.<a href="#section-1.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="relationship-to-existing-mechanisms">
@@ -2371,19 +2361,19 @@ lookup procedure in <a href="#dii-lookup" class="auto internal xref">Section 6.5
 DNS response is <code>negative-authoritative</code>.<a href="#section-3.3.4.1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="trust-method-https-subject-authority">
+<div id="trust-method-https-authorized-issuer">
 <section id="section-3.3.4.2">
-            <h5 id="name-https_subject_authority">
-<a href="#section-3.3.4.2" class="section-number selfRef">3.3.4.2. </a><a href="#name-https_subject_authority" class="section-name selfRef">https_subject_authority</a>
+            <h5 id="name-https_authorized_issuer">
+<a href="#section-3.3.4.2" class="section-number selfRef">3.3.4.2. </a><a href="#name-https_authorized_issuer" class="section-name selfRef">https_authorized_issuer</a>
             </h5>
-<p id="section-3.3.4.2-1">The <code>https_subject_authority</code> method indicates that the Assertion
+<p id="section-3.3.4.2-1">The <code>https_authorized_issuer</code> method indicates that the Assertion
 Issuer is acceptable if the Subject Authority identified by the
 assertion's Subject Identifier publishes an HTTPS well-known Issuer
 Authorization Policy authorizing the Assertion Issuer.<a href="#section-3.3.4.2-1" class="pilcrow">¶</a></p>
 <div class="lang-json sourcecode" id="section-3.3.4.2-2">
 <pre>
 {
-  "method": "https_subject_authority"
+  "method": "https_authorized_issuer"
 }
 </pre><a href="#section-3.3.4.2-2" class="pilcrow">¶</a>
 </div>
@@ -2444,60 +2434,57 @@ identified by the well-known URL.<a href="#section-3.3.4.2-7.3.1" class="pilcrow
 <p id="section-3.3.4.2-8">A Resource Authorization Server lists <code>domain_authorized_issuer</code>
 instead when it accepts the DNS forms or the canonical DNS-first
 lookup. A Resource Authorization Server <span class="bcp14">MAY</span> list both
-<code>domain_authorized_issuer</code> and <code>https_subject_authority</code>; see
-<a href="#combining-dai-methods" class="auto internal xref">Section 3.3.4.2.1</a>.<a href="#section-3.3.4.2-8" class="pilcrow">¶</a></p>
+<code>domain_authorized_issuer</code> and <code>https_authorized_issuer</code>; see
+<a href="#combining-dai-methods" class="auto internal xref">Section 3.3.4.3</a>.<a href="#section-3.3.4.2-8" class="pilcrow">¶</a></p>
+</section>
+</div>
 <div id="combining-dai-methods">
-<section id="section-3.3.4.2.1">
-              <h6 id="name-combining-domain_authorized">
-<a href="#section-3.3.4.2.1" class="section-number selfRef">3.3.4.2.1. </a><a href="#name-combining-domain_authorized" class="section-name selfRef">Combining domain_authorized_issuer and https_subject_authority</a>
-              </h6>
-<p id="section-3.3.4.2.1-1"><code>domain_authorized_issuer</code> and <code>https_subject_authority</code> are peer
+<section id="section-3.3.4.3">
+            <h5 id="name-combining-domain_authorized">
+<a href="#section-3.3.4.3" class="section-number selfRef">3.3.4.3. </a><a href="#name-combining-domain_authorized" class="section-name selfRef">Combining domain_authorized_issuer and https_authorized_issuer</a>
+            </h5>
+<p id="section-3.3.4.3-1"><code>domain_authorized_issuer</code> and <code>https_authorized_issuer</code> are peer
 Trust Methods in the <code>subject_namespace_authorization</code> category;
 within a category, OR-semantics apply (<a href="#trust-method-categories" class="auto internal xref">Section 3.3.2</a>).
 A Resource Authorization Server that lists both methods accepts an
-assertion satisfying EITHER.<a href="#section-3.3.4.2.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.3.4.2.1-2">Concretely, when both methods are listed and the Resource
-Authorization Server processes an assertion with Subject Authority
-<code>A</code>:<a href="#section-3.3.4.2.1-2" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-3.3.4.2.1-3.1">
-                  <p id="section-3.3.4.2.1-3.1.1">If the canonical lookup (<a href="#dii-lookup" class="auto internal xref">Section 6.5</a>) yields an affirmative
-result (DNS inline, DNS pointer, or HTTPS fallback), and the
-policy authorizes the Assertion Issuer per <a href="#dii-verification" class="auto internal xref">Section 6.6</a>,
-the request is accepted under <code>domain_authorized_issuer</code>.<a href="#section-3.3.4.2.1-3.1.1" class="pilcrow">¶</a></p>
-</li>
-                <li class="normal" id="section-3.3.4.2.1-3.2">
-                  <p id="section-3.3.4.2.1-3.2.1">If <code>domain_authorized_issuer</code> did not produce an authorization
-(for example, the DNS query returned <code>indeterminate</code> and no
-fresh cached policy is available), but
-<code>https_subject_authority</code> retrieves the HTTPS well-known
-document directly and that document authorizes the Assertion
-Issuer, the request is accepted under <code>https_subject_authority</code>.<a href="#section-3.3.4.2.1-3.2.1" class="pilcrow">¶</a></p>
-</li>
-              </ul>
-<p id="section-3.3.4.2.1-4">The result is that the OR semantics let <code>https_subject_authority</code>
-serve as a recovery path when DNS resolution fails, while
-<code>domain_authorized_issuer</code> retains its full set of publication
-forms when DNS is available.<a href="#section-3.3.4.2.1-4" class="pilcrow">¶</a></p>
-<p id="section-3.3.4.2.1-5">A Resource Authorization Server that distrusts DNS-published
+assertion satisfying EITHER.<a href="#section-3.3.4.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.3.4.3-2">Listing both methods produces a weaker combined trust posture than
+listing either alone. <code>domain_authorized_issuer</code> fails closed under
+<code>indeterminate</code> DNS outcomes (see <a href="#dii-failures" class="auto internal xref">Section 6.5.2</a>); adding
+<code>https_authorized_issuer</code> to the same Trust Policy creates a path to
+acceptance via the direct HTTPS retrieval, defeating that
+fail-closed property. An attacker who can drive the DNS lookup to
+<code>indeterminate</code> (resolver denial-of-service, BGP disruption of the
+authoritative nameserver path, or similar) can force the verifier
+to fall through to <code>https_authorized_issuer</code> evaluation; if the
+attacker can additionally substitute the apex HTTPS response
+(through DNS-redirect plus TLS misissuance, for example), the
+attacker reaches assertion acceptance that the fail-closed
+<code>domain_authorized_issuer</code> evaluation would have prevented.<a href="#section-3.3.4.3-2" class="pilcrow">¶</a></p>
+<p id="section-3.3.4.3-3">Resource Authorization Servers <span class="bcp14">SHOULD</span> therefore list only one of
+the two methods. Listing both is appropriate only when the
+deployment has explicitly accepted the weaker combined trust model
+in exchange for higher availability: a Subject Authority is
+reachable when EITHER DNS or apex HTTPS is available, not only
+when both are. Deployments that combine both methods <span class="bcp14">SHOULD</span>
+mitigate by tightening cache freshness and applying enhanced
+local-policy scrutiny.<a href="#section-3.3.4.3-3" class="pilcrow">¶</a></p>
+<p id="section-3.3.4.3-4">A Resource Authorization Server that distrusts DNS-published
 authority and wants STRICT HTTPS-only authority resolution lists
-ONLY <code>https_subject_authority</code> and omits <code>domain_authorized_issuer</code>.<a href="#section-3.3.4.2.1-5" class="pilcrow">¶</a></p>
-<p id="section-3.3.4.2.1-6">A Resource Authorization Server that accepts DNS-published
-authority without exception lists ONLY <code>domain_authorized_issuer</code>;
-the canonical lookup procedure already falls back to the HTTPS
-well-known URL on <code>negative-authoritative</code> DNS responses, so the
-"no DNS record, only HTTPS document" Subject Authority case is
-already covered.<a href="#section-3.3.4.2.1-6" class="pilcrow">¶</a></p>
-</section>
-</div>
+ONLY <code>https_authorized_issuer</code> and omits <code>domain_authorized_issuer</code>.<a href="#section-3.3.4.3-4" class="pilcrow">¶</a></p>
+<p id="section-3.3.4.3-5">A Resource Authorization Server that accepts DNS-published
+authority lists ONLY <code>domain_authorized_issuer</code>; the canonical
+lookup procedure already falls back to the HTTPS well-known URL on
+<code>negative-authoritative</code> DNS responses, so the "no DNS record,
+only HTTPS document" Subject Authority case is already covered.<a href="#section-3.3.4.3-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="trust-method-email-verification-dns">
-<section id="section-3.3.4.3">
+<section id="section-3.3.4.4">
             <h5 id="name-email_verification_dns">
-<a href="#section-3.3.4.3" class="section-number selfRef">3.3.4.3. </a><a href="#name-email_verification_dns" class="section-name selfRef">email_verification_dns</a>
+<a href="#section-3.3.4.4" class="section-number selfRef">3.3.4.4. </a><a href="#name-email_verification_dns" class="section-name selfRef">email_verification_dns</a>
             </h5>
-<p id="section-3.3.4.3-1">The <code>email_verification_dns</code> method indicates that the Assertion
+<p id="section-3.3.4.4-1">The <code>email_verification_dns</code> method indicates that the Assertion
 Issuer is acceptable if the Subject Authority of the assertion's
 <code>email</code> Subject Identifier publishes a DNS TXT record per the Email
 Verification Protocol <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span> naming the Assertion
@@ -2505,65 +2492,65 @@ Issuer. This Trust Method exists to interoperate with deployments
 that already publish a <code>_email-verification.{domain}</code> record; it
 lets a Resource Authorization Server honor those records without
 requiring the Subject Authority to also publish an
-<code>_oauth-issuer-policy</code> record.<a href="#section-3.3.4.3-1" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-3.3.4.3-2">
+<code>_oauth-issuer-policy</code> record.<a href="#section-3.3.4.4-1" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-3.3.4.4-2">
 <pre>
 {
   "method": "email_verification_dns"
 }
-</pre><a href="#section-3.3.4.3-2" class="pilcrow">¶</a>
+</pre><a href="#section-3.3.4.4-2" class="pilcrow">¶</a>
 </div>
-<p id="section-3.3.4.3-3">This Trust Method has no parameters.<a href="#section-3.3.4.3-3" class="pilcrow">¶</a></p>
-<p id="section-3.3.4.3-4">When evaluated, the Resource Authorization Server <span class="bcp14">MUST</span>:<a href="#section-3.3.4.3-4" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-3.3.4.3-5">
-<li id="section-3.3.4.3-5.1">
-                <p id="section-3.3.4.3-5.1.1">Verify that the assertion's Subject Identifier format is <code>email</code>.
-If not, the Trust Method is not satisfied by this assertion.<a href="#section-3.3.4.3-5.1.1" class="pilcrow">¶</a></p>
+<p id="section-3.3.4.4-3">This Trust Method has no parameters.<a href="#section-3.3.4.4-3" class="pilcrow">¶</a></p>
+<p id="section-3.3.4.4-4">When evaluated, the Resource Authorization Server <span class="bcp14">MUST</span>:<a href="#section-3.3.4.4-4" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-3.3.4.4-5">
+<li id="section-3.3.4.4-5.1">
+                <p id="section-3.3.4.4-5.1.1">Verify that the assertion's Subject Identifier format is <code>email</code>.
+If not, the Trust Method is not satisfied by this assertion.<a href="#section-3.3.4.4-5.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li id="section-3.3.4.3-5.2">
-                <p id="section-3.3.4.3-5.2.1">Determine the Subject Authority <code>A</code> from the <code>email</code> Subject
+              <li id="section-3.3.4.4-5.2">
+                <p id="section-3.3.4.4-5.2.1">Determine the Subject Authority <code>A</code> from the <code>email</code> Subject
 Identifier per the <code>email</code> extraction procedure in
-<a href="#dii-authority" class="auto internal xref">Section 6.2</a> (registrable domain after <code>@</code>).<a href="#section-3.3.4.3-5.2.1" class="pilcrow">¶</a></p>
+<a href="#dii-authority" class="auto internal xref">Section 6.2</a> (registrable domain after <code>@</code>).<a href="#section-3.3.4.4-5.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li id="section-3.3.4.3-5.3">
-                <p id="section-3.3.4.3-5.3.1">Query the DNS TXT resource record set at <code>_email-verification.{A}</code>.
-Classify the DNS response as follows:<a href="#section-3.3.4.3-5.3.1" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-3.3.4.3-5.3.2">
-                  <dt id="section-3.3.4.3-5.3.2.1"><code>negative-authoritative</code></dt>
-                  <dd style="margin-left: 1.5em" id="section-3.3.4.3-5.3.2.2">
-                    <p id="section-3.3.4.3-5.3.2.2.1">NXDOMAIN, or NOERROR with an empty answer section or with no
+              <li id="section-3.3.4.4-5.3">
+                <p id="section-3.3.4.4-5.3.1">Query the DNS TXT resource record set at <code>_email-verification.{A}</code>.
+Classify the DNS response as follows:<a href="#section-3.3.4.4-5.3.1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3.3.4.4-5.3.2">
+                  <dt id="section-3.3.4.4-5.3.2.1"><code>negative-authoritative</code></dt>
+                  <dd style="margin-left: 1.5em" id="section-3.3.4.4-5.3.2.2">
+                    <p id="section-3.3.4.4-5.3.2.2.1">NXDOMAIN, or NOERROR with an empty answer section or with no
 records parseable as Email Verification Protocol records after
-parsing per <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span>.<a href="#section-3.3.4.3-5.3.2.2.1" class="pilcrow">¶</a></p>
+parsing per <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span>.<a href="#section-3.3.4.4-5.3.2.2.1" class="pilcrow">¶</a></p>
 </dd>
                   <dd class="break"></dd>
-<dt id="section-3.3.4.3-5.3.2.3"><code>indeterminate</code></dt>
-                  <dd style="margin-left: 1.5em" id="section-3.3.4.3-5.3.2.4">
-                    <p id="section-3.3.4.3-5.3.2.4.1">SERVFAIL, REFUSED, timeout, truncation with no successful retry,
-or any other failure that prevents a definitive negative result.<a href="#section-3.3.4.3-5.3.2.4.1" class="pilcrow">¶</a></p>
+<dt id="section-3.3.4.4-5.3.2.3"><code>indeterminate</code></dt>
+                  <dd style="margin-left: 1.5em" id="section-3.3.4.4-5.3.2.4">
+                    <p id="section-3.3.4.4-5.3.2.4.1">SERVFAIL, REFUSED, timeout, truncation with no successful retry,
+or any other failure that prevents a definitive negative result.<a href="#section-3.3.4.4-5.3.2.4.1" class="pilcrow">¶</a></p>
 </dd>
                   <dd class="break"></dd>
-<dt id="section-3.3.4.3-5.3.2.5"><code>affirmative</code></dt>
-                  <dd style="margin-left: 1.5em" id="section-3.3.4.3-5.3.2.6">
-                    <p id="section-3.3.4.3-5.3.2.6.1">NOERROR with at least one record parseable as an Email
+<dt id="section-3.3.4.4-5.3.2.5"><code>affirmative</code></dt>
+                  <dd style="margin-left: 1.5em" id="section-3.3.4.4-5.3.2.6">
+                    <p id="section-3.3.4.4-5.3.2.6.1">NOERROR with at least one record parseable as an Email
 Verification Protocol record after parsing per
-<span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span>.<a href="#section-3.3.4.3-5.3.2.6.1" class="pilcrow">¶</a></p>
+<span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span>.<a href="#section-3.3.4.4-5.3.2.6.1" class="pilcrow">¶</a></p>
 </dd>
                 <dd class="break"></dd>
 </dl>
 </li>
-              <li id="section-3.3.4.3-5.4">
-                <p id="section-3.3.4.3-5.4.1">If <code>negative-authoritative</code> or <code>indeterminate</code>, the Trust Method
+              <li id="section-3.3.4.4-5.4">
+                <p id="section-3.3.4.4-5.4.1">If <code>negative-authoritative</code> or <code>indeterminate</code>, the Trust Method
 is not satisfied; the <code>indeterminate</code> outcome <span class="bcp14">MUST</span> be treated per
 the failure-handling rules of <a href="#dii-failures" class="auto internal xref">Section 6.5.2</a> (a verifier <span class="bcp14">MUST</span>
-reject the assertion unless a fresh cached result is available).<a href="#section-3.3.4.3-5.4.1" class="pilcrow">¶</a></p>
+reject the assertion unless a fresh cached result is available).<a href="#section-3.3.4.4-5.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li id="section-3.3.4.3-5.5">
-                <p id="section-3.3.4.3-5.5.1">If <code>affirmative</code>, parse each record per <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span> and
+              <li id="section-3.3.4.4-5.5">
+                <p id="section-3.3.4.4-5.5.1">If <code>affirmative</code>, parse each record per <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span> and
 collect the <code>iss=</code> values. The set of authorized issuer
-identifiers is the union of those values.<a href="#section-3.3.4.3-5.5.1" class="pilcrow">¶</a></p>
+identifiers is the union of those values.<a href="#section-3.3.4.4-5.5.1" class="pilcrow">¶</a></p>
 </li>
-              <li id="section-3.3.4.3-5.6">
-                <p id="section-3.3.4.3-5.6.1">Compare the JWT <code>iss</code> claim to the parsed <code>iss=</code> values.
+              <li id="section-3.3.4.4-5.6">
+                <p id="section-3.3.4.4-5.6.1">Compare the JWT <code>iss</code> claim to the parsed <code>iss=</code> values.
 <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span> uses bare hostnames (for example,
 <code>issuer.example</code>) while OAuth issuer identifiers are HTTPS URLs
 that <span class="bcp14">MAY</span> carry a path. The Resource Authorization Server <span class="bcp14">MUST</span>
@@ -2581,19 +2568,19 @@ example, <code>https://login.example/{tenant}</code>) cannot be authorized
 by this Trust Method; they <span class="bcp14">SHOULD</span> use <code>domain_authorized_issuer</code>
 (<a href="#trust-method-domain-authorized-issuer" class="auto internal xref">Section 3.3.4.1</a>), which expresses
 full-URL issuer identifiers in the <code>authorized_issuers[].issuer</code>
-field.<a href="#section-3.3.4.3-5.6.1" class="pilcrow">¶</a></p>
+field.<a href="#section-3.3.4.4-5.6.1" class="pilcrow">¶</a></p>
 </li>
-              <li id="section-3.3.4.3-5.7">
-                <p id="section-3.3.4.3-5.7.1">Apply the cross-category combination rule of <a href="#rasp" class="auto internal xref">Section 4.3</a>.<a href="#section-3.3.4.3-5.7.1" class="pilcrow">¶</a></p>
+              <li id="section-3.3.4.4-5.7">
+                <p id="section-3.3.4.4-5.7.1">Apply the cross-category combination rule of <a href="#rasp" class="auto internal xref">Section 4.3</a>.<a href="#section-3.3.4.4-5.7.1" class="pilcrow">¶</a></p>
 </li>
             </ol>
-<p id="section-3.3.4.3-6">A Subject Authority <span class="bcp14">MAY</span> publish both an <code>_email-verification</code> record
+<p id="section-3.3.4.4-6">A Subject Authority <span class="bcp14">MAY</span> publish both an <code>_email-verification</code> record
 and an <code>_oauth-issuer-policy</code> record. When a Resource Authorization
 Server's trust policy lists both <code>domain_authorized_issuer</code> and
 <code>email_verification_dns</code> as <code>subject_namespace_authorization</code> Trust
 Methods, the cross-category combination rule of <a href="#rasp" class="auto internal xref">Section 4.3</a> treats them
 as alternatives within the same category (OR-semantics): satisfying
-either is sufficient.<a href="#section-3.3.4.3-6" class="pilcrow">¶</a></p>
+either is sufficient.<a href="#section-3.3.4.4-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3085,7 +3072,7 @@ pattern summarized in <a href="#dns-authority-patterns" class="auto internal xre
 namespace publishes security policy for that namespace at a predictable
 owner name, optionally pointing to richer HTTPS policy content.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
 <p id="section-6.1-3">The <code>email_verification_dns</code> Trust Method
-(<a href="#trust-method-email-verification-dns" class="auto internal xref">Section 3.3.4.3</a>) is included for compatibility
+(<a href="#trust-method-email-verification-dns" class="auto internal xref">Section 3.3.4.4</a>) is included for compatibility
 with the Email Verification Protocol <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span>, which uses
 the same DNS-authority pattern at a different owner name
 (<code>_email-verification.{domain}</code>) and with a different record format.
@@ -3541,8 +3528,8 @@ HTTPS well-known URL only on <code>negative-authoritative</code> outcomes.<a hre
 <p id="section-6.5-2">This is the canonical procedure used by the
 <code>domain_authorized_issuer</code> Trust Method. Other Trust Methods in the
 <code>subject_namespace_authorization</code> category <span class="bcp14">MAY</span> define alternative
-retrieval procedures; in particular, <code>https_subject_authority</code>
-(<a href="#trust-method-https-subject-authority" class="auto internal xref">Section 3.3.4.2</a>) skips DNS entirely and
+retrieval procedures; in particular, <code>https_authorized_issuer</code>
+(<a href="#trust-method-https-authorized-issuer" class="auto internal xref">Section 3.3.4.2</a>) skips DNS entirely and
 retrieves only from the HTTPS well-known URL.<a href="#section-6.5-2" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-6.5-3">
 <li id="section-6.5-3.1">
@@ -4118,8 +4105,8 @@ permitted to issue for the policy-hosting domain.<a href="#section-6.9.2-2" clas
           <h4 id="name-https-only-authority-trust-">
 <a href="#section-6.9.3" class="section-number selfRef">6.9.3. </a><a href="#name-https-only-authority-trust-" class="section-name selfRef">HTTPS-Only Authority Trust Model</a>
           </h4>
-<p id="section-6.9.3-1">The <code>https_subject_authority</code> Trust Method
-(<a href="#trust-method-https-subject-authority" class="auto internal xref">Section 3.3.4.2</a>) bypasses DNS for
+<p id="section-6.9.3-1">The <code>https_authorized_issuer</code> Trust Method
+(<a href="#trust-method-https-authorized-issuer" class="auto internal xref">Section 3.3.4.2</a>) bypasses DNS for
 authority retrieval entirely. The policy is fetched directly from
 the Subject Authority's apex well-known URL over TLS, and DNS is
 not consulted for the authority lookup at all.<a href="#section-6.9.3-1" class="pilcrow">¶</a></p>
@@ -4153,17 +4140,45 @@ delegation to a separate host.<a href="#section-6.9.3-3.3.1" class="pilcrow">¶<
               <p id="section-6.9.3-3.4.1">Subject Authorities that operate their own DNS but cannot
 control the apex web origin (for example, the apex is hosted on
 a marketing CDN with no path control) cannot serve as
-<code>https_subject_authority</code> Subject Authorities. For such
+<code>https_authorized_issuer</code> Subject Authorities. For such
 deployments, <code>domain_authorized_issuer</code> with the DNS pointer
 form is the appropriate mechanism.<a href="#section-6.9.3-3.4.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-6.9.3-4">Resource Authorization Servers selecting <code>https_subject_authority</code>
+<p id="section-6.9.3-4">Resource Authorization Servers selecting <code>https_authorized_issuer</code>
 exclusively (omitting <code>domain_authorized_issuer</code> from the trust
-policy) are explicitly distrusting DNS-resolved authority
-artifacts. This is a deliberate operational choice; the cost is
-narrower Subject Authority coverage (only those operating their
-own apex web origin can participate).<a href="#section-6.9.3-4" class="pilcrow">¶</a></p>
+policy) are explicitly distrusting DNS-published authority
+artifacts. The cost is narrower Subject Authority coverage (only
+those operating their own apex web origin can participate).<a href="#section-6.9.3-4" class="pilcrow">¶</a></p>
+<p id="section-6.9.3-5">The two methods are NOT strictly ordered by security strength.
+They trade different risks:<a href="#section-6.9.3-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-6.9.3-6.1">
+              <p id="section-6.9.3-6.1.1"><code>https_authorized_issuer</code> is resilient to attacks on the DNS
+TXT record itself but depends on hostname-to-IP DNS resolution
+plus the public CA trust system. A DNS-redirect of the apex
+hostname combined with a misissued TLS certificate succeeds
+against this method.<a href="#section-6.9.3-6.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6.9.3-6.2">
+              <p id="section-6.9.3-6.2.1"><code>domain_authorized_issuer</code> (inline DNS form) is resilient to
+TLS-misissuance attacks on the apex hostname because the
+authority artifact is the TXT record itself; an attacker
+needs DNS write or DNSSEC-bypass capability rather than a
+forged TLS certificate.<a href="#section-6.9.3-6.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6.9.3-6.3">
+              <p id="section-6.9.3-6.3.1"><code>domain_authorized_issuer</code> (DNS pointer form and HTTPS
+fallback) inherits the TLS-misissuance risk of
+<code>https_authorized_issuer</code> while ALSO depending on DNS for
+the pointer or for negative-authoritative routing.<a href="#section-6.9.3-6.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-6.9.3-7">The right choice depends on which threats the deployment can
+defend against. A Subject Authority with strong DNSSEC and weak
+TLS issuance controls favors the inline DNS form; a Subject
+Authority with strong CAA/CT monitoring and limited DNS control
+favors HTTPS-only.<a href="#section-6.9.3-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="dns-integrity-and-compromise">
@@ -5005,7 +5020,7 @@ JSON types and whether each is <span class="bcp14">REQUIRED</span> or <span clas
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <code>https_subject_authority</code>
+                  <code>https_authorized_issuer</code>
 </td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <code>subject_namespace_authorization</code>
@@ -5196,7 +5211,7 @@ Authority is a domain that can publish DNS records, the existing
 modification; the new format simply joins <code>email</code> as a value that
 can appear in <code>subject_identifier_formats</code> on <code>authorized_issuers</code>
 entries. The <code>email_verification_dns</code> Trust Method
-(<a href="#trust-method-email-verification-dns" class="auto internal xref">Section 3.3.4.3</a>) is intentionally
+(<a href="#trust-method-email-verification-dns" class="auto internal xref">Section 3.3.4.4</a>) is intentionally
 email-specific and is NOT reusable for other formats; new formats
 that need a non-<code>domain_authorized_issuer</code> mechanism must register
 their own. If the computed Subject Authority is not a domain or

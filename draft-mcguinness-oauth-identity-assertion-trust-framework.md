@@ -75,23 +75,34 @@ informative:
 
 --- abstract
 
-This document defines a trust policy that an OAuth authorization
-server publishes to describe the conditions under which it accepts
-identity assertion JWT authorization grants. The policy expresses trust
-criteria, including trust methods, trust anchors, subject identifier
-formats, and grant profiles, that an Assertion Issuer has to satisfy.
-This enables scalable issuer discovery for deployments backed by
-OpenID Federation or Domain-Authorized Issuer Discovery.
+Issuer authentication alone does not prove an OAuth authorization
+server's authority over the subject namespace its identity assertions
+claim. A federated authorization server can mint an identity assertion
+naming any email domain; federation membership establishes that the
+server is a recognized member of an ecosystem, not that the server is
+entitled to assert about subjects in any particular namespace. Nothing
+in OAuth today lets a namespace owner declare which authorization
+servers are authorized to assert identities in its namespace.
 
-This document also defines Domain-Authorized Issuer Discovery,
-which applies the established DNS authority-declaration pattern
-used by CAA, MTA-STS, SPF, and DKIM: the owner of a subject
-namespace (for example, an email domain) publishes a DNS record
-that declares which authorization servers may assert identities
-about subjects in the namespace. Richer policy may be expressed
-in an HTTPS-hosted document referenced from the DNS record. The
-same records enable clients to discover the Assertion Issuer for
-an identifier in that namespace.
+This document defines a trust framework that keeps issuer
+authentication and subject namespace authorization as distinct,
+independent questions, and lets a Resource Authorization Server
+require evidence for both. The framework defines:
+
+- An Identity Assertion Issuer Trust Policy that an OAuth
+  authorization server publishes to declare its trust criteria,
+  including trust methods, trust anchors, subject identifier
+  formats, and grant profiles.
+
+- Domain-Authorized Issuer Discovery, which applies the established
+  DNS authority-declaration pattern used by CAA, MTA-STS, SPF, and
+  DKIM: the owner of a subject namespace (for example, an email
+  domain) publishes a DNS record that declares which authorization
+  servers may assert identities about subjects in the namespace.
+  Richer policy may be expressed in an HTTPS-hosted document
+  referenced from the DNS record. The same records enable clients
+  to discover the Assertion Issuer for an identifier in that
+  namespace.
 
 --- middle
 
@@ -2912,7 +2923,7 @@ caching model determines how quickly those changes propagate to
 verifiers and discovery clients.
 
 **Planned transfer.** When a Subject Authority moves authorization from
-Assertion Issuer A to Assertion Issuer B, the RECOMMENDED sequence is:
+Assertion Issuer A to Assertion Issuer B, a typical sequence is:
 
 1. Reduce the DNS TTL on `_oauth-issuer-policy.{A}` and HTTP cache
    lifetimes on the policy document to a small operational value well
@@ -2943,8 +2954,8 @@ incident):
    minimum operational value the Subject Authority is prepared to
    sustain. This is a precondition for fast revocation; without it,
    revocation latency is bounded by existing cache lifetimes. Subject
-   Authorities of high-value namespaces SHOULD operate at short
-   steady-state TTLs in anticipation of this need.
+   Authorities of high-value namespaces are encouraged to operate at
+   short steady-state TTLs in anticipation of this need.
 
 2. Publish the policy with the compromised Assertion Issuer removed.
    Setting `last_updated` on the new policy aids operators inspecting
@@ -3219,9 +3230,9 @@ are required at either consumer.
 
 - If `acme.example` rotates its authorized Assertion Issuer and the
   Client has a cached virtual policy, the Client will still attempt
-  the old issuer until its cache expires. Subject Authorities
-  SHOULD use short DNS TTLs during rotation; consumers SHOULD
-  enforce a local cache ceiling ({{dii-caching}}).
+  the old issuer until its cache expires. Subject Authorities are
+  encouraged to use short DNS TTLs during rotation; consumers
+  enforce a local cache ceiling per {{dii-caching}}.
 
 # Agent Platform IdP End-to-End Example
 
@@ -3453,7 +3464,7 @@ Authorization Policy. The customer is the sole gatekeeper.
 
 - If the deployment additionally needs to identify the specific
   agent instance (for audit, scoping, or downstream attribution),
-  the agent platform MAY add an `act` object to the ID-JAG
+  the agent platform can add an `act` object to the ID-JAG
   identifying the agent instance. The OAuth Actor Profile binding
   ({{actor-profile-binding}}) governs how a Resource Authorization
   Server interprets such an `act` object. Trust evaluation of the
@@ -3796,9 +3807,9 @@ A receiver verifying a txn-token applies:
   for evaluating the txn-token issuer's authority over the carried
   subject.
 
-A deployment using txn-tokens MAY list a txn-token profile
-identifier in the trust policy's `authorization_grant_profiles_supported` so
-that a single trust policy document can scope itself to both
+A deployment using txn-tokens can list a txn-token profile
+identifier in the trust policy's `authorization_grant_profiles_supported`
+so that a single trust policy document scopes itself to both
 grant-endpoint and txn-token verification.
 
 ## JWT Access Token Verification
@@ -3815,7 +3826,7 @@ treated as the Assertion Issuer; Trust Method evaluation proceeds
 against this identifier as it would against the `iss` of an
 identity assertion.
 
-A resource server MAY:
+A resource server can:
 
 1. Reuse the trust policy published by its associated
    authorization server, when an exclusive AS-RS pairing exists.
@@ -3826,7 +3837,7 @@ A resource server MAY:
    `resource_authorization_server` member names the authorization
    server whose tokens this particular policy governs, not the
    publisher of the policy. A resource server that accepts tokens
-   from multiple authorization servers MAY publish multiple policy
+   from multiple authorization servers can publish multiple policy
    documents, each naming a different
    `resource_authorization_server`.
 

@@ -342,8 +342,8 @@ Issuer:
 
 `issuer_authentication`
 : Does the entity identified by the JWT `iss` claim authentically
-belong to a recognized ecosystem? Federation membership and trust-mark
-issuance answer this question.
+belong to a recognized ecosystem? Federation membership answers this
+question.
 
 `subject_namespace_authorization`
 : Is this Assertion Issuer entitled to assert about subjects in the
@@ -364,11 +364,11 @@ Within a single category, OR-semantics apply: satisfying any one listed
 method in that category is sufficient.
 
 This separation prevents an Assertion Issuer that is authenticated by
-federation or trust-mark membership from being treated as
-automatically authorized to assert about subjects in a namespace the
-Assertion Issuer has no authority over. Deployments that accept
-identity assertions about namespace-bound subjects (for example,
-email-domain users) SHOULD list at least one
+federation membership from being treated as automatically authorized to
+assert about subjects in a namespace the Assertion Issuer has no
+authority over. Deployments that accept identity assertions about
+namespace-bound subjects (for example, email-domain users) SHOULD list
+at least one
 `subject_namespace_authorization` method in their trust policy in
 addition to any `issuer_authentication` methods.
 
@@ -721,7 +721,12 @@ When evaluating such an assertion, in addition to the processing in
    extraction procedure ({{iana-authority-registry}}). The format MAY
    be carried in `act.sub_profile` or be evident from the structure of
    `act.sub`; in either case the determination uses the registered
-   extraction procedure unchanged.
+   extraction procedure for actor carriage. The `email` extraction
+   procedure defined in this document applies only to a top-level
+   subject email accompanied by top-level `email_verified=true`; it
+   does not apply to `act.sub`. Actor email identifiers therefore
+   require a future registered extraction procedure that defines how
+   actor-email verification is carried.
 
 2. If the trust policy lists one or more
    `subject_namespace_authorization` Trust Methods, evaluate at least
@@ -835,7 +840,11 @@ extractions:
   `email` claim, which MUST be accompanied by a top-level
   `email_verified` claim with the boolean value `true`. If the
   `email_verified` claim is absent or has any value other than
-  `true`, the email extraction does not apply.
+  `true`, consumers MUST treat the `email` Subject Identifier as
+  invalid for purposes of this Trust Method and MUST reject the
+  assertion when `email` is the Subject Identifier being evaluated.
+  Consumers MUST NOT treat an unverified `email` claim as though the
+  assertion carried no Subject Identifier.
 
   Consumers MUST reject an `email` claim value that does not contain
   exactly one `@` character or whose domain part is empty. The
@@ -910,21 +919,37 @@ object has:
 `last_updated`
 : OPTIONAL. RFC 3339 date-time at which the policy was last published.
 
-Unrecognized members MUST be ignored. Consumers MUST reject a policy
-whose `subject_authority` member is absent or is not a string, or
-whose `subject_authority` value does not match the computed Subject
-Authority. Consumers MUST reject a policy whose `authorized_issuers`
-member is absent, empty, not an array, or contains an element that
-is not an object. Consumers MUST reject an authorized issuer object
-that lacks a string `issuer` member or whose `issuer` member is not
-a syntactically valid issuer identifier for the applicable
-assertion grant profile. For OAuth authorization server issuer
-identifiers, a non-HTTPS URL, a relative URL, or a URL with a
+`crit`
+: OPTIONAL. JSON array of strings. Each string names an extension
+identifier, feature identifier, or policy member whose recognition the
+publisher considers critical for correct interpretation. If a consumer
+does not recognize any string listed in `crit`, the consumer MUST treat
+the policy as `malformed` ({{dii-failures}}). Member names defined in
+this document (`subject_authority`, `authorized_issuers`, `issuer`,
+`subject_identifier_formats`, `valid_from`, `valid_until`,
+`last_updated`, and `crit`) are always recognized. Future
+specifications SHOULD use stable extension identifiers in `crit` when
+correct processing depends on more than recognizing a single member,
+for example when an extension defines several members or changes the
+authorization decision procedure.
+
+Unrecognized members MUST be ignored, except when the member name or an
+extension identifier governing the member is listed in `crit`.
+Consumers MUST reject a policy whose `subject_authority` member is
+absent or is not a string, or whose `subject_authority` value does not
+match the computed Subject Authority. Consumers MUST reject a policy
+whose `authorized_issuers` member is absent, empty, not an array, or
+contains an element that is not an object. Consumers MUST reject an
+authorized issuer object that lacks a string `issuer` member or whose
+`issuer` member is not a syntactically valid issuer identifier for the
+applicable assertion grant profile. For OAuth authorization server
+issuer identifiers, a non-HTTPS URL, a relative URL, or a URL with a
 fragment component is malformed. Consumers MUST reject a
-`subject_identifier_formats` value that is present but is not an
-array of strings. Consumers MUST reject `valid_from`,
-`valid_until`, and `last_updated` values that are present but are
-not valid RFC 3339 date-times.
+`subject_identifier_formats` value that is present but is not an array
+of strings. Consumers MUST reject `valid_from`, `valid_until`, and
+`last_updated` values that are present but are not valid RFC 3339
+date-times. Consumers MUST reject a `crit` value that is present but
+is not an array of strings.
 
 Example:
 
@@ -996,7 +1021,8 @@ directives separated by `;`. Parsing rules:
   MUST NOT appear in a value; URLs containing `;` MUST be
   percent-encoded.
 - CR, LF, and NUL MUST NOT appear in a value.
-- Unrecognized directives MUST be ignored.
+- Unrecognized directives MUST be ignored unless listed in a `crit=`
+  directive.
 
 The parsing rules above are summarized in the following ABNF
 {{RFC5234}} for implementer convenience; the prose above is
@@ -1037,6 +1063,19 @@ Authority for `A`. For OAuth authorization server issuer identifiers,
 the value MUST be an absolute HTTPS URL and MUST NOT contain a
 fragment component. MAY appear multiple times within a record and
 across records.
+
+`crit=REQUIRED_EXTENSIONS`
+: OPTIONAL. Comma-separated, case-insensitive list of directive names,
+extension identifiers, or feature identifiers declared by the publisher
+as critical for correct interpretation of this record. Directive names
+defined by this document (`authority`, `uri`, `issuer`, and `crit`) are
+always recognized. If a consumer does not recognize any value named in
+`crit=`, the consumer MUST treat the record as `malformed` (see
+{{dii-failures}}). If a value names a directive, that directive MUST be
+present in the same record; otherwise the consumer MUST treat the
+record as `malformed`. Future specifications SHOULD use stable
+extension identifiers in `crit=` when correct processing depends on
+more than recognizing a single DNS directive.
 
 A recognized record MUST contain at least one `uri=` directive or at
 least one `issuer=` directive. Recognized records containing neither
@@ -1098,9 +1137,10 @@ discovery ({{dii-hrd}}), with one asymmetry noted at the end.
 
       Before continuing, validate the remaining recognized records
       against the directive rules in {{dii-dns-record}}. This includes
-      rejecting malformed `uri=` or `issuer=` values and records with
-      neither `uri=` nor `issuer=`. Any such condition is a
-      `malformed` outcome.
+      rejecting malformed `uri=`, `issuer=`, or `crit=` values,
+      records whose `crit=` lists an unknown or absent directive, and
+      records with neither `uri=` nor `issuer=`. Any such condition is
+      a `malformed` outcome.
 
    b. If any remaining record contains a `uri=` directive:
 
@@ -1150,21 +1190,24 @@ client:**
 Outcomes other than retrieval of a valid policy are categorized as:
 
 `no-policy`
-: A `negative-authoritative` DNS response combined with an HTTPS
-retrieval that yields HTTP 404, 410, or equivalent. A verifier MUST
-reject the assertion. A client reports that no policy exists.
+: An HTTPS policy retrieval that yields HTTP 404, 410, or equivalent,
+including retrieval from the default well-known URL or from a DNS
+`uri=` pointer. A verifier MUST reject the assertion. A client reports
+that no policy exists.
 
 `malformed`
 : A DNS recognized record missing `authority=`, with a mismatched
 `authority=` when no recognized record for the same query name has a
 matching `authority=`, with neither `uri=` nor `issuer=` after
 parsing, with multiple distinct `uri=` values, with a malformed
-`uri=` or `issuer=` directive, or otherwise unparseable; or an HTTPS response with an unsupported
-media type, an entity body larger than the consumer's configured
-maximum, an HTTP status other than success, redirect, 404, 410, or
-5xx, or a redirect loop or redirect target that is not HTTPS; or an
-HTTPS response body that is not a syntactically valid Issuer
-Authorization Policy document; or a JSON policy whose
+`uri=`, `issuer=`, or `crit=` directive, a `crit=` directive that
+names an unknown or absent directive, or otherwise unparseable; or an
+HTTPS response with an unsupported media type, an entity body larger
+than the consumer's configured maximum, an HTTP status other than
+success, redirect, 404, 410, or 5xx, or a redirect loop or redirect
+target that is not HTTPS; or an HTTPS response body that is not a
+syntactically valid Issuer Authorization Policy document; or a JSON
+policy whose
 `subject_authority` does not match `A`. Consumers MUST NOT use a
 fallback channel to recover, since a malformed authoritative result may
 indicate an attack. A verifier MUST reject the assertion.
@@ -1832,19 +1875,18 @@ Extraction Procedure:
 : A reference to the specification text that defines how the Subject
 Authority is computed from a Subject Identifier of this format.
 
-Entries in this registry apply both to direct Subject Identifiers
-({{dii-authority}}) and to actor Subject Identifiers carried by the
-OAuth Actor Profile binding ({{actor-profile-binding}}); the
-extraction procedure is the same. Future specifications that define
-new actor-profile entity types or Subject Identifier formats are
-expected to register additional entries here when those identifiers
-have a well-defined namespace authority.
+Entries in this registry specify whether they apply to direct Subject
+Identifiers, actor Subject Identifiers carried by the OAuth Actor
+Profile binding ({{actor-profile-binding}}), or both. Future
+specifications that define new actor-profile entity types or Subject
+Identifier formats are expected to register additional entries here
+when those identifiers have a well-defined namespace authority.
 
 Initial entries:
 
-| Subject Identifier Format | Subject Authority Form | Extraction Procedure |
-|-|-|-|
-| `email` | DNS domain | {{dii-authority}} of this document |
+| Subject Identifier Format | Subject Authority Form | Applies To | Extraction Procedure |
+|-|-|-|-|
+| `email` | DNS domain | Direct Subject Identifier only | {{dii-authority}} of this document |
 
 --- back
 

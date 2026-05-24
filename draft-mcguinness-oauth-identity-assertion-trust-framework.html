@@ -1216,19 +1216,22 @@ an identifier in that namespace.<a href="#section-abstract-2" class="pilcrow">¶
                 </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
-                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-trust-methods" class="internal xref">Trust Methods</a></p>
+                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-critical-extension-identifi" class="internal xref">Critical Extension Identifiers</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4">
+                <p id="section-toc.1-1.3.2.4.1"><a href="#section-3.4" class="auto internal xref">3.4</a>.  <a href="#name-trust-methods" class="internal xref">Trust Methods</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3.2.1">
-                    <p id="section-toc.1-1.3.2.3.2.1.1"><a href="#section-3.3.1" class="auto internal xref">3.3.1</a>.  <a href="#name-trust-method-object-structu" class="internal xref">Trust Method Object Structure</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4.2.1">
+                    <p id="section-toc.1-1.3.2.4.2.1.1"><a href="#section-3.4.1" class="auto internal xref">3.4.1</a>.  <a href="#name-trust-method-object-structu" class="internal xref">Trust Method Object Structure</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3.2.2">
-                    <p id="section-toc.1-1.3.2.3.2.2.1"><a href="#section-3.3.2" class="auto internal xref">3.3.2</a>.  <a href="#name-trust-method-categories" class="internal xref">Trust Method Categories</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4.2.2">
+                    <p id="section-toc.1-1.3.2.4.2.2.1"><a href="#section-3.4.2" class="auto internal xref">3.4.2</a>.  <a href="#name-trust-method-categories" class="internal xref">Trust Method Categories</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3.2.3">
-                    <p id="section-toc.1-1.3.2.3.2.3.1"><a href="#section-3.3.3" class="auto internal xref">3.3.3</a>.  <a href="#name-issuer_authentication-metho" class="internal xref">issuer_authentication Methods</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4.2.3">
+                    <p id="section-toc.1-1.3.2.4.2.3.1"><a href="#section-3.4.3" class="auto internal xref">3.4.3</a>.  <a href="#name-issuer_authentication-metho" class="internal xref">issuer_authentication Methods</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3.2.4">
-                    <p id="section-toc.1-1.3.2.3.2.4.1"><a href="#section-3.3.4" class="auto internal xref">3.3.4</a>.  <a href="#name-subject_namespace_authoriza" class="internal xref">subject_namespace_authorization Methods</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4.2.4">
+                    <p id="section-toc.1-1.3.2.4.2.4.1"><a href="#section-3.4.4" class="auto internal xref">3.4.4</a>.  <a href="#name-subject_namespace_authoriza" class="internal xref">subject_namespace_authorization Methods</a></p>
 </li>
                 </ul>
 </li>
@@ -1600,7 +1603,7 @@ Method belongs to exactly one of two categories — <code>issuer_authentication<
 for question 1, <code>subject_namespace_authorization</code> for question 2 — and a
 Resource Authorization Server's trust policy requires evidence from BOTH
 categories when both apply to the assertion. Trust Method categories are
-defined in <a href="#trust-method-categories" class="auto internal xref">Section 3.3.2</a>; the combination rule is in
+defined in <a href="#trust-method-categories" class="auto internal xref">Section 3.4.2</a>; the combination rule is in
 <a href="#rasp" class="auto internal xref">Section 4.3</a>.<a href="#section-1.1-3" class="pilcrow">¶</a></p>
 <p id="section-1.1-4">A consequence is that transitive <em>authentication</em> (federation chains
 that prove an issuer is a member of a recognized ecosystem) is in scope
@@ -1630,7 +1633,7 @@ replacement for or alternative to it:<a href="#section-1.2-2" class="pilcrow">¶
             <p id="section-1.2-3.1.1">OpenID Federation membership is a recognized form of evidence in
 this framework's <code>issuer_authentication</code> category (via the
 <code>openid_federation</code> Trust Method,
-<a href="#trust-method-openid-federation" class="auto internal xref">Section 3.3.3.1</a>). Deployments already using
+<a href="#trust-method-openid-federation" class="auto internal xref">Section 3.4.3.1</a>). Deployments already using
 OpenID Federation reuse that evidence directly; no parallel
 trust-chain mechanism is introduced.<a href="#section-1.2-3.1.1" class="pilcrow">¶</a></p>
 </li>
@@ -1767,7 +1770,7 @@ attribute types whose authority is not a namespace owner:
 government-issued credentials, professional certifications,
 employment claims, financial attributes, and decentralized
 credentials. The Trust Method category structure
-(<a href="#trust-method-categories" class="auto internal xref">Section 3.3.2</a>) and the Issuer Authorization Policy
+(<a href="#trust-method-categories" class="auto internal xref">Section 3.4.2</a>) and the Issuer Authorization Policy
 document format (<a href="#dii-document" class="auto internal xref">Section 6.3</a>) are designed to allow other
 specifications to define publication and lookup mechanisms suited
 to those authorities; this document does not attempt to do so.<a href="#section-1.5-2" class="pilcrow">¶</a></p>
@@ -2012,32 +2015,77 @@ in <a href="#iana-authority-registry" class="auto internal xref">Section 9.2.3</
 <dt id="section-3.2.1-1.7"><code>issuer_trust_methods_supported</code></dt>
             <dd style="margin-left: 1.5em" id="section-3.2.1-1.8">
               <p id="section-3.2.1-1.8.1"><span class="bcp14">REQUIRED</span>. Non-empty JSON array of Trust Method objects (see
-<a href="#trust-methods" class="auto internal xref">Section 3.3</a>). An Assertion Issuer is acceptable when it satisfies
+<a href="#trust-methods" class="auto internal xref">Section 3.4</a>). An Assertion Issuer is acceptable when it satisfies
 the Trust Method combination rule in <a href="#rasp" class="auto internal xref">Section 4.3</a>. Local policy <span class="bcp14">MAY</span> impose
 additional requirements for specific clients, subjects, or scopes; see
 <a href="#downgrade" class="auto internal xref">Section 7.6</a>.<a href="#section-3.2.1-1.8.1" class="pilcrow">¶</a></p>
 </dd>
+            <dd class="break"></dd>
+<dt id="section-3.2.1-1.9"><code>crit</code></dt>
+            <dd style="margin-left: 1.5em" id="section-3.2.1-1.10">
+              <p id="section-3.2.1-1.10.1"><span class="bcp14">OPTIONAL</span>. JSON array of strings. Each string names an extension
+identifier, feature identifier, or policy member whose recognition the
+publisher considers critical for correct interpretation. If a consumer
+does not recognize any string listed in <code>crit</code>, the consumer <span class="bcp14">MUST</span> treat
+the policy as malformed. Member names defined in this document
+(<code>resource_authorization_server</code>,
+<code>authorization_grant_profiles_supported</code>,
+<code>subject_identifier_formats_supported</code>, <code>issuer_trust_methods_supported</code>,
+and <code>crit</code>) are always recognized. Critical extension identifiers use
+the syntax and recognition rules in <a href="#critical-extension-identifiers" class="auto internal xref">Section 3.3</a>.<a href="#section-3.2.1-1.10.1" class="pilcrow">¶</a></p>
+</dd>
           <dd class="break"></dd>
 </dl>
+<p id="section-3.2.1-2">Unrecognized Trust Policy members <span class="bcp14">MUST</span> be ignored, except when the
+member name or an extension identifier governing the member is listed
+in <code>crit</code>.<a href="#section-3.2.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
+</section>
+</div>
+<div id="critical-extension-identifiers">
+<section id="section-3.3">
+        <h3 id="name-critical-extension-identifi">
+<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-critical-extension-identifi" class="section-name selfRef">Critical Extension Identifiers</a>
+        </h3>
+<p id="section-3.3-1">A critical extension identifier is a string that names a policy
+feature whose correct processing is required to safely interpret a
+document or DNS record. Critical extension identifiers are used by the
+<code>crit</code> member of JSON documents and the <code>crit=</code> directive of DNS
+records defined in this document.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.3-2">A critical extension identifier is recognized when it is either:<a href="#section-3.3-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3.3-3.1">
+            <p id="section-3.3-3.1.1">a member or directive name defined by this document for the document
+or record in which it appears; or<a href="#section-3.3-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.3-3.2">
+            <p id="section-3.3-3.2.1">an absolute URI whose defining specification identifies it as a
+critical extension identifier for this framework and defines the
+processing behavior required for recognition.<a href="#section-3.3-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-3.3-4">Future specifications <span class="bcp14">SHOULD</span> use absolute URI identifiers when correct
+processing depends on more than recognizing a single member or DNS
+directive, for example when an extension defines several fields or
+changes the authorization decision procedure.<a href="#section-3.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="trust-methods">
-<section id="section-3.3">
+<section id="section-3.4">
         <h3 id="name-trust-methods">
-<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-trust-methods" class="section-name selfRef">Trust Methods</a>
+<a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-trust-methods" class="section-name selfRef">Trust Methods</a>
         </h3>
-<p id="section-3.3-1">This section defines the Trust Method structure, the two categories
+<p id="section-3.4-1">This section defines the Trust Method structure, the two categories
 that organize Trust Methods around the trust questions introduced in
 <a href="#two-trust-questions" class="auto internal xref">Section 1.1</a>, and the three Trust Methods this document
-defines.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+defines.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
 <div id="trust-method-structure">
-<section id="section-3.3.1">
+<section id="section-3.4.1">
           <h4 id="name-trust-method-object-structu">
-<a href="#section-3.3.1" class="section-number selfRef">3.3.1. </a><a href="#name-trust-method-object-structu" class="section-name selfRef">Trust Method Object Structure</a>
+<a href="#section-3.4.1" class="section-number selfRef">3.4.1. </a><a href="#name-trust-method-object-structu" class="section-name selfRef">Trust Method Object Structure</a>
           </h4>
-<p id="section-3.3.1-1">Each Trust Method object has a <code>method</code> member containing a Trust Method
+<p id="section-3.4.1-1">Each Trust Method object has a <code>method</code> member containing a Trust Method
 identifier registered in <a href="#iana-trust-methods-registry" class="auto internal xref">Section 9.1.4</a>, together with
 any additional members required by that identifier. Each Trust Method
 object <span class="bcp14">MUST</span> be a JSON object and <span class="bcp14">MUST</span> contain exactly one <code>method</code>
@@ -2050,33 +2098,33 @@ identifier is absent, has the wrong JSON type, or has a value outside
 the constraints defined for that identifier. Malformed Trust Method
 objects are not usable. If no recognized and well-formed Trust Method
 object remains after this processing, the policy does not identify any
-usable issuer trust method.<a href="#section-3.3.1-1" class="pilcrow">¶</a></p>
+usable issuer trust method.<a href="#section-3.4.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="trust-method-categories">
-<section id="section-3.3.2">
+<section id="section-3.4.2">
           <h4 id="name-trust-method-categories">
-<a href="#section-3.3.2" class="section-number selfRef">3.3.2. </a><a href="#name-trust-method-categories" class="section-name selfRef">Trust Method Categories</a>
+<a href="#section-3.4.2" class="section-number selfRef">3.4.2. </a><a href="#name-trust-method-categories" class="section-name selfRef">Trust Method Categories</a>
           </h4>
-<p id="section-3.3.2-1">Trust Methods answer two distinct security questions about an Assertion
-Issuer:<a href="#section-3.3.2-1" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-3.3.2-2">
-            <dt id="section-3.3.2-2.1"><code>issuer_authentication</code></dt>
-            <dd style="margin-left: 1.5em" id="section-3.3.2-2.2">
-              <p id="section-3.3.2-2.2.1">Does the entity identified by the JWT <code>iss</code> claim authentically
+<p id="section-3.4.2-1">Trust Methods answer two distinct security questions about an Assertion
+Issuer:<a href="#section-3.4.2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3.4.2-2">
+            <dt id="section-3.4.2-2.1"><code>issuer_authentication</code></dt>
+            <dd style="margin-left: 1.5em" id="section-3.4.2-2.2">
+              <p id="section-3.4.2-2.2.1">Does the entity identified by the JWT <code>iss</code> claim authentically
 belong to a recognized ecosystem? Federation membership answers this
-question.<a href="#section-3.3.2-2.2.1" class="pilcrow">¶</a></p>
+question.<a href="#section-3.4.2-2.2.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-3.3.2-2.3"><code>subject_namespace_authorization</code></dt>
-            <dd style="margin-left: 1.5em" id="section-3.3.2-2.4">
-              <p id="section-3.3.2-2.4.1">Is this Assertion Issuer entitled to assert about subjects in the
+<dt id="section-3.4.2-2.3"><code>subject_namespace_authorization</code></dt>
+            <dd style="margin-left: 1.5em" id="section-3.4.2-2.4">
+              <p id="section-3.4.2-2.4.1">Is this Assertion Issuer entitled to assert about subjects in the
 namespace named by the assertion's Subject Identifier? An attestation
-from the namespace owner answers this question.<a href="#section-3.3.2-2.4.1" class="pilcrow">¶</a></p>
+from the namespace owner answers this question.<a href="#section-3.4.2-2.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
-<p id="section-3.3.2-3">Each Trust Method identifier is registered in
+<p id="section-3.4.2-3">Each Trust Method identifier is registered in
 <a href="#iana-trust-methods-registry" class="auto internal xref">Section 9.1.4</a> with one or more category values. A
 trust policy <span class="bcp14">MAY</span> list methods from one or both categories. The
 combination rule in <a href="#rasp" class="auto internal xref">Section 4.3</a> requires the Assertion Issuer to satisfy
@@ -2087,84 +2135,84 @@ the policy and applicable to the assertion. The
 carries a Subject Identifier; if the Subject Authority cannot be
 determined, the assertion fails closed as described in <a href="#rasp" class="auto internal xref">Section 4.3</a>.
 Within a single category, OR-semantics apply: satisfying any one listed
-method in that category is sufficient.<a href="#section-3.3.2-3" class="pilcrow">¶</a></p>
-<p id="section-3.3.2-4">This separation prevents an Assertion Issuer that is authenticated by
+method in that category is sufficient.<a href="#section-3.4.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.4.2-4">This separation prevents an Assertion Issuer that is authenticated by
 federation membership from being treated as automatically authorized to
 assert about subjects in a namespace the Assertion Issuer has no
 authority over. Deployments that accept identity assertions about
 namespace-bound subjects (for example, email-domain users) <span class="bcp14">SHOULD</span> list
 at least one
 <code>subject_namespace_authorization</code> method in their trust policy in
-addition to any <code>issuer_authentication</code> methods.<a href="#section-3.3.2-4" class="pilcrow">¶</a></p>
-<p id="section-3.3.2-5">The set of categories required for an assertion to be accepted is
+addition to any <code>issuer_authentication</code> methods.<a href="#section-3.4.2-4" class="pilcrow">¶</a></p>
+<p id="section-3.4.2-5">The set of categories required for an assertion to be accepted is
 publisher-driven: it is exactly the set of categories represented by
 recognized Trust Method objects listed in
 <code>issuer_trust_methods_supported</code>. Future specifications <span class="bcp14">MAY</span> register
 additional categories, but adding a category to the registry does not
 impose new requirements on existing trust policies that do not list
-methods from that category.<a href="#section-3.3.2-5" class="pilcrow">¶</a></p>
-<p id="section-3.3.2-6">Sections <a href="#issuer-authentication-methods" class="auto internal xref">Section 3.3.3</a> and
-<a href="#subject-namespace-authorization-methods" class="auto internal xref">Section 3.3.4</a> define the Trust Methods
-this document specifies, grouped by category.<a href="#section-3.3.2-6" class="pilcrow">¶</a></p>
+methods from that category.<a href="#section-3.4.2-5" class="pilcrow">¶</a></p>
+<p id="section-3.4.2-6">Sections <a href="#issuer-authentication-methods" class="auto internal xref">Section 3.4.3</a> and
+<a href="#subject-namespace-authorization-methods" class="auto internal xref">Section 3.4.4</a> define the Trust Methods
+this document specifies, grouped by category.<a href="#section-3.4.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="issuer-authentication-methods">
-<section id="section-3.3.3">
+<section id="section-3.4.3">
           <h4 id="name-issuer_authentication-metho">
-<a href="#section-3.3.3" class="section-number selfRef">3.3.3. </a><a href="#name-issuer_authentication-metho" class="section-name selfRef">issuer_authentication Methods</a>
+<a href="#section-3.4.3" class="section-number selfRef">3.4.3. </a><a href="#name-issuer_authentication-metho" class="section-name selfRef">issuer_authentication Methods</a>
           </h4>
-<p id="section-3.3.3-1">This section defines Trust Methods in the <code>issuer_authentication</code>
+<p id="section-3.4.3-1">This section defines Trust Methods in the <code>issuer_authentication</code>
 category. A method in this category answers "is the entity named by
 the JWT <code>iss</code> claim authentic?" and is satisfied by evidence that the
 Assertion Issuer belongs to a recognized ecosystem (today: an OpenID
 Federation trust chain). Membership alone does NOT establish authority
 over any particular subject namespace; see
-<a href="#subject-namespace-authorization-methods" class="auto internal xref">Section 3.3.4</a> for methods that do.<a href="#section-3.3.3-1" class="pilcrow">¶</a></p>
+<a href="#subject-namespace-authorization-methods" class="auto internal xref">Section 3.4.4</a> for methods that do.<a href="#section-3.4.3-1" class="pilcrow">¶</a></p>
 <div id="trust-method-openid-federation">
-<section id="section-3.3.3.1">
+<section id="section-3.4.3.1">
             <h5 id="name-openid_federation">
-<a href="#section-3.3.3.1" class="section-number selfRef">3.3.3.1. </a><a href="#name-openid_federation" class="section-name selfRef">openid_federation</a>
+<a href="#section-3.4.3.1" class="section-number selfRef">3.4.3.1. </a><a href="#name-openid_federation" class="section-name selfRef">openid_federation</a>
             </h5>
-<p id="section-3.3.3.1-1">The <code>openid_federation</code> method indicates that the Assertion Issuer is
+<p id="section-3.4.3.1-1">The <code>openid_federation</code> method indicates that the Assertion Issuer is
 acceptable if it can establish a valid OpenID Federation
-<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> trust chain to one of the listed trust anchors.<a href="#section-3.3.3.1-1" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-3.3.3.1-2">
+<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> trust chain to one of the listed trust anchors.<a href="#section-3.4.3.1-1" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-3.4.3.1-2">
 <pre>
 {
   "method": "openid_federation",
   "trust_anchors": ["https://federation.example.org"]
 }
-</pre><a href="#section-3.3.3.1-2" class="pilcrow">¶</a>
+</pre><a href="#section-3.4.3.1-2" class="pilcrow">¶</a>
 </div>
-<span class="break"></span><dl class="dlParallel" id="section-3.3.3.1-3">
-              <dt id="section-3.3.3.1-3.1"><code>trust_anchors</code></dt>
-              <dd style="margin-left: 1.5em" id="section-3.3.3.1-3.2">
-                <p id="section-3.3.3.1-3.2.1"><span class="bcp14">REQUIRED</span>. Non-empty JSON array of OpenID Federation trust anchor
-entity identifiers.<a href="#section-3.3.3.1-3.2.1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3.4.3.1-3">
+              <dt id="section-3.4.3.1-3.1"><code>trust_anchors</code></dt>
+              <dd style="margin-left: 1.5em" id="section-3.4.3.1-3.2">
+                <p id="section-3.4.3.1-3.2.1"><span class="bcp14">REQUIRED</span>. Non-empty JSON array of OpenID Federation trust anchor
+entity identifiers.<a href="#section-3.4.3.1-3.2.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
 </dl>
-<p id="section-3.3.3.1-4">The Resource Authorization Server <span class="bcp14">MUST</span> validate the Assertion Issuer's
+<p id="section-3.4.3.1-4">The Resource Authorization Server <span class="bcp14">MUST</span> validate the Assertion Issuer's
 federation trust chain according to <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span>. The terminal
 trust anchor of the validated chain <span class="bcp14">MUST</span> exactly match one of the
 listed <code>trust_anchors</code> values using the entity identifier comparison
 rules of OpenID Federation. The Resource Authorization Server <span class="bcp14">MUST</span>
 verify that the Assertion Issuer's federation entity configuration
 declares an entity type appropriate for an OAuth authorization server
-or OpenID provider.<a href="#section-3.3.3.1-4" class="pilcrow">¶</a></p>
-<p id="section-3.3.3.1-5">For OpenID Federation deployments, this Trust Method is the primary
+or OpenID provider.<a href="#section-3.4.3.1-4" class="pilcrow">¶</a></p>
+<p id="section-3.4.3.1-5">For OpenID Federation deployments, this Trust Method is the primary
 integration point between the federation and this framework; see
-<a href="#relationship-to-oidf" class="auto internal xref">Section 1.2</a> for positioning.<a href="#section-3.3.3.1-5" class="pilcrow">¶</a></p>
+<a href="#relationship-to-oidf" class="auto internal xref">Section 1.2</a> for positioning.<a href="#section-3.4.3.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
 <div id="subject-namespace-authorization-methods">
-<section id="section-3.3.4">
+<section id="section-3.4.4">
           <h4 id="name-subject_namespace_authoriza">
-<a href="#section-3.3.4" class="section-number selfRef">3.3.4. </a><a href="#name-subject_namespace_authoriza" class="section-name selfRef">subject_namespace_authorization Methods</a>
+<a href="#section-3.4.4" class="section-number selfRef">3.4.4. </a><a href="#name-subject_namespace_authoriza" class="section-name selfRef">subject_namespace_authorization Methods</a>
           </h4>
-<p id="section-3.3.4-1">This section defines Trust Methods in the <code>subject_namespace_authorization</code>
+<p id="section-3.4.4-1">This section defines Trust Methods in the <code>subject_namespace_authorization</code>
 category. A method in this category answers "does the Assertion Issuer
 have the namespace owner's permission to assert about subjects in this
 namespace?" and is satisfied by evidence published by the Subject
@@ -2172,17 +2220,17 @@ Authority itself (today: a DNS or HTTPS record under the Subject
 Authority's domain). The namespace-authorization trust graph is
 intentionally bounded to a depth of one: a Subject Authority lists
 specific Assertion Issuers, not other authorities that may delegate
-further. See <a href="#transitive-authz-bounded" class="auto internal xref">Section 7.1</a>.<a href="#section-3.3.4-1" class="pilcrow">¶</a></p>
+further. See <a href="#transitive-authz-bounded" class="auto internal xref">Section 7.1</a>.<a href="#section-3.4.4-1" class="pilcrow">¶</a></p>
 <div id="trust-method-domain-authorized-issuer">
-<section id="section-3.3.4.1">
+<section id="section-3.4.4.1">
             <h5 id="name-domain_authorized_issuer">
-<a href="#section-3.3.4.1" class="section-number selfRef">3.3.4.1. </a><a href="#name-domain_authorized_issuer" class="section-name selfRef">domain_authorized_issuer</a>
+<a href="#section-3.4.4.1" class="section-number selfRef">3.4.4.1. </a><a href="#name-domain_authorized_issuer" class="section-name selfRef">domain_authorized_issuer</a>
             </h5>
-<p id="section-3.3.4.1-1">The <code>domain_authorized_issuer</code> method indicates that the Assertion
+<p id="section-3.4.4.1-1">The <code>domain_authorized_issuer</code> method indicates that the Assertion
 Issuer is acceptable if the Subject Authority identified by the
 assertion's Subject Identifier authorizes the Assertion Issuer to
-assert identities in that namespace, as defined in <a href="#dii" class="auto internal xref">Section 6</a>.<a href="#section-3.3.4.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.3.4.1-2">Domain-Authorized Issuer Discovery, defined in <a href="#dii" class="auto internal xref">Section 6</a>, is the
+assert identities in that namespace, as defined in <a href="#dii" class="auto internal xref">Section 6</a>.<a href="#section-3.4.4.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.4.4.1-2">Domain-Authorized Issuer Discovery, defined in <a href="#dii" class="auto internal xref">Section 6</a>, is the
 mechanism by which a Subject Authority publishes its authorized
 Assertion Issuers. A Subject Authority publishes a DNS TXT record at
 <code>_oauth-issuer-policy.{authority}</code> (carrying authorized issuers
@@ -2190,55 +2238,55 @@ inline, or pointing to a richer HTTPS-hosted document) or an HTTPS
 JSON document at <code>.well-known/oauth-issuer-policy</code> on the Subject
 Authority's host. The full mechanism — record syntax, lookup
 procedure, failure handling, and security considerations - is
-specified in <a href="#dii" class="auto internal xref">Section 6</a>.<a href="#section-3.3.4.1-2" class="pilcrow">¶</a></p>
-<p id="section-3.3.4.1-3">This Trust Method natively expresses authorization for either form of
-multi-tenant Assertion Issuer:<a href="#section-3.3.4.1-3" class="pilcrow">¶</a></p>
+specified in <a href="#dii" class="auto internal xref">Section 6</a>.<a href="#section-3.4.4.1-2" class="pilcrow">¶</a></p>
+<p id="section-3.4.4.1-3">This Trust Method natively expresses authorization for either form of
+multi-tenant Assertion Issuer:<a href="#section-3.4.4.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.3.4.1-4.1">
-                <p id="section-3.3.4.1-4.1.1"><strong>Per-tenant issuer identifiers</strong> (for example,
+<li class="normal" id="section-3.4.4.1-4.1">
+                <p id="section-3.4.4.1-4.1.1"><strong>Per-tenant issuer identifiers</strong> (for example,
 <code>https://login.microsoftonline.com/{tenant-id}/v2.0</code>): the
 <code>authorized_issuers[].issuer</code> field accepts any absolute HTTPS URL
 issuer identifier, and case-sensitive comparison against the JWT
 <code>iss</code> claim distinguishes tenants under the same host. Each
-authorized tenant is one <code>authorized_issuers</code> entry.<a href="#section-3.3.4.1-4.1.1" class="pilcrow">¶</a></p>
+authorized tenant is one <code>authorized_issuers</code> entry.<a href="#section-3.4.4.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-3.3.4.1-4.2">
-                <p id="section-3.3.4.1-4.2.1"><strong>Shared issuer with a tenant claim</strong> (for example,
+              <li class="normal" id="section-3.4.4.1-4.2">
+                <p id="section-3.4.4.1-4.2.1"><strong>Shared issuer with a tenant claim</strong> (for example,
 <code>https://accounts.google.com</code> serving every Google Workspace tenant
 via the top-level <code>tenant</code> claim of <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §6.1): the
 <code>authorized_issuers[].tenant</code> field binds the authorization to a
 specific tenant of the shared issuer, with the security properties
-described in <a href="#dii-multi-tenant" class="auto internal xref">Section 6.9.12</a>.<a href="#section-3.3.4.1-4.2.1" class="pilcrow">¶</a></p>
+described in <a href="#dii-multi-tenant" class="auto internal xref">Section 6.9.12</a>.<a href="#section-3.4.4.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
-<div class="lang-json sourcecode" id="section-3.3.4.1-5">
+<div class="lang-json sourcecode" id="section-3.4.4.1-5">
 <pre>
 {
   "method": "domain_authorized_issuer",
   "dns_discovery": true
 }
-</pre><a href="#section-3.3.4.1-5" class="pilcrow">¶</a>
+</pre><a href="#section-3.4.4.1-5" class="pilcrow">¶</a>
 </div>
-<span class="break"></span><dl class="dlParallel" id="section-3.3.4.1-6">
-              <dt id="section-3.3.4.1-6.1"><code>dns_discovery</code></dt>
-              <dd style="margin-left: 1.5em" id="section-3.3.4.1-6.2">
-                <p id="section-3.3.4.1-6.2.1"><span class="bcp14">OPTIONAL</span>. Boolean. If <code>true</code>, the Resource Authorization Server
+<span class="break"></span><dl class="dlParallel" id="section-3.4.4.1-6">
+              <dt id="section-3.4.4.1-6.1"><code>dns_discovery</code></dt>
+              <dd style="margin-left: 1.5em" id="section-3.4.4.1-6.2">
+                <p id="section-3.4.4.1-6.2.1"><span class="bcp14">OPTIONAL</span>. Boolean. If <code>true</code>, the Resource Authorization Server
 consults DNS-based discovery (see <a href="#dii-dns-record" class="auto internal xref">Section 6.4.1</a>), accepting both
 inline and pointer forms. Defaults to <code>false</code>, in which case only
 the HTTPS well-known location (see <a href="#dii-https-url" class="auto internal xref">Section 6.4.2</a>) is used. This
 flag governs verifier behavior only; Assertion Issuer discovery
-clients (<a href="#dii-hrd" class="auto internal xref">Section 6.7</a>) always consult DNS regardless of this flag.<a href="#section-3.3.4.1-6.2.1" class="pilcrow">¶</a></p>
+clients (<a href="#dii-hrd" class="auto internal xref">Section 6.7</a>) always consult DNS regardless of this flag.<a href="#section-3.4.4.1-6.2.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
 </dl>
 </section>
 </div>
 <div id="trust-method-email-verification-dns">
-<section id="section-3.3.4.2">
+<section id="section-3.4.4.2">
             <h5 id="name-email_verification_dns">
-<a href="#section-3.3.4.2" class="section-number selfRef">3.3.4.2. </a><a href="#name-email_verification_dns" class="section-name selfRef">email_verification_dns</a>
+<a href="#section-3.4.4.2" class="section-number selfRef">3.4.4.2. </a><a href="#name-email_verification_dns" class="section-name selfRef">email_verification_dns</a>
             </h5>
-<p id="section-3.3.4.2-1">The <code>email_verification_dns</code> method indicates that the Assertion
+<p id="section-3.4.4.2-1">The <code>email_verification_dns</code> method indicates that the Assertion
 Issuer is acceptable if the Subject Authority of the assertion's
 <code>email</code> Subject Identifier publishes a DNS TXT record per the Email
 Verification Protocol <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span> naming the Assertion
@@ -2246,43 +2294,65 @@ Issuer. This Trust Method exists to interoperate with deployments
 that already publish a <code>_email-verification.{domain}</code> record; it
 lets a Resource Authorization Server honor those records without
 requiring the Subject Authority to also publish an
-<code>_oauth-issuer-policy</code> record.<a href="#section-3.3.4.2-1" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-3.3.4.2-2">
+<code>_oauth-issuer-policy</code> record.<a href="#section-3.4.4.2-1" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-3.4.4.2-2">
 <pre>
 {
   "method": "email_verification_dns"
 }
-</pre><a href="#section-3.3.4.2-2" class="pilcrow">¶</a>
+</pre><a href="#section-3.4.4.2-2" class="pilcrow">¶</a>
 </div>
-<p id="section-3.3.4.2-3">This Trust Method has no parameters.<a href="#section-3.3.4.2-3" class="pilcrow">¶</a></p>
-<p id="section-3.3.4.2-4">When evaluated, the Resource Authorization Server <span class="bcp14">MUST</span>:<a href="#section-3.3.4.2-4" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-3.3.4.2-5">
-<li id="section-3.3.4.2-5.1">
-                <p id="section-3.3.4.2-5.1.1">Verify that the assertion's Subject Identifier format is <code>email</code>.
-If not, the Trust Method is not satisfied by this assertion.<a href="#section-3.3.4.2-5.1.1" class="pilcrow">¶</a></p>
+<p id="section-3.4.4.2-3">This Trust Method has no parameters.<a href="#section-3.4.4.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.4.4.2-4">When evaluated, the Resource Authorization Server <span class="bcp14">MUST</span>:<a href="#section-3.4.4.2-4" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-3.4.4.2-5">
+<li id="section-3.4.4.2-5.1">
+                <p id="section-3.4.4.2-5.1.1">Verify that the assertion's Subject Identifier format is <code>email</code>.
+If not, the Trust Method is not satisfied by this assertion.<a href="#section-3.4.4.2-5.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li id="section-3.3.4.2-5.2">
-                <p id="section-3.3.4.2-5.2.1">Determine the Subject Authority <code>A</code> from the <code>email</code> Subject
+              <li id="section-3.4.4.2-5.2">
+                <p id="section-3.4.4.2-5.2.1">Determine the Subject Authority <code>A</code> from the <code>email</code> Subject
 Identifier per the <code>email</code> extraction procedure in
-<a href="#dii-authority" class="auto internal xref">Section 6.2</a> (registrable domain after <code>@</code>).<a href="#section-3.3.4.2-5.2.1" class="pilcrow">¶</a></p>
+<a href="#dii-authority" class="auto internal xref">Section 6.2</a> (registrable domain after <code>@</code>).<a href="#section-3.4.4.2-5.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li id="section-3.3.4.2-5.3">
-                <p id="section-3.3.4.2-5.3.1">Query the DNS TXT resource record set at <code>_email-verification.{A}</code>.
-Apply the DNS response classification of <a href="#dii-lookup" class="auto internal xref">Section 6.5</a> (step 1).<a href="#section-3.3.4.2-5.3.1" class="pilcrow">¶</a></p>
+              <li id="section-3.4.4.2-5.3">
+                <p id="section-3.4.4.2-5.3.1">Query the DNS TXT resource record set at <code>_email-verification.{A}</code>.
+Classify the DNS response as follows:<a href="#section-3.4.4.2-5.3.1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3.4.4.2-5.3.2">
+                  <dt id="section-3.4.4.2-5.3.2.1"><code>negative-authoritative</code></dt>
+                  <dd style="margin-left: 1.5em" id="section-3.4.4.2-5.3.2.2">
+                    <p id="section-3.4.4.2-5.3.2.2.1">NXDOMAIN, or NOERROR with an empty answer section or with no
+records parseable as Email Verification Protocol records after
+parsing per <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span>.<a href="#section-3.4.4.2-5.3.2.2.1" class="pilcrow">¶</a></p>
+</dd>
+                  <dd class="break"></dd>
+<dt id="section-3.4.4.2-5.3.2.3"><code>indeterminate</code></dt>
+                  <dd style="margin-left: 1.5em" id="section-3.4.4.2-5.3.2.4">
+                    <p id="section-3.4.4.2-5.3.2.4.1">SERVFAIL, REFUSED, timeout, truncation with no successful retry,
+or any other failure that prevents a definitive negative result.<a href="#section-3.4.4.2-5.3.2.4.1" class="pilcrow">¶</a></p>
+</dd>
+                  <dd class="break"></dd>
+<dt id="section-3.4.4.2-5.3.2.5"><code>affirmative</code></dt>
+                  <dd style="margin-left: 1.5em" id="section-3.4.4.2-5.3.2.6">
+                    <p id="section-3.4.4.2-5.3.2.6.1">NOERROR with at least one record parseable as an Email
+Verification Protocol record after parsing per
+<span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span>.<a href="#section-3.4.4.2-5.3.2.6.1" class="pilcrow">¶</a></p>
+</dd>
+                <dd class="break"></dd>
+</dl>
 </li>
-              <li id="section-3.3.4.2-5.4">
-                <p id="section-3.3.4.2-5.4.1">If <code>negative-authoritative</code> or <code>indeterminate</code>, the Trust Method
+              <li id="section-3.4.4.2-5.4">
+                <p id="section-3.4.4.2-5.4.1">If <code>negative-authoritative</code> or <code>indeterminate</code>, the Trust Method
 is not satisfied; the <code>indeterminate</code> outcome <span class="bcp14">MUST</span> be treated per
 the failure-handling rules of <a href="#dii-failures" class="auto internal xref">Section 6.5.1</a> (a verifier <span class="bcp14">MUST</span>
-reject the assertion unless a fresh cached result is available).<a href="#section-3.3.4.2-5.4.1" class="pilcrow">¶</a></p>
+reject the assertion unless a fresh cached result is available).<a href="#section-3.4.4.2-5.4.1" class="pilcrow">¶</a></p>
 </li>
-              <li id="section-3.3.4.2-5.5">
-                <p id="section-3.3.4.2-5.5.1">If <code>affirmative</code>, parse each record per <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span> and
+              <li id="section-3.4.4.2-5.5">
+                <p id="section-3.4.4.2-5.5.1">If <code>affirmative</code>, parse each record per <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span> and
 collect the <code>iss=</code> values. The set of authorized issuer
-identifiers is the union of those values.<a href="#section-3.3.4.2-5.5.1" class="pilcrow">¶</a></p>
+identifiers is the union of those values.<a href="#section-3.4.4.2-5.5.1" class="pilcrow">¶</a></p>
 </li>
-              <li id="section-3.3.4.2-5.6">
-                <p id="section-3.3.4.2-5.6.1">Compare the JWT <code>iss</code> claim to the parsed <code>iss=</code> values.
+              <li id="section-3.4.4.2-5.6">
+                <p id="section-3.4.4.2-5.6.1">Compare the JWT <code>iss</code> claim to the parsed <code>iss=</code> values.
 <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span> uses bare hostnames (for example,
 <code>issuer.example</code>) while OAuth issuer identifiers are HTTPS URLs
 that <span class="bcp14">MAY</span> carry a path. The Resource Authorization Server <span class="bcp14">MUST</span>
@@ -2290,33 +2360,33 @@ parse the JWT <code>iss</code> as an absolute HTTPS URL and treat the
 record's bare hostname <code>H</code> as matching only when the JWT <code>iss</code>
 has scheme <code>https</code>, host equal to <code>H</code> (case-insensitive ASCII
 after IDNA conversion per <span>[<a href="#RFC5891" class="cite xref">RFC5891</a>]</span>), default port (or no port
-component), and an empty path (or the path <code>/</code>). Any other shape<a href="#section-3.3.4.2-5.6.1" class="pilcrow">¶</a></p>
+component), and an empty path (or the path <code>/</code>). Any other shape<a href="#section-3.4.4.2-5.6.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-3.3.4.2-5.6.2.1">
-                    <p id="section-3.3.4.2-5.6.2.1.1">non-default port, non-empty path component, query string, or
+<li class="normal" id="section-3.4.4.2-5.6.2.1">
+                    <p id="section-3.4.4.2-5.6.2.1.1">non-default port, non-empty path component, query string, or
 fragment - does not match. Consequently, this Trust Method is
 interoperable only with Assertion Issuers whose identifier is
 the bare-origin form <code>https://{H}</code> (or <code>https://{H}/</code>).
 Deployments whose Assertion Issuer identifiers carry paths (for
 example, <code>https://login.example/{tenant}</code>) cannot be authorized
 by this Trust Method; they <span class="bcp14">SHOULD</span> use <code>domain_authorized_issuer</code>
-(<a href="#trust-method-domain-authorized-issuer" class="auto internal xref">Section 3.3.4.1</a>), which expresses
+(<a href="#trust-method-domain-authorized-issuer" class="auto internal xref">Section 3.4.4.1</a>), which expresses
 full-URL issuer identifiers in the <code>authorized_issuers[].issuer</code>
-field.<a href="#section-3.3.4.2-5.6.2.1.1" class="pilcrow">¶</a></p>
+field.<a href="#section-3.4.4.2-5.6.2.1.1" class="pilcrow">¶</a></p>
 </li>
                 </ul>
 </li>
-              <li id="section-3.3.4.2-5.7">
-                <p id="section-3.3.4.2-5.7.1">Apply the cross-category combination rule of <a href="#rasp" class="auto internal xref">Section 4.3</a>.<a href="#section-3.3.4.2-5.7.1" class="pilcrow">¶</a></p>
+              <li id="section-3.4.4.2-5.7">
+                <p id="section-3.4.4.2-5.7.1">Apply the cross-category combination rule of <a href="#rasp" class="auto internal xref">Section 4.3</a>.<a href="#section-3.4.4.2-5.7.1" class="pilcrow">¶</a></p>
 </li>
             </ol>
-<p id="section-3.3.4.2-6">A Subject Authority <span class="bcp14">MAY</span> publish both an <code>_email-verification</code> record
+<p id="section-3.4.4.2-6">A Subject Authority <span class="bcp14">MAY</span> publish both an <code>_email-verification</code> record
 and an <code>_oauth-issuer-policy</code> record. When a Resource Authorization
 Server's trust policy lists both <code>domain_authorized_issuer</code> and
 <code>email_verification_dns</code> as <code>subject_namespace_authorization</code> Trust
 Methods, the cross-category combination rule of <a href="#rasp" class="auto internal xref">Section 4.3</a> treats them
 as alternatives within the same category (OR-semantics): satisfying
-either is sufficient.<a href="#section-3.3.4.2-6" class="pilcrow">¶</a></p>
+either is sufficient.<a href="#section-3.4.4.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2422,7 +2492,7 @@ assertion validity.<a href="#section-4.2-5.1.1" class="pilcrow">¶</a></p>
             <p id="section-4.2-5.2.1"><strong>Is the Assertion Issuer authentic?</strong> Does the entity named by
 the JWT <code>iss</code> claim belong to a recognized ecosystem? Answered
 by Trust Methods in the <code>issuer_authentication</code> category
-(<a href="#issuer-authentication-methods" class="auto internal xref">Section 3.3.3</a>).<a href="#section-4.2-5.2.1" class="pilcrow">¶</a></p>
+(<a href="#issuer-authentication-methods" class="auto internal xref">Section 3.4.3</a>).<a href="#section-4.2-5.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-4.2-5.3">
             <p id="section-4.2-5.3.1"><strong>Does the assertion carry an attribute the Resource
@@ -2437,7 +2507,7 @@ is.<a href="#section-4.2-5.3.1" class="pilcrow">¶</a></p>
             <p id="section-4.2-5.4.1"><strong>Is the Assertion Issuer authoritative for this subject's
 namespace?</strong> Answered by Trust Methods in the
 <code>subject_namespace_authorization</code> category
-(<a href="#subject-namespace-authorization-methods" class="auto internal xref">Section 3.3.4</a>). The unit of
+(<a href="#subject-namespace-authorization-methods" class="auto internal xref">Section 3.4.4</a>). The unit of
 authorization is the (issuer, tenant) pair when the matched
 <code>authorized_issuers</code> entry carries a <code>tenant</code> value
 (<a href="#dii-multi-tenant" class="auto internal xref">Section 6.9.12</a>); otherwise it is the issuer alone.<a href="#section-4.2-5.4.1" class="pilcrow">¶</a></p>
@@ -2462,7 +2532,7 @@ access-control logic, not that any particular outcome follows.<a href="#section-
 <p id="section-4.2-6">Questions 2 and 4 are independent dimensions of trust and each <span class="bcp14">MUST</span>
 be satisfied when both categories are present in the policy: this
 is the cross-category combination rule
-(<a href="#trust-method-categories" class="auto internal xref">Section 3.3.2</a>). Federation membership alone (question
+(<a href="#trust-method-categories" class="auto internal xref">Section 3.4.2</a>). Federation membership alone (question
 2 satisfied) does NOT establish namespace authority (question 4);
 a namespace authorization in Domain-Authorized Issuer Discovery
 (question 4 satisfied) does NOT establish issuer authenticity
@@ -2511,7 +2581,7 @@ Trust Method combination rule:<a href="#section-4.3-2.5.1" class="pilcrow">¶</a
 <p id="section-4.3-2.5.2">
 a. Partition the recognized Trust Method objects in
    <code>issuer_trust_methods_supported</code> by category (see
-   <a href="#trust-method-categories" class="auto internal xref">Section 3.3.2</a>). A Trust Method registered with
+   <a href="#trust-method-categories" class="auto internal xref">Section 3.4.2</a>). A Trust Method registered with
    multiple categories belongs to each.<a href="#section-4.3-2.5.2" class="pilcrow">¶</a></p>
 <p id="section-4.3-2.5.3">
 b. For each category that is BOTH present in the partitioned policy
@@ -2786,7 +2856,7 @@ answers ("which issuer can verify emails for this domain?") is a
 special case of the question this document answers ("which
 Assertion Issuer is authorized for this subject namespace?"). The
 <code>email_verification_dns</code> Trust Method
-(<a href="#trust-method-email-verification-dns" class="auto internal xref">Section 3.3.4.2</a>) lets verifiers honor
+(<a href="#trust-method-email-verification-dns" class="auto internal xref">Section 3.4.4.2</a>) lets verifiers honor
 existing Email Verification Protocol records without requiring a
 parallel <code>_oauth-issuer-policy</code> record. Because the Email
 Verification Protocol is a non-IETF specification still under
@@ -2955,7 +3025,8 @@ this document (<code>subject_authority</code>, <code>authorized_issuers</code>, 
 specifications <span class="bcp14">SHOULD</span> use stable extension identifiers in <code>crit</code> when
 correct processing depends on more than recognizing a single member,
 for example when an extension defines several members or changes the
-authorization decision procedure.<a href="#section-6.3-2.8.1" class="pilcrow">¶</a></p>
+authorization decision procedure. Critical extension identifiers use
+the syntax and recognition rules in <a href="#critical-extension-identifiers" class="auto internal xref">Section 3.3</a>.<a href="#section-6.3-2.8.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -3143,7 +3214,9 @@ always recognized. If a consumer does not recognize any value named in
 present in the same record; otherwise the consumer <span class="bcp14">MUST</span> treat the
 record as <code>malformed</code>. Future specifications <span class="bcp14">SHOULD</span> use stable
 extension identifiers in <code>crit=</code> when correct processing depends on
-more than recognizing a single DNS directive.<a href="#section-6.4.1-9.8.1" class="pilcrow">¶</a></p>
+more than recognizing a single DNS directive. Critical extension
+identifiers use the syntax and recognition rules in
+<a href="#critical-extension-identifiers" class="auto internal xref">Section 3.3</a>.<a href="#section-6.4.1-9.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
@@ -3271,7 +3344,7 @@ client:</strong><a href="#section-6.5-3" class="pilcrow">¶</a></p>
 <li class="normal" id="section-6.5-4.1">
             <p id="section-6.5-4.1.1">A Resource Authorization Server consults DNS only when its trust
 policy advertises <code>dns_discovery: true</code>
-(<a href="#trust-method-domain-authorized-issuer" class="auto internal xref">Section 3.3.4.1</a>). When
+(<a href="#trust-method-domain-authorized-issuer" class="auto internal xref">Section 3.4.4.1</a>). When
 <code>dns_discovery</code> is
 absent or <code>false</code>, the verifier skips step 1 and retrieves only
 from the HTTPS well-known URL.<a href="#section-6.5-4.1.1" class="pilcrow">¶</a></p>
@@ -3667,10 +3740,14 @@ a conservative cache maximum (<a href="#dii-caching" class="auto internal xref">
             <li class="normal" id="section-6.9.3-4.3">
               <p id="section-6.9.3-4.3.1"><strong>HTTPS for richer policy.</strong> The DNS pointer form (<code>uri=</code>)
 delegates policy CONTENTS to TLS-authenticated HTTPS retrieval.
-A DNS-only compromise that does not also compromise the policy
-host's TLS cannot rewrite the policy contents, only redirect
-consumers to a different host; consumers <span class="bcp14">MUST</span> verify TLS to that
-host.<a href="#section-6.9.3-4.3.1" class="pilcrow">¶</a></p>
+Because the DNS <code>uri=</code> target is authoritative, a DNS compromise can
+redirect consumers to an attacker-controlled HTTPS host and thereby
+rewrite the policy contents, provided that host presents a valid TLS
+certificate for itself. Consumers <span class="bcp14">MUST</span> verify TLS to the host named
+by <code>uri=</code>, but TLS does not mitigate compromise of the DNS record
+that selects the host. Subject Authorities relying on pointer form
+therefore depend on DNS integrity for target selection and HTTPS
+integrity for the selected policy contents.<a href="#section-6.9.3-4.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.9.3-4.4">
               <p id="section-6.9.3-4.4.1"><strong>Mandatory <code>authority=</code> directive.</strong> A wildcard or substituted
@@ -4079,7 +4156,7 @@ issuance or verification decision.<a href="#section-6.9.14-1" class="pilcrow">¶
 (in scope) from transitive <em>namespace authorization</em> (out of scope).<a href="#section-7.1-1" class="pilcrow">¶</a></p>
 <p id="section-7.1-2">Transitive authentication is supported via OpenID Federation. The
 <code>openid_federation</code> Trust Method
-(<a href="#trust-method-openid-federation" class="auto internal xref">Section 3.3.3.1</a>) accepts a chain from a leaf entity
+(<a href="#trust-method-openid-federation" class="auto internal xref">Section 3.4.3.1</a>) accepts a chain from a leaf entity
 to a trust anchor, where the trust anchor's signature on intermediate
 Subordinate Statements transitively authenticates the leaf. This
 answers question 1 from <a href="#two-trust-questions" class="auto internal xref">Section 1.1</a> ("who signed it?")
@@ -4461,7 +4538,7 @@ describe the trust evaluation procedure.<a href="#section-9.1.4-4.2.1" class="pi
 <dt id="section-9.1.4-4.3">Categories:</dt>
             <dd style="margin-left: 1.5em" id="section-9.1.4-4.4">
               <p id="section-9.1.4-4.4.1">One or more values from the set defined in
-<a href="#trust-method-categories" class="auto internal xref">Section 3.3.2</a> (<code>issuer_authentication</code>,
+<a href="#trust-method-categories" class="auto internal xref">Section 3.4.2</a> (<code>issuer_authentication</code>,
 <code>subject_namespace_authorization</code>). Future specifications <span class="bcp14">MAY</span> define
 additional categories via Specification Required.<a href="#section-9.1.4-4.4.1" class="pilcrow">¶</a></p>
 </dd>
@@ -4671,7 +4748,7 @@ when those identifiers have a well-defined namespace authority.<a href="#section
 <p id="section-10-1">This document registers one Subject Authority extraction procedure
 (<code>email</code>, <a href="#dii-authority" class="auto internal xref">Section 6.2</a>) and one <code>subject_namespace_authorization</code>
 Trust Method that publishes via DNS (<code>domain_authorized_issuer</code>,
-<a href="#trust-method-domain-authorized-issuer" class="auto internal xref">Section 3.3.4.1</a>). The framework is designed
+<a href="#trust-method-domain-authorized-issuer" class="auto internal xref">Section 3.4.4.1</a>). The framework is designed
 to accommodate additional Subject Identifier formats and additional
 publication mechanisms via future specifications. This section
 describes the extension procedure for spec authors.<a href="#section-10-1" class="pilcrow">¶</a></p>
@@ -4691,7 +4768,7 @@ comparison rules for matching Subject Authority values.<a href="#section-10-3.1.
           <p id="section-10-3.2.1"><strong>Selects or registers a Trust Method.</strong> If the computed Subject
 Authority is a domain that can publish DNS records, the existing
 <code>domain_authorized_issuer</code> Trust Method
-(<a href="#trust-method-domain-authorized-issuer" class="auto internal xref">Section 3.3.4.1</a>) applies without
+(<a href="#trust-method-domain-authorized-issuer" class="auto internal xref">Section 3.4.4.1</a>) applies without
 modification — the new format simply joins <code>email</code> as a value that
 can appear in <code>subject_identifier_formats</code> on <code>authorized_issuers</code>
 entries. If the computed Subject Authority is not a domain or
@@ -4712,7 +4789,7 @@ on the claim shape the grant profile defines.<a href="#section-10-3.3.1" class="
 <p id="section-10-4">The Trust Policy document format (<a href="#trust-policy-document" class="auto internal xref">Section 3.2</a>), the
 Issuer Authorization Policy document format (<a href="#dii-document" class="auto internal xref">Section 6.3</a>), the
 verification flow (<a href="#dii-verification" class="auto internal xref">Section 6.6</a>), the Trust Method category
-structure and combination rule (<a href="#trust-method-categories" class="auto internal xref">Section 3.3.2</a>,
+structure and combination rule (<a href="#trust-method-categories" class="auto internal xref">Section 3.4.2</a>,
 <a href="#rasp" class="auto internal xref">Section 4.3</a>), the RAS evaluation model (<a href="#ras-evaluation-model" class="auto internal xref">Section 4.2</a>), and
 the bounded-transitivity property of namespace authorization
 (<a href="#transitive-authz-bounded" class="auto internal xref">Section 7.1</a>) remain unchanged across extensions.

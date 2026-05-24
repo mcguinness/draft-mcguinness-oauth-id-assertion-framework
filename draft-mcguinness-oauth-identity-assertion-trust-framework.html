@@ -1064,7 +1064,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">McGuinness</td>
-<td class="center">Expires 24 November 2026</td>
+<td class="center">Expires 25 November 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1077,12 +1077,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-mcguinness-oauth-identity-assertion-trust-framework-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-05-23" class="published">23 May 2026</time>
+<time datetime="2026-05-24" class="published">24 May 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-11-24">24 November 2026</time></dd>
+<dd class="expires"><time datetime="2026-11-25">25 November 2026</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1138,7 +1138,7 @@ Assertion Issuer for an identifier in that namespace.<a href="#section-abstract-
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 24 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 25 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1813,8 +1813,8 @@ Issuer:<a href="#section-3.3.1-1" class="pilcrow">¶</a></p>
             <dt id="section-3.3.1-2.1"><code>issuer_authentication</code></dt>
             <dd style="margin-left: 1.5em" id="section-3.3.1-2.2">
               <p id="section-3.3.1-2.2.1">Does the entity identified by the JWT <code>iss</code> claim authentically
-belong to a recognized ecosystem? Federation membership and trust-mark
-issuance answer this question.<a href="#section-3.3.1-2.2.1" class="pilcrow">¶</a></p>
+belong to a recognized ecosystem? Federation membership answers this
+question.<a href="#section-3.3.1-2.2.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
 <dt id="section-3.3.1-2.3"><code>subject_namespace_authorization</code></dt>
@@ -1838,11 +1838,11 @@ determined, the assertion fails closed as described in <a href="#rasp" class="au
 Within a single category, OR-semantics apply: satisfying any one listed
 method in that category is sufficient.<a href="#section-3.3.1-3" class="pilcrow">¶</a></p>
 <p id="section-3.3.1-4">This separation prevents an Assertion Issuer that is authenticated by
-federation or trust-mark membership from being treated as
-automatically authorized to assert about subjects in a namespace the
-Assertion Issuer has no authority over. Deployments that accept
-identity assertions about namespace-bound subjects (for example,
-email-domain users) <span class="bcp14">SHOULD</span> list at least one
+federation membership from being treated as automatically authorized to
+assert about subjects in a namespace the Assertion Issuer has no
+authority over. Deployments that accept identity assertions about
+namespace-bound subjects (for example, email-domain users) <span class="bcp14">SHOULD</span> list
+at least one
 <code>subject_namespace_authorization</code> method in their trust policy in
 addition to any <code>issuer_authentication</code> methods.<a href="#section-3.3.1-4" class="pilcrow">¶</a></p>
 <p id="section-3.3.1-5">The set of categories required for an assertion to be accepted is
@@ -2262,7 +2262,12 @@ a Subject Identifier format with a registered Subject Authority
 extraction procedure (<a href="#iana-authority-registry" class="auto internal xref">Section 9.2.3</a>). The format <span class="bcp14">MAY</span>
 be carried in <code>act.sub_profile</code> or be evident from the structure of
 <code>act.sub</code>; in either case the determination uses the registered
-extraction procedure unchanged.<a href="#section-5.2-4.1.1" class="pilcrow">¶</a></p>
+extraction procedure for actor carriage. The <code>email</code> extraction
+procedure defined in this document applies only to a top-level
+subject email accompanied by top-level <code>email_verified=true</code>; it
+does not apply to <code>act.sub</code>. Actor email identifiers therefore
+require a future registered extraction procedure that defines how
+actor-email verification is carried.<a href="#section-5.2-4.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-5.2-4.2">
             <p id="section-5.2-4.2.1">If the trust policy lists one or more
@@ -2395,7 +2400,11 @@ extractions:<a href="#section-6.2-1" class="pilcrow">¶</a></p>
 <code>email</code> claim, which <span class="bcp14">MUST</span> be accompanied by a top-level
 <code>email_verified</code> claim with the boolean value <code>true</code>. If the
 <code>email_verified</code> claim is absent or has any value other than
-<code>true</code>, the email extraction does not apply.<a href="#section-6.2-2.2.1" class="pilcrow">¶</a></p>
+<code>true</code>, consumers <span class="bcp14">MUST</span> treat the <code>email</code> Subject Identifier as
+invalid for purposes of this Trust Method and <span class="bcp14">MUST</span> reject the
+assertion when <code>email</code> is the Subject Identifier being evaluated.
+Consumers <span class="bcp14">MUST NOT</span> treat an unverified <code>email</code> claim as though the
+assertion carried no Subject Identifier.<a href="#section-6.2-2.2.1" class="pilcrow">¶</a></p>
 <p id="section-6.2-2.2.2">Consumers <span class="bcp14">MUST</span> reject an <code>email</code> claim value that does not contain
 exactly one <code>@</code> character or whose domain part is empty. The
 local-part is not used. The domain is then normalized to the
@@ -2490,23 +2499,41 @@ current time.<a href="#section-6.3-2.4.2.8.1" class="pilcrow">¶</a></p>
           <dd style="margin-left: 1.5em" id="section-6.3-2.6">
             <p id="section-6.3-2.6.1"><span class="bcp14">OPTIONAL</span>. RFC 3339 date-time at which the policy was last published.<a href="#section-6.3-2.6.1" class="pilcrow">¶</a></p>
 </dd>
+          <dd class="break"></dd>
+<dt id="section-6.3-2.7"><code>crit</code></dt>
+          <dd style="margin-left: 1.5em" id="section-6.3-2.8">
+            <p id="section-6.3-2.8.1"><span class="bcp14">OPTIONAL</span>. JSON array of strings. Each string names an extension
+identifier, feature identifier, or policy member whose recognition the
+publisher considers critical for correct interpretation. If a consumer
+does not recognize any string listed in <code>crit</code>, the consumer <span class="bcp14">MUST</span> treat
+the policy as <code>malformed</code> (<a href="#dii-failures" class="auto internal xref">Section 6.5.1</a>). Member names defined in
+this document (<code>subject_authority</code>, <code>authorized_issuers</code>, <code>issuer</code>,
+<code>subject_identifier_formats</code>, <code>valid_from</code>, <code>valid_until</code>,
+<code>last_updated</code>, and <code>crit</code>) are always recognized. Future
+specifications <span class="bcp14">SHOULD</span> use stable extension identifiers in <code>crit</code> when
+correct processing depends on more than recognizing a single member,
+for example when an extension defines several members or changes the
+authorization decision procedure.<a href="#section-6.3-2.8.1" class="pilcrow">¶</a></p>
+</dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-6.3-3">Unrecognized members <span class="bcp14">MUST</span> be ignored. Consumers <span class="bcp14">MUST</span> reject a policy
-whose <code>subject_authority</code> member is absent or is not a string, or
-whose <code>subject_authority</code> value does not match the computed Subject
-Authority. Consumers <span class="bcp14">MUST</span> reject a policy whose <code>authorized_issuers</code>
-member is absent, empty, not an array, or contains an element that
-is not an object. Consumers <span class="bcp14">MUST</span> reject an authorized issuer object
-that lacks a string <code>issuer</code> member or whose <code>issuer</code> member is not
-a syntactically valid issuer identifier for the applicable
-assertion grant profile. For OAuth authorization server issuer
-identifiers, a non-HTTPS URL, a relative URL, or a URL with a
+<p id="section-6.3-3">Unrecognized members <span class="bcp14">MUST</span> be ignored, except when the member name or an
+extension identifier governing the member is listed in <code>crit</code>.
+Consumers <span class="bcp14">MUST</span> reject a policy whose <code>subject_authority</code> member is
+absent or is not a string, or whose <code>subject_authority</code> value does not
+match the computed Subject Authority. Consumers <span class="bcp14">MUST</span> reject a policy
+whose <code>authorized_issuers</code> member is absent, empty, not an array, or
+contains an element that is not an object. Consumers <span class="bcp14">MUST</span> reject an
+authorized issuer object that lacks a string <code>issuer</code> member or whose
+<code>issuer</code> member is not a syntactically valid issuer identifier for the
+applicable assertion grant profile. For OAuth authorization server
+issuer identifiers, a non-HTTPS URL, a relative URL, or a URL with a
 fragment component is malformed. Consumers <span class="bcp14">MUST</span> reject a
-<code>subject_identifier_formats</code> value that is present but is not an
-array of strings. Consumers <span class="bcp14">MUST</span> reject <code>valid_from</code>,
-<code>valid_until</code>, and <code>last_updated</code> values that are present but are
-not valid RFC 3339 date-times.<a href="#section-6.3-3" class="pilcrow">¶</a></p>
+<code>subject_identifier_formats</code> value that is present but is not an array
+of strings. Consumers <span class="bcp14">MUST</span> reject <code>valid_from</code>, <code>valid_until</code>, and
+<code>last_updated</code> values that are present but are not valid RFC 3339
+date-times. Consumers <span class="bcp14">MUST</span> reject a <code>crit</code> value that is present but
+is not an array of strings.<a href="#section-6.3-3" class="pilcrow">¶</a></p>
 <p id="section-6.3-4">Example:<a href="#section-6.3-4" class="pilcrow">¶</a></p>
 <div class="lang-json sourcecode" id="section-6.3-5">
 <pre>
@@ -2594,7 +2621,8 @@ percent-encoded.<a href="#section-6.4.1-5.4.1" class="pilcrow">¶</a></p>
               <p id="section-6.4.1-5.5.1">CR, LF, and NUL <span class="bcp14">MUST NOT</span> appear in a value.<a href="#section-6.4.1-5.5.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6.4.1-5.6">
-              <p id="section-6.4.1-5.6.1">Unrecognized directives <span class="bcp14">MUST</span> be ignored.<a href="#section-6.4.1-5.6.1" class="pilcrow">¶</a></p>
+              <p id="section-6.4.1-5.6.1">Unrecognized directives <span class="bcp14">MUST</span> be ignored unless listed in a <code>crit=</code>
+directive.<a href="#section-6.4.1-5.6.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-6.4.1-6">The parsing rules above are summarized in the following ABNF
@@ -2641,6 +2669,21 @@ Authority for <code>A</code>. For OAuth authorization server issuer identifiers,
 the value <span class="bcp14">MUST</span> be an absolute HTTPS URL and <span class="bcp14">MUST NOT</span> contain a
 fragment component. <span class="bcp14">MAY</span> appear multiple times within a record and
 across records.<a href="#section-6.4.1-9.6.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-6.4.1-9.7"><code>crit=REQUIRED_EXTENSIONS</code></dt>
+            <dd style="margin-left: 1.5em" id="section-6.4.1-9.8">
+              <p id="section-6.4.1-9.8.1"><span class="bcp14">OPTIONAL</span>. Comma-separated, case-insensitive list of directive names,
+extension identifiers, or feature identifiers declared by the publisher
+as critical for correct interpretation of this record. Directive names
+defined by this document (<code>authority</code>, <code>uri</code>, <code>issuer</code>, and <code>crit</code>) are
+always recognized. If a consumer does not recognize any value named in
+<code>crit=</code>, the consumer <span class="bcp14">MUST</span> treat the record as <code>malformed</code> (see
+<a href="#dii-failures" class="auto internal xref">Section 6.5.1</a>). If a value names a directive, that directive <span class="bcp14">MUST</span> be
+present in the same record; otherwise the consumer <span class="bcp14">MUST</span> treat the
+record as <code>malformed</code>. Future specifications <span class="bcp14">SHOULD</span> use stable
+extension identifiers in <code>crit=</code> when correct processing depends on
+more than recognizing a single DNS directive.<a href="#section-6.4.1-9.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
@@ -2722,9 +2765,10 @@ a. Discard recognized records whose <code>authority=</code> directive does
 <p id="section-6.5-2.2.3">
 Before continuing, validate the remaining recognized records
    against the directive rules in <a href="#dii-dns-record" class="auto internal xref">Section 6.4.1</a>. This includes
-   rejecting malformed <code>uri=</code> or <code>issuer=</code> values and records with
-   neither <code>uri=</code> nor <code>issuer=</code>. Any such condition is a
-   <code>malformed</code> outcome.<a href="#section-6.5-2.2.3" class="pilcrow">¶</a></p>
+   rejecting malformed <code>uri=</code>, <code>issuer=</code>, or <code>crit=</code> values,
+   records whose <code>crit=</code> lists an unknown or absent directive, and
+   records with neither <code>uri=</code> nor <code>issuer=</code>. Any such condition is
+   a <code>malformed</code> outcome.<a href="#section-6.5-2.2.3" class="pilcrow">¶</a></p>
 <p id="section-6.5-2.2.4">
 b. If any remaining record contains a <code>uri=</code> directive:<a href="#section-6.5-2.2.4" class="pilcrow">¶</a></p>
 <ul class="normal">
@@ -2788,9 +2832,10 @@ find it.<a href="#section-6.5-4.2.1" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-6.5.1-2">
             <dt id="section-6.5.1-2.1"><code>no-policy</code></dt>
             <dd style="margin-left: 1.5em" id="section-6.5.1-2.2">
-              <p id="section-6.5.1-2.2.1">A <code>negative-authoritative</code> DNS response combined with an HTTPS
-retrieval that yields HTTP 404, 410, or equivalent. A verifier <span class="bcp14">MUST</span>
-reject the assertion. A client reports that no policy exists.<a href="#section-6.5.1-2.2.1" class="pilcrow">¶</a></p>
+              <p id="section-6.5.1-2.2.1">An HTTPS policy retrieval that yields HTTP 404, 410, or equivalent,
+including retrieval from the default well-known URL or from a DNS
+<code>uri=</code> pointer. A verifier <span class="bcp14">MUST</span> reject the assertion. A client reports
+that no policy exists.<a href="#section-6.5.1-2.2.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
 <dt id="section-6.5.1-2.3"><code>malformed</code></dt>
@@ -2799,12 +2844,14 @@ reject the assertion. A client reports that no policy exists.<a href="#section-6
 <code>authority=</code> when no recognized record for the same query name has a
 matching <code>authority=</code>, with neither <code>uri=</code> nor <code>issuer=</code> after
 parsing, with multiple distinct <code>uri=</code> values, with a malformed
-<code>uri=</code> or <code>issuer=</code> directive, or otherwise unparseable; or an HTTPS response with an unsupported
-media type, an entity body larger than the consumer's configured
-maximum, an HTTP status other than success, redirect, 404, 410, or
-5xx, or a redirect loop or redirect target that is not HTTPS; or an
-HTTPS response body that is not a syntactically valid Issuer
-Authorization Policy document; or a JSON policy whose
+<code>uri=</code>, <code>issuer=</code>, or <code>crit=</code> directive, a <code>crit=</code> directive that
+names an unknown or absent directive, or otherwise unparseable; or an
+HTTPS response with an unsupported media type, an entity body larger
+than the consumer's configured maximum, an HTTP status other than
+success, redirect, 404, 410, or 5xx, or a redirect loop or redirect
+target that is not HTTPS; or an HTTPS response body that is not a
+syntactically valid Issuer Authorization Policy document; or a JSON
+policy whose
 <code>subject_authority</code> does not match <code>A</code>. Consumers <span class="bcp14">MUST NOT</span> use a
 fallback channel to recover, since a malformed authoritative result may
 indicate an attack. A verifier <span class="bcp14">MUST</span> reject the assertion.<a href="#section-6.5.1-2.4.1" class="pilcrow">¶</a></p>
@@ -3732,13 +3779,12 @@ Authority is computed from a Subject Identifier of this format.<a href="#section
 </dd>
           <dd class="break"></dd>
 </dl>
-<p id="section-9.2.3-5">Entries in this registry apply both to direct Subject Identifiers
-(<a href="#dii-authority" class="auto internal xref">Section 6.2</a>) and to actor Subject Identifiers carried by the
-OAuth Actor Profile binding (<a href="#actor-profile-binding" class="auto internal xref">Section 5.2</a>); the
-extraction procedure is the same. Future specifications that define
-new actor-profile entity types or Subject Identifier formats are
-expected to register additional entries here when those identifiers
-have a well-defined namespace authority.<a href="#section-9.2.3-5" class="pilcrow">¶</a></p>
+<p id="section-9.2.3-5">Entries in this registry specify whether they apply to direct Subject
+Identifiers, actor Subject Identifiers carried by the OAuth Actor
+Profile binding (<a href="#actor-profile-binding" class="auto internal xref">Section 5.2</a>), or both. Future
+specifications that define new actor-profile entity types or Subject
+Identifier formats are expected to register additional entries here
+when those identifiers have a well-defined namespace authority.<a href="#section-9.2.3-5" class="pilcrow">¶</a></p>
 <p id="section-9.2.3-6">Initial entries:<a href="#section-9.2.3-6" class="pilcrow">¶</a></p>
 <table class="center" id="table-2">
             <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
@@ -3746,6 +3792,7 @@ have a well-defined namespace authority.<a href="#section-9.2.3-5" class="pilcro
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Subject Identifier Format</th>
                 <th class="text-left" rowspan="1" colspan="1">Subject Authority Form</th>
+                <th class="text-left" rowspan="1" colspan="1">Applies To</th>
                 <th class="text-left" rowspan="1" colspan="1">Extraction Procedure</th>
               </tr>
             </thead>
@@ -3755,6 +3802,7 @@ have a well-defined namespace authority.<a href="#section-9.2.3-5" class="pilcro
                   <code>email</code>
 </td>
                 <td class="text-left" rowspan="1" colspan="1">DNS domain</td>
+                <td class="text-left" rowspan="1" colspan="1">Direct Subject Identifier only</td>
                 <td class="text-left" rowspan="1" colspan="1">
                   <a href="#dii-authority" class="auto internal xref">Section 6.2</a> of this document</td>
               </tr>

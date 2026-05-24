@@ -1594,17 +1594,17 @@ acceptable for subject resolution, account linking, or delegated access.<a href=
 <p id="section-1-2">In many deployments the set of acceptable Assertion Issuers cannot be
 enumerated in advance. It may be large, dynamic, or governed by external
 trust frameworks. A static issuer allowlist also cannot express the
-conditions under which an Assertion Issuer is acceptable - for
-example, whether the Assertion Issuer has authority for the subject
-namespace being asserted, or whether the client presenting the
-assertion is bound to its key.<a href="#section-1-2" class="pilcrow">¶</a></p>
+conditions under which an Assertion Issuer is acceptable: for example,
+whether the Assertion Issuer is a member of a recognized federation, or
+whether the Assertion Issuer has authority for the subject namespace
+being asserted.<a href="#section-1-2" class="pilcrow">¶</a></p>
 <p id="section-1-3">This document defines an Identity Assertion Issuer Trust Policy
 that a Resource Authorization Server publishes to describe its trust
 criteria. The Resource Authorization Server does not say "these are
 all the Assertion Issuers I trust"; it says "these are the conditions
-an Assertion Issuer must satisfy." Conditions are evaluated by validating concrete evidence - a
-federation trust chain or a domain-authorized issuer record - when
-an assertion is presented.<a href="#section-1-3" class="pilcrow">¶</a></p>
+an Assertion Issuer must satisfy." Conditions are evaluated by
+validating concrete evidence (a federation trust chain or a
+domain-authorized issuer record) when an assertion is presented.<a href="#section-1-3" class="pilcrow">¶</a></p>
 <p id="section-1-4">This document also defines Domain-Authorized Issuer
 Discovery, a self-contained mechanism for one of those conditions, by
 which a subject namespace owner authorizes specific Assertion Issuers
@@ -1621,7 +1621,8 @@ two distinct trust questions about the Assertion Issuer:<a href="#section-1.1-1"
 <ol start="1" type="1" class="normal type-1" id="section-1.1-2">
 <li id="section-1.1-2.1">
             <p id="section-1.1-2.1.1"><em>Who signed it?</em> Is the entity identified by the JWT <code>iss</code> claim
-authentic — a recognized authorization server in a trusted ecosystem?<a href="#section-1.1-2.1.1" class="pilcrow">¶</a></p>
+authentic, that is, a recognized authorization server in a trusted
+ecosystem?<a href="#section-1.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-1.1-2.2">
             <p id="section-1.1-2.2.1"><em>Are they entitled to speak about this subject?</em> Does the Assertion
@@ -1632,8 +1633,8 @@ in that namespace (for example, emails in <code>example.com</code>)?<a href="#se
 <p id="section-1.1-3">A trust framework that conflates these two questions cannot prevent a
 federated authorization server from impersonating users in a namespace
 it has no authority over. This document keeps them separate. Each Trust
-Method belongs to exactly one of two categories — <code>issuer_authentication</code>
-for question 1, <code>subject_namespace_authorization</code> for question 2 — and a
+Method belongs to exactly one of two categories (<code>issuer_authentication</code>
+for question 1, <code>subject_namespace_authorization</code> for question 2), and a
 Resource Authorization Server's trust policy requires evidence from BOTH
 categories when both apply to the assertion. Trust Method categories are
 defined in <a href="#trust-method-categories" class="auto internal xref">Section 3.3.2</a>; the combination rule is in
@@ -1695,8 +1696,8 @@ offer to satisfy the first.<a href="#section-1.3-3" class="pilcrow">¶</a></p>
 <p id="section-1.4-1">This document defines a single mechanism: publication by a Subject
 Authority of which Assertion Issuers may issue identity assertions
 about subjects in its namespace. It is intentionally narrow.<a href="#section-1.4-1" class="pilcrow">¶</a></p>
-<p id="section-1.4-2">The broader pattern — an authority publishes which issuers may
-assert a class of claims about subjects in its scope — applies to
+<p id="section-1.4-2">The broader pattern (an authority publishes which issuers may
+assert a class of claims about subjects in its scope) applies to
 attribute types whose authority is not a namespace owner:
 government-issued credentials, professional certifications,
 employment claims, financial attributes, and decentralized
@@ -2138,8 +2139,8 @@ Assertion Issuers. A Subject Authority publishes a DNS TXT record at
 <code>_oauth-issuer-policy.{authority}</code> (carrying authorized issuers
 inline, or pointing to a richer HTTPS-hosted document) or an HTTPS
 JSON document at <code>.well-known/oauth-issuer-policy</code> on the Subject
-Authority's host. The full mechanism — record syntax, lookup
-procedure, failure handling, and security considerations - is
+Authority's host. The full mechanism (record syntax, lookup
+procedure, failure handling, and security considerations) is
 specified in <a href="#dii" class="auto internal xref">Section 6</a>.<a href="#section-3.3.4.1-2" class="pilcrow">¶</a></p>
 <p id="section-3.3.4.1-3">This Trust Method natively expresses authorization for either form of
 multi-tenant Assertion Issuer:<a href="#section-3.3.4.1-3" class="pilcrow">¶</a></p>
@@ -2254,11 +2255,9 @@ parse the JWT <code>iss</code> as an absolute HTTPS URL and treat the
 record's bare hostname <code>H</code> as matching only when the JWT <code>iss</code>
 has scheme <code>https</code>, host equal to <code>H</code> (case-insensitive ASCII
 after IDNA conversion per <span>[<a href="#RFC5891" class="cite xref">RFC5891</a>]</span>), default port (or no port
-component), and an empty path (or the path <code>/</code>). Any other shape<a href="#section-3.3.4.2-5.6.1" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-3.3.4.2-5.6.2.1">
-                    <p id="section-3.3.4.2-5.6.2.1.1">non-default port, non-empty path component, query string, or
-fragment - does not match. Consequently, this Trust Method is
+component), and an empty path (or the path <code>/</code>). Any other shape
+(non-default port, non-empty path component, query string, or
+fragment) does not match. Consequently, this Trust Method is
 interoperable only with Assertion Issuers whose identifier is
 the bare-origin form <code>https://{H}</code> (or <code>https://{H}/</code>).
 Deployments whose Assertion Issuer identifiers carry paths (for
@@ -2266,9 +2265,7 @@ example, <code>https://login.example/{tenant}</code>) cannot be authorized
 by this Trust Method; they <span class="bcp14">SHOULD</span> use <code>domain_authorized_issuer</code>
 (<a href="#trust-method-domain-authorized-issuer" class="auto internal xref">Section 3.3.4.1</a>), which expresses
 full-URL issuer identifiers in the <code>authorized_issuers[].issuer</code>
-field.<a href="#section-3.3.4.2-5.6.2.1.1" class="pilcrow">¶</a></p>
-</li>
-                </ul>
+field.<a href="#section-3.3.4.2-5.6.1" class="pilcrow">¶</a></p>
 </li>
               <li id="section-3.3.4.2-5.7">
                 <p id="section-3.3.4.2-5.7.1">Apply the cross-category combination rule of <a href="#rasp" class="auto internal xref">Section 4.3</a>.<a href="#section-3.3.4.2-5.7.1" class="pilcrow">¶</a></p>
@@ -2587,8 +2584,8 @@ applicable grant profile.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
 preceding sections are profile-agnostic. This section provides
 bindings to the grant profiles and token contexts in which this
 document expects to be deployed.<a href="#section-5-1" class="pilcrow">¶</a></p>
-<p id="section-5-2">The bindings — ID-JAG (<a href="#id-jag-profile" class="auto internal xref">Section 5.1</a>) and the OAuth Actor
-Profile (<a href="#actor-profile-binding" class="auto internal xref">Section 5.2</a>) — are normative for deployments
+<p id="section-5-2">The bindings (ID-JAG, <a href="#id-jag-profile" class="auto internal xref">Section 5.1</a>, and the OAuth Actor
+Profile, <a href="#actor-profile-binding" class="auto internal xref">Section 5.2</a>) are normative for deployments
 using those features. <a href="#related-token-contexts" class="auto internal xref">Appendix F</a> describes how the
 same machinery applies informally to other token contexts
 (Transaction Tokens, JWT access tokens).<a href="#section-5-2" class="pilcrow">¶</a></p>
@@ -2755,7 +2752,7 @@ when the Subject Authority can be expressed as a domain that controls
 DNS, and reuses the DNS-based authority pattern operators already use
 for CAA, MTA-STS, SPF, and DKIM (<a href="#dns-authority-patterns" class="auto internal xref">Appendix A.2</a>). The
 Subject Identifier formats currently registered for this mechanism
-resolve to domain-form Subject Authorities — the initial registered
+resolve to domain-form Subject Authorities. The initial registered
 format is <code>email</code>, which extracts to the registrable domain
 (<a href="#dii-authority" class="auto internal xref">Section 6.2</a>). Future Trust Methods in the
 <code>subject_namespace_authorization</code> category <span class="bcp14">MAY</span> define alternative
@@ -2826,8 +2823,8 @@ that specification for breaking changes.<a href="#section-6.1-3" class="pilcrow"
 <p id="section-6.2-1">The Subject Authority associated with a Subject Identifier is
 determined as registered in <a href="#iana-authority-registry" class="auto internal xref">Section 9.2.3</a>. This
 document registers the <code>email</code> extraction as the initial entry. The
-extraction-procedure pattern — Subject Identifier format → Subject
-Authority — is open: future specifications register additional
+extraction-procedure pattern (Subject Identifier format to Subject
+Authority) is open: future specifications register additional
 formats for service identities, decentralized identifiers,
 federated handles, and other namespaces by adding entries to the
 same registry without changes to the rest of the framework. See
@@ -2863,7 +2860,7 @@ public suffix (no registrable domain exists).<a href="#section-6.2-3.2.2" class=
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-6.2-4">Subject identifier shapes not registered for this purpose <span class="bcp14">MUST NOT</span>
+<p id="section-6.2-4">Subject Identifier formats not registered for this purpose <span class="bcp14">MUST NOT</span>
 be evaluated under this Trust Method; the Resource Authorization
 Server <span class="bcp14">MUST</span> reject the assertion with an OAuth <code>invalid_grant</code>
 error.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
@@ -3608,8 +3605,8 @@ user may not be aware of.<a href="#section-6.7-7.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-6.7-8">For enterprise deployments these leaks can convey business-sensitive
-information — which Identity Providers a customer is evaluating,
-partner relationships, M&amp;A signals — to parties outside the
+information (which Identity Providers a customer is evaluating,
+partner relationships, M&amp;A signals) to parties outside the
 customer's trust boundary.<a href="#section-6.7-8" class="pilcrow">¶</a></p>
 <p id="section-6.7-9">Mitigations available to the discovery client:<a href="#section-6.7-9" class="pilcrow">¶</a></p>
 <ul class="normal">
@@ -3711,8 +3708,8 @@ the Subject Authority's namespace.<a href="#section-6.9-1" class="pilcrow">¶</a
 <p id="section-6.9.1-1">The framework establishes authority over a namespace via the Subject
 Authority Extraction Procedure (<a href="#iana-authority-registry" class="auto internal xref">Section 9.2.3</a>) plus
 control of the publication channel. For the initial registered
-extraction — <code>email</code> to registrable domain via the Public Suffix
-List <span>[<a href="#PSL" class="cite xref">PSL</a>]</span> — authority is established by DNS control: whoever can
+extraction (<code>email</code> to registrable domain via the Public Suffix
+List <span>[<a href="#PSL" class="cite xref">PSL</a>]</span>), authority is established by DNS control: whoever can
 publish at <code>_oauth-issuer-policy.{registrable-domain}</code> (or the
 corresponding HTTPS well-known URL) is treated as the Subject
 Authority for that namespace. This mirrors the bootstrap model of
@@ -4000,9 +3997,9 @@ through a mechanism outside the scope of this document.<a href="#section-6.9.10-
 <p id="section-6.9.11-1">The inline DNS form expresses only "issuer X is authorized for
 Subject Authority A." It cannot express <code>tenant</code>,
 <code>subject_identifier_formats</code>, <code>valid_from</code>, or <code>valid_until</code>. Subject
-Authorities needing any of those — including any binding to a
+Authorities needing any of those, including any binding to a
 specific tenant of a shared-issuer multi-tenant Identity Provider
-(<a href="#dii-multi-tenant" class="auto internal xref">Section 6.9.12</a>) — <span class="bcp14">MUST</span> use the HTTPS or DNS pointer form.<a href="#section-6.9.11-1" class="pilcrow">¶</a></p>
+(<a href="#dii-multi-tenant" class="auto internal xref">Section 6.9.12</a>), <span class="bcp14">MUST</span> use the HTTPS or DNS pointer form.<a href="#section-6.9.11-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="dii-multi-tenant">
@@ -4041,9 +4038,9 @@ that the assertion's <code>tenant</code> claim matches the Subject Authority's
 designated value, but the Subject Authority cannot independently
 verify that the Identity Provider's tenant-isolation enforcement is
 correct, complete, and free of implementation defects. A multi-tenant
-Identity Provider with a tenant-isolation defect — whether a coding
+Identity Provider with a tenant-isolation defect, whether a coding
 bug, a misconfigured administrative operation, or an exploitable
-feature — defeats the wire-format check. The framework offers no
+feature, defeats the wire-format check. The framework offers no
 defense against this class of failure beyond the Identity Provider's
 own engineering quality.<a href="#section-6.9.12-4" class="pilcrow">¶</a></p>
 <p id="section-6.9.12-5">This is a structural property of the shared-issuer trust model: when
@@ -4181,8 +4178,8 @@ Authority that lists an Assertion Issuer in DAI grants no federation
 membership through that listing. The cross-category combination rule
 in <a href="#rasp" class="auto internal xref">Section 4.3</a> enforces this independence at evaluation time.<a href="#section-7.1-6" class="pilcrow">¶</a></p>
 <p id="section-7.1-7">OpenID Federation handles transitive authentication; this framework
-does not duplicate that mechanism. What this framework adds —
-non-transitive namespace authorization — has no analog in OpenID
+does not duplicate that mechanism. What this framework adds,
+non-transitive namespace authorization, has no analog in OpenID
 Federation. See <a href="#relationship-to-oidf" class="auto internal xref">Appendix A.1</a> for the broader positioning.<a href="#section-7.1-7" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -4429,10 +4426,10 @@ query parameters, logs, or telemetry. Resource Authorization Servers
 that verify assertions with the <code>domain_authorized_issuer</code> Trust Method
 <span class="bcp14">SHOULD</span> treat the Subject Authority and Assertion Issuer relationship as
 security-sensitive operational data.<a href="#section-8-2" class="pilcrow">¶</a></p>
-<p id="section-8-3">A detailed analysis of discovery-flow privacy — including the specific
+<p id="section-8-3">A detailed analysis of discovery-flow privacy, including the specific
 information leaks to the recursive DNS resolver, the authoritative
 nameserver, the policy host, and the discovered Assertion Issuer, along
-with available mitigations — is in <a href="#dii-hrd" class="auto internal xref">Section 6.7</a>.<a href="#section-8-3" class="pilcrow">¶</a></p>
+with available mitigations, is in <a href="#dii-hrd" class="auto internal xref">Section 6.7</a>.<a href="#section-8-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-considerations">
@@ -4797,7 +4794,7 @@ comparison rules for matching Subject Authority values.<a href="#section-10-3.1.
 Authority is a domain that can publish DNS records, the existing
 <code>domain_authorized_issuer</code> Trust Method
 (<a href="#trust-method-domain-authorized-issuer" class="auto internal xref">Section 3.3.4.1</a>) applies without
-modification — the new format simply joins <code>email</code> as a value that
+modification; the new format simply joins <code>email</code> as a value that
 can appear in <code>subject_identifier_formats</code> on <code>authorized_issuers</code>
 entries. The <code>email_verification_dns</code> Trust Method
 (<a href="#trust-method-email-verification-dns" class="auto internal xref">Section 3.3.4.2</a>) is intentionally
@@ -4834,7 +4831,7 @@ the trust evaluation model unchanged.<a href="#section-10-4" class="pilcrow">¶<
 <a href="#section-10.1" class="section-number selfRef">10.1. </a><a href="#name-sketch-web-origin-subject-i" class="section-name selfRef">Sketch: Web Origin Subject Identifiers (Non-Normative)</a>
         </h3>
 <p id="section-10.1-1">A future specification might register a <code>url_host</code> Subject Identifier
-format for assertions whose subject is a web origin — for example,
+format for assertions whose subject is a web origin, for example,
 <code>https://api.example.com</code> as a workload identity. The extraction
 procedure would compute the Subject Authority as the registrable
 domain of the URL's host. Because this Subject Authority is a domain,
@@ -4863,7 +4860,7 @@ to <code>example.com</code> and DAI publication applies. Where the controller
 does not map to a domain (<code>did:key</code>, <code>did:peer</code>, <code>did:plc</code>, etc.),
 the specification registers a new <code>subject_namespace_authorization</code>
 Trust Method whose lookup procedure resolves the DID document directly
-and reads authorization from it — for example, treating each
+and reads authorization from it; for example, treating each
 <code>assertionMethod</code> entry in the DID document (or a similar verification
 relationship) as the equivalent of an <code>authorized_issuers[]</code> entry,
 with the verification method's controller serving as the Assertion
@@ -5025,7 +5022,7 @@ extensions are out of scope for this document.<a href="#section-10.2-2" class="p
 servers are authentic members of a recognized ecosystem?" through
 trust chains rooted at federation trust anchors. It does not, by
 itself, answer "is this authorization server authoritative for
-subjects in this namespace?" — that question is independent of
+subjects in this namespace?". That question is independent of
 federation membership.<a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
 <p id="appendix-A.1-2">This framework is complementary to OpenID Federation, not a replacement
 for or alternative to it:<a href="#appendix-A.1-2" class="pilcrow">¶</a></p>
@@ -5115,8 +5112,8 @@ mechanisms in one respect worth noting: the <code>_oauth-issuer-policy</code>
 record is consumed during OAuth token issuance, on a path that is
 end-user-visible and business-process-critical. Misconfiguration or
 staleness directly prevents user sign-in to dependent applications.
-By contrast, CAA misconfiguration prevents certificate issuance —
-typically a deployment-time failure surfaced before production —
+By contrast, CAA misconfiguration prevents certificate issuance
+(typically a deployment-time failure surfaced before production),
 and SPF/DKIM misconfiguration affects spam-filter scoring, a
 degraded but usually non-blocking signal. Subject Authorities
 deploying this framework should treat its records with the
@@ -5565,8 +5562,8 @@ provider from impersonating users in a customer's email namespace.
 The protection rests on a single deliberate choice by the customer:
 publishing an Issuer Authorization Policy that lists the specific
 agent platforms permitted to issue identity assertions about its
-users. Without that authorization, no provider — however well-known
-elsewhere — can mint an accepted ID-JAG for the namespace.<a href="#appendix-D-2" class="pilcrow">¶</a></p>
+users. Without that authorization, no provider, however well-known
+elsewhere, can mint an accepted ID-JAG for the namespace.<a href="#appendix-D-2" class="pilcrow">¶</a></p>
 <div id="cast-1">
 <section id="appendix-D.1">
         <h3 id="name-cast-2">
@@ -5953,7 +5950,7 @@ attempts to mint an ID-JAG claiming <code>alice@example.com</code>:<a href="#app
 </pre><a href="#appendix-D.8-10" class="pilcrow">¶</a>
 </div>
 <p id="appendix-D.8-11">The JWT <code>iss</code> matches the policy entry. The <code>tenant</code> claim does
-NOT — the customer's policy requires <code>tenant=example.com</code>, and the
+NOT match: the customer's policy requires <code>tenant=example.com</code>, and the
 attacker's assertion carries <code>tenant=attacker-corp</code>. The Trust
 Method is not satisfied; the tool provider rejects with
 <code>invalid_grant</code>. The attacker cannot set <code>tenant=example.com</code> in
@@ -6242,8 +6239,8 @@ errors.<a href="#appendix-E.4-1.4.1" class="pilcrow">¶</a></p>
 <a href="#appendix-F" class="section-number selfRef">Appendix F. </a><a href="#name-related-token-contexts" class="section-name selfRef">Related Token Contexts</a>
       </h2>
 <p id="appendix-F-1">This appendix is non-normative.<a href="#appendix-F-1" class="pilcrow">¶</a></p>
-<p id="appendix-F-2">The trust framework's mechanics — Trust Method evaluation, Issuer
-Authorization Policy lookup, Subject Authority extraction — apply
+<p id="appendix-F-2">The trust framework's mechanics (Trust Method evaluation, Issuer
+Authorization Policy lookup, and Subject Authority extraction) apply
 to several token contexts beyond identity assertion JWT
 authorization grants. This appendix sketches how the same
 machinery can be applied to two related contexts.<a href="#appendix-F-2" class="pilcrow">¶</a></p>
@@ -6300,7 +6297,7 @@ authorization server, when an exclusive AS-RS pairing exists.<a href="#appendix-
 including the <code>identity_assertion_trust_policy_uri</code> member in
 its Protected Resource Metadata <span>[<a href="#RFC9728" class="cite xref">RFC9728</a>]</span>. The policy's
 <code>resource_authorization_server</code> member names the authorization
-server whose tokens this particular policy governs - not the
+server whose tokens this particular policy governs, not the
 publisher of the policy. A resource server that accepts tokens
 from multiple authorization servers <span class="bcp14">MAY</span> publish multiple policy
 documents, each naming a different
@@ -6309,8 +6306,8 @@ documents, each naming a different
         </ol>
 <p id="appendix-F.2-5">When the JWT access token carries a subject identifier recognized
 by a registered Subject Authority Extraction Procedure
-(<a href="#iana-authority-registry" class="auto internal xref">Section 9.2.3</a>) — for example, top-level
-<code>email</code>/<code>email_verified</code> claims — the resource server applies the
+(<a href="#iana-authority-registry" class="auto internal xref">Section 9.2.3</a>), for example, top-level
+<code>email</code>/<code>email_verified</code> claims, the resource server applies the
 trust policy as described in <a href="#rasp" class="auto internal xref">Section 4.3</a>, with the JWT access token
 in place of an identity assertion JWT.<a href="#appendix-F.2-5" class="pilcrow">¶</a></p>
 </section>

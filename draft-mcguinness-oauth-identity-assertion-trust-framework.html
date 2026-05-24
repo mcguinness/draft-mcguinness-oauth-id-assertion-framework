@@ -7,22 +7,37 @@
 <title>OAuth Identity Assertion Issuer Trust Framework</title>
 <meta content="Karl McGuinness" name="author">
 <meta content="
-       This document defines a trust policy that an OAuth authorization
-server publishes to describe the conditions under which it accepts
-identity assertion JWT authorization grants. The policy expresses trust
-criteria, including trust methods, trust anchors, subject identifier
-formats, and grant profiles, that an Assertion Issuer has to satisfy.
-This enables scalable issuer discovery for deployments backed by
-OpenID Federation or Domain-Authorized Issuer Discovery. 
-       This document also defines Domain-Authorized Issuer Discovery,
-which applies the established DNS authority-declaration pattern
-used by CAA, MTA-STS, SPF, and DKIM: the owner of a subject
-namespace (for example, an email domain) publishes a DNS record
-that declares which authorization servers may assert identities
-about subjects in the namespace. Richer policy may be expressed
-in an HTTPS-hosted document referenced from the DNS record. The
-same records enable clients to discover the Assertion Issuer for
-an identifier in that namespace. 
+       Issuer authentication alone does not prove an OAuth authorization
+server's authority over the subject namespace its identity assertions
+claim. A federated authorization server can mint an identity assertion
+naming any email domain; federation membership establishes that the
+server is a recognized member of an ecosystem, not that the server is
+entitled to assert about subjects in any particular namespace. Nothing
+in OAuth today lets a namespace owner declare which authorization
+servers are authorized to assert identities in its namespace. 
+       This document defines a trust framework that keeps issuer
+authentication and subject namespace authorization as distinct,
+independent questions, and lets a Resource Authorization Server
+require evidence for both. The framework defines: 
+       
+         
+           An Identity Assertion Issuer Trust Policy that an OAuth
+authorization server publishes to declare its trust criteria,
+including trust methods, trust anchors, subject identifier
+formats, and grant profiles. 
+         
+         
+           Domain-Authorized Issuer Discovery, which applies the established
+DNS authority-declaration pattern used by CAA, MTA-STS, SPF, and
+DKIM: the owner of a subject namespace (for example, an email
+domain) publishes a DNS record that declares which authorization
+servers may assert identities about subjects in the namespace.
+Richer policy may be expressed in an HTTPS-hosted document
+referenced from the DNS record. The same records enable clients
+to discover the Assertion Issuer for an identifier in that
+namespace. 
+         
+       
     " name="description">
 <meta content="xml2rfc 3.33.0" name="generator">
 <meta content="OAuth" name="keyword">
@@ -1099,22 +1114,37 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <h1 id="title">OAuth Identity Assertion Issuer Trust Framework</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">This document defines a trust policy that an OAuth authorization
-server publishes to describe the conditions under which it accepts
-identity assertion JWT authorization grants. The policy expresses trust
-criteria, including trust methods, trust anchors, subject identifier
-formats, and grant profiles, that an Assertion Issuer has to satisfy.
-This enables scalable issuer discovery for deployments backed by
-OpenID Federation or Domain-Authorized Issuer Discovery.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
-<p id="section-abstract-2">This document also defines Domain-Authorized Issuer Discovery,
-which applies the established DNS authority-declaration pattern
-used by CAA, MTA-STS, SPF, and DKIM: the owner of a subject
-namespace (for example, an email domain) publishes a DNS record
-that declares which authorization servers may assert identities
-about subjects in the namespace. Richer policy may be expressed
-in an HTTPS-hosted document referenced from the DNS record. The
-same records enable clients to discover the Assertion Issuer for
-an identifier in that namespace.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">Issuer authentication alone does not prove an OAuth authorization
+server's authority over the subject namespace its identity assertions
+claim. A federated authorization server can mint an identity assertion
+naming any email domain; federation membership establishes that the
+server is a recognized member of an ecosystem, not that the server is
+entitled to assert about subjects in any particular namespace. Nothing
+in OAuth today lets a namespace owner declare which authorization
+servers are authorized to assert identities in its namespace.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">This document defines a trust framework that keeps issuer
+authentication and subject namespace authorization as distinct,
+independent questions, and lets a Resource Authorization Server
+require evidence for both. The framework defines:<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-abstract-3.1">
+          <p id="section-abstract-3.1.1">An Identity Assertion Issuer Trust Policy that an OAuth
+authorization server publishes to declare its trust criteria,
+including trust methods, trust anchors, subject identifier
+formats, and grant profiles.<a href="#section-abstract-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-abstract-3.2">
+          <p id="section-abstract-3.2.1">Domain-Authorized Issuer Discovery, which applies the established
+DNS authority-declaration pattern used by CAA, MTA-STS, SPF, and
+DKIM: the owner of a subject namespace (for example, an email
+domain) publishes a DNS record that declares which authorization
+servers may assert identities about subjects in the namespace.
+Richer policy may be expressed in an HTTPS-hosted document
+referenced from the DNS record. The same records enable clients
+to discover the Assertion Issuer for an identifier in that
+namespace.<a href="#section-abstract-3.2.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-discussion-venues">
@@ -5303,7 +5333,7 @@ and through unplanned revocations (security incidents). The framework's
 caching model determines how quickly those changes propagate to
 verifiers and discovery clients.<a href="#appendix-B.1-1" class="pilcrow">¶</a></p>
 <p id="appendix-B.1-2"><strong>Planned transfer.</strong> When a Subject Authority moves authorization from
-Assertion Issuer A to Assertion Issuer B, the <span class="bcp14">RECOMMENDED</span> sequence is:<a href="#appendix-B.1-2" class="pilcrow">¶</a></p>
+Assertion Issuer A to Assertion Issuer B, a typical sequence is:<a href="#appendix-B.1-2" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="appendix-B.1-3">
 <li id="appendix-B.1-3.1">
             <p id="appendix-B.1-3.1.1">Reduce the DNS TTL on <code>_oauth-issuer-policy.{A}</code> and HTTP cache
@@ -5341,8 +5371,8 @@ incident):<a href="#appendix-B.1-4" class="pilcrow">¶</a></p>
 minimum operational value the Subject Authority is prepared to
 sustain. This is a precondition for fast revocation; without it,
 revocation latency is bounded by existing cache lifetimes. Subject
-Authorities of high-value namespaces <span class="bcp14">SHOULD</span> operate at short
-steady-state TTLs in anticipation of this need.<a href="#appendix-B.1-5.1.1" class="pilcrow">¶</a></p>
+Authorities of high-value namespaces are encouraged to operate at
+short steady-state TTLs in anticipation of this need.<a href="#appendix-B.1-5.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="appendix-B.1-5.2">
             <p id="appendix-B.1-5.2.1">Publish the policy with the compromised Assertion Issuer removed.
@@ -5704,9 +5734,9 @@ with a different <code>authority=</code> is discarded.<a href="#appendix-C.7-1.2
           <li class="normal" id="appendix-C.7-1.3">
             <p id="appendix-C.7-1.3.1">If <code>acme.example</code> rotates its authorized Assertion Issuer and the
 Client has a cached virtual policy, the Client will still attempt
-the old issuer until its cache expires. Subject Authorities
-<span class="bcp14">SHOULD</span> use short DNS TTLs during rotation; consumers <span class="bcp14">SHOULD</span>
-enforce a local cache ceiling (<a href="#dii-caching" class="auto internal xref">Section 6.8</a>).<a href="#appendix-C.7-1.3.1" class="pilcrow">¶</a></p>
+the old issuer until its cache expires. Subject Authorities are
+encouraged to use short DNS TTLs during rotation; consumers
+enforce a local cache ceiling per <a href="#dii-caching" class="auto internal xref">Section 6.8</a>.<a href="#appendix-C.7-1.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -6017,7 +6047,7 @@ customer's namespace.<a href="#appendix-D.7-1.1.1" class="pilcrow">¶</a></p>
           <li class="normal" id="appendix-D.7-1.2">
             <p id="appendix-D.7-1.2.1">If the deployment additionally needs to identify the specific
 agent instance (for audit, scoping, or downstream attribution),
-the agent platform <span class="bcp14">MAY</span> add an <code>act</code> object to the ID-JAG
+the agent platform can add an <code>act</code> object to the ID-JAG
 identifying the agent instance. The OAuth Actor Profile binding
 (<a href="#actor-profile-binding" class="auto internal xref">Section 5.2</a>) governs how a Resource Authorization
 Server interprets such an <code>act</code> object. Trust evaluation of the
@@ -6427,9 +6457,9 @@ for evaluating the txn-token issuer's authority over the carried
 subject.<a href="#appendix-F.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="appendix-F.1-4">A deployment using txn-tokens <span class="bcp14">MAY</span> list a txn-token profile
-identifier in the trust policy's <code>authorization_grant_profiles_supported</code> so
-that a single trust policy document can scope itself to both
+<p id="appendix-F.1-4">A deployment using txn-tokens can list a txn-token profile
+identifier in the trust policy's <code>authorization_grant_profiles_supported</code>
+so that a single trust policy document scopes itself to both
 grant-endpoint and txn-token verification.<a href="#appendix-F.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -6448,7 +6478,7 @@ authorization server (identified by the token's <code>iss</code> claim) is
 treated as the Assertion Issuer; Trust Method evaluation proceeds
 against this identifier as it would against the <code>iss</code> of an
 identity assertion.<a href="#appendix-F.2-2" class="pilcrow">¶</a></p>
-<p id="appendix-F.2-3">A resource server <span class="bcp14">MAY</span>:<a href="#appendix-F.2-3" class="pilcrow">¶</a></p>
+<p id="appendix-F.2-3">A resource server can:<a href="#appendix-F.2-3" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="appendix-F.2-4">
 <li id="appendix-F.2-4.1">
             <p id="appendix-F.2-4.1.1">Reuse the trust policy published by its associated
@@ -6461,7 +6491,7 @@ its Protected Resource Metadata <span>[<a href="#RFC9728" class="cite xref">RFC9
 <code>resource_authorization_server</code> member names the authorization
 server whose tokens this particular policy governs, not the
 publisher of the policy. A resource server that accepts tokens
-from multiple authorization servers <span class="bcp14">MAY</span> publish multiple policy
+from multiple authorization servers can publish multiple policy
 documents, each naming a different
 <code>resource_authorization_server</code>.<a href="#appendix-F.2-4.2.1" class="pilcrow">¶</a></p>
 </li>

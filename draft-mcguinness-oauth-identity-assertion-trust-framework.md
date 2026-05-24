@@ -1449,11 +1449,11 @@ To retrieve the Issuer Authorization Policy for a Subject Authority `A`,
 a consumer performs the following steps. The procedure is shared by
 Resource Authorization Servers performing verification
 ({{dii-verification}}) and clients performing Assertion Issuer
-discovery ({{dii-hrd}}), with one asymmetry noted at the end.
+discovery ({{dii-hrd}}); both consult DNS first and fall back to the
+HTTPS well-known URL only on `negative-authoritative` outcomes.
 
-1. If DNS is to be consulted (see asymmetry below), query the DNS TXT
-   resource record set at `_oauth-issuer-policy.{A}`. Classify the
-   response as:
+1. Query the DNS TXT resource record set at
+   `_oauth-issuer-policy.{A}`. Classify the response as:
 
    `negative-authoritative`
    : NXDOMAIN, or NOERROR with an empty answer section or with no
@@ -1501,14 +1501,22 @@ discovery ({{dii-hrd}}), with one asymmetry noted at the end.
       one fetched over HTTPS, except that its cache lifetime is
       derived from DNS TTLs as described in {{dii-caching}}.
 
-3. If the DNS response is `negative-authoritative` (or DNS was not
-   consulted), fetch the policy from the default HTTPS well-known URL
-   per {{dii-https-url}}.
+3. If the DNS response is `negative-authoritative`, fetch the policy
+   from the default HTTPS well-known URL per {{dii-https-url}}.
 
 4. If the DNS response is `indeterminate`, discovery has failed.
    Consumers MUST NOT fall back to HTTPS, since an attacker who
    suppresses DNS responses could otherwise force the consumer onto a
    path the attacker has compromised separately.
+
+A Resource Authorization Server MAY skip the DNS query as a matter of
+local policy (for example, when deployed in an environment with an
+untrusted DNS resolution path), but SHOULD NOT do so in production
+deployments: a Subject Authority that publishes only inline DNS records
+(a common pattern given the operational simplicity of the inline form)
+will be unfindable by such a Resource Authorization Server. A Resource
+Authorization Server that cannot resolve DNS treats the lookup as
+`indeterminate` and rejects the assertion, fail-closed.
 
 ### Happy Path Summary {#dii-happy-path}
 
@@ -1530,19 +1538,6 @@ The common DNS inline path is:
 
 6. Match the assertion's `iss` and, when present, `tenant` against an
    `authorized_issuers` entry.
-
-The lookup procedure above is canonical for both Resource Authorization
-Servers performing verification and Assertion Issuer discovery clients;
-both consult DNS first and fall back to the HTTPS well-known URL only
-on `negative-authoritative` outcomes. A Resource Authorization Server
-MAY skip the DNS query as a matter of local policy (for example, when
-deployed in an environment with an untrusted DNS resolution path), but
-SHOULD NOT do so in production deployments: a Subject Authority that
-publishes only inline DNS records (a common pattern given the
-operational simplicity of the inline form) will be unfindable by such
-a Resource Authorization Server. A Resource Authorization Server that
-cannot resolve DNS treats the lookup as `indeterminate` and rejects
-the assertion, fail-closed.
 
 ### Failure Handling {#dii-failures}
 

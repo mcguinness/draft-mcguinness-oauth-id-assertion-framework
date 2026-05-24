@@ -1517,6 +1517,9 @@ an identifier in that namespace.<a href="#section-abstract-2" class="pilcrow">¶
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.7">
                 <p id="section-toc.1-1.14.2.7.1"><a href="#appendix-C.7" class="auto internal xref">C.7</a>.  <a href="#name-extensions" class="internal xref">Extensions</a></p>
 </li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.8">
+                <p id="section-toc.1-1.14.2.8.1"><a href="#appendix-C.8" class="auto internal xref">C.8</a>.  <a href="#name-shared-issuer-variant-tenan" class="internal xref">Shared-Issuer Variant: Tenant Binding</a></p>
+</li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15">
@@ -1880,8 +1883,7 @@ or whose required members are absent or have the wrong JSON type.<a href="#secti
       "trust_anchors": ["https://federation.example.org"]
     },
     {
-      "method": "domain_authorized_issuer",
-      "dns_discovery": true
+      "method": "domain_authorized_issuer"
     }
   ]
 }
@@ -2193,23 +2195,15 @@ described in <a href="#dii-multi-tenant" class="auto internal xref">Section 6.9.
 <div class="lang-json sourcecode" id="section-3.4.4.1-5">
 <pre>
 {
-  "method": "domain_authorized_issuer",
-  "dns_discovery": true
+  "method": "domain_authorized_issuer"
 }
 </pre><a href="#section-3.4.4.1-5" class="pilcrow">¶</a>
 </div>
-<span class="break"></span><dl class="dlParallel" id="section-3.4.4.1-6">
-              <dt id="section-3.4.4.1-6.1"><code>dns_discovery</code></dt>
-              <dd style="margin-left: 1.5em" id="section-3.4.4.1-6.2">
-                <p id="section-3.4.4.1-6.2.1"><span class="bcp14">OPTIONAL</span>. Boolean. If <code>true</code>, the Resource Authorization Server
-consults DNS-based discovery (see <a href="#dii-dns-record" class="auto internal xref">Section 6.4.1</a>), accepting both
-inline and pointer forms. Defaults to <code>false</code>, in which case only
-the HTTPS well-known location (see <a href="#dii-https-url" class="auto internal xref">Section 6.4.2</a>) is used. This
-flag governs verifier behavior only; Assertion Issuer discovery
-clients (<a href="#dii-hrd" class="auto internal xref">Section 6.7</a>) always consult DNS regardless of this flag.<a href="#section-3.4.4.1-6.2.1" class="pilcrow">¶</a></p>
-</dd>
-            <dd class="break"></dd>
-</dl>
+<p id="section-3.4.4.1-6">This Trust Method has no parameters. The Resource Authorization Server
+retrieves the Issuer Authorization Policy by applying the canonical
+lookup procedure in <a href="#dii-lookup" class="auto internal xref">Section 6.5</a>: a DNS query at
+<code>_oauth-issuer-policy.{A}</code> with HTTPS well-known URL fallback when the
+DNS response is <code>negative-authoritative</code>.<a href="#section-3.4.4.1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="trust-method-email-verification-dns">
@@ -2994,7 +2988,7 @@ is not an array of strings.<a href="#section-6.3-3" class="pilcrow">¶</a></p>
       "valid_until": "2027-01-01T00:00:00Z"
     },
     {
-      "issuer": "https://accounts.google.example",
+      "issuer": "https://accounts.google.com",
       "tenant": "example.com",
       "subject_identifier_formats": ["email"]
     }
@@ -3032,10 +3026,10 @@ HTTPS supplies the policy contents only.<a href="#section-6.4-2.2.1" class="pilc
 <p id="section-6.4-3">A Subject Authority <span class="bcp14">MAY</span> additionally publish a JSON document at an
 HTTPS well-known URL on the Subject Authority's own host
 (<a href="#dii-https-url" class="auto internal xref">Section 6.4.2</a>); the lookup procedure (<a href="#dii-lookup" class="auto internal xref">Section 6.5</a>) consults
-DNS first and uses the HTTPS well-known URL only as a fallback for
-Subject Authorities that do not publish a DNS record. Operators are
-encouraged to publish the DNS record in all deployments because it
-matches the operational model of the prior-art mechanisms in
+DNS first and uses the HTTPS well-known URL only as a fallback when
+the DNS response is <code>negative-authoritative</code>. Operators are encouraged
+to publish the DNS record in all deployments because it matches the
+operational model of the prior-art mechanisms in
 <a href="#dns-authority-patterns" class="auto internal xref">Appendix A.2</a> and because consumer lookup behavior is
 DNS-first.<a href="#section-6.4-3" class="pilcrow">¶</a></p>
 <p id="section-6.4-4">Hosting an HTTPS well-known URL requires control of the Subject
@@ -3302,24 +3296,18 @@ Issuer Authorization Policy from that HTTPS URL.<a href="#section-6.5.1-2.4.1" c
 <code>authorized_issuers</code> entry.<a href="#section-6.5.1-2.6.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
-<p id="section-6.5.1-3"><strong>Asymmetry between verifier and Assertion Issuer discovery
-client:</strong><a href="#section-6.5.1-3" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-6.5.1-4.1">
-              <p id="section-6.5.1-4.1.1">A Resource Authorization Server consults DNS only when its trust
-policy advertises <code>dns_discovery: true</code>
-(<a href="#trust-method-domain-authorized-issuer" class="auto internal xref">Section 3.4.4.1</a>). When
-<code>dns_discovery</code> is
-absent or <code>false</code>, the verifier skips step 1 and retrieves only
-from the HTTPS well-known URL.<a href="#section-6.5.1-4.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-6.5.1-4.2">
-              <p id="section-6.5.1-4.2.1">An Assertion Issuer discovery client always consults DNS. The
-<code>dns_discovery</code> flag governs verifier behavior only; a Subject
-Authority that publishes solely via DNS still expects clients to
-find it.<a href="#section-6.5.1-4.2.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
+<p id="section-6.5.1-3">The lookup procedure above is canonical for both Resource Authorization
+Servers performing verification and Assertion Issuer discovery clients;
+both consult DNS first and fall back to the HTTPS well-known URL only
+on <code>negative-authoritative</code> outcomes. A Resource Authorization Server
+<span class="bcp14">MAY</span> skip the DNS query as a matter of local policy (for example, when
+deployed in an environment with an untrusted DNS resolution path), but
+<span class="bcp14">SHOULD NOT</span> do so in production deployments: a Subject Authority that
+publishes only inline DNS records (a common pattern given the
+operational simplicity of the inline form) will be unfindable by such
+a Resource Authorization Server. A Resource Authorization Server that
+cannot resolve DNS treats the lookup as <code>indeterminate</code> and rejects
+the assertion, fail-closed.<a href="#section-6.5.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="dii-failures">
@@ -3512,10 +3500,8 @@ candidate authorization server(s) for the namespace:<a href="#section-6.7-1" cla
 identifier per <a href="#dii-authority" class="auto internal xref">Section 6.2</a>.<a href="#section-6.7-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-6.7-2.2">
-            <p id="section-6.7-2.2.1">Retrieve the Issuer Authorization Policy by applying the
-procedure in <a href="#dii-lookup" class="auto internal xref">Section 6.5</a>. An Assertion Issuer discovery client always
-consults DNS regardless of any verifier-side <code>dns_discovery</code>
-flag, since that flag governs verifier behavior only.<a href="#section-6.7-2.2.1" class="pilcrow">¶</a></p>
+            <p id="section-6.7-2.2.1">Retrieve the Issuer Authorization Policy by applying the canonical
+procedure in <a href="#dii-lookup" class="auto internal xref">Section 6.5</a>.<a href="#section-6.7-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-6.7-2.3">
             <p id="section-6.7-2.3.1">Treat each <code>authorized_issuers</code> entry whose validity window includes
@@ -4592,8 +4578,7 @@ JSON types and whether each is <span class="bcp14">REQUIRED</span> or <span clas
                 <td class="text-left" rowspan="1" colspan="1">
                   <code>subject_namespace_authorization</code>
 </td>
-                <td class="text-left" rowspan="1" colspan="1">
-                  <code>dns_discovery</code> (boolean, <span class="bcp14">OPTIONAL</span>)</td>
+                <td class="text-left" rowspan="1" colspan="1">(none)</td>
                 <td class="text-left" rowspan="1" colspan="1">This document</td>
               </tr>
               <tr>
@@ -4778,7 +4763,11 @@ Authority is a domain that can publish DNS records, the existing
 (<a href="#trust-method-domain-authorized-issuer" class="auto internal xref">Section 3.4.4.1</a>) applies without
 modification — the new format simply joins <code>email</code> as a value that
 can appear in <code>subject_identifier_formats</code> on <code>authorized_issuers</code>
-entries. If the computed Subject Authority is not a domain or
+entries. The <code>email_verification_dns</code> Trust Method
+(<a href="#trust-method-email-verification-dns" class="auto internal xref">Section 3.4.4.2</a>) is intentionally
+email-specific and is NOT reusable for other formats; new formats
+that need a non-<code>domain_authorized_issuer</code> mechanism must register
+their own. If the computed Subject Authority is not a domain or
 cannot use DNS-based publication, the specification registers a
 new <code>subject_namespace_authorization</code> Trust Method in
 <a href="#iana-trust-methods-registry" class="auto internal xref">Section 9.1.4</a> defining its publication and
@@ -4837,9 +4826,15 @@ method-specific controller. Where the controller maps to a domain
 to <code>example.com</code> and DAI publication applies. Where the controller
 does not map to a domain (<code>did:key</code>, <code>did:peer</code>, <code>did:plc</code>, etc.),
 the specification registers a new <code>subject_namespace_authorization</code>
-Trust Method that defines an appropriate lookup procedure — for
-example, resolving the DID document and inspecting a specific
-verification relationship.<a href="#section-10.2-1" class="pilcrow">¶</a></p>
+Trust Method whose lookup procedure resolves the DID document directly
+and reads authorization from it — for example, treating each
+<code>assertionMethod</code> entry in the DID document (or a similar verification
+relationship) as the equivalent of an <code>authorized_issuers[]</code> entry,
+with the verification method's controller serving as the Assertion
+Issuer identifier. The IAP document format does not appear in this
+flow; the DID document itself is the source of authority. The Trust
+Method category structure, the cross-category combination rule, and
+the verification-time evaluation in <a href="#rasp" class="auto internal xref">Section 4.3</a> apply unchanged.<a href="#section-10.2-1" class="pilcrow">¶</a></p>
 <p id="section-10.2-2">These sketches are non-normative and illustrative; concrete
 extensions are out of scope for this document.<a href="#section-10.2-2" class="pilcrow">¶</a></p>
 </section>
@@ -5140,8 +5135,7 @@ domain-authorized issuer delegations with DNS-based discovery:<a href="#appendix
   "subject_identifier_formats_supported": ["email"],
   "issuer_trust_methods_supported": [
     {
-      "method": "domain_authorized_issuer",
-      "dns_discovery": true
+      "method": "domain_authorized_issuer"
     }
   ]
 }
@@ -5255,7 +5249,7 @@ JWKS), <code>aud</code>, <code>exp</code>, <code>iat</code>, replay protection.<
 a. It extracts the Subject Authority from the top-level <code>email</code>
    claim (with <code>email_verified=true</code>): <code>acme.example</code>.<a href="#appendix-B.5-1.2.2" class="pilcrow">¶</a></p>
 <p id="appendix-B.5-1.2.3">
-b. Because the trust policy has <code>dns_discovery: true</code>, the
+b. Applying the canonical lookup procedure (<a href="#dii-lookup" class="auto internal xref">Section 6.5</a>), the
    Resource Authorization Server queries DNS TXT at
    <code>_oauth-issuer-policy.acme.example</code>. The same record
    returned to the Client is returned here.<a href="#appendix-B.5-1.2.3" class="pilcrow">¶</a></p>
@@ -5426,8 +5420,7 @@ Domain-Authorized Issuer Discovery:<a href="#appendix-C.2-4" class="pilcrow">¶<
   "subject_identifier_formats_supported": ["email"],
   "issuer_trust_methods_supported": [
     {
-      "method": "domain_authorized_issuer",
-      "dns_discovery": true
+      "method": "domain_authorized_issuer"
     }
   ]
 }
@@ -5666,6 +5659,95 @@ policy.<a href="#appendix-C.7-1.2.1" class="pilcrow">¶</a></p>
         </ul>
 </section>
 </div>
+<div id="shared-issuer-variant-tenant-binding">
+<section id="appendix-C.8">
+        <h3 id="name-shared-issuer-variant-tenan">
+<a href="#appendix-C.8" class="section-number selfRef">C.8. </a><a href="#name-shared-issuer-variant-tenan" class="section-name selfRef">Shared-Issuer Variant: Tenant Binding</a>
+        </h3>
+<p id="appendix-C.8-1">In some deployments, the Assertion Issuer is a shared-issuer
+multi-tenant Identity Provider (for example, Google Workspace)
+rather than a customer-specific provider. The framework supports
+this case via the <code>tenant</code> member on <code>authorized_issuers[]</code> entries
+(<a href="#dii-multi-tenant" class="auto internal xref">Section 6.9.12</a>). This subsection sketches the same
+gatekeeping flow as the rest of this appendix, with
+<code>https://accounts.google.com</code> substituted for
+<code>https://agentprovider.example</code> as the Assertion Issuer.<a href="#appendix-C.8-1" class="pilcrow">¶</a></p>
+<p id="appendix-C.8-2">Publication uses the DNS pointer form because the inline DNS form
+cannot express <code>tenant</code> (<a href="#inline-form-feature-limits" class="auto internal xref">Section 6.9.11</a>):<a href="#appendix-C.8-2" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="appendix-C.8-3">
+<pre>
+_oauth-issuer-policy.example.com.  IN  TXT
+  "v=oauth-issuer-policy1;
+   authority=example.com;
+   uri=https://example.com/.well-known/oauth-issuer-policy"
+</pre><a href="#appendix-C.8-3" class="pilcrow">¶</a>
+</div>
+<p id="appendix-C.8-4">The HTTPS-hosted Issuer Authorization Policy binds authorization to
+the customer's specific Google Workspace tenant:<a href="#appendix-C.8-4" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-C.8-5">
+<pre>
+{
+  "subject_authority": "example.com",
+  "authorized_issuers": [
+    {
+      "issuer": "https://accounts.google.com",
+      "tenant": "example.com",
+      "subject_identifier_formats": ["email"]
+    }
+  ],
+  "last_updated": "2026-05-01T00:00:00Z"
+}
+</pre><a href="#appendix-C.8-5" class="pilcrow">¶</a>
+</div>
+<p id="appendix-C.8-6">A successful ID-JAG carries the matching tenant claim:<a href="#appendix-C.8-6" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-C.8-7">
+<pre>
+{
+  "iss": "https://accounts.google.com",
+  "aud": "https://toolprovider.example",
+  "exp": 1780166400,
+  "iat": 1780166100,
+  "jti": "f47a...",
+  "sub": "user-285dc1",
+  "tenant": "example.com",
+  "email": "alice@example.com",
+  "email_verified": true
+}
+</pre><a href="#appendix-C.8-7" class="pilcrow">¶</a>
+</div>
+<p id="appendix-C.8-8">Verification at the tool provider differs from the main flow only
+at step 4c: the matched <code>authorized_issuers</code> entry contains
+<code>tenant: "example.com"</code>, and the ID-JAG's top-level <code>tenant</code> claim
+is <code>"example.com"</code>. Both <code>iss</code> and <code>tenant</code> match, so the Trust
+Method is satisfied.<a href="#appendix-C.8-8" class="pilcrow">¶</a></p>
+<p id="appendix-C.8-9"><strong>Threat: tenant impersonation.</strong> Suppose an attacker provisions an
+unrelated Google Workspace tenant (say, <code>attacker-corp</code>) and
+attempts to mint an ID-JAG claiming <code>alice@example.com</code>:<a href="#appendix-C.8-9" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-C.8-10">
+<pre>
+{
+  "iss": "https://accounts.google.com",
+  "aud": "https://toolprovider.example",
+  "tenant": "attacker-corp",
+  "email": "alice@example.com",
+  "email_verified": true,
+  ...
+}
+</pre><a href="#appendix-C.8-10" class="pilcrow">¶</a>
+</div>
+<p id="appendix-C.8-11">The JWT <code>iss</code> matches the policy entry. The <code>tenant</code> claim does
+NOT — the customer's policy requires <code>tenant=example.com</code>, and the
+attacker's assertion carries <code>tenant=attacker-corp</code>. The Trust
+Method is not satisfied; the tool provider rejects with
+<code>invalid_grant</code>. The attacker cannot set <code>tenant=example.com</code> in
+their assertion because Google enforces that tenant <code>attacker-corp</code>
+mints tokens with <code>tenant=attacker-corp</code>, not with another tenant's
+identifier. This is the tenant-isolation property described in
+<a href="#dii-multi-tenant" class="auto internal xref">Section 6.9.12</a>; the framework surfaces the customer's choice
+of authorized tenant on the wire and makes the trust assumption
+explicit, but does not eliminate the assumption.<a href="#appendix-C.8-11" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="openid-federation-end-to-end-example">
@@ -5751,8 +5833,7 @@ authorization:<a href="#appendix-D.2-3" class="pilcrow">¶</a></p>
       "trust_anchors": ["https://federation.example.org"]
     },
     {
-      "method": "domain_authorized_issuer",
-      "dns_discovery": true
+      "method": "domain_authorized_issuer"
     }
   ]
 }

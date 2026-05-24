@@ -354,8 +354,7 @@ Example:
       "trust_anchors": ["https://federation.example.org"]
     },
     {
-      "method": "domain_authorized_issuer",
-      "dns_discovery": true
+      "method": "domain_authorized_issuer"
     }
   ]
 }
@@ -614,18 +613,15 @@ multi-tenant Assertion Issuer:
 
 ~~~ json
 {
-  "method": "domain_authorized_issuer",
-  "dns_discovery": true
+  "method": "domain_authorized_issuer"
 }
 ~~~
 
-`dns_discovery`
-: OPTIONAL. Boolean. If `true`, the Resource Authorization Server
-consults DNS-based discovery (see {{dii-dns-record}}), accepting both
-inline and pointer forms. Defaults to `false`, in which case only
-the HTTPS well-known location (see {{dii-https-url}}) is used. This
-flag governs verifier behavior only; Assertion Issuer discovery
-clients ({{dii-hrd}}) always consult DNS regardless of this flag.
+This Trust Method has no parameters. The Resource Authorization Server
+retrieves the Issuer Authorization Policy by applying the canonical
+lookup procedure in {{dii-lookup}}: a DNS query at
+`_oauth-issuer-policy.{A}` with HTTPS well-known URL fallback when the
+DNS response is `negative-authoritative`.
 
 #### email_verification_dns {#trust-method-email-verification-dns}
 
@@ -1289,7 +1285,7 @@ Example:
       "valid_until": "2027-01-01T00:00:00Z"
     },
     {
-      "issuer": "https://accounts.google.example",
+      "issuer": "https://accounts.google.com",
       "tenant": "example.com",
       "subject_identifier_formats": ["email"]
     }
@@ -1319,10 +1315,10 @@ the source of authority:
 A Subject Authority MAY additionally publish a JSON document at an
 HTTPS well-known URL on the Subject Authority's own host
 ({{dii-https-url}}); the lookup procedure ({{dii-lookup}}) consults
-DNS first and uses the HTTPS well-known URL only as a fallback for
-Subject Authorities that do not publish a DNS record. Operators are
-encouraged to publish the DNS record in all deployments because it
-matches the operational model of the prior-art mechanisms in
+DNS first and uses the HTTPS well-known URL only as a fallback when
+the DNS response is `negative-authoritative`. Operators are encouraged
+to publish the DNS record in all deployments because it matches the
+operational model of the prior-art mechanisms in
 {{dns-authority-patterns}} and because consumer lookup behavior is
 DNS-first.
 
@@ -1535,20 +1531,18 @@ The common DNS inline path is:
 6. Match the assertion's `iss` and, when present, `tenant` against an
    `authorized_issuers` entry.
 
-**Asymmetry between verifier and Assertion Issuer discovery
-client:**
-
-- A Resource Authorization Server consults DNS only when its trust
-  policy advertises `dns_discovery: true`
-  ({{trust-method-domain-authorized-issuer}}). When
-  `dns_discovery` is
-  absent or `false`, the verifier skips step 1 and retrieves only
-  from the HTTPS well-known URL.
-
-- An Assertion Issuer discovery client always consults DNS. The
-  `dns_discovery` flag governs verifier behavior only; a Subject
-  Authority that publishes solely via DNS still expects clients to
-  find it.
+The lookup procedure above is canonical for both Resource Authorization
+Servers performing verification and Assertion Issuer discovery clients;
+both consult DNS first and fall back to the HTTPS well-known URL only
+on `negative-authoritative` outcomes. A Resource Authorization Server
+MAY skip the DNS query as a matter of local policy (for example, when
+deployed in an environment with an untrusted DNS resolution path), but
+SHOULD NOT do so in production deployments: a Subject Authority that
+publishes only inline DNS records (a common pattern given the
+operational simplicity of the inline form) will be unfindable by such
+a Resource Authorization Server. A Resource Authorization Server that
+cannot resolve DNS treats the lookup as `indeterminate` and rejects
+the assertion, fail-closed.
 
 ### Failure Handling {#dii-failures}
 
@@ -1675,10 +1669,8 @@ candidate authorization server(s) for the namespace:
 1. Determine the Subject Authority `A` from the input subject
    identifier per {{dii-authority}}.
 
-2. Retrieve the Issuer Authorization Policy by applying the
-   procedure in {{dii-lookup}}. An Assertion Issuer discovery client always
-   consults DNS regardless of any verifier-side `dns_discovery`
-   flag, since that flag governs verifier behavior only.
+2. Retrieve the Issuer Authorization Policy by applying the canonical
+   procedure in {{dii-lookup}}.
 
 3. Treat each `authorized_issuers` entry whose validity window includes
    the current time, whose `subject_identifier_formats` (if present)
@@ -2148,7 +2140,7 @@ user. Resource Authorization Servers SHOULD either disable
 local-part normalization or independently verify the local-part
 through a mechanism outside the scope of this document.
 
-### Inline-Form Feature Limits
+### Inline-Form Feature Limits {#inline-form-feature-limits}
 
 The inline DNS form expresses only "issuer X is authorized for
 Subject Authority A." It cannot express `tenant`,
@@ -2531,7 +2523,7 @@ Initial entries:
 | Identifier | Categories | Parameters | Reference |
 |-|-|-|-|
 | `openid_federation` | `issuer_authentication` | `trust_anchors` (array of string, REQUIRED) | This document |
-| `domain_authorized_issuer` | `subject_namespace_authorization` | `dns_discovery` (boolean, OPTIONAL) | This document |
+| `domain_authorized_issuer` | `subject_namespace_authorization` | (none) | This document |
 | `email_verification_dns` | `subject_namespace_authorization` | (none) | This document, {{WICG-EMAIL-VERIF}} |
 
 ## Issuer Authorization Policy Registrations
@@ -2634,7 +2626,11 @@ specification:
    ({{trust-method-domain-authorized-issuer}}) applies without
    modification — the new format simply joins `email` as a value that
    can appear in `subject_identifier_formats` on `authorized_issuers`
-   entries. If the computed Subject Authority is not a domain or
+   entries. The `email_verification_dns` Trust Method
+   ({{trust-method-email-verification-dns}}) is intentionally
+   email-specific and is NOT reusable for other formats; new formats
+   that need a non-`domain_authorized_issuer` mechanism must register
+   their own. If the computed Subject Authority is not a domain or
    cannot use DNS-based publication, the specification registers a
    new `subject_namespace_authorization` Trust Method in
    {{iana-trust-methods-registry}} defining its publication and
@@ -2685,9 +2681,15 @@ method-specific controller. Where the controller maps to a domain
 to `example.com` and DAI publication applies. Where the controller
 does not map to a domain (`did:key`, `did:peer`, `did:plc`, etc.),
 the specification registers a new `subject_namespace_authorization`
-Trust Method that defines an appropriate lookup procedure — for
-example, resolving the DID document and inspecting a specific
-verification relationship.
+Trust Method whose lookup procedure resolves the DID document directly
+and reads authorization from it — for example, treating each
+`assertionMethod` entry in the DID document (or a similar verification
+relationship) as the equivalent of an `authorized_issuers[]` entry,
+with the verification method's controller serving as the Assertion
+Issuer identifier. The IAP document format does not appear in this
+flow; the DID document itself is the source of authority. The Trust
+Method category structure, the cross-category combination rule, and
+the verification-time evaluation in {{rasp}} apply unchanged.
 
 These sketches are non-normative and illustrative; concrete
 extensions are out of scope for this document.
@@ -2801,8 +2803,7 @@ domain-authorized issuer delegations with DNS-based discovery:
   "subject_identifier_formats_supported": ["email"],
   "issuer_trust_methods_supported": [
     {
-      "method": "domain_authorized_issuer",
-      "dns_discovery": true
+      "method": "domain_authorized_issuer"
     }
   ]
 }
@@ -2884,7 +2885,7 @@ domain-authorized issuer delegations with DNS-based discovery:
    a. It extracts the Subject Authority from the top-level `email`
       claim (with `email_verified=true`): `acme.example`.
 
-   b. Because the trust policy has `dns_discovery: true`, the
+   b. Applying the canonical lookup procedure ({{dii-lookup}}), the
       Resource Authorization Server queries DNS TXT at
       `_oauth-issuer-policy.acme.example`. The same record
       returned to the Client is returned here.
@@ -3016,8 +3017,7 @@ Domain-Authorized Issuer Discovery:
   "subject_identifier_formats_supported": ["email"],
   "issuer_trust_methods_supported": [
     {
-      "method": "domain_authorized_issuer",
-      "dns_discovery": true
+      "method": "domain_authorized_issuer"
     }
   ]
 }
@@ -3198,6 +3198,93 @@ Authorization Policy. The customer is the sole gatekeeper.
   platform's authorization-time logic and the tool provider's local
   policy.
 
+## Shared-Issuer Variant: Tenant Binding
+
+In some deployments, the Assertion Issuer is a shared-issuer
+multi-tenant Identity Provider (for example, Google Workspace)
+rather than a customer-specific provider. The framework supports
+this case via the `tenant` member on `authorized_issuers[]` entries
+({{dii-multi-tenant}}). This subsection sketches the same
+gatekeeping flow as the rest of this appendix, with
+`https://accounts.google.com` substituted for
+`https://agentprovider.example` as the Assertion Issuer.
+
+Publication uses the DNS pointer form because the inline DNS form
+cannot express `tenant` ({{inline-form-feature-limits}}):
+
+~~~
+_oauth-issuer-policy.example.com.  IN  TXT
+  "v=oauth-issuer-policy1;
+   authority=example.com;
+   uri=https://example.com/.well-known/oauth-issuer-policy"
+~~~
+
+The HTTPS-hosted Issuer Authorization Policy binds authorization to
+the customer's specific Google Workspace tenant:
+
+~~~ json
+{
+  "subject_authority": "example.com",
+  "authorized_issuers": [
+    {
+      "issuer": "https://accounts.google.com",
+      "tenant": "example.com",
+      "subject_identifier_formats": ["email"]
+    }
+  ],
+  "last_updated": "2026-05-01T00:00:00Z"
+}
+~~~
+
+A successful ID-JAG carries the matching tenant claim:
+
+~~~ json
+{
+  "iss": "https://accounts.google.com",
+  "aud": "https://toolprovider.example",
+  "exp": 1780166400,
+  "iat": 1780166100,
+  "jti": "f47a...",
+  "sub": "user-285dc1",
+  "tenant": "example.com",
+  "email": "alice@example.com",
+  "email_verified": true
+}
+~~~
+
+Verification at the tool provider differs from the main flow only
+at step 4c: the matched `authorized_issuers` entry contains
+`tenant: "example.com"`, and the ID-JAG's top-level `tenant` claim
+is `"example.com"`. Both `iss` and `tenant` match, so the Trust
+Method is satisfied.
+
+**Threat: tenant impersonation.** Suppose an attacker provisions an
+unrelated Google Workspace tenant (say, `attacker-corp`) and
+attempts to mint an ID-JAG claiming `alice@example.com`:
+
+~~~ json
+{
+  "iss": "https://accounts.google.com",
+  "aud": "https://toolprovider.example",
+  "tenant": "attacker-corp",
+  "email": "alice@example.com",
+  "email_verified": true,
+  ...
+}
+~~~
+
+The JWT `iss` matches the policy entry. The `tenant` claim does
+NOT — the customer's policy requires `tenant=example.com`, and the
+attacker's assertion carries `tenant=attacker-corp`. The Trust
+Method is not satisfied; the tool provider rejects with
+`invalid_grant`. The attacker cannot set `tenant=example.com` in
+their assertion because Google enforces that tenant `attacker-corp`
+mints tokens with `tenant=attacker-corp`, not with another tenant's
+identifier. This is the tenant-isolation property described in
+{{dii-multi-tenant}}; the framework surfaces the customer's choice
+of authorized tenant on the wire and makes the trust assumption
+explicit, but does not eliminate the assumption.
+
 # OpenID Federation End-to-End Example
 
 This appendix is non-normative.
@@ -3261,8 +3348,7 @@ authorization:
       "trust_anchors": ["https://federation.example.org"]
     },
     {
-      "method": "domain_authorized_issuer",
-      "dns_discovery": true
+      "method": "domain_authorized_issuer"
     }
   ]
 }

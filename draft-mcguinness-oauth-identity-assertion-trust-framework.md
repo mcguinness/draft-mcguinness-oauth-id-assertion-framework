@@ -460,6 +460,44 @@ the Trust Method combination rule in {{rasp}}. Local policy MAY impose
 additional requirements for specific clients, subjects, or scopes; see
 {{downgrade}}.
 
+`crit`
+: OPTIONAL. JSON array of strings. Each string names an extension
+identifier, feature identifier, or policy member whose recognition the
+publisher considers critical for correct interpretation. If a consumer
+does not recognize any string listed in `crit`, the consumer MUST treat
+the policy as malformed. Member names defined in this document
+(`resource_authorization_server`,
+`authorization_grant_profiles_supported`,
+`subject_identifier_formats_supported`, `issuer_trust_methods_supported`,
+and `crit`) are always recognized. Critical extension identifiers use
+the syntax and recognition rules in {{critical-extension-identifiers}}.
+
+Unrecognized Trust Policy members MUST be ignored, except when the
+member name or an extension identifier governing the member is listed
+in `crit`.
+
+## Critical Extension Identifiers {#critical-extension-identifiers}
+
+A critical extension identifier is a string that names a policy
+feature whose correct processing is required to safely interpret a
+document or DNS record. Critical extension identifiers are used by the
+`crit` member of JSON documents and the `crit=` directive of DNS
+records defined in this document.
+
+A critical extension identifier is recognized when it is either:
+
+- a member or directive name defined by this document for the document
+  or record in which it appears; or
+
+- an absolute URI whose defining specification identifies it as a
+  critical extension identifier for this framework and defines the
+  processing behavior required for recognition.
+
+Future specifications SHOULD use absolute URI identifiers when correct
+processing depends on more than recognizing a single member or DNS
+directive, for example when an extension defines several fields or
+changes the authorization decision procedure.
+
 ## Trust Methods {#trust-methods}
 
 This section defines the Trust Method structure, the two categories
@@ -664,7 +702,21 @@ When evaluated, the Resource Authorization Server MUST:
    {{dii-authority}} (registrable domain after `@`).
 
 3. Query the DNS TXT resource record set at `_email-verification.{A}`.
-   Apply the DNS response classification of {{dii-lookup}} (step 1).
+   Classify the DNS response as follows:
+
+   `negative-authoritative`
+   : NXDOMAIN, or NOERROR with an empty answer section or with no
+   records parseable as Email Verification Protocol records after
+   parsing per {{WICG-EMAIL-VERIF}}.
+
+   `indeterminate`
+   : SERVFAIL, REFUSED, timeout, truncation with no successful retry,
+   or any other failure that prevents a definitive negative result.
+
+   `affirmative`
+   : NOERROR with at least one record parseable as an Email
+   Verification Protocol record after parsing per
+   {{WICG-EMAIL-VERIF}}.
 
 4. If `negative-authoritative` or `indeterminate`, the Trust Method
    is not satisfied; the `indeterminate` outcome MUST be treated per
@@ -1245,7 +1297,8 @@ this document (`subject_authority`, `authorized_issuers`, `issuer`,
 specifications SHOULD use stable extension identifiers in `crit` when
 correct processing depends on more than recognizing a single member,
 for example when an extension defines several members or changes the
-authorization decision procedure.
+authorization decision procedure. Critical extension identifiers use
+the syntax and recognition rules in {{critical-extension-identifiers}}.
 
 Unrecognized members MUST be ignored, except when the member name or an
 extension identifier governing the member is listed in `crit`.
@@ -1407,7 +1460,9 @@ always recognized. If a consumer does not recognize any value named in
 present in the same record; otherwise the consumer MUST treat the
 record as `malformed`. Future specifications SHOULD use stable
 extension identifiers in `crit=` when correct processing depends on
-more than recognizing a single DNS directive.
+more than recognizing a single DNS directive. Critical extension
+identifiers use the syntax and recognition rules in
+{{critical-extension-identifiers}}.
 
 A recognized record MUST contain at least one `uri=` directive or at
 least one `issuer=` directive. Recognized records containing neither
@@ -1846,10 +1901,14 @@ The framework's defenses are:
 
 - **HTTPS for richer policy.** The DNS pointer form (`uri=`)
   delegates policy CONTENTS to TLS-authenticated HTTPS retrieval.
-  A DNS-only compromise that does not also compromise the policy
-  host's TLS cannot rewrite the policy contents, only redirect
-  consumers to a different host; consumers MUST verify TLS to that
-  host.
+  Because the DNS `uri=` target is authoritative, a DNS compromise can
+  redirect consumers to an attacker-controlled HTTPS host and thereby
+  rewrite the policy contents, provided that host presents a valid TLS
+  certificate for itself. Consumers MUST verify TLS to the host named
+  by `uri=`, but TLS does not mitigate compromise of the DNS record
+  that selects the host. Subject Authorities relying on pointer form
+  therefore depend on DNS integrity for target selection and HTTPS
+  integrity for the selected policy contents.
 
 - **Mandatory `authority=` directive.** A wildcard or substituted
   record MUST still carry `authority=A` matching the queried

@@ -26,6 +26,7 @@ author:
     email: public@karlmcguinness.com
 
 normative:
+  RFC7515:
   RFC7519:
   RFC7521:
   RFC7523:
@@ -149,16 +150,20 @@ facility for the namespace.
 
 ## Two Trust Questions {#two-trust-questions}
 
-A Resource Authorization Server accepting an identity assertion answers
-two distinct trust questions about the Assertion Issuer:
+An identity assertion is the result of an authority delegation: some
+party with authority over a subject namespace has delegated, explicitly
+or implicitly, the right to assert about subjects in that namespace to
+the Assertion Issuer. A Resource Authorization Server resolves whether
+that delegation exists and applies by asking two sub-questions:
 
 1. *Who signed it?* Is the entity identified by the JWT `iss` claim
    authentic, that is, a recognized authorization server in a trusted
    ecosystem?
 
-2. *Are they entitled to speak about this subject?* Does the Assertion
-   Issuer have the namespace owner's permission to assert about subjects
-   in that namespace (for example, emails in `example.com`)?
+2. *Who authorized it?* Does the Authority Holder for the subject
+   namespace (the namespace owner) delegate to this Assertion Issuer
+   for assertions about subjects in that namespace (for example,
+   emails in `example.com`)?
 
 A trust framework that conflates these two questions cannot prevent a
 federated authorization server from impersonating users in a namespace
@@ -354,9 +359,22 @@ and `email_verified` claims used by {{ID-JAG}}) rather than as an
 {{RFC9493}} Subject Identifier JSON object. Grant profiles and other
 specifications define which carriage applies in their context.
 
+Authority Holder:
+: An entity with authority over a namespace, claim type, or scope.
+An Authority Holder MAY delegate that authority to one or more
+Assertion Issuers by publishing a delegation artifact (this
+document's Issuer Authorization Policy, an OpenID Federation
+Subordinate Statement, or other mechanism registered as a Trust
+Method).
+
 Subject Authority:
-: An authority for a Subject Identifier namespace, such as a DNS domain
-for an `email` Subject Identifier.
+: The Authority Holder for a Subject Identifier namespace, such as
+the registrable domain that controls `email` Subject Identifiers.
+This document uses "Subject Authority" throughout where the
+Authority Holder is specifically a subject-namespace authority;
+the broader "Authority Holder" term applies in extensions that
+delegate authority over claim types or scopes other than subject
+namespaces.
 
 Issuer Authorization Policy:
 : The JSON document published by a Subject Authority that authorizes one
@@ -483,8 +501,16 @@ the policy as malformed. Member names defined in this document
 (`resource_authorization_server`,
 `authorization_grant_profiles_supported`,
 `subject_identifier_formats_supported`, `issuer_trust_methods_supported`,
-and `crit`) are always recognized. Critical extension identifiers use
-the syntax and recognition rules in {{critical-extension-identifiers}}.
+`signed_policy`, and `crit`) are always recognized. Critical
+extension identifiers use the syntax and recognition rules in
+{{critical-extension-identifiers}}.
+
+`signed_policy`
+: OPTIONAL. Signed JWT containing policy members as claims, using the
+  representation defined in {{signed-policy-metadata}}. This member
+  follows the signed metadata pattern used by {{RFC8414}} and
+  {{RFC9728}}. Consumers that do not support signed policy metadata MAY
+  ignore this member unless it is listed in `crit`.
 
 Unrecognized Trust Policy members MUST be ignored, except when the
 member name or an extension identifier governing the member is listed
@@ -940,6 +966,52 @@ could include it in `crit` and add the extension-defined members:
 Consumers that do not recognize the URI would reject the policy rather
 than ignoring `audiences` and over-accepting assertions.
 
+## Signed Policy Metadata {#signed-policy-metadata}
+
+The Trust Policy and Issuer Authorization Policy documents MAY include
+a `signed_policy` member that provides object-level cryptographic
+integrity for the policy document. This member follows the signed
+metadata pattern defined for authorization server metadata in
+{{RFC8414}} and protected resource metadata in {{RFC9728}}.
+
+The `signed_policy` value is a JWT {{RFC7519}} containing policy
+members as claims. The JWT MUST be digitally signed or MACed using JWS
+{{RFC7515}}, MUST contain an `iss` claim identifying the party
+attesting to the signed policy claims, and MUST NOT use `alg` value
+`none`. The JWT payload SHOULD NOT contain a `signed_policy` claim.
+
+The acceptable signer depends on which policy document is signed:
+
+- For the Trust Policy document, the JWT `iss` claim MUST equal the
+  `resource_authorization_server` claim. The verification key MUST be
+  controlled by that Resource Authorization Server. Consumers MAY
+  resolve the key from the Resource Authorization Server's
+  authorization server metadata `jwks_uri`, federation entity
+  configuration, or local configuration.
+
+- For the Issuer Authorization Policy document, the JWT payload MUST
+  contain the `subject_authority` claim. The JWT `iss` claim MUST
+  either equal `subject_authority` or identify a signing authority that
+  local policy or an applicable Trust Method establishes as controlled
+  by the Subject Authority. Consumers MUST NOT treat a signature by the
+  Assertion Issuer named in an `authorized_issuers` entry as proof of
+  Subject Authority authorization unless such a relationship is
+  explicitly established.
+
+If both unsigned policy members and `signed_policy` are present, the
+signed policy claims MUST be used as the policy values for all claims
+present in the JWT. Unsigned members that are not represented as claims
+in the JWT MAY be used subject to the normal processing rules for
+unrecognized members and `crit`. Consumers SHOULD reject a policy when
+an unsigned member conflicts with the corresponding signed claim.
+
+If a consumer requires object-level integrity by local policy, or if
+`signed_policy` is listed in `crit`, the consumer MUST verify the
+signed JWT before acting on the policy. If signature verification
+fails, if the verification key is unacceptable, if the JWT is
+malformed, or if the required issuer binding above is not satisfied,
+the consumer MUST reject the policy as malformed.
+
 # Trust Policy Processing
 
 The trust policy governs whether an Assertion Issuer's identity
@@ -1371,9 +1443,25 @@ error.
 
 ## Issuer Authorization Policy Document {#dii-document}
 
+The Issuer Authorization Policy is a delegation artifact: a Subject
+Authority (Authority Holder for a subject namespace) uses it to
+delegate the right to assert identities in its namespace to one or
+more named Assertion Issuers. Each `authorized_issuers` entry is a
+delegation; `valid_from` and `valid_until` bound the delegation in
+time; `tenant` constrains the delegation to a specific tenant of a
+shared issuer; `subject_identifier_formats` constrains the
+delegation to specific Subject Identifier formats. The verification
+procedure ({{dii-verification}}) validates whether a given identity
+assertion is covered by a current delegation; absent a matching
+delegation, the Assertion Issuer is not authorized for the asserted
+namespace regardless of any other property of the assertion.
+
 The Issuer Authorization Policy is a JSON document served over HTTPS
 with media type `application/json`. The document MUST be a JSON
-object. It has the following members:
+object. Consumers MUST reject a policy document that is not
+syntactically valid JSON, whose top-level value is not an object, or
+whose required members are absent or have the wrong JSON type. It has
+the following members:
 
 `subject_authority`
 : REQUIRED. String. The Subject Authority identifier this policy
@@ -1448,15 +1536,26 @@ does not recognize any string listed in `crit`, the consumer MUST treat
 the policy as `malformed` ({{dii-failures}}). Member names defined in
 this document (`subject_authority`, `authorized_issuers`, `issuer`,
 `tenant`, `subject_identifier_formats`, `valid_from`, `valid_until`,
-`last_updated`, and `crit`) are always recognized. Future
+`last_updated`, `signed_policy`, and `crit`) are always recognized. Future
 specifications SHOULD use stable extension identifiers in `crit` when
 correct processing depends on more than recognizing a single member,
 for example when an extension defines several members or changes the
 authorization decision procedure. Critical extension identifiers use
 the syntax and recognition rules in {{critical-extension-identifiers}}.
 
+`signed_policy`
+: OPTIONAL. Signed JWT containing policy members as claims, using the
+  representation defined in {{signed-policy-metadata}}. This member
+  follows the signed metadata pattern used by {{RFC8414}} and
+  {{RFC9728}}. Consumers that do not support signed policy metadata MAY
+  ignore this member unless it is listed in `crit`.
+
 Unrecognized members MUST be ignored, except when the member name or
 an extension identifier governing the member is listed in `crit`.
+Unrecognized members that are not listed in `crit` MUST NOT affect the
+authorization decision. A consumer MUST NOT assign vendor-specific
+semantics to an unrecognized member unless those semantics are defined
+by an extension identifier that the consumer recognizes.
 Consumers MUST reject the policy when any of the following validation
 rules fails:
 
@@ -1468,6 +1567,7 @@ rules fails:
 | `tenant` | string, optional | non-empty |
 | `subject_identifier_formats` | array of strings, optional | |
 | `valid_from`, `valid_until`, `last_updated` | RFC 3339 date-time, optional | |
+| `signed_policy` | string, optional | signed JWT as defined in {{signed-policy-metadata}} |
 | `crit` | array of strings, optional | every value recognized |
 
 For OAuth authorization server issuer identifiers, a non-HTTPS URL,
@@ -1643,6 +1743,55 @@ as the JSON document defined in {{dii-document}}.
 A URL obtained from a DNS `uri=` directive is fetched the same way;
 the host serving the URL is responsible for TLS server authentication
 of itself, not of `A`.
+
+### HTTPS Policy Document Contract {#https-policy-document-contract}
+
+The HTTPS-hosted document retrieved from either the default well-known
+URL or a DNS `uri=` pointer is not a separate metadata format. It is
+exactly the Issuer Authorization Policy document defined in
+{{dii-document}}. Consumers MUST NOT interpret an OAuth authorization
+server metadata document {{RFC8414}}, an OAuth protected resource
+metadata document {{RFC9728}}, an OpenID Federation Entity
+Configuration {{OIDF-FEDERATION}}, or any vendor-specific JSON shape
+as an Issuer Authorization Policy unless another specification defines
+an explicit translation into the members defined by this document.
+
+The same contract applies to unsigned JSON members and to claims
+inside `signed_policy` ({{signed-policy-metadata}}): the member names,
+types, comparison rules, critical-extension rules, and validation
+requirements are identical. A signed policy does not create a second
+schema; it only changes how the same policy members are authenticated.
+
+Consumers MUST validate the complete policy before using any
+`authorized_issuers` entry. A malformed entry, a member with the wrong
+JSON type, a failed `crit` requirement, or a signed-policy conflict is
+a malformed policy, not a reason to ignore only the offending entry.
+This fail-closed behavior avoids interoperability differences where
+one implementation accepts a partially valid policy that another
+implementation rejects.
+
+The following JSON shape summarizes the HTTPS policy contract. The
+prose in {{dii-document}} is normative if there is any discrepancy.
+
+~~~ json
+{
+  "subject_authority": "example.com",
+  "authorized_issuers": [
+    {
+      "issuer": "https://idp.example.com",
+      "tenant": "example-tenant",
+      "subject_identifier_formats": ["email"],
+      "valid_from": "2026-01-01T00:00:00Z",
+      "valid_until": "2027-01-01T00:00:00Z"
+    }
+  ],
+  "last_updated": "2026-05-01T00:00:00Z",
+  "crit": [
+    "https://example.net/oauth-issuer-policy/audience-constraints"
+  ],
+  "signed_policy": "eyJ..."
+}
+~~~
 
 ## Lookup Procedure {#dii-lookup}
 
@@ -2560,14 +2709,52 @@ Resource Authorization Server MUST serve it over HTTPS with TLS
 server authentication; clients MUST reject documents retrieved over
 non-HTTPS transports or with TLS failures.
 
-Deployments needing integrity beyond TLS MAY serve a JWS-signed JSON
-object using `application/jose+json` with a signing key resolvable
-via the Resource Authorization Server's JWKS or federation entity
-configuration. The signaling mechanism is out of scope for this
-version.
+Deployments needing integrity beyond TLS MAY include the
+`signed_policy` member defined in {{signed-policy-metadata}}, with a
+signing key appropriate to the policy document being signed. A Trust
+Policy signature is verified with a key controlled by the Resource
+Authorization Server, for example a key resolved from the
+authorization server metadata `jwks_uri`. An Issuer Authorization
+Policy signature is verified with a key controlled by the Subject
+Authority, not merely by an Assertion Issuer listed in the policy.
 
 Mirrored or cached copies MUST NOT be relied on beyond their HTTP
 cache lifetime (see {{caching}}).
+
+## Shared Infrastructure and Hosted Well-Known Paths {#shared-infrastructure}
+
+Many deployments host `/.well-known/` resources behind third-party
+Content Delivery Networks (CDNs), shared edge platforms, or
+multi-tenant cloud hosting systems. TLS server authentication proves
+that the client reached an endpoint serving the requested host name;
+it does not prove that every routing rule, origin-pull rule, cache
+rule, or tenant boundary inside the shared platform is controlled by
+the namespace owner.
+
+This matters for both the Resource Authorization Server trust policy
+and the Subject Authority's Issuer Authorization Policy. If an
+attacker can exploit shared infrastructure to serve a forged
+`/.well-known/oauth-issuer-policy` response for a victim domain, the
+attacker can attempt to authorize an Assertion Issuer for that
+victim's namespace even though the HTTPS connection itself succeeds.
+Similar risks arise from misconfigured path routing, dangling origins,
+tenant takeover, cache poisoning, or origin authentication failures.
+
+Administrators SHOULD avoid delegating security-critical well-known
+paths to multi-tenant infrastructure unless they can ensure exclusive
+control over routing for those paths, authenticated origin access,
+cache invalidation, and tenant isolation. Deployments that host policy
+documents on shared infrastructure SHOULD use object-level
+cryptographic integrity for the policy document itself, such as a
+JWS-signed JWT {{RFC7515}}, rather than relying solely on the
+TLS channel to the shared edge. The signing key SHOULD be controlled by
+the Subject Authority or Resource Authorization Server independently
+of CDN tenant configuration.
+
+Consumers that require object-level integrity SHOULD require and verify
+the `signed_policy` member before acting on the policy and SHOULD
+treat a valid TLS connection to a shared edge as insufficient by itself
+when local policy requires object-level integrity.
 
 ## Policy Disclosure
 

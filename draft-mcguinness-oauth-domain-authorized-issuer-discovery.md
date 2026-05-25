@@ -87,7 +87,7 @@ DAI is a profile of the OAuth Identity Assertion Issuer Trust Policy
 ({{TRUST-POLICY}}): it defines two `subject_namespace_authorization`
 Trust Methods (`domain_authorized_issuer` and
 `https_authorized_issuer`) and the wire format they consume. The
-parent trust policy framework owns the generic Trust Policy document,
+parent trust policy specification owns the generic Trust Policy document,
 Trust Method category structure, cross-category combination rule,
 and Subject Authority Determination concept.
 
@@ -1450,7 +1450,7 @@ Change Controller:
 : IETF
 
 Specification Document:
-: This document, this document
+: This document
 
 Status:
 : permanent

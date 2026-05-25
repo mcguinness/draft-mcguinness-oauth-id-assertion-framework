@@ -833,13 +833,10 @@ This separation has two important consequences:
   hop. Profile authors deploying multi-hop flows MUST analyze each
   hop separately and reason about the cumulative attack surface.
 
-OAuth Identity Chaining ({{I-D.ietf-oauth-identity-chaining}}) is
-a worked example of multi-hop trust evaluation; see
-{{identity-chaining-example}} for a mapping of Identity Chaining
-flows onto composed Authority Delegation evaluations. Two specific
-failure modes that profile authors of multi-hop flows MUST consider
-are identity laundering ({{identity-laundering}}) and context
-token laundering ({{context-token-laundering}}).
+OAuth Identity Chaining ({{I-D.ietf-oauth-identity-chaining}}) is one
+example of multi-hop trust evaluation. Two specific failure modes that
+profile authors of multi-hop flows MUST consider are identity
+laundering and context token laundering ({{context-token-laundering}}).
 
 # Delegation Artifacts {#artifacts}
 
@@ -1647,9 +1644,8 @@ high-stakes cross-domain deployments.
 ### Multi-Hop Cross-Domain Risks
 
 When Authority Delegation evaluation spans multiple hops across
-multiple trust domains (as in Identity Chaining,
-{{identity-chaining-example}}), three risks compound that no
-single-hop analysis catches:
+multiple trust domains, three risks compound that no single-hop
+analysis catches:
 
 - **Bilateral trust accretion.** Each hop introduces trust
   assumptions that no single party verifies end-to-end. AS A
@@ -1665,11 +1661,9 @@ single-hop analysis catches:
   asserting only about `example.com` subjects does not
   automatically bind any token AS B subsequently issues; AS B
   may re-issue the identity under its own authority without
-  carrying the original constraint forward. This is the
-  identity-laundering risk; see {{identity-laundering}}. Profiles
-  that need scope to propagate across hops MUST specify the
-  carriage mechanism (for example, claim-binding requirements on
-  intermediate tokens).
+  carrying the original constraint forward. Profiles that need scope
+  to propagate across hops MUST specify the carriage mechanism (for
+  example, claim-binding requirements on intermediate tokens).
 
 - **Cross-domain auditability gap.** No single party in a
   multi-hop chain sees the full evaluation history. The
@@ -1718,12 +1712,11 @@ first place. This is the laundering: the upstream's
 constraint-bound trust is reissued as the downstream issuer's
 unconstrained trust.
 
-Context Token Laundering is structurally distinct from the
-identity laundering case in {{identity-laundering}}: identity
-laundering loses the SUBJECT-NAMESPACE binding (the downstream
-token names a subject under no Authority Holder's delegation);
-context laundering loses the DELEGATION-CONSTRAINT binding (the
-downstream token preserves the subject but loses the scope,
+Context Token Laundering is structurally distinct from identity
+laundering: identity laundering loses the SUBJECT-NAMESPACE binding
+(the downstream token names a subject under no Authority Holder's
+delegation); context laundering loses the DELEGATION-CONSTRAINT
+binding (the downstream token preserves the subject but loses the scope,
 tenant, or conditions the original delegation imposed). Both are
 composition failures and both are addressed by the same
 principle: each hop's Validator MUST evaluate its own
@@ -1875,392 +1868,26 @@ as starting points if they choose to register concrete profiles.
 
 # Examples and Related Mechanisms (Non-Normative) {#appendix-profiles}
 
-This section sketches how existing IETF and industry mechanisms map
-onto the Authority Delegation Pattern. Sketches are non-normative
-and illustrative; the cited specifications remain authoritative for
-their own content.
+This section sketches how selected mechanisms map onto the Authority
+Delegation Pattern. The mappings are illustrative; the cited
+specifications remain authoritative.
 
-## OAuth-Ecosystem Specifications {#examples-oauth}
+| Mechanism | Authority Holder | Delegate | Delegation Artifact | Publication Channel | Transitivity |
+|-|-|-|-|-|-|
+| {{TRUST-POLICY}} + {{DAI}} | Subject Authority | Assertion Issuer | Issuer Authorization Policy | DNS TXT and/or HTTPS policy document | Depth-1 for namespace authorization |
+| {{CIA}} | OAuth client owner | Instance Issuer | `instance_issuers` metadata | Client metadata | Profile-defined |
+| {{OIDF-FEDERATION}} | Trust Anchor and intermediates | Leaf entity | Subordinate Statements | Federation endpoints and signed JWTs | Chained |
+| CAA {{RFC8659}} | DNS domain holder | Certification Authority | CAA record | DNS | Depth-1 |
+| MTA-STS {{RFC8461}} | Mail domain | None | MTA-STS policy | DNS plus HTTPS well-known URL | Not a delegation profile |
+| RPKI {{RFC6480}} | IANA/RIR/LIR hierarchy | Child holder or origin AS | Resource certificate or ROA | RPKI repository | Chained |
+| Delegated Credentials {{RFC9345}} | Long-lived TLS certificate | Short-lived credential | Delegated Credential | TLS handshake | Depth-1 |
+| Macaroons {{MACAROONS}} and capability-token systems | Initial token issuer | Token holder / attenuator | Token caveat chain | In-band token | Attenuated |
 
-### OAuth Identity Assertion Issuer Trust Policy + DAI
-
-The OAuth profile family ({{oauth-profile-family}}) is documented
-across two specifications: {{TRUST-POLICY}} defines the Trust
-Policy document, Trust Method machinery, and Subject Authority
-Determination; {{DAI}} defines the Issuer Authorization Policy
-wire format and two Trust Methods consuming it.
-
-| Element | Mapping |
-|-|-|
-| Authority Holder | Subject Authority (e.g., a registrable DNS domain) |
-| Delegate | Assertion Issuer (OAuth authorization server) |
-| Delegation Artifact | Issuer Authorization Policy ({{DAI}}) |
-| Publication Channel | DNS TXT record at `_oauth-issuer-policy.{A}` and/or HTTPS at `.well-known/oauth-issuer-policy` ({{DAI}}) |
-| Source Selection | Subject Identifier format extraction per {{TRUST-POLICY}} §Subject Authority Determination |
-| Subdelegation | Not permitted (bounded depth-1 for namespace authorization) |
-| Revocation | Cache-lifetime bounded; recommended 24-hour ceiling |
-
-### OAuth Identity Chaining as Composed Authority Delegation {#identity-chaining-example}
-
-Identity Chaining {{I-D.ietf-oauth-identity-chaining}} propagates a
-user's identity across OAuth trust domains: a user authenticates at
-Authorization Server A in Trust Domain A, an identity assertion is
-presented to Authorization Server B in Trust Domain B, and B issues
-a token consumed by a Resource Server in Trust Domain B. This flow
-is a composition of multiple Authority Delegation evaluations
-happening at different protocol points.
-
-A representative flow:
-
-~~~
-User (alice@example.com)
-   ↓ authenticates at
-Authorization Server A (Trust Domain A)
-   ↓ issues identity assertion (e.g., ID-JAG per {{ID-JAG}})
-   ↓ assertion presented to
-Authorization Server B (Trust Domain B)
-   ↓ exchanges assertion for access token
-   ↓ token presented at
-Resource Server (Trust Domain B)
-~~~
-
-Three independent delegations apply at different points in this
-flow. Each is a separate Authority Delegation evaluation governed
-by the cross-category combination rule of {{combination-rule}}.
-
-**Delegation A: namespace authority over the user's subject identifier.**
-
-| Element | Mapping |
-|-|-|
-| Authority Holder | The user's namespace owner (for `alice@example.com`, the `example.com` domain) |
-| Delegate | Authorization Server A |
-| Delegation Artifact | An Issuer Authorization Policy ({{DAI}}) at `example.com` listing AS A as authorized |
-| Validator | Authorization Server B (evaluates this delegation when accepting the identity assertion) |
-| Question answered | "Is AS A entitled to assert about subjects in `example.com`?" |
-
-**Delegation B: peer-authorization-server trust between AS A and AS B.**
-
-| Element | Mapping |
-|-|-|
-| Authority Holder | Federation operator OR bilateral deployment-owner |
-| Delegate | Authorization Server A |
-| Delegation Artifact | Federation Subordinate Statement ({{OIDF-FEDERATION}}) OR local configuration at AS B |
-| Validator | Authorization Server B |
-| Question answered | "Is AS A authentic in an ecosystem AS B recognizes?" |
-
-**Delegation C: resource-server acceptance of AS B's tokens.**
-
-| Element | Mapping |
-|-|-|
-| Authority Holder | The resource server's local trust configuration or governing federation |
-| Delegate | Authorization Server B |
-| Delegation Artifact | RS configuration OR federation metadata listing AS B |
-| Validator | Resource Server |
-| Question answered | "Does the RS accept tokens issued by AS B?" |
-
-Authorization Server B evaluates Delegations A and B independently
-when accepting the identity assertion. The cross-category
-combination rule applies: AS A must satisfy both the namespace
-authority question AND the authenticity question. Satisfying one
-does not substitute for the other.
-
-The Resource Server evaluates Delegation C when accepting the
-access token. The RS does NOT directly evaluate Delegations A or B;
-those evaluations were AS B's responsibility at token issuance
-time. AS B's trust in AS A does not transitively propagate to the
-RS; the RS trusts AS B (Delegation C), and AS B's evaluation of
-its inputs is a precondition the RS does not re-perform.
-
-### Identity Laundering Prevented by Composition {#identity-laundering}
-
-A naive Identity Chaining design might let assertions accrete trust
-across hops: AS A asserts about `alice@example.com`; AS B accepts
-the assertion and issues a token whose `iss` is AS B; the RS
-accepts the token and treats the `example.com` subject claim as if
-it carried the original namespace authority. This is
-"identity laundering": the namespace authority binding established
-at Delegation A is lost when AS B re-wraps the identity in a token
-under its own issuer.
-
-Composition of independent Authority Delegation evaluations
-prevents this. Each hop's trust evaluation is bounded by its own
-Delegation Artifact. The Resource Server's trust in AS B
-(Delegation C) does not extend to whatever subjects AS B's tokens
-name; it extends only to AS B as an issuer. If the RS needs to
-verify that a subject claim in AS B's token reflects valid
-namespace authority, the RS MUST evaluate that namespace
-authority itself (or AS B MUST carry forward a verifiable chain).
-This pattern does not provide the chain-propagation mechanism;
-Transaction Tokens {{I-D.ietf-oauth-transaction-tokens}} is one
-specification that addresses the wire format for forward-chained
-identity context.
-
-An alternative architecture for Identity Chaining uses attenuated
-delegation ({{attenuated-delegation}}) rather than hop-by-hop
-evaluation: AS A issues an attenuable assertion bounded by
-`example.com`'s delegation; AS B may further narrow but cannot
-broaden the scope; the RS verifies the cumulative chain
-cryptographically without retrieving any external Delegation
-Artifact. The attenuation model prevents identity laundering
-structurally (a chain cannot be widened) and eliminates per-hop
-delegation-artifact retrieval, at the cost of looser revocation
-semantics (bounded by token TTL) and a closed-world chain root.
-Profiles MAY choose either architecture; see
-{{attenuated-delegation}} for the trade-offs.
-
-### Where This Pattern Helps Identity Chaining
-
-This pattern complements Identity Chaining by:
-
-- Providing a common vocabulary for the multi-hop trust evaluation
-  (Delegations A, B, C above are named uniformly).
-- Applying the two-categories framing at each hop independently,
-  so authenticity and authority remain distinct trust questions
-  across the chain.
-- Naming "identity laundering" as a composition risk that profile
-  authors and deployers MUST consider.
-- Making each hop's delegation independently auditable
-  ({{audit}}).
-
-This pattern does NOT define the identity assertion wire format
-(ID-JAG), the cross-hop scope-binding token format (Transaction
-Tokens), or the cross-domain bilateral configuration mechanism. It
-provides the trust evaluation layer that the other specifications
-plug into.
-
-### Attribute Authority Delegation (Hypothetical Profile) {#attribute-authority-example}
-
-The previous examples delegate attestation authority over subject
-identity within a namespace the Authority Holder owns. Attribute
-authority delegation is structurally similar but the Authority
-Holder is NOT necessarily the Subject's namespace owner. Examples
-include a university that may attest a former student's degree
-status (even after the student leaves the `university.example`
-namespace), an HR system that may attest current-employee status
-for an enterprise's employees, a KYC provider that may attest
-identity-verification claims, and a credentialing body that may
-attest professional certifications.
-
-A hypothetical profile for "Attribute Authority Delegation" would
-map onto the pattern as follows:
-
-| Element | Mapping |
-|-|-|
-| Authority Holder | The attribute-authority entity (university, employer, KYC provider, credentialing body) |
-| Delegate | An Assertion Issuer authorized to attest the specific attribute |
-| Delegation Artifact | A signed delegation document or registry entry binding the Delegate to specific attribute types and (optionally) specific Subject populations |
-| Publication Channel | Profile-defined: a registry, signed metadata, DID-resolvable document, etc. |
-| Subdelegation | Profile-defined |
-| Revocation | Profile-defined; attribute attestations often require explicit revocation channels (Verifiable Credential Status Lists, OCSP-like mechanisms) |
-
-This case is important to the pattern because it generalizes
-beyond "Authority Holder owns the Subject's namespace." The Subject
-is typically named in some other namespace (`alice@home.example`
-might hold a degree from `university.example`). The Authority
-Holder's authority is over the CLAIM TYPE (degree status) rather
-than over the Subject's identity namespace.
-
-A future profile in this space would interoperate with W3C
-Verifiable Credentials at the credential layer; this pattern
-specifies the OAuth-side trust evaluation when such an attestation
-is presented as an identity assertion or in an access token.
-
-### OAuth Client Instance Assertion
-
-| Element | Mapping |
-|-|-|
-| Authority Holder | OAuth client owner |
-| Delegate | Instance Issuer (workload identity authority) |
-| Delegation Artifact | `instance_issuers` member of CIMD or local client metadata |
-| Publication Channel | CIMD document at the `client_id` URL |
-| Subdelegation | Profile-defined |
-| Revocation | Cache-lifetime bounded; recommended 1-hour ceiling |
-
-### OpenID Federation
-
-| Element | Mapping |
-|-|-|
-| Authority Holder | Federation Trust Anchor (root) |
-| Delegate | Leaf entity (chained through intermediates) |
-| Delegation Artifact | Chain of Subordinate Statements from leaf to Trust Anchor |
-| Publication Channel | Federation Fetch endpoints; signed JWTs |
-| Subdelegation | Permitted (intermediates Subdelegate to leaves) |
-| Revocation | Per-statement `exp`; trust anchor key rotation |
-
-## Related Local-Trust Patterns {#examples-local-trust}
-
-### OAuth Attestation-Based Client Authentication
-
-OAuth Attestation-Based Client Authentication uses a related local
-trust pattern. It is not a complete open-world authority-delegation
-profile when the authorization server's own configuration is the only
-Authority Source and no distinct Authority Holder publishes a
+Mechanisms such as OAuth Attestation-Based Client Authentication use
+related local-trust patterns, but are not complete open-world
+Authority Delegation profiles when local Validator configuration is
+the only Authority Source and no distinct Authority Holder publishes a
 Delegation Artifact.
-
-| Element | Mapping |
-|-|-|
-| Authority Holder | Authorization Server local policy or configured trust anchor |
-| Delegate | Client Attester |
-| Delegation Artifact | Local configuration of trusted Attester keys (not externally published) |
-| Publication Channel | Out-of-band Validator configuration |
-| Subdelegation | Not applicable |
-| Revocation | Local-config update |
-
-## Related IETF Mechanisms {#examples-ietf}
-
-### CAA ({{RFC8659}})
-
-| Element | Mapping |
-|-|-|
-| Authority Holder | DNS domain holder |
-| Delegate | Certification Authority |
-| Delegation Artifact | CAA DNS record |
-| Publication Channel | DNS TXT/CAA records |
-| Subdelegation | Not permitted (depth-1) |
-| Revocation | DNS TTL bounded |
-
-### MTA-STS ({{RFC8461}})
-
-MTA-STS is not a full delegation profile because it publishes a policy
-for the Authority Holder's own mail domain rather than authorizing a
-separate Delegate. It is included as a related authority-publication
-mechanism because it uses the same channel-binding idea: control of
-DNS and an HTTPS well-known URL establishes who may publish policy for
-the namespace.
-
-| Element | Mapping |
-|-|-|
-| Authority Holder | Mail-receiving domain |
-| Delegate | (None; MTA-STS publishes policy, not delegations to other parties) |
-| Delegation Artifact | MTA-STS policy file at `.well-known/mta-sts.txt` |
-| Publication Channel | DNS TXT plus HTTPS well-known URL |
-| Subdelegation | Not applicable |
-| Revocation | Cache-lifetime bounded |
-
-### Resource Public Key Infrastructure (RPKI)
-
-RPKI {{RFC6480}} is the canonical chained authority delegation system
-on the public Internet. IANA delegates IP allocations to Regional
-Internet Registries (RIRs); RIRs delegate to Local Internet Registries
-(LIRs); LIRs delegate to operators. At each level the parent signs a
-resource certificate authorizing the child for a specific resource
-range. Route Origin Authorizations (ROAs) are signed delegation
-artifacts asserting that a specific Autonomous System is authorized to
-originate a specific IP prefix.
-
-| Element | Mapping |
-|-|-|
-| Authority Holder | IANA (root); RIRs and LIRs (intermediate); operators (leaf) |
-| Delegate | The child entity in each delegation, or the originating AS in a ROA |
-| Delegation Artifact | Signed resource certificate; ROA |
-| Publication Channel | RPKI repositories, fetchable by relying-party software |
-| Subdelegation | Permitted (multi-level chain) |
-| Revocation | Per-statement validity; CRLs and manifests |
-
-RPKI demonstrates the pattern at extreme scale (the whole Internet
-number space) with strict chained delegation. The Authority
-Delegation pattern is compatible with RPKI's structure; an OAuth
-profile inspired by RPKI would specify hierarchical signed
-delegation artifacts.
-
-### Delegated Credentials for TLS ({{RFC9345}})
-
-Delegated Credentials let a TLS server use a short-lived credential
-signed by a long-lived certificate. The long-lived certificate acts
-as an Authority Holder authorizing the short-lived credential as a
-Delegate for the same name.
-
-| Element | Mapping |
-|-|-|
-| Authority Holder | Long-lived TLS certificate (CA-issued) |
-| Delegate | Short-lived delegated credential |
-| Delegation Artifact | Delegated Credential structure signed by the long-lived certificate |
-| Publication Channel | Delivered in-band in the TLS handshake |
-| Subdelegation | Not permitted (depth-1) |
-| Revocation | Short validity windows replace explicit revocation |
-
-This is the closest IETF analog at the TLS layer: a long-lived
-authority delegates a short-lived signing capability bounded by a
-validity window, with no separate publication channel needed.
-
-## Industry and W3C Mechanisms {#examples-industry}
-
-### Sigstore (Industry Practice)
-
-Sigstore's signing flow chains delegation across OIDC, an
-ephemeral-certificate CA (Fulcio), a transparency log (Rekor), and
-the signing tool (Cosign):
-
-| Element | Mapping |
-|-|-|
-| Authority Holder | OIDC Identity Provider (authoritative for the user's identity) |
-| Delegate | Fulcio-issued short-lived X.509 certificate bound to the OIDC identity |
-| Delegation Artifact | The Fulcio certificate, with OIDC identity in a SAN extension; the Rekor transparency log entry |
-| Publication Channel | Fulcio CA infrastructure plus Rekor transparency log |
-| Subdelegation | Not permitted (depth-1 from OIDC identity to Fulcio cert) |
-| Revocation | Short validity windows; transparency log used to detect anomalies |
-
-Sigstore is non-IETF but widely deployed for software-supply-chain
-signing. An OAuth-anchored profile of Authority Delegation for
-software signing would likely follow the Sigstore pattern: OIDC
-identity provides the Authority Holder; a short-lived certificate or
-JWT acts as the Delegation Artifact; a transparency log provides
-audit.
-
-### W3C Verifiable Credentials
-
-The W3C Verifiable Credentials Data Model defines a three-party trust
-triangle: Issuer, Holder, and Verifier. The Issuer makes claims about
-a Subject (the Holder, in many flows). The Verifier validates the
-credential and accepts the Issuer's claims under some trust
-assumption.
-
-| Element | Mapping |
-|-|-|
-| Authority Holder | The party with authority over the claim type (often, but not always, the Issuer itself) |
-| Delegate | The VC Issuer |
-| Delegation Artifact | The trust-establishment mechanism the Verifier uses to accept the Issuer (DID resolution, trust-list, registry membership, ecosystem governance framework) |
-| Publication Channel | DID method-specific; trust list publication; governance-framework artifacts |
-| Subdelegation | Profile-defined; some ecosystems support delegated issuance |
-| Revocation | Credential Status List, registry updates |
-
-VC and Authority Delegation overlap in the abstract pattern but
-operate on different artifacts (VC credentials vs OAuth assertions)
-and through different infrastructure. A deployment using both
-typically uses VC for credential issuance and Authority Delegation
-for OAuth-layer issuer trust.
-
-### Macaroons and Capability-Token Systems
-
-Macaroons {{MACAROONS}}, Biscuit tokens, SPKI/SDSI ({{RFC2693}}),
-UCAN, and W3C zcap-ld realize attenuated delegation
-({{attenuated-delegation}}). The delegation chain is carried within
-the token rather than retrieved from an external publication
-channel; subsequent holders may add caveats that narrow the
-delegation but cannot broaden it.
-
-| Element | Mapping |
-|-|-|
-| Authority Holder | Initial token issuer (the root of the capability chain) |
-| Delegate | Initial token holder; each subsequent attenuator is a Subdelegate |
-| Delegation Artifact | The token itself, with its chain of caveats |
-| Publication Channel | In-band: the token IS the artifact, carried with the Assertion |
-| Subdelegation | Permitted, monotone-narrowing only (attenuation) |
-| Revocation | Token TTL; explicit third-party caveats; out-of-band invalidation lists |
-
-OAuth Token Exchange ({{RFC8693}}) with downscoping is the
-OAuth-standard attenuation primitive: a new token is issued with
-NARROWER scope than the input. The exchange happens at an
-authorization server (rather than free-form holder-side attenuation
-as in macaroons), but the architectural intent (downstream tokens
-never broader than upstream) is the same.
-
-These sketches illustrate the pattern's generality across both
-external-publication and in-band-attenuation architectures. Each
-existing mechanism predates this document and is not modified by
-it. The sketches show that the Authority Delegation Pattern is a
-description of an existing class of mechanisms rather than an
-invention of this document.
 
 --- back
 

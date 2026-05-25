@@ -28,7 +28,7 @@ author:
 normative:
   RFC6749:
   RFC8126:
-  TRUST-FRAMEWORK:
+  TRUST-POLICY:
     title: "OAuth Identity Assertion Issuer Trust Policy"
     target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-identity-assertion-issuer-trust-policy/
     date: false
@@ -47,12 +47,20 @@ informative:
     title: "OAuth Client Identifier Metadata Document"
     target: https://datatracker.ietf.org/doc/draft-parecki-oauth-client-id-metadata-document/
     date: false
+  AUTHORITY-DELEGATION:
+    title: "OAuth Authority Delegation Framework"
+    target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-authority-delegation-framework/
+    date: false
+  DAI:
+    title: "OAuth Domain-Authorized Issuer Discovery"
+    target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer-discovery/
+    date: false
 
 ---
 
 --- abstract
 
-The OAuth Identity Assertion Issuer Trust Policy {{TRUST-FRAMEWORK}}
+The OAuth Identity Assertion Issuer Trust Policy {{TRUST-POLICY}}
 defines a Trust Policy that a Resource Authorization Server publishes
 to declare which Trust Methods it accepts for evaluating the issuer of
 an identity assertion. It defines two Trust Method categories: one for
@@ -73,14 +81,14 @@ It registers a third Trust Method category,
 validation to {{CIA}}. A Resource Authorization Server lists this
 method in its Trust Policy to advertise that it evaluates Client
 Instance Assertions; the cross-category combination rule of
-{{TRUST-FRAMEWORK}} composes the new category with the existing
+{{TRUST-POLICY}} composes the new category with the existing
 two.
 
 --- middle
 
 # Introduction
 
-The OAuth Identity Assertion Issuer Trust Policy {{TRUST-FRAMEWORK}}
+The OAuth Identity Assertion Issuer Trust Policy {{TRUST-POLICY}}
 gives an OAuth 2.0 {{RFC6749}} Resource Authorization Server a way to
 declare its trust criteria for identity assertions. The Trust Policy lists Trust
 Methods in categories; each category answers a distinct trust
@@ -115,20 +123,36 @@ that category. The Trust Method defers all wire-format validation to
 
 A Resource Authorization Server that accepts Client Instance
 Assertions lists `client_authorized_instance_issuer` in its Trust
-Policy. The cross-category combination rule of {{TRUST-FRAMEWORK}}
+Policy. The cross-category combination rule of {{TRUST-POLICY}}
 ensures that client-instance evaluation runs alongside any required
 issuer-authentication and subject-namespace-authorization checks.
 
-## Relationship to Other Documents
+## Relationship to the OAuth Profile Family
 
-This document depends normatively on:
+This document extends the OAuth profile family of
+{{AUTHORITY-DELEGATION}} with a third Trust Method category. The
+family is:
 
-- **{{TRUST-FRAMEWORK}}**: the parent framework defining Trust Policy,
-  Trust Method categories, the cross-category combination rule, and
-  the IANA Trust Methods registry that this document extends.
-- **{{CIA}}**: the wire-format and validation specification for
-  Client Instance Assertions. This document defers all wire-format
-  details to {{CIA}}.
+- **{{AUTHORITY-DELEGATION}}**: the abstract Authority Delegation
+  Pattern (Authority Holder, Delegate, Delegation Artifact,
+  Validator; cross-category combination rule; profile registry).
+- **{{TRUST-POLICY}}**: the OAuth profile defining the Trust Policy
+  document, Trust Method machinery, Subject Authority
+  Determination, and two initial categories
+  (`issuer_authentication`, `subject_namespace_authorization`).
+- **{{DAI}}**: a `subject_namespace_authorization` profile defining
+  DNS+HTTPS Subject Authority publication.
+- **This document**: registers a third category,
+  `client_instance_authorization`, applying the same Authority
+  Delegation Pattern to the client-instance trust question. The
+  Authority Holder is the OAuth client owner; the Delegate is the
+  Instance Issuer; the Delegation Artifact is the
+  `instance_issuers` list in CIMD or local registration.
+
+This document depends normatively on {{TRUST-POLICY}} (Trust Method
+machinery, cross-category combination rule, IANA registries) and
+{{CIA}} (Client Instance Assertion wire format and validation
+procedure).
 
 This document does not define:
 
@@ -142,7 +166,7 @@ This document does not define:
 This document does define:
 
 - The `client_instance_authorization` Trust Method category, as a
-  registered extension to {{TRUST-FRAMEWORK}}.
+  registered extension to {{TRUST-POLICY}}.
 - The `client_authorized_instance_issuer` Trust Method, in that
   category, deferring to {{CIA}}.
 - The optional `client_instance_assertion_required` Trust Policy
@@ -155,7 +179,7 @@ This document does define:
 
 # Terminology
 
-This document uses the terminology of {{TRUST-FRAMEWORK}} and
+This document uses the terminology of {{TRUST-POLICY}} and
 {{CIA}}. In addition:
 
 Instance Issuer:
@@ -170,7 +194,7 @@ Instance Issuer:
 
 This document registers `client_instance_authorization` as a Trust
 Method category in the IANA "Identity Assertion Issuer Trust
-Methods" registry established by {{TRUST-FRAMEWORK}}.
+Methods" registry established by {{TRUST-POLICY}}.
 
 Category definition:
 
@@ -204,7 +228,7 @@ The Trust Method in this category evaluates the Instance Issuer (the
 Issuer of the primary identity assertion. The `iss` of the primary
 assertion continues to be evaluated under the
 `issuer_authentication` and `subject_namespace_authorization`
-categories of {{TRUST-FRAMEWORK}}.
+categories of {{TRUST-POLICY}}.
 
 # The client_authorized_instance_issuer Trust Method {#trust-method}
 
@@ -249,7 +273,7 @@ it MUST:
 
 3. If the {{CIA}} validation procedure succeeds, this Trust Method
    is satisfied. If validation fails, this Trust Method is not
-   satisfied; per {{TRUST-FRAMEWORK}} §rasp, the Resource
+   satisfied; per {{TRUST-POLICY}} §Resource Authorization Server Processing, the Resource
    Authorization Server MUST reject the request.
 
 The authority source for this Trust Method is the OAuth client
@@ -271,7 +295,7 @@ federation membership for the Instance Issuer lists both
 `client_authorized_instance_issuer` (in this category) and a
 federation-based method such as `openid_federation` (in the
 `issuer_authentication` category) in its Trust Policy. The
-cross-category combination rule of {{TRUST-FRAMEWORK}} ensures both
+cross-category combination rule of {{TRUST-POLICY}} ensures both
 are evaluated.
 
 # Trust Policy Extension {#policy-extension}
@@ -292,8 +316,8 @@ present is still evaluated when the policy contains an applicable
 `client_instance_authorization` method.
 
 A Trust Policy publisher using this member SHOULD list it in the
-Trust Policy's `crit` member ({{TRUST-FRAMEWORK}}
-§critical-extension-identifiers) so that consumers that do not
+Trust Policy's `crit` member ({{TRUST-POLICY}}
+§Critical Extension Identifiers) so that consumers that do not
 recognize the member reject the policy rather than silently
 ignoring the requirement.
 
@@ -306,7 +330,7 @@ Example:
     "urn:ietf:params:oauth:grant-profile:id-jag"
   ],
   "subject_identifier_formats_supported": ["email"],
-  "issuer_trust_methods_supported": [
+  "issuer_trust_methods": [
     {
       "method": "openid_federation",
       "trust_anchors": ["https://federation.example.org"]
@@ -331,8 +355,8 @@ authority.
 # Combined Evaluation {#combined-evaluation}
 
 When this Trust Method category is present alongside the categories
-defined in {{TRUST-FRAMEWORK}}, the cross-category combination rule
-of {{TRUST-FRAMEWORK}} §rasp applies unchanged. The rule combines
+defined in {{TRUST-POLICY}}, the cross-category combination rule
+of {{TRUST-POLICY}} §Resource Authorization Server Processing applies unchanged. The rule combines
 categories with AND-semantics across categories and OR-semantics
 within a category.
 
@@ -396,7 +420,7 @@ authorization for the Instance Issuer.
     "urn:ietf:params:oauth:grant-profile:id-jag"
   ],
   "subject_identifier_formats_supported": ["email"],
-  "issuer_trust_methods_supported": [
+  "issuer_trust_methods": [
     {
       "method": "openid_federation",
       "trust_anchors": ["https://federation.example.org"]
@@ -436,8 +460,8 @@ grant_type=urn:ietf:params:oauth:grant-type:token-exchange
 
 ## Verification
 
-The Resource Authorization Server applies the {{TRUST-FRAMEWORK}}
-§rasp procedure with the three-category combination rule. For each
+The Resource Authorization Server applies the {{TRUST-POLICY}}
+§Resource Authorization Server Processing procedure with the three-category combination rule. For each
 applicable category:
 
 1. **`issuer_authentication` (Assertion Issuer = ID-JAG `iss`)**:
@@ -578,7 +602,7 @@ Instance Assertions and the resolution of CIMD documents, see
 
 IANA is requested to add the following entry to the "Identity
 Assertion Issuer Trust Method Categories" registry established by
-{{TRUST-FRAMEWORK}}. Registration policy: Specification Required
+{{TRUST-POLICY}}. Registration policy: Specification Required
 {{RFC8126}}.
 
 Category Identifier:
@@ -605,7 +629,7 @@ Reference:
 
 IANA is requested to add the following entry to the "Identity
 Assertion Issuer Trust Methods" registry established by
-{{TRUST-FRAMEWORK}}.
+{{TRUST-POLICY}}.
 
 Identifier:
 : `client_authorized_instance_issuer`
@@ -622,10 +646,10 @@ Reference:
 ## Trust Policy Member Registration
 
 IANA is requested to add the following entry to the Trust Policy
-member registry established by {{TRUST-FRAMEWORK}} (if such a
+member registry established by {{TRUST-POLICY}} (if such a
 registry exists at the time of publication; otherwise, IANA is
 requested to publish the registration alongside the trust policy
-member registrations of {{TRUST-FRAMEWORK}}).
+member registrations of {{TRUST-POLICY}}).
 
 Member Name:
 : `client_instance_assertion_required`
@@ -639,6 +663,56 @@ Change Controller:
 
 Specification Document:
 : This document
+
+## Authority Delegation Profile Registration
+
+This document registers an entry in the Authority Delegation
+Profile registry of {{AUTHORITY-DELEGATION}} (§Authority Delegation
+Profile Registry):
+
+Profile Identifier:
+: `urn:ietf:params:oauth:authority-delegation-profile:client-instance-trust`
+
+Authority Holder Form:
+: OAuth client owner, identified by the OAuth `client_id` and the
+client metadata source ({{CIMD}} URL or local registration).
+
+Delegate Form:
+: Instance Issuer (the `iss` claim of a Client Instance Assertion
+per {{CIA}}).
+
+Publication Channel:
+: The OAuth client's `instance_issuers` metadata. Published as part
+of the CIMD document at the `client_id` URL, or carried in local
+registration; see {{CIA}}.
+
+Subdelegation:
+: Not permitted. The OAuth client lists Instance Issuers directly;
+bounded depth-1.
+
+Reference:
+: This document, {{CIA}}.
+
+Profile Mapping Matrix:
+
+`source_selection`
+: The Authority Source is the OAuth client owner, selected
+deterministically from the authenticated `client_id` of the token
+request. Selection uses one property (the authenticated
+`client_id`) and is invariant under other claims in the request or
+in either presented assertion.
+
+`revocation_lifecycle`
+: Determined by the OAuth client's metadata publication channel.
+For {{CIMD}}, bounded by HTTP cache lifetime on the CIMD document.
+For local registration, bounded by the Resource Authorization
+Server's configuration refresh policy. No push mechanism is
+defined; revocation latency follows the publication-channel cache.
+
+`transitivity_limit`
+: Depth-1. The OAuth client's `instance_issuers` list names
+Instance Issuers directly; an OAuth client cannot delegate
+authority over its client identity to other authorities.
 
 --- back
 

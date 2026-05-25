@@ -66,6 +66,10 @@ informative:
     title: "OAuth Domain-Authorized Issuer Discovery"
     target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer-discovery/
     date: false
+  CLIENT-INSTANCE-TRUST:
+    title: "Client Instance Trust Method for OAuth Identity Assertion Issuer Trust Policy"
+    target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-client-instance-trust/
+    date: false
   CIA:
     title: "OAuth 2.0 Client Instance Assertions using Actor Tokens"
     target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-client-instance-assertion/
@@ -183,18 +187,27 @@ Full mappings of each mechanism appear in {{appendix-profiles}}.
 ### OAuth Profile Family {#oauth-profile-family}
 
 This document is the parent of an OAuth profile family for
-namespace-authority delegation:
+identity-assertion trust evaluation. The family has two layers:
 
-- **{{TRUST-POLICY}}** profiles this pattern for OAuth identity
-  assertions, defining the Trust Policy document, Trust Method
-  machinery, Subject Authority Determination, and grant-profile
-  bindings.
-- **{{DAI}}** specifies a DNS+HTTPS Subject-Authority publication
-  mechanism consumed by trust-policy as two Trust Methods
-  (`domain_authorized_issuer`, `https_authorized_issuer`).
+- **{{TRUST-POLICY}}** is the OAuth-side framework layer. It
+  instantiates this document's pattern for OAuth identity
+  assertions and defines the Trust Policy document, the Trust
+  Method machinery (categories, combination rule, registry),
+  Subject Authority Determination, and grant-profile bindings.
+  Trust Policy is not itself a leaf profile of this document; it
+  is the framework other OAuth profiles register against.
 
-Both register in the Authority Delegation Profile registry
-({{iana-profile-registry}}).
+- Leaf profiles register Trust Methods in Trust Policy's registry
+  and register against this document's Authority Delegation
+  Profile registry ({{iana-profile-registry}}):
+
+  - **{{DAI}}** defines a DNS+HTTPS Subject-Authority publication
+    mechanism (the `domain_authorized_issuer` and
+    `https_authorized_issuer` Trust Methods).
+  - **{{CLIENT-INSTANCE-TRUST}}** extends Trust Policy with a
+    third Trust Method category, `client_instance_authorization`,
+    applying the same pattern to client identity (the
+    `client_authorized_instance_issuer` Trust Method).
 
 ### Other OAuth-Ecosystem Specifications
 

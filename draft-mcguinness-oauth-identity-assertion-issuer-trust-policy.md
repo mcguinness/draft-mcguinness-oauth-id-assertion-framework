@@ -95,15 +95,14 @@ issuer authentication and subject namespace authorization as distinct,
 independent trust requirements for OAuth identity assertions. The
 policy declares:
 
-- An Identity Assertion Issuer Trust Policy that an OAuth
-  authorization server publishes to declare its trust criteria,
-  including trust methods, trust anchors, subject identifier
-  formats, and grant profiles.
+- The trust criteria for accepted identity assertions: trust
+  methods, trust anchors, subject identifier formats, and grant
+  profiles.
 
-- Trust Method objects that state the evidence required for an
-  Assertion Issuer to be acceptable, including issuer-authentication
-  methods such as OpenID Federation and subject-namespace
-  authorization methods defined by other specifications.
+- Trust Method objects stating the evidence an Assertion Issuer
+  must satisfy, including issuer-authentication methods such as
+  OpenID Federation and subject-namespace authorization methods
+  defined by other specifications.
 
 Domain-Authorized Issuer Discovery is defined separately by {{DAI}} as
 one subject-namespace authorization method usable by this policy.

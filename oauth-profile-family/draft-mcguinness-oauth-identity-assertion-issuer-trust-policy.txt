@@ -23,25 +23,24 @@ Abstract
    which authorization servers are authorized to assert identities in
    its namespace.
 
-   This document defines a trust framework that keeps issuer
-   authentication and subject namespace authorization as distinct,
-   independent questions, and lets a Resource Authorization Server
-   require evidence for both.  The framework defines:
+   This document defines the Identity Assertion Issuer Trust Policy, a
+   JSON policy document that lets a Resource Authorization Server keep
+   issuer authentication and subject namespace authorization as
+   distinct, independent trust requirements for OAuth identity
+   assertions.  The policy declares:
 
    *  An Identity Assertion Issuer Trust Policy that an OAuth
       authorization server publishes to declare its trust criteria,
       including trust methods, trust anchors, subject identifier
       formats, and grant profiles.
 
-   *  Domain-Authorized Issuer Discovery, which applies the established
-      DNS authority-declaration pattern used by CAA, MTA-STS, SPF, and
-      DKIM: the owner of a subject namespace (for example, an email
-      domain) publishes a DNS record that declares which authorization
-      servers may assert identities about subjects in the namespace.
-      Richer policy may be expressed in an HTTPS-hosted document
-      referenced from the DNS record.  The same records enable clients
-      to discover the Assertion Issuer for an identifier in that
-      namespace.
+   *  Trust Method objects that state the evidence required for an
+      Assertion Issuer to be acceptable, including issuer-authentication
+      methods such as OpenID Federation and subject-namespace
+      authorization methods defined by other specifications.
+
+   Domain-Authorized Issuer Discovery is defined separately by [DAI] as
+   one subject-namespace authorization method usable by this policy.
 
 Discussion Venues
 
@@ -139,7 +138,6 @@ Table of Contents
        8.1.4.  Identity Assertion Issuer Trust Methods Registry
        8.1.5.  Trust Evaluation Diagnostic Reason Registry
      8.2.  Subject Authority Extraction Procedures Registry
-     8.3.  Authority Delegation Profile Registration
    9.  Extending to New Subject Identifier Formats
      9.1.  Future Extensions (Non-Normative)
    10. References
@@ -147,16 +145,7 @@ Table of Contents
      10.2.  Informative References
    Appendix A.  Design Rationale
      A.1.  Relationship to OpenID Federation
-   Appendix B.  Agent Platform IdP End-to-End Example
-     B.1.  Cast
-     B.2.  Publication
-     B.3.  User-Side SSO (Prerequisite, Out of Scope)
-     B.4.  Flow
-     B.5.  What This Protects Against
-     B.6.  Additional Failure Variants
-     B.7.  Extensions
-     B.8.  Tenant Binding Variant
-   Appendix C.  Document History
+   Appendix B.  Document History
    Author's Address
 
 1.  Introduction
@@ -182,7 +171,7 @@ Table of Contents
    Authorization Server may receive identity assertions from issuers
    that were not individually configured in advance, but whose
    acceptability can be evaluated from published evidence at request
-   time.  The purpose of this framework is not to remove policy from the
+   time.  The purpose of this policy is not to remove policy from the
    Resource Authorization Server, but to give it a standard way to
    express which evidence it requires and how that evidence is
    evaluated.
@@ -258,14 +247,14 @@ Table of Contents
 
 1.4.  Relationship to Existing Mechanisms
 
-   This framework is complementary to OpenID Federation: OpenID
-   Federation can authenticate that an issuer belongs to a trusted
-   ecosystem, while Domain-Authorized Issuer Discovery lets the
-   namespace owner say which issuers may assert about subjects in that
-   namespace.  The framework also follows existing DNS authority-
-   publication patterns such as CAA, MTA-STS, SPF, DKIM, and the Email
-   Verification Protocol.  Background and positioning details are in
-   Appendix A.1 and [DAI] §Following Existing DNS Authority Patterns.
+   This policy is complementary to OpenID Federation: OpenID Federation
+   can authenticate that an issuer belongs to a trusted ecosystem, while
+   Domain-Authorized Issuer Discovery lets the namespace owner say which
+   issuers may assert about subjects in that namespace.  The framework
+   also follows existing DNS authority-publication patterns such as CAA,
+   MTA-STS, SPF, DKIM, and the Email Verification Protocol.  Background
+   and positioning details are in Appendix A.1 and [DAI] §Following
+   Existing DNS Authority Patterns.
 
 1.5.  Documents in the Family
 
@@ -662,11 +651,12 @@ Table of Contents
           Email Verification Protocol record after parsing per
           [WICG-EMAIL-VERIF].
 
-   4.  If negative-authoritative or indeterminate, the Trust Method is
-       not satisfied; the indeterminate outcome MUST be treated per the
-       failure-handling rules of [DAI] §Failure Handling (a verifier
-       MUST reject the assertion unless a fresh cached result is
-       available).
+   4.  If negative-authoritative, the Trust Method is not satisfied.  If
+       indeterminate, the Resource Authorization Server MUST reject the
+       assertion unless local policy permits use of a fresh cached
+       affirmative result within a bounded cache lifetime.  The Resource
+       Authorization Server MUST NOT fall back to a different authority
+       source for the same Subject Authority.
 
    5.  If affirmative, parse each record per [WICG-EMAIL-VERIF] and
        collect the iss= values.  The set of authorized issuer
@@ -747,57 +737,15 @@ Table of Contents
 3.4.1.  Subdomain Authority and the Registrable-Domain Default
 
    The registrable-domain default for email is intentionally
-   conservative: it prevents a party that controls only a subdomain
-   (through legitimate operational delegation or via subdomain takeover)
-   from publishing Subject Authority records that override the
-   organizational policy at the registrable domain.  This is the right
-   default for the open-world case where a Resource Authorization Server
-   has no a priori knowledge of which subdomains are administered
-   separately within a namespace.
+   conservative: it prevents a party that controls only a subdomain from
+   publishing Subject Authority records that override the organizational
+   policy at the registrable domain.
 
-   Enterprise deployments often operationally delegate identity
-   administration at subdomain boundaries, including patterns such as:
-
-   *  students.university.edu administered separately from the
-      university's faculty/staff identity stack;
-
-   *  contractors.company.com administered by a vendor management team
-      distinct from the parent's IdP team;
-
-   *  partners.example.com issued through a partner-federation service;
-
-   *  agency.department.gov administered by an agency subordinate to a
-      departmental parent;
-
-   *  division.example.co.uk administered by a business unit with its
-      own identity infrastructure.
-
-   These deployments cannot be modeled by the registrable-domain
-   extraction alone.  The architectural mechanism for supporting them is
-   the Subject Authority Extraction Procedures Registry (Section 8.2): a
-   future specification registers an extraction procedure that derives
-   the Subject Authority from the exact email domain (for example, an
-   email_domain_exact extraction), and Resource Authorization Servers
-   that accept that extraction can recognize subdomain-level authority.
-
-   A subdomain-exact extraction MUST require explicit parent
-   authorization to avoid the subdomain-takeover risk the registrable-
-   domain default protects against.  Concretely, a specification
-   registering such an extraction MUST specify how the parent
-   registrable-domain authority delegates to a subdomain authority, for
-   example by publishing a delegation record at the parent's Subject
-   Authority publication channel that names the authorized subdomain
-   authorities.  Without parent delegation, a subdomain-takeover
-   attacker would otherwise be able to publish a competing policy at the
-   subdomain.
-
-   This document does not register a subdomain-exact extraction.  The
-   registrable-domain default is the only email extraction defined here;
-   deployments needing subdomain-level authority SHOULD use the
-   registrable-domain default with the parent as Subject Authority until
-   a subdomain-exact extraction is registered or use out-of-band
-   arrangements with the parent's identity team.  A non-normative sketch
-   of how email_domain_exact could be defined is provided in Section 9.
+   This document does not register a subdomain-exact extraction.
+   Specifications that do so MUST define how the parent registrable-
+   domain authority delegates to the subdomain authority; otherwise a
+   subdomain-takeover attacker could publish a competing policy at the
+   subdomain.  A non-normative sketch is provided in Section 9.
 
 3.5.  Critical Extension Identifiers
 
@@ -1679,64 +1627,16 @@ Table of Contents
 
                                   Table 3
 
-8.3.  Authority Delegation Profile Registration
-
-   This document registers an entry in the Authority Delegation Profile
-   registry of [AUTHORITY-DELEGATION] (§Authority Delegation Profile
-   Registry):
-
-   Profile Identifier:  urn:ietf:params:oauth:authority-delegation-
-      profile:identity-assertion-issuer-trust-policy
-
-   Authority Holder Form:  Subject Authority.  Form is namespace-
-      dependent: for email Subject Identifiers, a DNS domain
-      (registrable per Section 3.4).
-
-   Delegate Form:  Assertion Issuer (OAuth authorization server
-      identifier; HTTPS URL compared per [RFC8414] §2).
-
-   Publication Channel:  Trust Method-specific.  [DAI] defines DNS+HTTPS
-      publication for domain_authorized_issuer and
-      https_authorized_issuer; other Trust Methods register their own
-      publication channels.
-
-   Subdelegation:  subject_namespace_authorization category is depth-1
-      (no subdelegation). issuer_authentication category permits chained
-      transitivity (e.g., openid_federation).
-
-   Reference:  This document.
-
-   Profile Mapping Matrix:
-
-   source_selection  The Subject Authority is extracted from the
-      assertion's Subject Identifier via the procedure registered in
-      Section 8.2.  Source selection uses one Subject Identifier per
-      assertion; the binding function is invariant under other claims.
-      Profiles defining additional Trust Methods MAY use non-namespace
-      source selection but MUST satisfy [AUTHORITY-DELEGATION]
-      §Deterministic Source Selection.
-
-   revocation_lifecycle  Per-Trust-Method.  [DAI] bounds revocation
-      latency by DNS TTL plus HTTP cache lifetime (recommended ≤24h
-      ceiling). openid_federation follows OpenID Federation revocation
-      rules.  Negative results are not separately cached; absence of a
-      Delegation Artifact maps to Negative per [AUTHORITY-DELEGATION]
-      §Exception-Handling and Fallback Model.
-
-   transitivity_limit  Mixed: depth-1 for
-      subject_namespace_authorization, chained for issuer_authentication
-      via openid_federation.  The combination rule in Section 4.2
-      composes both categories AND-wise.
-
 9.  Extending to New Subject Identifier Formats
 
    This document registers one Subject Authority extraction procedure
-   (email, Section 3.4) and one subject_namespace_authorization Trust
-   Method that publishes via DNS (domain_authorized_issuer, [DAI]
-   §domain_authorized_issuer).  The framework is designed to accommodate
-   additional Subject Identifier formats and additional publication
-   mechanisms via future specifications.  This section describes the
-   extension procedure for spec authors.
+   (email, Section 3.4).  Additional subject_namespace_authorization
+   Trust Methods, including DNS-based publication methods such as
+   domain_authorized_issuer, are defined by separate specifications such
+   as [DAI].  The policy model is designed to accommodate additional
+   Subject Identifier formats and publication mechanisms via future
+   specifications.  This section describes the extension procedure for
+   spec authors.
 
    To extend this framework to a new Subject Identifier format, a future
    specification:
@@ -1978,326 +1878,7 @@ A.1.  Relationship to OpenID Federation
       trust-chain, metadata-publication, or policy-propagation
       mechanisms.
 
-Appendix B.  Agent Platform IdP End-to-End Example
-
-   This appendix is non-normative.
-
-   This example shows how the framework prevents an unauthorized
-   provider from impersonating users in a customer's email namespace.
-   The protection rests on a single deliberate choice by the customer:
-   publishing an Issuer Authorization Policy that lists the specific
-   agent platforms permitted to issue identity assertions about its
-   users.  Without that authorization, no provider, however well-known
-   elsewhere, can mint an accepted ID-JAG for the namespace.
-
-B.1.  Cast
-
-   *  *Customer*, example.com.  Owns the email domain of its users.
-      Decides which agent platforms are authorized to act as Assertion
-      Issuers for its users.
-
-   *  *Customer's Primary IdP*, https://idp.example.com.  Used by the
-      agent platform to federate user authentication.  Mentioned only to
-      describe the user-side SSO step; not the ID-JAG issuer and not
-      part of the verification path at the tool provider.
-
-   *  *Agent Platform*, https://agentprovider.example.  Acts as a
-      downstream identity provider for tools.  Authenticates users via
-      federated SSO from their primary IdP, then mints ID-JAGs with iss
-      = https://agentprovider.example carrying the user's identity.
-
-   *  *Tool Provider*, https://toolprovider.example.  Acts as the
-      Resource Authorization Server.  Verifies presented ID-JAGs against
-      its trust policy and issues access tokens.
-
-   *  *End user*, Alice (alice@example.com).
-
-B.2.  Publication
-
-   The customer publishes an Issuer Authorization Policy authorizing
-   exactly the providers it has chosen to trust as Assertion Issuers for
-   its users:
-
-   _oauth-issuer-policy.example.com.  IN  TXT
-     "v=oauth-issuer-policy1;
-      authority=example.com;
-      issuer=https://agentprovider.example"
-
-   This is the gatekeeping mechanism.  The customer's domain owner is
-   the only party that can publish this record.  Any provider not listed
-   cannot be authorized for example.com subjects, regardless of how
-   well-known the provider is in unrelated contexts.
-
-   The tool provider publishes a Trust Policy that consults Domain-
-   Authorized Issuer Discovery:
-
-   {
-     "resource_authorization_server": "https://toolprovider.example",
-     "authorization_grant_profiles_supported": [
-       "urn:ietf:params:oauth:grant-profile:id-jag"
-     ],
-     "subject_identifier_formats_supported": ["email"],
-     "issuer_trust_methods": [
-       {
-         "method": "domain_authorized_issuer"
-       }
-     ]
-   }
-
-B.3.  User-Side SSO (Prerequisite, Out of Scope)
-
-   Before any ID-JAG is minted, Alice establishes a session at the agent
-   platform.  The exact mechanism is out of scope; a typical flow:
-
-   1.  Alice opens the agent platform's interface.
-
-   2.  The agent platform performs federated sign-in to
-       https://idp.example.com per OpenID Connect.
-
-   3.  Alice authenticates at idp.example.com; an OIDC ID Token is
-       returned to the agent platform.
-
-   4.  The agent platform validates the ID Token, learns Alice's
-       identity (alice@example.com), and creates a session.
-
-   After this step, agentprovider.example knows Alice's organizational
-   identity.  The primary IdP (idp.example.com) plays no further role at
-   the tool provider; the agent platform relies on its own keys to mint
-   subsequent ID-JAGs.
-
-B.4.  Flow
-
-   1.  Within Alice's session, the agent platform mints an ID-JAG
-       identifying Alice, with audience https://toolprovider.example
-       (decoded payload, illustrative):
-
-      {
-        "iss": "https://agentprovider.example",
-        "aud": "https://toolprovider.example",
-        "exp": 1780166400,
-        "iat": 1780166100,
-        "jti": "b9c1...",
-        "sub": "user-3f81a2",
-        "email": "alice@example.com",
-        "email_verified": true
-      }
-
-   2.  The agent platform (as the OAuth client) posts the ID-JAG to the
-       tool provider's token endpoint with private_key_jwt client
-       authentication (governed by the ID-JAG grant profile; outside the
-       trust framework's scope):
-
-      POST /token HTTP/1.1
-      Host: toolprovider.example
-      Content-Type: application/x-www-form-urlencoded
-
-      grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
-      &assertion=eyJhbGciOiJSUzI1NiIs...
-      &client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer
-      &client_assertion=eyJhbGciOiJFUzI1NiIs...
-
-   3.  The tool provider validates the ID-JAG: signature (key resolved
-       via https://agentprovider.example/.well-known/oauth-
-       authorization-server JWKS), aud, exp, iat, replay protection.
-
-   4.  The tool provider evaluates the trust policy's
-       subject_namespace_authorization category against the assertion's
-       subject (Section 4.2):
-
-       a.  Extracts the Subject Authority from the assertion's email
-       attribution.  The ID-JAG carries email = "alice@example.com" with
-       email_verified = true at top level; per Section 3.4, the
-       registrable domain of alice@example.com is example.com.
-
-       b.  Queries _oauth-issuer-policy.example.com.  The record is
-       affirmative, authority=example.com matches, and the virtual
-       policy lists https://agentprovider.example as an authorized
-       Assertion Issuer.
-
-       c.  The JWT iss (https://agentprovider.example) matches the
-       authorized_issuers entry.  The Trust Method is satisfied.
-
-   5.  The tool provider's client authentication and OAuth client
-       identifier resolution proceed per the grant profile and the tool
-       provider's OAuth configuration.  Trust framework evaluation does
-       not govern them.
-
-   6.  Verification succeeds.  The tool provider issues an access token
-       scoped according to its local policy.
-
-B.5.  What This Protects Against
-
-   The key threat is *issuer impersonation*: a provider other than the
-   one the customer authorized attempts to mint an ID-JAG claiming a
-   user in the customer's namespace.
-
-   Suppose an unrelated provider attacker.example operates its own
-   authorization server and mints an assertion:
-
-   {
-     "iss": "https://attacker.example",
-     "aud": "https://toolprovider.example",
-     "email": "alice@example.com",
-     "email_verified": true,
-     "exp": 1780166400,
-     "iat": 1780166100,
-     "jti": "c21f...",
-     "sub": "user-58c1bd"
-   }
-
-   The signature validates (the assertion is signed by
-   attacker.example's own key, which is resolvable at
-   https://attacker.example/.well-known/oauth-authorization-server).
-   The aud is correct.  The token superficially names Alice.
-
-   The tool provider's Trust Method evaluation rejects it nonetheless:
-
-   *  Subject Authority extracted from the assertion's email
-      attribution: example.com.
-
-   *  DNS lookup at _oauth-issuer-policy.example.com returns the
-      customer's policy.
-
-   *  The JWT iss (https://attacker.example) is NOT in
-      authorized_issuers (which lists only
-      https://agentprovider.example).
-
-   *  The Trust Method is not satisfied for any
-      subject_namespace_authorization method in the policy.
-
-   *  The tool provider rejects with OAuth invalid_grant.
-
-   Note that the attacker setting email_verified: true on its own
-   assertion has no force here; trust comes from the iss-vs-policy
-   check, not from the assertion's self-claim.  The Subject Authority is
-   computed from the email's domain regardless of the email_verified
-   value an unauthorized issuer chooses to assert.
-
-   attacker.example has no path to impersonate alice@example.com unless
-   example.com's DNS publisher adds them to the Issuer Authorization
-   Policy.  The customer is the sole gatekeeper.
-
-B.6.  Additional Failure Variants
-
-   *  If the customer's DNS record is missing or unreachable, the Trust
-      Method outcome is Negative or Indeterminate per [DAI] §Failure
-      Handling and the tool provider rejects the assertion.  An attacker
-      cannot benefit from disabling the lookup; fail-closed semantics
-      ensure rejection rather than acceptance.
-
-   *  If example.com rotates its authorized agent platform (replaces
-      agentprovider.example with a different provider in the policy),
-      assertions from the old provider are rejected at the next cache
-      refresh per [DAI] §Caching.
-
-B.7.  Extensions
-
-   *  The customer might prefer to grant trust transitively via
-      federation rather than authorize each agent platform directly.  In
-      that case the tool provider's trust policy lists openid_federation
-      as an issuer_authentication method with a trust anchor that
-      recognizes agentprovider.example as a federated entity.  The
-      cross-category combination rule of Section 4.2 still requires a
-      subject_namespace_authorization method to be satisfied for
-      namespace-bound subjects; federation membership alone does not
-      establish authority over the customer's namespace.
-
-   *  If the deployment additionally needs to identify the specific
-      agent instance (for audit, scoping, or downstream attribution),
-      the agent platform can add an act object to the ID-JAG identifying
-      the agent instance.  The OAuth Actor Profile binding (Section 5.2)
-      governs how a Resource Authorization Server interprets such an act
-      object.  Trust evaluation of the agent's identity by this
-      framework's subject_namespace_authorization category applies only
-      when the actor's subject identifier is in a format with a
-      registered Subject Authority Extraction Procedure (Section 8.2);
-      opaque agent-instance identifiers are typically not in such a
-      format and are subject to the agent platform's authorization-time
-      logic and the tool provider's local policy.
-
-B.8.  Tenant Binding Variant
-
-   In some deployments, the Assertion Issuer is a shared-issuer multi-
-   tenant Identity Provider (for example, Google Workspace) rather than
-   a customer-specific provider.  The framework supports this case via
-   the tenant member on authorized_issuers[] entries ([DAI] §Single-
-   Issuer Multi-Tenant Identity Providers).  This subsection sketches
-   the same gatekeeping flow as the rest of this appendix, with
-   https://accounts.google.com substituted for
-   https://agentprovider.example as the Assertion Issuer.
-
-   Publication uses the DNS pointer form because the inline DNS form
-   cannot express tenant ([DAI] §Inline-Form Feature Limits):
-
-   _oauth-issuer-policy.example.com.  IN  TXT
-     "v=oauth-issuer-policy1;
-      authority=example.com;
-      uri=https://example.com/.well-known/oauth-issuer-policy"
-
-   The HTTPS-hosted Issuer Authorization Policy binds authorization to
-   the customer's specific Google Workspace tenant:
-
-   {
-     "subject_authority": "example.com",
-     "authorized_issuers": [
-       {
-         "issuer": "https://accounts.google.com",
-         "tenant": "example.com",
-         "subject_identifier_formats": ["email"]
-       }
-     ],
-     "last_updated": "2026-05-01T00:00:00Z"
-   }
-
-   A successful ID-JAG carries the matching tenant claim:
-
-   {
-     "iss": "https://accounts.google.com",
-     "aud": "https://toolprovider.example",
-     "exp": 1780166400,
-     "iat": 1780166100,
-     "jti": "f47a...",
-     "sub": "user-285dc1",
-     "tenant": "example.com",
-     "email": "alice@example.com",
-     "email_verified": true
-   }
-
-   Verification at the tool provider differs from the main flow only at
-   step 4c: the matched authorized_issuers entry contains tenant:
-   "example.com", and the ID-JAG's top-level tenant claim is
-   "example.com".  Both iss and tenant match, so the Trust Method is
-   satisfied.
-
-   *Threat: tenant impersonation.* Suppose an attacker provisions an
-   unrelated Google Workspace tenant (say, attacker-corp) and attempts
-   to mint an ID-JAG claiming alice@example.com:
-
-   {
-     "iss": "https://accounts.google.com",
-     "aud": "https://toolprovider.example",
-     "exp": 1780166400,
-     "iat": 1780166100,
-     "jti": "a5d9...",
-     "sub": "user-attacker-tenant",
-     "tenant": "attacker-corp",
-     "email": "alice@example.com",
-     "email_verified": true
-   }
-
-   The JWT iss matches the policy entry.  The tenant claim does NOT
-   match: the customer's policy requires tenant=example.com, and the
-   attacker's assertion carries tenant=attacker-corp.  The Trust Method
-   is not satisfied; the tool provider rejects with invalid_grant.  The
-   attacker cannot set tenant=example.com in their assertion because
-   Google enforces that tenant attacker-corp mints tokens with
-   tenant=attacker-corp, not with another tenant's identifier.  This is
-   the tenant-isolation property described in [DAI] §Single-Issuer
-   Multi-Tenant Identity Providers; the framework surfaces the
-   customer's choice of authorized tenant on the wire and makes the
-   trust assumption explicit, but does not eliminate the assumption.
-
-Appendix C.  Document History
+Appendix B.  Document History
 
    This appendix is non-normative and will be removed before
    publication.

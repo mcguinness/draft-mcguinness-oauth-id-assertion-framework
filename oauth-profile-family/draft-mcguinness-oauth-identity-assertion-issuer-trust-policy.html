@@ -15,10 +15,11 @@ server is a recognized member of an ecosystem, not that the server is
 entitled to assert about subjects in any particular namespace. Nothing
 in OAuth today lets a namespace owner declare which authorization
 servers are authorized to assert identities in its namespace. 
-       This document defines a trust framework that keeps issuer
-authentication and subject namespace authorization as distinct,
-independent questions, and lets a Resource Authorization Server
-require evidence for both. The framework defines: 
+       This document defines the Identity Assertion Issuer Trust Policy, a
+JSON policy document that lets a Resource Authorization Server keep
+issuer authentication and subject namespace authorization as distinct,
+independent trust requirements for OAuth identity assertions. The
+policy declares: 
        
          
            An Identity Assertion Issuer Trust Policy that an OAuth
@@ -27,17 +28,14 @@ including trust methods, trust anchors, subject identifier
 formats, and grant profiles. 
          
          
-           Domain-Authorized Issuer Discovery, which applies the established
-DNS authority-declaration pattern used by CAA, MTA-STS, SPF, and
-DKIM: the owner of a subject namespace (for example, an email
-domain) publishes a DNS record that declares which authorization
-servers may assert identities about subjects in the namespace.
-Richer policy may be expressed in an HTTPS-hosted document
-referenced from the DNS record. The same records enable clients
-to discover the Assertion Issuer for an identifier in that
-namespace. 
+           Trust Method objects that state the evidence required for an
+Assertion Issuer to be acceptable, including issuer-authentication
+methods such as OpenID Federation and subject-namespace
+authorization methods defined by other specifications. 
          
        
+       Domain-Authorized Issuer Discovery is defined separately by   as
+one subject-namespace authorization method usable by this policy. 
     " name="description">
 <meta content="xml2rfc 3.33.0" name="generator">
 <meta content="OAuth" name="keyword">
@@ -1122,10 +1120,11 @@ server is a recognized member of an ecosystem, not that the server is
 entitled to assert about subjects in any particular namespace. Nothing
 in OAuth today lets a namespace owner declare which authorization
 servers are authorized to assert identities in its namespace.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
-<p id="section-abstract-2">This document defines a trust framework that keeps issuer
-authentication and subject namespace authorization as distinct,
-independent questions, and lets a Resource Authorization Server
-require evidence for both. The framework defines:<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">This document defines the Identity Assertion Issuer Trust Policy, a
+JSON policy document that lets a Resource Authorization Server keep
+issuer authentication and subject namespace authorization as distinct,
+independent trust requirements for OAuth identity assertions. The
+policy declares:<a href="#section-abstract-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-abstract-3.1">
           <p id="section-abstract-3.1.1">An Identity Assertion Issuer Trust Policy that an OAuth
@@ -1134,17 +1133,14 @@ including trust methods, trust anchors, subject identifier
 formats, and grant profiles.<a href="#section-abstract-3.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-abstract-3.2">
-          <p id="section-abstract-3.2.1">Domain-Authorized Issuer Discovery, which applies the established
-DNS authority-declaration pattern used by CAA, MTA-STS, SPF, and
-DKIM: the owner of a subject namespace (for example, an email
-domain) publishes a DNS record that declares which authorization
-servers may assert identities about subjects in the namespace.
-Richer policy may be expressed in an HTTPS-hosted document
-referenced from the DNS record. The same records enable clients
-to discover the Assertion Issuer for an identifier in that
-namespace.<a href="#section-abstract-3.2.1" class="pilcrow">¶</a></p>
+          <p id="section-abstract-3.2.1">Trust Method objects that state the evidence required for an
+Assertion Issuer to be acceptable, including issuer-authentication
+methods such as OpenID Federation and subject-namespace
+authorization methods defined by other specifications.<a href="#section-abstract-3.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
+<p id="section-abstract-4">Domain-Authorized Issuer Discovery is defined separately by <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> as
+one subject-namespace authorization method usable by this policy.<a href="#section-abstract-4" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-discussion-venues">
@@ -1378,9 +1374,6 @@ namespace.<a href="#section-abstract-3.2.1" class="pilcrow">¶</a></p>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
                 <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-subject-authority-extractio" class="internal xref">Subject Authority Extraction Procedures Registry</a></p>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.3">
-                <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="auto internal xref">8.3</a>.  <a href="#name-authority-delegation-profil" class="internal xref">Authority Delegation Profile Registration</a></p>
-</li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
@@ -1411,39 +1404,10 @@ namespace.<a href="#section-abstract-3.2.1" class="pilcrow">¶</a></p>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
-            <p id="section-toc.1-1.12.1"><a href="#appendix-B" class="auto internal xref">Appendix B</a>.  <a href="#name-agent-platform-idp-end-to-e" class="internal xref">Agent Platform IdP End-to-End Example</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.1">
-                <p id="section-toc.1-1.12.2.1.1"><a href="#appendix-B.1" class="auto internal xref">B.1</a>.  <a href="#name-cast" class="internal xref">Cast</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.2">
-                <p id="section-toc.1-1.12.2.2.1"><a href="#appendix-B.2" class="auto internal xref">B.2</a>.  <a href="#name-publication" class="internal xref">Publication</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.3">
-                <p id="section-toc.1-1.12.2.3.1"><a href="#appendix-B.3" class="auto internal xref">B.3</a>.  <a href="#name-user-side-sso-prerequisite-" class="internal xref">User-Side SSO (Prerequisite, Out of Scope)</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.4">
-                <p id="section-toc.1-1.12.2.4.1"><a href="#appendix-B.4" class="auto internal xref">B.4</a>.  <a href="#name-flow" class="internal xref">Flow</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.5">
-                <p id="section-toc.1-1.12.2.5.1"><a href="#appendix-B.5" class="auto internal xref">B.5</a>.  <a href="#name-what-this-protects-against" class="internal xref">What This Protects Against</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.6">
-                <p id="section-toc.1-1.12.2.6.1"><a href="#appendix-B.6" class="auto internal xref">B.6</a>.  <a href="#name-additional-failure-variants" class="internal xref">Additional Failure Variants</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.7">
-                <p id="section-toc.1-1.12.2.7.1"><a href="#appendix-B.7" class="auto internal xref">B.7</a>.  <a href="#name-extensions" class="internal xref">Extensions</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.8">
-                <p id="section-toc.1-1.12.2.8.1"><a href="#appendix-B.8" class="auto internal xref">B.8</a>.  <a href="#name-tenant-binding-variant" class="internal xref">Tenant Binding Variant</a></p>
-</li>
-            </ul>
+            <p id="section-toc.1-1.12.1"><a href="#appendix-B" class="auto internal xref">Appendix B</a>.  <a href="#name-document-history" class="internal xref">Document History</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
-            <p id="section-toc.1-1.13.1"><a href="#appendix-C" class="auto internal xref">Appendix C</a>.  <a href="#name-document-history" class="internal xref">Document History</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14">
-            <p id="section-toc.1-1.14.1"><a href="#appendix-D" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+            <p id="section-toc.1-1.13.1"><a href="#appendix-C" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
 </li>
         </ul>
 </nav>
@@ -1472,7 +1436,7 @@ being asserted.<a href="#section-1-2" class="pilcrow">¶</a></p>
 Server may receive identity assertions from issuers that were not
 individually configured in advance, but whose acceptability can be
 evaluated from published evidence at request time. The purpose of this
-framework is not to remove policy from the Resource Authorization
+policy is not to remove policy from the Resource Authorization
 Server, but to give it a standard way to express which evidence it
 requires and how that evidence is evaluated.<a href="#section-1-3" class="pilcrow">¶</a></p>
 <p id="section-1-4">This document defines an Identity Assertion Issuer Trust Policy
@@ -1565,7 +1529,7 @@ accepts and fails closed when required evidence is missing.<a href="#section-1.3
         <h3 id="name-relationship-to-existing-me">
 <a href="#section-1.4" class="section-number selfRef">1.4. </a><a href="#name-relationship-to-existing-me" class="section-name selfRef">Relationship to Existing Mechanisms</a>
         </h3>
-<p id="section-1.4-1">This framework is complementary to OpenID Federation: OpenID Federation
+<p id="section-1.4-1">This policy is complementary to OpenID Federation: OpenID Federation
 can authenticate that an issuer belongs to a trusted ecosystem, while
 Domain-Authorized Issuer Discovery lets the namespace owner say which
 issuers may assert about subjects in that namespace. The framework also
@@ -2120,10 +2084,12 @@ Verification Protocol record after parsing per
 </dl>
 </li>
               <li id="section-3.3.4.1-5.4">
-                <p id="section-3.3.4.1-5.4.1">If <code>negative-authoritative</code> or <code>indeterminate</code>, the Trust Method
-is not satisfied; the <code>indeterminate</code> outcome <span class="bcp14">MUST</span> be treated per
-the failure-handling rules of <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Failure Handling (a verifier <span class="bcp14">MUST</span>
-reject the assertion unless a fresh cached result is available).<a href="#section-3.3.4.1-5.4.1" class="pilcrow">¶</a></p>
+                <p id="section-3.3.4.1-5.4.1">If <code>negative-authoritative</code>, the Trust Method is not satisfied.
+If <code>indeterminate</code>, the Resource Authorization Server <span class="bcp14">MUST</span> reject
+the assertion unless local policy permits use of a fresh cached
+affirmative result within a bounded cache lifetime. The Resource
+Authorization Server <span class="bcp14">MUST NOT</span> fall back to a different authority
+source for the same Subject Authority.<a href="#section-3.3.4.1-5.4.1" class="pilcrow">¶</a></p>
 </li>
               <li id="section-3.3.4.1-5.5">
                 <p id="section-3.3.4.1-5.5.1">If <code>affirmative</code>, parse each record per <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span> and
@@ -2224,63 +2190,14 @@ error.<a href="#section-3.4-4" class="pilcrow">¶</a></p>
           </h4>
 <p id="section-3.4.1-1">The registrable-domain default for <code>email</code> is intentionally
 conservative: it prevents a party that controls only a subdomain
-(through legitimate operational delegation or via subdomain
-takeover) from publishing Subject Authority records that override
-the organizational policy at the registrable domain. This is the
-right default for the open-world case where a Resource
-Authorization Server has no a priori knowledge of which
-subdomains are administered separately within a namespace.<a href="#section-3.4.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.4.1-2">Enterprise deployments often operationally delegate identity
-administration at subdomain boundaries, including patterns such
-as:<a href="#section-3.4.1-2" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-3.4.1-3.1">
-              <p id="section-3.4.1-3.1.1"><code>students.university.edu</code> administered separately from the
-university's faculty/staff identity stack;<a href="#section-3.4.1-3.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-3.4.1-3.2">
-              <p id="section-3.4.1-3.2.1"><code>contractors.company.com</code> administered by a vendor management
-team distinct from the parent's IdP team;<a href="#section-3.4.1-3.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-3.4.1-3.3">
-              <p id="section-3.4.1-3.3.1"><code>partners.example.com</code> issued through a partner-federation
-service;<a href="#section-3.4.1-3.3.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-3.4.1-3.4">
-              <p id="section-3.4.1-3.4.1"><code>agency.department.gov</code> administered by an agency subordinate to
-a departmental parent;<a href="#section-3.4.1-3.4.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-3.4.1-3.5">
-              <p id="section-3.4.1-3.5.1"><code>division.example.co.uk</code> administered by a business unit with its
-own identity infrastructure.<a href="#section-3.4.1-3.5.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-<p id="section-3.4.1-4">These deployments cannot be modeled by the registrable-domain
-extraction alone. The architectural mechanism for supporting them
-is the Subject Authority Extraction Procedures Registry
-(<a href="#iana-authority-registry" class="auto internal xref">Section 8.2</a>): a future specification registers an
-extraction procedure that derives the Subject Authority from the
-exact email domain (for example, an <code>email_domain_exact</code>
-extraction), and Resource Authorization Servers that accept that
-extraction can recognize subdomain-level authority.<a href="#section-3.4.1-4" class="pilcrow">¶</a></p>
-<p id="section-3.4.1-5">A subdomain-exact extraction <span class="bcp14">MUST</span> require explicit parent
-authorization to avoid the subdomain-takeover risk the
-registrable-domain default protects against. Concretely, a
-specification registering such an extraction <span class="bcp14">MUST</span> specify how the
-parent registrable-domain authority delegates to a subdomain
-authority, for example by publishing a delegation record at the
-parent's Subject Authority publication channel that names the
-authorized subdomain authorities. Without parent delegation, a
-subdomain-takeover attacker would otherwise be able to publish a
-competing policy at the subdomain.<a href="#section-3.4.1-5" class="pilcrow">¶</a></p>
-<p id="section-3.4.1-6">This document does not register a subdomain-exact extraction. The
-registrable-domain default is the only <code>email</code> extraction defined
-here; deployments needing subdomain-level authority <span class="bcp14">SHOULD</span> use the
-registrable-domain default with the parent as Subject Authority
-until a subdomain-exact extraction is registered or use
-out-of-band arrangements with the parent's identity team. A
-non-normative sketch of how <code>email_domain_exact</code> could be defined
-is provided in <a href="#extending" class="auto internal xref">Section 9</a>.<a href="#section-3.4.1-6" class="pilcrow">¶</a></p>
+from publishing Subject Authority records that override the
+organizational policy at the registrable domain.<a href="#section-3.4.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-2">This document does not register a subdomain-exact extraction.
+Specifications that do so <span class="bcp14">MUST</span> define how the parent
+registrable-domain authority delegates to the subdomain authority;
+otherwise a subdomain-takeover attacker could publish a competing
+policy at the subdomain. A non-normative sketch is provided in
+<a href="#extending" class="auto internal xref">Section 9</a>.<a href="#section-3.4.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3413,86 +3330,6 @@ when those identifiers have a well-defined namespace authority.<a href="#section
         </table>
 </section>
 </div>
-<div id="authority-delegation-profile-registration">
-<section id="section-8.3">
-        <h3 id="name-authority-delegation-profil">
-<a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-authority-delegation-profil" class="section-name selfRef">Authority Delegation Profile Registration</a>
-        </h3>
-<p id="section-8.3-1">This document registers an entry in the Authority Delegation
-Profile registry of <span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span> (§Authority Delegation
-Profile Registry):<a href="#section-8.3-1" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-8.3-2">
-          <dt id="section-8.3-2.1">Profile Identifier:</dt>
-          <dd style="margin-left: 1.5em" id="section-8.3-2.2">
-            <p id="section-8.3-2.2.1"><code>urn:ietf:params:oauth:authority-delegation-profile:identity-assertion-issuer-trust-policy</code><a href="#section-8.3-2.2.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-8.3-2.3">Authority Holder Form:</dt>
-          <dd style="margin-left: 1.5em" id="section-8.3-2.4">
-            <p id="section-8.3-2.4.1">Subject Authority. Form is namespace-dependent: for <code>email</code>
-Subject Identifiers, a DNS domain (registrable per
-<a href="#subject-authority-determination" class="auto internal xref">Section 3.4</a>).<a href="#section-8.3-2.4.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-8.3-2.5">Delegate Form:</dt>
-          <dd style="margin-left: 1.5em" id="section-8.3-2.6">
-            <p id="section-8.3-2.6.1">Assertion Issuer (OAuth authorization server identifier; HTTPS URL
-compared per <span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span> §2).<a href="#section-8.3-2.6.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-8.3-2.7">Publication Channel:</dt>
-          <dd style="margin-left: 1.5em" id="section-8.3-2.8">
-            <p id="section-8.3-2.8.1">Trust Method-specific. <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> defines DNS+HTTPS publication for
-<code>domain_authorized_issuer</code> and <code>https_authorized_issuer</code>; other
-Trust Methods register their own publication channels.<a href="#section-8.3-2.8.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-8.3-2.9">Subdelegation:</dt>
-          <dd style="margin-left: 1.5em" id="section-8.3-2.10">
-            <p id="section-8.3-2.10.1"><code>subject_namespace_authorization</code> category is depth-1
-(no subdelegation). <code>issuer_authentication</code> category permits
-chained transitivity (e.g., <code>openid_federation</code>).<a href="#section-8.3-2.10.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-8.3-2.11">Reference:</dt>
-          <dd style="margin-left: 1.5em" id="section-8.3-2.12">
-            <p id="section-8.3-2.12.1">This document.<a href="#section-8.3-2.12.1" class="pilcrow">¶</a></p>
-</dd>
-        <dd class="break"></dd>
-</dl>
-<p id="section-8.3-3">Profile Mapping Matrix:<a href="#section-8.3-3" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-8.3-4">
-          <dt id="section-8.3-4.1"><code>source_selection</code></dt>
-          <dd style="margin-left: 1.5em" id="section-8.3-4.2">
-            <p id="section-8.3-4.2.1">The Subject Authority is extracted from the assertion's Subject
-Identifier via the procedure registered in
-<a href="#iana-authority-registry" class="auto internal xref">Section 8.2</a>. Source selection uses one Subject
-Identifier per assertion; the binding function is invariant under
-other claims. Profiles defining additional Trust Methods <span class="bcp14">MAY</span> use
-non-namespace source selection but <span class="bcp14">MUST</span> satisfy
-<span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span> §Deterministic Source Selection.<a href="#section-8.3-4.2.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-8.3-4.3"><code>revocation_lifecycle</code></dt>
-          <dd style="margin-left: 1.5em" id="section-8.3-4.4">
-            <p id="section-8.3-4.4.1">Per-Trust-Method. <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> bounds revocation latency by DNS TTL
-plus HTTP cache lifetime (recommended ≤24h ceiling).
-<code>openid_federation</code> follows OpenID Federation revocation rules.
-Negative results are not separately cached; absence of a
-Delegation Artifact maps to Negative per
-<span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span> §Exception-Handling and Fallback Model.<a href="#section-8.3-4.4.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-8.3-4.5"><code>transitivity_limit</code></dt>
-          <dd style="margin-left: 1.5em" id="section-8.3-4.6">
-            <p id="section-8.3-4.6.1">Mixed: depth-1 for <code>subject_namespace_authorization</code>, chained
-for <code>issuer_authentication</code> via <code>openid_federation</code>. The
-combination rule in <a href="#rasp" class="auto internal xref">Section 4.2</a> composes both categories AND-wise.<a href="#section-8.3-4.6.1" class="pilcrow">¶</a></p>
-</dd>
-        <dd class="break"></dd>
-</dl>
-</section>
-</div>
 </section>
 </div>
 <div id="extending">
@@ -3501,12 +3338,13 @@ combination rule in <a href="#rasp" class="auto internal xref">Section 4.2</a> c
 <a href="#section-9" class="section-number selfRef">9. </a><a href="#name-extending-to-new-subject-id" class="section-name selfRef">Extending to New Subject Identifier Formats</a>
       </h2>
 <p id="section-9-1">This document registers one Subject Authority extraction procedure
-(<code>email</code>, <a href="#subject-authority-determination" class="auto internal xref">Section 3.4</a>) and one <code>subject_namespace_authorization</code>
-Trust Method that publishes via DNS (<code>domain_authorized_issuer</code>,
-<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §domain_authorized_issuer). The framework is designed
-to accommodate additional Subject Identifier formats and additional
-publication mechanisms via future specifications. This section
-describes the extension procedure for spec authors.<a href="#section-9-1" class="pilcrow">¶</a></p>
+(<code>email</code>, <a href="#subject-authority-determination" class="auto internal xref">Section 3.4</a>). Additional
+<code>subject_namespace_authorization</code> Trust Methods, including DNS-based
+publication methods such as <code>domain_authorized_issuer</code>, are defined by
+separate specifications such as <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>. The policy model is designed
+to accommodate additional Subject Identifier formats and publication
+mechanisms via future specifications. This section describes the
+extension procedure for spec authors.<a href="#section-9-1" class="pilcrow">¶</a></p>
 <p id="section-9-2">To extend this framework to a new Subject Identifier format, a future
 specification:<a href="#section-9-2" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-9-3">
@@ -3778,435 +3616,22 @@ trust-chain, metadata-publication, or policy-propagation mechanisms.<a href="#ap
 </div>
 </section>
 </div>
-<div id="agent-platform-idp-end-to-end-example">
-<section id="appendix-B">
-      <h2 id="name-agent-platform-idp-end-to-e">
-<a href="#appendix-B" class="section-number selfRef">Appendix B. </a><a href="#name-agent-platform-idp-end-to-e" class="section-name selfRef">Agent Platform IdP End-to-End Example</a>
-      </h2>
-<p id="appendix-B-1">This appendix is non-normative.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
-<p id="appendix-B-2">This example shows how the framework prevents an unauthorized
-provider from impersonating users in a customer's email namespace.
-The protection rests on a single deliberate choice by the customer:
-publishing an Issuer Authorization Policy that lists the specific
-agent platforms permitted to issue identity assertions about its
-users. Without that authorization, no provider, however well-known
-elsewhere, can mint an accepted ID-JAG for the namespace.<a href="#appendix-B-2" class="pilcrow">¶</a></p>
-<div id="cast">
-<section id="appendix-B.1">
-        <h3 id="name-cast">
-<a href="#appendix-B.1" class="section-number selfRef">B.1. </a><a href="#name-cast" class="section-name selfRef">Cast</a>
-        </h3>
-<ul class="normal">
-<li class="normal" id="appendix-B.1-1.1">
-            <p id="appendix-B.1-1.1.1"><strong>Customer</strong>, <code>example.com</code>. Owns the email domain of its users.
-Decides which agent platforms are authorized to act as Assertion
-Issuers for its users.<a href="#appendix-B.1-1.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-B.1-1.2">
-            <p id="appendix-B.1-1.2.1"><strong>Customer's Primary IdP</strong>, <code>https://idp.example.com</code>. Used by
-the agent platform to federate user authentication. Mentioned
-only to describe the user-side SSO step; not the ID-JAG issuer
-and not part of the verification path at the tool provider.<a href="#appendix-B.1-1.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-B.1-1.3">
-            <p id="appendix-B.1-1.3.1"><strong>Agent Platform</strong>, <code>https://agentprovider.example</code>. Acts as a
-downstream identity provider for tools. Authenticates users via
-federated SSO from their primary IdP, then mints ID-JAGs with
-<code>iss = https://agentprovider.example</code> carrying the user's
-identity.<a href="#appendix-B.1-1.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-B.1-1.4">
-            <p id="appendix-B.1-1.4.1"><strong>Tool Provider</strong>, <code>https://toolprovider.example</code>. Acts as the
-Resource Authorization Server. Verifies presented ID-JAGs against
-its trust policy and issues access tokens.<a href="#appendix-B.1-1.4.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-B.1-1.5">
-            <p id="appendix-B.1-1.5.1"><strong>End user</strong>, Alice (<code>alice@example.com</code>).<a href="#appendix-B.1-1.5.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-</section>
-</div>
-<div id="publication">
-<section id="appendix-B.2">
-        <h3 id="name-publication">
-<a href="#appendix-B.2" class="section-number selfRef">B.2. </a><a href="#name-publication" class="section-name selfRef">Publication</a>
-        </h3>
-<p id="appendix-B.2-1">The customer publishes an Issuer Authorization Policy authorizing
-exactly the providers it has chosen to trust as Assertion Issuers
-for its users:<a href="#appendix-B.2-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="appendix-B.2-2">
-<pre>
-_oauth-issuer-policy.example.com.  IN  TXT
-  "v=oauth-issuer-policy1;
-   authority=example.com;
-   issuer=https://agentprovider.example"
-</pre><a href="#appendix-B.2-2" class="pilcrow">¶</a>
-</div>
-<p id="appendix-B.2-3">This is the gatekeeping mechanism. The customer's domain owner is
-the only party that can publish this record. Any provider not
-listed cannot be authorized for <code>example.com</code> subjects, regardless
-of how well-known the provider is in unrelated contexts.<a href="#appendix-B.2-3" class="pilcrow">¶</a></p>
-<p id="appendix-B.2-4">The tool provider publishes a Trust Policy that consults
-Domain-Authorized Issuer Discovery:<a href="#appendix-B.2-4" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="appendix-B.2-5">
-<pre>
-{
-  "resource_authorization_server": "https://toolprovider.example",
-  "authorization_grant_profiles_supported": [
-    "urn:ietf:params:oauth:grant-profile:id-jag"
-  ],
-  "subject_identifier_formats_supported": ["email"],
-  "issuer_trust_methods": [
-    {
-      "method": "domain_authorized_issuer"
-    }
-  ]
-}
-</pre><a href="#appendix-B.2-5" class="pilcrow">¶</a>
-</div>
-</section>
-</div>
-<div id="user-side-sso-prerequisite-out-of-scope">
-<section id="appendix-B.3">
-        <h3 id="name-user-side-sso-prerequisite-">
-<a href="#appendix-B.3" class="section-number selfRef">B.3. </a><a href="#name-user-side-sso-prerequisite-" class="section-name selfRef">User-Side SSO (Prerequisite, Out of Scope)</a>
-        </h3>
-<p id="appendix-B.3-1">Before any ID-JAG is minted, Alice establishes a session at the
-agent platform. The exact mechanism is out of scope; a typical
-flow:<a href="#appendix-B.3-1" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="appendix-B.3-2">
-<li id="appendix-B.3-2.1">
-            <p id="appendix-B.3-2.1.1">Alice opens the agent platform's interface.<a href="#appendix-B.3-2.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="appendix-B.3-2.2">
-            <p id="appendix-B.3-2.2.1">The agent platform performs federated sign-in to
-<code>https://idp.example.com</code> per OpenID Connect.<a href="#appendix-B.3-2.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="appendix-B.3-2.3">
-            <p id="appendix-B.3-2.3.1">Alice authenticates at <code>idp.example.com</code>; an OIDC ID Token is
-returned to the agent platform.<a href="#appendix-B.3-2.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="appendix-B.3-2.4">
-            <p id="appendix-B.3-2.4.1">The agent platform validates the ID Token, learns Alice's
-identity (<code>alice@example.com</code>), and creates a session.<a href="#appendix-B.3-2.4.1" class="pilcrow">¶</a></p>
-</li>
-        </ol>
-<p id="appendix-B.3-3">After this step, <code>agentprovider.example</code> knows Alice's
-organizational identity. The primary IdP (<code>idp.example.com</code>)
-plays no further role at the tool provider; the agent platform
-relies on its own keys to mint subsequent ID-JAGs.<a href="#appendix-B.3-3" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="flow">
-<section id="appendix-B.4">
-        <h3 id="name-flow">
-<a href="#appendix-B.4" class="section-number selfRef">B.4. </a><a href="#name-flow" class="section-name selfRef">Flow</a>
-        </h3>
-<ol start="1" type="1" class="normal type-1" id="appendix-B.4-1">
-<li id="appendix-B.4-1.1">
-            <p id="appendix-B.4-1.1.1">Within Alice's session, the agent platform mints an ID-JAG
-identifying Alice, with audience <code>https://toolprovider.example</code>
-(decoded payload, illustrative):<a href="#appendix-B.4-1.1.1" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="appendix-B.4-1.1.2">
-<pre>
-{
-  "iss": "https://agentprovider.example",
-  "aud": "https://toolprovider.example",
-  "exp": 1780166400,
-  "iat": 1780166100,
-  "jti": "b9c1...",
-  "sub": "user-3f81a2",
-  "email": "alice@example.com",
-  "email_verified": true
-}
-</pre><a href="#appendix-B.4-1.1.2" class="pilcrow">¶</a>
-</div>
-</li>
-          <li id="appendix-B.4-1.2">
-            <p id="appendix-B.4-1.2.1">The agent platform (as the OAuth client) posts the ID-JAG to
-the tool provider's token endpoint with <code>private_key_jwt</code>
-client authentication (governed by the ID-JAG grant profile;
-outside the trust framework's scope):<a href="#appendix-B.4-1.2.1" class="pilcrow">¶</a></p>
-<div class="lang-http sourcecode" id="appendix-B.4-1.2.2">
-<pre>
-POST /token HTTP/1.1
-Host: toolprovider.example
-Content-Type: application/x-www-form-urlencoded
-
-grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
-&amp;assertion=eyJhbGciOiJSUzI1NiIs...
-&amp;client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer
-&amp;client_assertion=eyJhbGciOiJFUzI1NiIs...
-</pre><a href="#appendix-B.4-1.2.2" class="pilcrow">¶</a>
-</div>
-</li>
-          <li id="appendix-B.4-1.3">
-            <p id="appendix-B.4-1.3.1">The tool provider validates the ID-JAG: signature (key
-resolved via
-<code>https://agentprovider.example/.well-known/oauth-authorization-server</code>
-JWKS), <code>aud</code>, <code>exp</code>, <code>iat</code>, replay protection.<a href="#appendix-B.4-1.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="appendix-B.4-1.4">
-            <p id="appendix-B.4-1.4.1">The tool provider evaluates the trust policy's
-<code>subject_namespace_authorization</code> category against the
-assertion's subject (<a href="#rasp" class="auto internal xref">Section 4.2</a>):<a href="#appendix-B.4-1.4.1" class="pilcrow">¶</a></p>
-<p id="appendix-B.4-1.4.2">
-a. Extracts the Subject Authority from the assertion's email
-   attribution. The ID-JAG carries <code>email = "alice@example.com"</code>
-   with <code>email_verified = true</code> at top level; per
-   <a href="#subject-authority-determination" class="auto internal xref">Section 3.4</a>, the registrable domain of
-   <code>alice@example.com</code> is <code>example.com</code>.<a href="#appendix-B.4-1.4.2" class="pilcrow">¶</a></p>
-<p id="appendix-B.4-1.4.3">
-b. Queries <code>_oauth-issuer-policy.example.com</code>. The record is
-   <code>affirmative</code>, <code>authority=example.com</code> matches, and the
-   virtual policy lists <code>https://agentprovider.example</code> as an
-   authorized Assertion Issuer.<a href="#appendix-B.4-1.4.3" class="pilcrow">¶</a></p>
-<p id="appendix-B.4-1.4.4">
-c. The JWT <code>iss</code> (<code>https://agentprovider.example</code>) matches the
-   <code>authorized_issuers</code> entry. The Trust Method is satisfied.<a href="#appendix-B.4-1.4.4" class="pilcrow">¶</a></p>
-</li>
-          <li id="appendix-B.4-1.5">
-            <p id="appendix-B.4-1.5.1">The tool provider's client authentication and OAuth client
-identifier resolution proceed per the grant profile and the
-tool provider's OAuth configuration. Trust framework
-evaluation does not govern them.<a href="#appendix-B.4-1.5.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="appendix-B.4-1.6">
-            <p id="appendix-B.4-1.6.1">Verification succeeds. The tool provider issues an access
-token scoped according to its local policy.<a href="#appendix-B.4-1.6.1" class="pilcrow">¶</a></p>
-</li>
-        </ol>
-</section>
-</div>
-<div id="what-this-protects-against">
-<section id="appendix-B.5">
-        <h3 id="name-what-this-protects-against">
-<a href="#appendix-B.5" class="section-number selfRef">B.5. </a><a href="#name-what-this-protects-against" class="section-name selfRef">What This Protects Against</a>
-        </h3>
-<p id="appendix-B.5-1">The key threat is <strong>issuer impersonation</strong>: a provider other than
-the one the customer authorized attempts to mint an ID-JAG
-claiming a user in the customer's namespace.<a href="#appendix-B.5-1" class="pilcrow">¶</a></p>
-<p id="appendix-B.5-2">Suppose an unrelated provider <code>attacker.example</code> operates its own
-authorization server and mints an assertion:<a href="#appendix-B.5-2" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="appendix-B.5-3">
-<pre>
-{
-  "iss": "https://attacker.example",
-  "aud": "https://toolprovider.example",
-  "email": "alice@example.com",
-  "email_verified": true,
-  "exp": 1780166400,
-  "iat": 1780166100,
-  "jti": "c21f...",
-  "sub": "user-58c1bd"
-}
-</pre><a href="#appendix-B.5-3" class="pilcrow">¶</a>
-</div>
-<p id="appendix-B.5-4">The signature validates (the assertion is signed by
-<code>attacker.example</code>'s own key, which is resolvable at
-<code>https://attacker.example/.well-known/oauth-authorization-server</code>).
-The <code>aud</code> is correct. The token superficially names Alice.<a href="#appendix-B.5-4" class="pilcrow">¶</a></p>
-<p id="appendix-B.5-5">The tool provider's Trust Method evaluation rejects it nonetheless:<a href="#appendix-B.5-5" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="appendix-B.5-6.1">
-            <p id="appendix-B.5-6.1.1">Subject Authority extracted from the assertion's email
-attribution: <code>example.com</code>.<a href="#appendix-B.5-6.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-B.5-6.2">
-            <p id="appendix-B.5-6.2.1">DNS lookup at <code>_oauth-issuer-policy.example.com</code> returns the
-customer's policy.<a href="#appendix-B.5-6.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-B.5-6.3">
-            <p id="appendix-B.5-6.3.1">The JWT <code>iss</code> (<code>https://attacker.example</code>) is NOT in
-<code>authorized_issuers</code> (which lists only
-<code>https://agentprovider.example</code>).<a href="#appendix-B.5-6.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-B.5-6.4">
-            <p id="appendix-B.5-6.4.1">The Trust Method is not satisfied for any
-<code>subject_namespace_authorization</code> method in the policy.<a href="#appendix-B.5-6.4.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-B.5-6.5">
-            <p id="appendix-B.5-6.5.1">The tool provider rejects with OAuth <code>invalid_grant</code>.<a href="#appendix-B.5-6.5.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="appendix-B.5-7">Note that the attacker setting <code>email_verified: true</code> on its own
-assertion has no force here; trust comes from the <code>iss</code>-vs-policy
-check, not from the assertion's self-claim. The Subject Authority
-is computed from the email's domain regardless of the
-<code>email_verified</code> value an unauthorized issuer chooses to assert.<a href="#appendix-B.5-7" class="pilcrow">¶</a></p>
-<p id="appendix-B.5-8"><code>attacker.example</code> has no path to impersonate <code>alice@example.com</code>
-unless <code>example.com</code>'s DNS publisher adds them to the Issuer
-Authorization Policy. The customer is the sole gatekeeper.<a href="#appendix-B.5-8" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="additional-failure-variants">
-<section id="appendix-B.6">
-        <h3 id="name-additional-failure-variants">
-<a href="#appendix-B.6" class="section-number selfRef">B.6. </a><a href="#name-additional-failure-variants" class="section-name selfRef">Additional Failure Variants</a>
-        </h3>
-<ul class="normal">
-<li class="normal" id="appendix-B.6-1.1">
-            <p id="appendix-B.6-1.1.1">If the customer's DNS record is missing or unreachable, the
-Trust Method outcome is Negative or Indeterminate per
-<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Failure Handling and the tool provider rejects the assertion.
-An attacker cannot benefit from disabling the lookup;
-fail-closed semantics ensure rejection rather than acceptance.<a href="#appendix-B.6-1.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-B.6-1.2">
-            <p id="appendix-B.6-1.2.1">If <code>example.com</code> rotates its authorized agent platform (replaces
-<code>agentprovider.example</code> with a different provider in the
-policy), assertions from the old provider are rejected at the
-next cache refresh per <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Caching.<a href="#appendix-B.6-1.2.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-</section>
-</div>
-<div id="extensions">
-<section id="appendix-B.7">
-        <h3 id="name-extensions">
-<a href="#appendix-B.7" class="section-number selfRef">B.7. </a><a href="#name-extensions" class="section-name selfRef">Extensions</a>
-        </h3>
-<ul class="normal">
-<li class="normal" id="appendix-B.7-1.1">
-            <p id="appendix-B.7-1.1.1">The customer might prefer to grant trust transitively via
-federation rather than authorize each agent platform directly.
-In that case the tool provider's trust policy lists
-<code>openid_federation</code> as an <code>issuer_authentication</code> method with a
-trust anchor that recognizes <code>agentprovider.example</code> as a
-federated entity. The cross-category combination rule of
-<a href="#rasp" class="auto internal xref">Section 4.2</a> still requires a <code>subject_namespace_authorization</code>
-method to be satisfied for namespace-bound subjects; federation
-membership alone does not establish authority over the
-customer's namespace.<a href="#appendix-B.7-1.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="appendix-B.7-1.2">
-            <p id="appendix-B.7-1.2.1">If the deployment additionally needs to identify the specific
-agent instance (for audit, scoping, or downstream attribution),
-the agent platform can add an <code>act</code> object to the ID-JAG
-identifying the agent instance. The OAuth Actor Profile binding
-(<a href="#actor-profile-binding" class="auto internal xref">Section 5.2</a>) governs how a Resource Authorization
-Server interprets such an <code>act</code> object. Trust evaluation of the
-agent's identity by this framework's <code>subject_namespace_authorization</code>
-category applies only when the actor's subject identifier is in a
-format with a registered Subject Authority Extraction Procedure
-(<a href="#iana-authority-registry" class="auto internal xref">Section 8.2</a>); opaque agent-instance identifiers
-are typically not in such a format and are subject to the agent
-platform's authorization-time logic and the tool provider's local
-policy.<a href="#appendix-B.7-1.2.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-</section>
-</div>
-<div id="tenant-binding-variant">
-<section id="appendix-B.8">
-        <h3 id="name-tenant-binding-variant">
-<a href="#appendix-B.8" class="section-number selfRef">B.8. </a><a href="#name-tenant-binding-variant" class="section-name selfRef">Tenant Binding Variant</a>
-        </h3>
-<p id="appendix-B.8-1">In some deployments, the Assertion Issuer is a shared-issuer
-multi-tenant Identity Provider (for example, Google Workspace)
-rather than a customer-specific provider. The framework supports
-this case via the <code>tenant</code> member on <code>authorized_issuers[]</code> entries
-(<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Single-Issuer Multi-Tenant Identity Providers). This subsection sketches the same
-gatekeeping flow as the rest of this appendix, with
-<code>https://accounts.google.com</code> substituted for
-<code>https://agentprovider.example</code> as the Assertion Issuer.<a href="#appendix-B.8-1" class="pilcrow">¶</a></p>
-<p id="appendix-B.8-2">Publication uses the DNS pointer form because the inline DNS form
-cannot express <code>tenant</code> (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Inline-Form Feature Limits):<a href="#appendix-B.8-2" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="appendix-B.8-3">
-<pre>
-_oauth-issuer-policy.example.com.  IN  TXT
-  "v=oauth-issuer-policy1;
-   authority=example.com;
-   uri=https://example.com/.well-known/oauth-issuer-policy"
-</pre><a href="#appendix-B.8-3" class="pilcrow">¶</a>
-</div>
-<p id="appendix-B.8-4">The HTTPS-hosted Issuer Authorization Policy binds authorization to
-the customer's specific Google Workspace tenant:<a href="#appendix-B.8-4" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="appendix-B.8-5">
-<pre>
-{
-  "subject_authority": "example.com",
-  "authorized_issuers": [
-    {
-      "issuer": "https://accounts.google.com",
-      "tenant": "example.com",
-      "subject_identifier_formats": ["email"]
-    }
-  ],
-  "last_updated": "2026-05-01T00:00:00Z"
-}
-</pre><a href="#appendix-B.8-5" class="pilcrow">¶</a>
-</div>
-<p id="appendix-B.8-6">A successful ID-JAG carries the matching tenant claim:<a href="#appendix-B.8-6" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="appendix-B.8-7">
-<pre>
-{
-  "iss": "https://accounts.google.com",
-  "aud": "https://toolprovider.example",
-  "exp": 1780166400,
-  "iat": 1780166100,
-  "jti": "f47a...",
-  "sub": "user-285dc1",
-  "tenant": "example.com",
-  "email": "alice@example.com",
-  "email_verified": true
-}
-</pre><a href="#appendix-B.8-7" class="pilcrow">¶</a>
-</div>
-<p id="appendix-B.8-8">Verification at the tool provider differs from the main flow only
-at step 4c: the matched <code>authorized_issuers</code> entry contains
-<code>tenant: "example.com"</code>, and the ID-JAG's top-level <code>tenant</code> claim
-is <code>"example.com"</code>. Both <code>iss</code> and <code>tenant</code> match, so the Trust
-Method is satisfied.<a href="#appendix-B.8-8" class="pilcrow">¶</a></p>
-<p id="appendix-B.8-9"><strong>Threat: tenant impersonation.</strong> Suppose an attacker provisions an
-unrelated Google Workspace tenant (say, <code>attacker-corp</code>) and
-attempts to mint an ID-JAG claiming <code>alice@example.com</code>:<a href="#appendix-B.8-9" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="appendix-B.8-10">
-<pre>
-{
-  "iss": "https://accounts.google.com",
-  "aud": "https://toolprovider.example",
-  "exp": 1780166400,
-  "iat": 1780166100,
-  "jti": "a5d9...",
-  "sub": "user-attacker-tenant",
-  "tenant": "attacker-corp",
-  "email": "alice@example.com",
-  "email_verified": true
-}
-</pre><a href="#appendix-B.8-10" class="pilcrow">¶</a>
-</div>
-<p id="appendix-B.8-11">The JWT <code>iss</code> matches the policy entry. The <code>tenant</code> claim does
-NOT match: the customer's policy requires <code>tenant=example.com</code>, and the
-attacker's assertion carries <code>tenant=attacker-corp</code>. The Trust
-Method is not satisfied; the tool provider rejects with
-<code>invalid_grant</code>. The attacker cannot set <code>tenant=example.com</code> in
-their assertion because Google enforces that tenant <code>attacker-corp</code>
-mints tokens with <code>tenant=attacker-corp</code>, not with another tenant's
-identifier. This is the tenant-isolation property described in
-<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Single-Issuer Multi-Tenant Identity Providers; the framework surfaces the customer's choice
-of authorized tenant on the wire and makes the trust assumption
-explicit, but does not eliminate the assumption.<a href="#appendix-B.8-11" class="pilcrow">¶</a></p>
-</section>
-</div>
-</section>
-</div>
 <div id="document-history">
-<section id="appendix-C">
+<section id="appendix-B">
       <h2 id="name-document-history">
-<a href="#appendix-C" class="section-number selfRef">Appendix C. </a><a href="#name-document-history" class="section-name selfRef">Document History</a>
+<a href="#appendix-B" class="section-number selfRef">Appendix B. </a><a href="#name-document-history" class="section-name selfRef">Document History</a>
       </h2>
-<p id="appendix-C-1">This appendix is non-normative and will be removed before publication.<a href="#appendix-C-1" class="pilcrow">¶</a></p>
-<p id="appendix-C-2">-00<a href="#appendix-C-2" class="pilcrow">¶</a></p>
+<p id="appendix-B-1">This appendix is non-normative and will be removed before publication.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+<p id="appendix-B-2">-00<a href="#appendix-B-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-C-3.1">
-          <p id="appendix-C-3.1.1">initial draft<a href="#appendix-C-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="appendix-B-3.1">
+          <p id="appendix-B-3.1.1">initial draft<a href="#appendix-B-3.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
 </div>
 <div id="authors-addresses">
-<section id="appendix-D">
+<section id="appendix-C">
       <h2 id="name-authors-address">
 <a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
       </h2>

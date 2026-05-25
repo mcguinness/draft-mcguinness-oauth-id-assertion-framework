@@ -1511,22 +1511,36 @@ Full mappings of each mechanism appear in <a href="#appendix-profiles" class="au
 <a href="#section-1.2.1" class="section-number selfRef">1.2.1. </a><a href="#name-oauth-profile-family" class="section-name selfRef">OAuth Profile Family</a>
           </h4>
 <p id="section-1.2.1-1">This document is the parent of an OAuth profile family for
-namespace-authority delegation:<a href="#section-1.2.1-1" class="pilcrow">¶</a></p>
+identity-assertion trust evaluation. The family has two layers:<a href="#section-1.2.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-1.2.1-2.1">
-              <p id="section-1.2.1-2.1.1"><strong><span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span></strong> profiles this pattern for OAuth identity
-assertions, defining the Trust Policy document, Trust Method
-machinery, Subject Authority Determination, and grant-profile
-bindings.<a href="#section-1.2.1-2.1.1" class="pilcrow">¶</a></p>
+              <p id="section-1.2.1-2.1.1"><strong><span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span></strong> is the OAuth-side framework layer. It
+instantiates this document's pattern for OAuth identity
+assertions and defines the Trust Policy document, the Trust
+Method machinery (categories, combination rule, registry),
+Subject Authority Determination, and grant-profile bindings.
+Trust Policy is not itself a leaf profile of this document; it
+is the framework other OAuth profiles register against.<a href="#section-1.2.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-1.2.1-2.2">
-              <p id="section-1.2.1-2.2.1"><strong><span>[<a href="#DAI" class="cite xref">DAI</a>]</span></strong> specifies a DNS+HTTPS Subject-Authority publication
-mechanism consumed by trust-policy as two Trust Methods
-(<code>domain_authorized_issuer</code>, <code>https_authorized_issuer</code>).<a href="#section-1.2.1-2.2.1" class="pilcrow">¶</a></p>
+              <p id="section-1.2.1-2.2.1">Leaf profiles register Trust Methods in Trust Policy's registry
+and register against this document's Authority Delegation
+Profile registry (<a href="#iana-profile-registry" class="auto internal xref">Section 10.1</a>):<a href="#section-1.2.1-2.2.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1.2.1-2.2.2.1">
+                  <p id="section-1.2.1-2.2.2.1.1"><strong><span>[<a href="#DAI" class="cite xref">DAI</a>]</span></strong> defines a DNS+HTTPS Subject-Authority publication
+mechanism (the <code>domain_authorized_issuer</code> and
+<code>https_authorized_issuer</code> Trust Methods).<a href="#section-1.2.1-2.2.2.1.1" class="pilcrow">¶</a></p>
+</li>
+                <li class="normal" id="section-1.2.1-2.2.2.2">
+                  <p id="section-1.2.1-2.2.2.2.1"><strong><span>[<a href="#CLIENT-INSTANCE-TRUST" class="cite xref">CLIENT-INSTANCE-TRUST</a>]</span></strong> extends Trust Policy with a
+third Trust Method category, <code>client_instance_authorization</code>,
+applying the same pattern to client identity (the
+<code>client_authorized_instance_issuer</code> Trust Method).<a href="#section-1.2.1-2.2.2.2.1" class="pilcrow">¶</a></p>
+</li>
+              </ul>
 </li>
           </ul>
-<p id="section-1.2.1-3">Both register in the Authority Delegation Profile registry
-(<a href="#iana-profile-registry" class="auto internal xref">Section 10.1</a>).<a href="#section-1.2.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="other-oauth-ecosystem-specifications">
@@ -3990,6 +4004,10 @@ Delegation Artifact.<a href="#section-11-3" class="pilcrow">¶</a></p>
 <dt id="CIA">[CIA]</dt>
         <dd>
 <span class="refTitle">"OAuth 2.0 Client Instance Assertions using Actor Tokens"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-mcguinness-oauth-client-instance-assertion/">https://datatracker.ietf.org/doc/draft-mcguinness-oauth-client-instance-assertion/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="CLIENT-INSTANCE-TRUST">[CLIENT-INSTANCE-TRUST]</dt>
+        <dd>
+<span class="refTitle">"Client Instance Trust Method for OAuth Identity Assertion Issuer Trust Policy"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-mcguinness-oauth-client-instance-trust/">https://datatracker.ietf.org/doc/draft-mcguinness-oauth-client-instance-trust/</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="DAI">[DAI]</dt>
         <dd>

@@ -220,20 +220,29 @@ Table of Contents
 
 1.2.1.  OAuth Profile Family
 
-   This document is the parent of an OAuth profile family for namespace-
-   authority delegation:
+   This document is the parent of an OAuth profile family for identity-
+   assertion trust evaluation.  The family has two layers:
 
-   *  *[TRUST-POLICY]* profiles this pattern for OAuth identity
-      assertions, defining the Trust Policy document, Trust Method
-      machinery, Subject Authority Determination, and grant-profile
-      bindings.
+   *  *[TRUST-POLICY]* is the OAuth-side framework layer.  It
+      instantiates this document's pattern for OAuth identity assertions
+      and defines the Trust Policy document, the Trust Method machinery
+      (categories, combination rule, registry), Subject Authority
+      Determination, and grant-profile bindings.  Trust Policy is not
+      itself a leaf profile of this document; it is the framework other
+      OAuth profiles register against.
 
-   *  *[DAI]* specifies a DNS+HTTPS Subject-Authority publication
-      mechanism consumed by trust-policy as two Trust Methods
-      (domain_authorized_issuer, https_authorized_issuer).
+   *  Leaf profiles register Trust Methods in Trust Policy's registry
+      and register against this document's Authority Delegation Profile
+      registry (Section 10.1):
 
-   Both register in the Authority Delegation Profile registry
-   (Section 10.1).
+      -  *[DAI]* defines a DNS+HTTPS Subject-Authority publication
+         mechanism (the domain_authorized_issuer and
+         https_authorized_issuer Trust Methods).
+
+      -  *[CLIENT-INSTANCE-TRUST]* extends Trust Policy with a third
+         Trust Method category, client_instance_authorization, applying
+         the same pattern to client identity (the
+         client_authorized_instance_issuer Trust Method).
 
 1.2.2.  Other OAuth-Ecosystem Specifications
 
@@ -2015,6 +2024,11 @@ Table of Contents
    [CIA]      "OAuth 2.0 Client Instance Assertions using Actor Tokens",
               <https://datatracker.ietf.org/doc/draft-mcguinness-oauth-
               client-instance-assertion/>.
+
+   [CLIENT-INSTANCE-TRUST]
+              "Client Instance Trust Method for OAuth Identity Assertion
+              Issuer Trust Policy", <https://datatracker.ietf.org/doc/
+              draft-mcguinness-oauth-client-instance-trust/>.
 
    [DAI]      "OAuth Domain-Authorized Issuer Discovery",
               <https://datatracker.ietf.org/doc/draft-mcguinness-oauth-

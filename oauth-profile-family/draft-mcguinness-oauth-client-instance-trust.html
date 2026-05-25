@@ -1,0 +1,2177 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>Client Instance Trust Method for OAuth Identity Assertion Issuer Trust Policy</title>
+<meta content="Karl McGuinness" name="author">
+<meta content="
+       The OAuth Identity Assertion Issuer Trust Policy  
+defines a Trust Policy that a Resource Authorization Server publishes
+to declare which Trust Methods it accepts for evaluating the issuer of
+an identity assertion. It defines two Trust Method categories: one for
+authenticating the assertion issuer, and one for verifying that the
+issuer is authorized to assert about subjects in a particular
+namespace. 
+       A separate trust question arises at the same OAuth token endpoint:
+when an OAuth client presents a Client Instance Assertion per
+  binding a running workload to the client's identity, is the
+workload's Instance Issuer authorized by the OAuth client to attest
+that binding? 
+       This document extends the trust framework to address this question.
+It registers a third Trust Method category,
+ client_instance_authorization , and a Trust Method,
+ client_authorized_instance_issuer , that defers all wire-format
+validation to  . A Resource Authorization Server lists this
+method in its Trust Policy to advertise that it evaluates Client
+Instance Assertions; the cross-category combination rule of
+  composes the new category with the existing
+two. 
+    " name="description">
+<meta content="xml2rfc 3.33.0" name="generator">
+<meta content="OAuth" name="keyword">
+<meta content="trust policy" name="keyword">
+<meta content="client instance" name="keyword">
+<meta content="client identity" name="keyword">
+<meta content="CIMD" name="keyword">
+<meta content="draft-mcguinness-oauth-client-instance-trust-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.33.0
+    Python 3.12.13
+    ConfigArgParse 1.7
+    google-i18n-address 3.1.1
+    intervaltree 3.2.1
+    Jinja2 3.1.6
+    lxml 6.0.2
+    platformdirs 4.9.6
+    pycountry 24.6.1
+    PyYAML 6.0.3
+    requests 2.33.1
+    wcwidth 0.7.0
+-->
+<link href="draft-mcguinness-oauth-client-instance-trust.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+}
+
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 680;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1#title {
+  font-size: 32px;
+  line-height: 40px;
+  clear: both;
+}
+h1#title, h1#rfcnum {
+  margin: 1.5em 0 0.2em;
+}
+h1#rfcnum + h1#title {
+  margin: 0.2em 0;
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+}
+#abstract+p code, #abstract+p samp, #abstract+p tt {
+  font-size: 16px;
+  line-height: 0;
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignRight.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignRight {
+  margin: 1em 0;
+}
+.alignRight > *:first-child {
+  border: none;
+  margin: 0;
+  float: right;
+  clear: both;
+}
+.alignRight > *:nth-child(2) {
+  clear: both;
+  display: block;
+  border: none;
+}
+svg {
+  display: block;
+}
+/* font-family isn't space-separated, but =~ will have to do */
+svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
+  font-family: var(--font-mono);
+}
+.alignCenter.art-text {
+  background-color: var(--highlight-color);
+  border: 1px solid var(--line-color);
+  border-radius: 3px;
+  padding: 0.5em 1em 0;
+  margin-bottom: 0.5em;
+}
+.alignCenter.art-text pre {
+  padding: 0;
+  width: auto;
+}
+.alignCenter {
+  margin: 1em 0;
+}
+.alignCenter > *:first-child {
+  border: none;
+  /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+     support flexbox yet.
+  */
+  display: table;
+  margin: 0 auto;
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+  & li {
+    margin-top: 0.5em;
+  }
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+    }
+  }
+  &.olPercent > dt {
+    float: none;
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+}
+dl:not(.dlNewline) > dt {
+  float: left;
+  margin-right: 2ch;
+  min-width: 8ch;
+}
+dl > dd {
+  margin-bottom: .8em;
+  margin-left: var(--indent) !important; /* stupid element overrides */
+  min-height: 2ex;
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a, a[href].selfRef:hover {
+  text-decoration: none;
+}
+a[href] {
+  color: var(--link-color);
+}
+a[href].selfRef, .iref + a[href].internal {
+  color: var(--text-color);
+}
+a[href]:hover {
+  text-decoration: underline;
+}
+a[href].selfRef:hover {
+  background-color: var(--highlight-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+}
+figure blockquote {
+  margin: 0.8em 0.4em 0.4em;
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+  caption-side: bottom;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) p {
+    margin: -2px 0;
+    max-height: 0;
+    transition: max-height 2s ease, margin 0.5s ease 0.5s;
+    overflow: hidden;
+  }
+  :is(#status-of-memo, #copyright):hover p,
+  :is(#status-of-memo, #copyright) h2:target ~ p {
+    margin: 0.5em 0;
+    max-height: 500px;
+    overflow: auto;
+  }
+  pre, svg {
+    display: inline-block;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+  border-left: 2px var(--pilcrow-strong) solid;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+}
+table.right {
+  margin-left: auto;
+}
+table.center {
+  margin-left: auto;
+  margin-right: auto;
+}
+table.left {
+  margin-right: auto;
+}
+table .text-left {
+  text-align: left;
+}
+table .text-center {
+  text-align: center;
+}
+table .text-right {
+  text-align: right;
+}
+
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+table caption {
+  margin: 0;
+  padding: 3px 0 3px 1em;
+}
+table p {
+  margin: 0;
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
+}
+@media not print {
+  :hover > a.pilcrow, a.pilcrow:focus {
+    opacity: 1;
+  }
+  a.pilcrow[href]:hover {
+    color: var(--pilcrow-strong);
+    background-color: transparent;
+  }
+}
+@media print {
+  a.pilcrow {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+}
+.docInfo .prepared {
+  float: right;
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
+}
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
+}
+
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses > section {
+    column-count: 2;
+    column-gap: 20px;
+  }
+  #authors-addresses > section > h2 {
+    column-span: all;
+  }
+  /* hack for break-inside: avoid-column */
+  #authors-addresses address {
+    display: inline-block;
+    break-inside: avoid-column;
+  }
+}
+
+/* Comments */
+.rfcEditorRemove p:first-of-type {
+  font-style: italic;
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+
+@media screen {
+  #toc nav {
+    font-family: var(--font-title);
+    font-weight: 360;
+    & > ul { margin-bottom: 2em; }
+    & ul {
+      margin: 0 0 0 4px;
+      & :is(p, li) {
+        margin: 2px 0;
+      }
+    }
+  }
+  #toc a.toplink {
+    float: right;
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 1px 0 0 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 2px 0 2px 6px;
+    padding-right: 1em;
+    font-size: 18px;
+    line-height: 24px;
+    min-width: 190px;
+    text-align: right;
+    background-color: #444;
+    color: white;
+    cursor: pointer;
+    &::before { /* css hamburger */
+      float: right;
+      position: relative;
+      width: 1em;
+      height: 1px;
+      left: -164px;
+      margin: 8px 0 0 0;
+      background: white none repeat scroll 0 0;
+      box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+      content: "";
+    }
+  }
+  #toc nav {
+    display: none;
+    background-color: var(--background-color);
+    padding: 0.5em 1em 1em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    height: calc(100vh - 48px);
+    border-left: 1px solid #ddd;
+  }
+  #toc.active {
+    opacity: 1;
+    & nav { display: block; }
+  }
+  /* Make the collapsed ToC header render white on gray also when it's a link */
+  #toc h2 a,
+  #toc h2 a:is(:link, :focus, :hover),
+  #toc a.toplink,
+  #toc a.toplink:hover {
+    color: white;
+    background-color: #444;
+    text-decoration: none;
+  }
+  #toc a.toplink {
+    margin: 2px 0.5em 0;
+  }
+}
+
+/* TOC layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+  }
+  #toc h2 {
+    margin: 0;
+    padding: 0.25em 1em 1em 0;
+  }
+  #toc nav {
+    display: block;
+    height: calc(90vh - 84px);
+    bottom: 0;
+    padding: 0.5em 0 2em;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+  #toc a.toplink {
+    margin: 8px 0.5em 0;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc, #n-introduction {
+    page-break-before: always;
+  }
+  #toc {
+    border-top: none;
+    padding-top: 0;
+  }
+  figure, pre, .vcard {
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  :is(h2, h3, h4, h5, h6)+*, dd {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg :is([stroke="black"], [stroke^="#000"]) {
+  stroke: var(--text-color);
+}
+svg :is([stroke="white"], [stroke^="#fff"]) {
+  stroke: var(--background-color);
+}
+svg :is([fill="black"], [fill^="#000"], :not([fill])) {
+  fill: var(--text-color);
+}
+svg :is([fill="white"], [fill^="#fff"]) {
+  fill: var(--background-color);
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">OAuth Client Instance Trust Method</td>
+<td class="right">May 2026</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">McGuinness</td>
+<td class="center">Expires 26 November 2026</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Web Authorization Protocol</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-mcguinness-oauth-client-instance-trust-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2026-05-25" class="published">25 May 2026</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Standards Track</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2026-11-26">26 November 2026</time></dd>
+<dt class="label-authors">Author:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">K. McGuinness</div>
+<div class="org">Independent</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">Client Instance Trust Method for OAuth Identity Assertion Issuer Trust Policy</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">The OAuth Identity Assertion Issuer Trust Policy <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>
+defines a Trust Policy that a Resource Authorization Server publishes
+to declare which Trust Methods it accepts for evaluating the issuer of
+an identity assertion. It defines two Trust Method categories: one for
+authenticating the assertion issuer, and one for verifying that the
+issuer is authorized to assert about subjects in a particular
+namespace.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">A separate trust question arises at the same OAuth token endpoint:
+when an OAuth client presents a Client Instance Assertion per
+<span>[<a href="#CIA" class="cite xref">CIA</a>]</span> binding a running workload to the client's identity, is the
+workload's Instance Issuer authorized by the OAuth client to attest
+that binding?<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+<p id="section-abstract-3">This document extends the trust framework to address this question.
+It registers a third Trust Method category,
+<code>client_instance_authorization</code>, and a Trust Method,
+<code>client_authorized_instance_issuer</code>, that defers all wire-format
+validation to <span>[<a href="#CIA" class="cite xref">CIA</a>]</span>. A Resource Authorization Server lists this
+method in its Trust Policy to advertise that it evaluates Client
+Instance Assertions; the cross-category combination rule of
+<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> composes the new category with the existing
+two.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-discussion-venues">
+<a href="#name-discussion-venues" class="section-name selfRef">Discussion Venues</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">Discussion of this document takes place on the
+    Web Authorization Protocol Working Group mailing list (oauth@ietf.org),
+    which is archived at <span><a href="https://mailarchive.ietf.org/arch/browse/oauth/">https://mailarchive.ietf.org/arch/browse/oauth/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">Source for this draft and an issue tracker can be found at
+    <span><a href="https://github.com/mcguinness/draft-mcguinness-oauth-identity-assertion-trust-policy">https://github.com/mcguinness/draft-mcguinness-oauth-identity-assertion-trust-policy</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 26 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2026 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1">
+                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-relationship-to-other-docum" class="internal xref">Relationship to Other Documents</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.2">
+                <p id="section-toc.1-1.1.2.2.1" class="keepWithNext"><a href="#section-1.2" class="auto internal xref">1.2</a>.  <a href="#name-conventions" class="internal xref">Conventions</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-terminology" class="internal xref">Terminology</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-the-client_instance_authori" class="internal xref">The client_instance_authorization Category</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-the-client_authorized_insta" class="internal xref">The client_authorized_instance_issuer Trust Method</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-evaluation" class="internal xref">Evaluation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-scope-of-this-trust-method" class="internal xref">Scope of This Trust Method</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-trust-policy-extension" class="internal xref">Trust Policy Extension</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-combined-evaluation" class="internal xref">Combined Evaluation</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-worked-example-non-normativ" class="internal xref">Worked Example (Non-Normative)</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-cast" class="internal xref">Cast</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-trust-policy" class="internal xref">Trust Policy</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
+                <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-token-request" class="internal xref">Token Request</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.4">
+                <p id="section-toc.1-1.7.2.4.1"><a href="#section-7.4" class="auto internal xref">7.4</a>.  <a href="#name-verification" class="internal xref">Verification</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.5">
+                <p id="section-toc.1-1.7.2.5.1"><a href="#section-7.5" class="auto internal xref">7.5</a>.  <a href="#name-threat-compromised-instance" class="internal xref">Threat: Compromised Instance Issuer Outside the Client's List</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-independence-of-trust-evalu" class="internal xref">Independence of Trust Evaluations</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-trust-source-differences" class="internal xref">Trust Source Differences</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.3">
+                <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="auto internal xref">8.3</a>.  <a href="#name-wire-format-stability" class="internal xref">Wire-Format Stability</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.4">
+                <p id="section-toc.1-1.8.2.4.1"><a href="#section-8.4" class="auto internal xref">8.4</a>.  <a href="#name-token-sender-constraining" class="internal xref">Token Sender-Constraining</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-privacy-considerations" class="internal xref">Privacy Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.1">
+                <p id="section-toc.1-1.10.2.1.1"><a href="#section-10.1" class="auto internal xref">10.1</a>.  <a href="#name-identity-assertion-issuer-t" class="internal xref">Identity Assertion Issuer Trust Method Category Registration</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2">
+                <p id="section-toc.1-1.10.2.2.1"><a href="#section-10.2" class="auto internal xref">10.2</a>.  <a href="#name-identity-assertion-issuer-tr" class="internal xref">Identity Assertion Issuer Trust Method Registration</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.3">
+                <p id="section-toc.1-1.10.2.3.1"><a href="#section-10.3" class="auto internal xref">10.3</a>.  <a href="#name-trust-policy-member-registr" class="internal xref">Trust Policy Member Registration</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.1">
+                <p id="section-toc.1-1.11.2.1.1"><a href="#section-11.1" class="auto internal xref">11.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.2">
+                <p id="section-toc.1-1.11.2.2.1"><a href="#section-11.2" class="auto internal xref">11.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-document-history" class="internal xref">Document History</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
+            <p id="section-toc.1-1.13.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">The OAuth Identity Assertion Issuer Trust Policy <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>
+gives an OAuth 2.0 <span>[<a href="#RFC6749" class="cite xref">RFC6749</a>]</span> Resource Authorization Server a way to
+declare its trust criteria for identity assertions. The Trust Policy lists Trust
+Methods in categories; each category answers a distinct trust
+question about the assertion issuer. The framework defines two
+categories:<a href="#section-1-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1-2.1">
+          <p id="section-1-2.1.1"><code>issuer_authentication</code>: is the entity that signed the assertion
+authentic?<a href="#section-1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-2.2">
+          <p id="section-1-2.2.1"><code>subject_namespace_authorization</code>: is that entity authorized by the
+namespace owner to assert about subjects in this namespace?<a href="#section-1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-1-3">A token request at the same endpoint may also carry a Client Instance
+Assertion per <span>[<a href="#CIA" class="cite xref">CIA</a>]</span>: a JWT, presented in the request, that binds a
+running workload to an OAuth client's identity by attesting that the
+workload is an authorized instance of the OAuth client. <span>[<a href="#CIA" class="cite xref">CIA</a>]</span>
+defines the wire format, the validation procedure, and the trust
+root (the OAuth client's <code>instance_issuers</code> list published in CIMD
+<span>[<a href="#CIMD" class="cite xref">CIMD</a>]</span> or in local registration).<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">What <span>[<a href="#CIA" class="cite xref">CIA</a>]</span> does not define is how a Resource Authorization Server
+declares, via its Trust Policy, that it accepts Client Instance
+Assertions. Today an authorization server either implements <span>[<a href="#CIA" class="cite xref">CIA</a>]</span>
+or it does not; clients have no machine-readable way to discover
+which authorization servers expect the assertion or to know that the
+RAS will evaluate it against <span>[<a href="#CIA" class="cite xref">CIA</a>]</span>'s rules.<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-5">This document fills that gap. It extends the trust framework's
+category registry with <code>client_instance_authorization</code> and
+registers <code>client_authorized_instance_issuer</code> as a Trust Method in
+that category. The Trust Method defers all wire-format validation to
+<span>[<a href="#CIA" class="cite xref">CIA</a>]</span>; this document contributes only the trust-policy framing.<a href="#section-1-5" class="pilcrow">¶</a></p>
+<p id="section-1-6">A Resource Authorization Server that accepts Client Instance
+Assertions lists <code>client_authorized_instance_issuer</code> in its Trust
+Policy. The cross-category combination rule of <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>
+ensures that client-instance evaluation runs alongside any required
+issuer-authentication and subject-namespace-authorization checks.<a href="#section-1-6" class="pilcrow">¶</a></p>
+<div id="relationship-to-other-documents">
+<section id="section-1.1">
+        <h3 id="name-relationship-to-other-docum">
+<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-relationship-to-other-docum" class="section-name selfRef">Relationship to Other Documents</a>
+        </h3>
+<p id="section-1.1-1">This document depends normatively on:<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1.1-2.1">
+            <p id="section-1.1-2.1.1"><strong><span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span></strong>: the parent framework defining Trust Policy,
+Trust Method categories, the cross-category combination rule, and
+the IANA Trust Methods registry that this document extends.<a href="#section-1.1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-1.1-2.2">
+            <p id="section-1.1-2.2.1"><strong><span>[<a href="#CIA" class="cite xref">CIA</a>]</span></strong>: the wire-format and validation specification for
+Client Instance Assertions. This document defers all wire-format
+details to <span>[<a href="#CIA" class="cite xref">CIA</a>]</span>.<a href="#section-1.1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-1.1-3">This document does not define:<a href="#section-1.1-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1.1-4.1">
+            <p id="section-1.1-4.1.1">The wire format of a Client Instance Assertion. See <span>[<a href="#CIA" class="cite xref">CIA</a>]</span>.<a href="#section-1.1-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-1.1-4.2">
+            <p id="section-1.1-4.2.1">The mechanism by which an OAuth client publishes its
+<code>instance_issuers</code> list. See <span>[<a href="#CIA" class="cite xref">CIA</a>]</span> and <span>[<a href="#CIMD" class="cite xref">CIMD</a>]</span>.<a href="#section-1.1-4.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-1.1-4.3">
+            <p id="section-1.1-4.3.1">The OAuth client authentication mechanism. See <span>[<a href="#RFC7521" class="cite xref">RFC7521</a>]</span>,
+<span>[<a href="#RFC7523" class="cite xref">RFC7523</a>]</span>, <span>[<a href="#RFC8705" class="cite xref">RFC8705</a>]</span>, or <span>[<a href="#CIA" class="cite xref">CIA</a>]</span> for client-instance-bound
+authentication.<a href="#section-1.1-4.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-1.1-5">This document does define:<a href="#section-1.1-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1.1-6.1">
+            <p id="section-1.1-6.1.1">The <code>client_instance_authorization</code> Trust Method category, as a
+registered extension to <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>.<a href="#section-1.1-6.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-1.1-6.2">
+            <p id="section-1.1-6.2.1">The <code>client_authorized_instance_issuer</code> Trust Method, in that
+category, deferring to <span>[<a href="#CIA" class="cite xref">CIA</a>]</span>.<a href="#section-1.1-6.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-1.1-6.3">
+            <p id="section-1.1-6.3.1">The optional <code>client_instance_assertion_required</code> Trust Policy
+member, signaling that a Trust Policy requires every applicable
+token request to carry a Client Instance Assertion.<a href="#section-1.1-6.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="conventions">
+<section id="section-1.2">
+        <h3 id="name-conventions">
+<a href="#section-1.2" class="section-number selfRef">1.2. </a><a href="#name-conventions" class="section-name selfRef">Conventions</a>
+        </h3>
+<p id="section-1.2-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-1.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="terminology">
+<section id="section-2">
+      <h2 id="name-terminology">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-terminology" class="section-name selfRef">Terminology</a>
+      </h2>
+<p id="section-2-1">This document uses the terminology of <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> and
+<span>[<a href="#CIA" class="cite xref">CIA</a>]</span>. In addition:<a href="#section-2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2-2">
+        <dt id="section-2-2.1">Instance Issuer:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.2">
+          <p id="section-2-2.2.1">The entity identified by the <code>iss</code> claim of a Client Instance
+Assertion. Per <span>[<a href="#CIA" class="cite xref">CIA</a>]</span>, the Instance Issuer is an entity (such as
+a workload identity authority, e.g., a SPIRE deployment) that
+attests the binding between a running workload and an OAuth
+client. The OAuth client authorizes specific Instance Issuers by
+listing them in its <code>instance_issuers</code> metadata per <span>[<a href="#CIA" class="cite xref">CIA</a>]</span>.<a href="#section-2-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="category">
+<section id="section-3">
+      <h2 id="name-the-client_instance_authori">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-the-client_instance_authori" class="section-name selfRef">The client_instance_authorization Category</a>
+      </h2>
+<p id="section-3-1">This document registers <code>client_instance_authorization</code> as a Trust
+Method category in the IANA "Identity Assertion Issuer Trust
+Methods" registry established by <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-2">Category definition:<a href="#section-3-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3-3">
+        <dt id="section-3-3.1"><code>client_instance_authorization</code></dt>
+        <dd style="margin-left: 1.5em" id="section-3-3.2">
+          <p id="section-3-3.2.1">Does the Instance Issuer of a Client Instance Assertion have the
+OAuth client's permission to attest concrete runtime instances of
+that client? An attestation from the OAuth client's metadata (a
+CIMD document or local registration record) answers this
+question.<a href="#section-3-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<p id="section-3-4">Applicability:<a href="#section-3-4" class="pilcrow">¶</a></p>
+<p id="section-3-5">This category applies to a token request when the request includes a
+Client Instance Assertion per <span>[<a href="#CIA" class="cite xref">CIA</a>]</span>. The category <span class="bcp14">MAY</span> also apply
+when the Trust Policy includes the <code>client_instance_assertion_required</code>
+member set to <code>true</code> (<a href="#policy-extension" class="auto internal xref">Section 5</a>), in which case the
+applicable request <span class="bcp14">MUST</span> include a Client Instance Assertion and a
+request lacking one <span class="bcp14">MUST</span> be rejected.<a href="#section-3-5" class="pilcrow">¶</a></p>
+<p id="section-3-6">When the category applies and the OAuth client's metadata cannot be
+resolved per <span>[<a href="#CIA" class="cite xref">CIA</a>]</span> (CIMD dereference or local registration
+lookup), the Resource Authorization Server <span class="bcp14">MUST</span> reject the request.
+The Resource Authorization Server <span class="bcp14">MUST NOT</span> treat the category as
+inapplicable in this case; the failure to resolve the metadata is
+itself a verification failure.<a href="#section-3-6" class="pilcrow">¶</a></p>
+<p id="section-3-7">Evaluation subject:<a href="#section-3-7" class="pilcrow">¶</a></p>
+<p id="section-3-8">The Trust Method in this category evaluates the Instance Issuer (the
+<code>iss</code> claim of the Client Instance Assertion), not the Assertion
+Issuer of the primary identity assertion. The <code>iss</code> of the primary
+assertion continues to be evaluated under the
+<code>issuer_authentication</code> and <code>subject_namespace_authorization</code>
+categories of <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>.<a href="#section-3-8" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="trust-method">
+<section id="section-4">
+      <h2 id="name-the-client_authorized_insta">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-the-client_authorized_insta" class="section-name selfRef">The client_authorized_instance_issuer Trust Method</a>
+      </h2>
+<p id="section-4-1">This document registers <code>client_authorized_instance_issuer</code> as the
+initial Trust Method in the <code>client_instance_authorization</code>
+category.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<p id="section-4-2">The <code>client_authorized_instance_issuer</code> method indicates that the
+Instance Issuer of a Client Instance Assertion is acceptable if it
+is authorized in the OAuth client's metadata per <span>[<a href="#CIA" class="cite xref">CIA</a>]</span>.<a href="#section-4-2" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-4-3">
+<pre>
+{
+  "method": "client_authorized_instance_issuer"
+}
+</pre><a href="#section-4-3" class="pilcrow">¶</a>
+</div>
+<p id="section-4-4">This Trust Method has no parameters.<a href="#section-4-4" class="pilcrow">¶</a></p>
+<div id="evaluation">
+<section id="section-4.1">
+        <h3 id="name-evaluation">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-evaluation" class="section-name selfRef">Evaluation</a>
+        </h3>
+<p id="section-4.1-1">When the Resource Authorization Server evaluates this Trust Method,
+it <span class="bcp14">MUST</span>:<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-4.1-2">
+<li id="section-4.1-2.1">
+            <p id="section-4.1-2.1.1">Resolve the OAuth client's metadata per <span>[<a href="#CIA" class="cite xref">CIA</a>]</span> (CIMD dereference
+when the <code>client_id</code> is a URL; local registration lookup
+otherwise). If the metadata cannot be retrieved or is malformed,
+reject the request.<a href="#section-4.1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.1-2.2">
+            <p id="section-4.1-2.2.1">Apply the Client Instance Assertion validation procedure defined
+in <span>[<a href="#CIA" class="cite xref">CIA</a>]</span>, including:<a href="#section-4.1-2.2.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.1-2.2.2.1">
+                <p id="section-4.1-2.2.2.1.1">matching the assertion's <code>iss</code> claim against an entry in the
+client's <code>instance_issuers</code> list;<a href="#section-4.1-2.2.2.1.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-4.1-2.2.2.2">
+                <p id="section-4.1-2.2.2.2.1">verifying the assertion's <code>client_id</code> claim equals the
+authenticated OAuth client's <code>client_id</code>;<a href="#section-4.1-2.2.2.2.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-4.1-2.2.2.3">
+                <p id="section-4.1-2.2.2.3.1">validating the assertion's signature against the issuer
+descriptor's configured key source;<a href="#section-4.1-2.2.2.3.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-4.1-2.2.2.4">
+                <p id="section-4.1-2.2.2.4.1">verifying descriptor-level constraints (subject syntax, trust
+domain, signing algorithm, key source) match the assertion;<a href="#section-4.1-2.2.2.4.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-4.1-2.2.2.5">
+                <p id="section-4.1-2.2.2.5.1">verifying proof of possession of any confirmation key.<a href="#section-4.1-2.2.2.5.1" class="pilcrow">¶</a></p>
+</li>
+            </ul>
+</li>
+          <li id="section-4.1-2.3">
+            <p id="section-4.1-2.3.1">If the <span>[<a href="#CIA" class="cite xref">CIA</a>]</span> validation procedure succeeds, this Trust Method
+is satisfied. If validation fails, this Trust Method is not
+satisfied; per <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §rasp, the Resource
+Authorization Server <span class="bcp14">MUST</span> reject the request.<a href="#section-4.1-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-4.1-3">The authority source for this Trust Method is the OAuth client
+itself. The OAuth client's metadata is the publication channel.
+<span>[<a href="#CIA" class="cite xref">CIA</a>]</span> defines the document format, descriptor shape, presentation
+paths (request parameter or actor token), and validation procedure;
+this document contributes only the trust-policy framing.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="scope-of-this-trust-method">
+<section id="section-4.2">
+        <h3 id="name-scope-of-this-trust-method">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-scope-of-this-trust-method" class="section-name selfRef">Scope of This Trust Method</a>
+        </h3>
+<p id="section-4.2-1">This Trust Method authenticates the binding between an OAuth client
+and a running workload; it does NOT authenticate the Instance Issuer
+as a member of a federation, an entity in an ecosystem registry, or
+the holder of any out-of-band identity beyond what the OAuth client's
+metadata names.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.2-2">A deployment that requires both client-instance authorization AND
+federation membership for the Instance Issuer lists both
+<code>client_authorized_instance_issuer</code> (in this category) and a
+federation-based method such as <code>openid_federation</code> (in the
+<code>issuer_authentication</code> category) in its Trust Policy. The
+cross-category combination rule of <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> ensures both
+are evaluated.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="policy-extension">
+<section id="section-5">
+      <h2 id="name-trust-policy-extension">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-trust-policy-extension" class="section-name selfRef">Trust Policy Extension</a>
+      </h2>
+<p id="section-5-1">This document defines an optional Trust Policy member.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-5-2">
+        <dt id="section-5-2.1"><code>client_instance_assertion_required</code></dt>
+        <dd style="margin-left: 1.5em" id="section-5-2.2">
+          <p id="section-5-2.2.1"><span class="bcp14">OPTIONAL</span>. Boolean. When <code>true</code>, token requests evaluated under this
+Trust Policy <span class="bcp14">MUST</span> include a Client Instance Assertion per <span>[<a href="#CIA" class="cite xref">CIA</a>]</span> and
+<span class="bcp14">MUST</span> satisfy the <code>client_instance_authorization</code> Trust Method
+category. If this member is <code>true</code> and the Trust Policy contains no
+recognized and well-formed Trust Method in the
+<code>client_instance_authorization</code> category, the policy is malformed and
+the Resource Authorization Server <span class="bcp14">MUST</span> reject the request. When
+absent or <code>false</code>, this Trust Policy does not by itself require a
+Client Instance Assertion; a Client Instance Assertion that is
+present is still evaluated when the policy contains an applicable
+<code>client_instance_authorization</code> method.<a href="#section-5-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<p id="section-5-3">A Trust Policy publisher using this member <span class="bcp14">SHOULD</span> list it in the
+Trust Policy's <code>crit</code> member (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>
+§critical-extension-identifiers) so that consumers that do not
+recognize the member reject the policy rather than silently
+ignoring the requirement.<a href="#section-5-3" class="pilcrow">¶</a></p>
+<p id="section-5-4">Example:<a href="#section-5-4" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-5-5">
+<pre>
+{
+  "resource_authorization_server": "https://auth.example.org",
+  "authorization_grant_profiles_supported": [
+    "urn:ietf:params:oauth:grant-profile:id-jag"
+  ],
+  "subject_identifier_formats_supported": ["email"],
+  "issuer_trust_methods_supported": [
+    {
+      "method": "openid_federation",
+      "trust_anchors": ["https://federation.example.org"]
+    },
+    {
+      "method": "domain_authorized_issuer"
+    },
+    {
+      "method": "client_authorized_instance_issuer"
+    }
+  ],
+  "client_instance_assertion_required": true,
+  "crit": ["client_instance_assertion_required"]
+}
+</pre><a href="#section-5-5" class="pilcrow">¶</a>
+</div>
+<p id="section-5-6">This Trust Policy requires every token request to carry a Client
+Instance Assertion AND requires the Assertion Issuer of the primary
+assertion to satisfy both federation membership and namespace
+authority.<a href="#section-5-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="combined-evaluation">
+<section id="section-6">
+      <h2 id="name-combined-evaluation">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-combined-evaluation" class="section-name selfRef">Combined Evaluation</a>
+      </h2>
+<p id="section-6-1">When this Trust Method category is present alongside the categories
+defined in <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>, the cross-category combination rule
+of <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §rasp applies unchanged. The rule combines
+categories with AND-semantics across categories and OR-semantics
+within a category.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<p id="section-6-2">For a token request evaluated under a Trust Policy that includes all
+three categories:<a href="#section-6-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-6-3.1">
+          <p id="section-6-3.1.1">The Assertion Issuer (the <code>iss</code> of the primary identity assertion)
+<span class="bcp14">MUST</span> satisfy at least one <code>issuer_authentication</code> method AND at
+least one <code>subject_namespace_authorization</code> method.<a href="#section-6-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-6-3.2">
+          <p id="section-6-3.2.1">The Instance Issuer (the <code>iss</code> of the Client Instance Assertion)
+<span class="bcp14">MUST</span> satisfy <code>client_authorized_instance_issuer</code> (or another
+registered method in the same category).<a href="#section-6-3.2.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-6-4">The three categories evaluate two different entities. The first two
+evaluate the Assertion Issuer of the primary assertion. The third
+evaluates the Instance Issuer of a Client Instance Assertion carried
+in the same token request. The Trust Policy's flat list of methods
+notwithstanding, these evaluations are independent in subject as
+well as in security question.<a href="#section-6-4" class="pilcrow">¶</a></p>
+<p id="section-6-5">This separation prevents three classes of compromise:<a href="#section-6-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-6-6.1">
+          <p id="section-6-6.1.1">An Assertion Issuer authenticated as a federation member but not
+authorized for a subject namespace cannot impersonate users in
+that namespace.<a href="#section-6-6.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-6-6.2">
+          <p id="section-6-6.2.1">An Instance Issuer authorized for one OAuth client cannot attest
+runtime workloads as instances of any other OAuth client.<a href="#section-6-6.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-6-6.3">
+          <p id="section-6-6.3.1">An OAuth client cannot transitively confer Assertion Issuer
+authority on its authorized Instance Issuers; the two trust
+decisions remain separate.<a href="#section-6-6.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+</section>
+</div>
+<div id="worked-example-non-normative">
+<section id="section-7">
+      <h2 id="name-worked-example-non-normativ">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-worked-example-non-normativ" class="section-name selfRef">Worked Example (Non-Normative)</a>
+      </h2>
+<p id="section-7-1">This appendix is non-normative.<a href="#section-7-1" class="pilcrow">¶</a></p>
+<p id="section-7-2">This example shows a token request that exercises all three Trust
+Method categories: federation membership for the Assertion Issuer,
+namespace authority for the asserted subject, and client-instance
+authorization for the Instance Issuer.<a href="#section-7-2" class="pilcrow">¶</a></p>
+<div id="cast">
+<section id="section-7.1">
+        <h3 id="name-cast">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-cast" class="section-name selfRef">Cast</a>
+        </h3>
+<ul class="normal">
+<li class="normal" id="section-7.1-1.1">
+            <p id="section-7.1-1.1.1"><strong>Assertion Issuer</strong>, <code>https://idp.partner.example</code>. Authenticates
+Alice and mints an ID-JAG. Federated member of
+<code>https://federation.example.org</code>. Also listed in
+<code>partner.example</code>'s Issuer Authorization Policy.<a href="#section-7.1-1.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-7.1-1.2">
+            <p id="section-7.1-1.2.1"><strong>Workload (OAuth Client)</strong>, <code>https://app.example.com/oauth/client-metadata.json</code>.
+Presents tokens at the Resource Authorization Server.<a href="#section-7.1-1.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-7.1-1.3">
+            <p id="section-7.1-1.3.1"><strong>Workload Identity (Instance Issuer)</strong>,
+<code>spiffe://prod.example.com</code>. The SPIFFE trust domain whose SVID
+authority issues the Client Instance Assertion.<a href="#section-7.1-1.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-7.1-1.4">
+            <p id="section-7.1-1.4.1"><strong>Resource Authorization Server</strong>, <code>https://auth.example.org</code>.
+Publishes the Trust Policy below.<a href="#section-7.1-1.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="trust-policy">
+<section id="section-7.2">
+        <h3 id="name-trust-policy">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-trust-policy" class="section-name selfRef">Trust Policy</a>
+        </h3>
+<div class="lang-json sourcecode" id="section-7.2-1">
+<pre>
+{
+  "resource_authorization_server": "https://auth.example.org",
+  "authorization_grant_profiles_supported": [
+    "urn:ietf:params:oauth:grant-profile:id-jag"
+  ],
+  "subject_identifier_formats_supported": ["email"],
+  "issuer_trust_methods_supported": [
+    {
+      "method": "openid_federation",
+      "trust_anchors": ["https://federation.example.org"]
+    },
+    {
+      "method": "domain_authorized_issuer"
+    },
+    {
+      "method": "client_authorized_instance_issuer"
+    }
+  ],
+  "client_instance_assertion_required": true,
+  "crit": ["client_instance_assertion_required"]
+}
+</pre><a href="#section-7.2-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="token-request">
+<section id="section-7.3">
+        <h3 id="name-token-request">
+<a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-token-request" class="section-name selfRef">Token Request</a>
+        </h3>
+<p id="section-7.3-1">The Workload presents an ID-JAG (for Alice) AND a Client Instance
+Assertion (binding the Workload to the OAuth client). For
+illustration, the request uses Token Exchange <span>[<a href="#RFC8693" class="cite xref">RFC8693</a>]</span>, with the
+Client Instance Assertion carried in the <code>actor_token</code> parameter per
+<span>[<a href="#CIA" class="cite xref">CIA</a>]</span>:<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+<div class="lang-http sourcecode" id="section-7.3-2">
+<pre>
+POST /token HTTP/1.1
+Host: auth.example.org
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=urn:ietf:params:oauth:grant-type:token-exchange
+&amp;client_id=https%3A%2F%2Fapp.example.com%2Foauth%2Fclient-metadata.json
+&amp;subject_token=eyJ...(ID-JAG)
+&amp;subject_token_type=urn:ietf:params:oauth:token-type:id-jag
+&amp;actor_token=eyJ...(Client Instance Assertion)
+&amp;actor_token_type=urn:ietf:params:oauth:token-type:client-instance-jwt
+</pre><a href="#section-7.3-2" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="verification">
+<section id="section-7.4">
+        <h3 id="name-verification">
+<a href="#section-7.4" class="section-number selfRef">7.4. </a><a href="#name-verification" class="section-name selfRef">Verification</a>
+        </h3>
+<p id="section-7.4-1">The Resource Authorization Server applies the <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>
+§rasp procedure with the three-category combination rule. For each
+applicable category:<a href="#section-7.4-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-7.4-2">
+<li id="section-7.4-2.1">
+            <p id="section-7.4-2.1.1"><strong><code>issuer_authentication</code> (Assertion Issuer = ID-JAG <code>iss</code>)</strong>:
+the Resource Authorization Server validates the ID-JAG's
+federation trust chain to <code>https://federation.example.org</code>. The
+chain validates. Method satisfied.<a href="#section-7.4-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-7.4-2.2">
+            <p id="section-7.4-2.2.1"><strong><code>subject_namespace_authorization</code> (Assertion Issuer for Alice's
+email domain)</strong>: the Resource Authorization Server extracts
+<code>partner.example</code> from the ID-JAG's <code>email</code> claim and retrieves
+the Issuer Authorization Policy at
+<code>_oauth-issuer-policy.partner.example</code>. The policy lists
+<code>https://idp.partner.example</code> in <code>authorized_issuers</code>. Method
+satisfied.<a href="#section-7.4-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-7.4-2.3">
+            <p id="section-7.4-2.3.1"><strong><code>client_instance_authorization</code> (Instance Issuer = actor token
+<code>iss</code>)</strong>: the Resource Authorization Server fetches the CIMD
+document at the <code>client_id</code> URL and validates the Client Instance
+Assertion per <span>[<a href="#CIA" class="cite xref">CIA</a>]</span>. The Instance Issuer is listed in the
+client's <code>instance_issuers</code>. Method satisfied.<a href="#section-7.4-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-7.4-3">All three categories satisfied; the token request proceeds.<a href="#section-7.4-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="threat-compromised-instance-issuer-outside-the-clients-list">
+<section id="section-7.5">
+        <h3 id="name-threat-compromised-instance">
+<a href="#section-7.5" class="section-number selfRef">7.5. </a><a href="#name-threat-compromised-instance" class="section-name selfRef">Threat: Compromised Instance Issuer Outside the Client's List</a>
+        </h3>
+<p id="section-7.5-1">Suppose an attacker controls an Instance Issuer
+<code>spiffe://attacker.example</code> and obtains a SPIFFE SVID for a
+workload in that trust domain. The attacker constructs a Client
+Instance Assertion claiming the OAuth client and presents it.<a href="#section-7.5-1" class="pilcrow">¶</a></p>
+<p id="section-7.5-2">The verification proceeds as follows: the Resource Authorization
+Server fetches the CIMD document, finds the
+<code>instance_issuers</code> list, and looks up <code>spiffe://attacker.example</code>
+in that list. It is not present. The
+<code>client_authorized_instance_issuer</code> Trust Method is not satisfied;
+the request is rejected.<a href="#section-7.5-2" class="pilcrow">¶</a></p>
+<p id="section-7.5-3">The attacker's correct authentication of its own workload identity
+does not authorize it to act as a client whose owner did not list
+the attacker's Instance Issuer in <code>instance_issuers</code>. Federation
+membership and namespace authority do not extend to this question;
+only the OAuth client owner's metadata decides.<a href="#section-7.5-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="security-considerations">
+<section id="section-8">
+      <h2 id="name-security-considerations">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<div id="independence-of-trust-evaluations">
+<section id="section-8.1">
+        <h3 id="name-independence-of-trust-evalu">
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-independence-of-trust-evalu" class="section-name selfRef">Independence of Trust Evaluations</a>
+        </h3>
+<p id="section-8.1-1">The three Trust Method categories evaluated under a combined Trust
+Policy answer three independent questions about two different
+entities (the Assertion Issuer and the Instance Issuer). Satisfying
+one category does not imply satisfying another. Operators
+constructing Trust Policies <span class="bcp14">SHOULD</span> list methods from every category
+they consider necessary for the deployments they accept; omitting a
+category leaves that question unanswered for the request.<a href="#section-8.1-1" class="pilcrow">¶</a></p>
+<p id="section-8.1-2">This separation is the load-bearing security property of the
+combined framework. Conflating evaluations would allow:<a href="#section-8.1-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.1-3.1">
+            <p id="section-8.1-3.1.1">A federated Assertion Issuer to assert about subjects in any
+namespace.<a href="#section-8.1-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.1-3.2">
+            <p id="section-8.1-3.2.1">An Instance Issuer authorized by one OAuth client to be treated
+as authorized for any OAuth client.<a href="#section-8.1-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.1-3.3">
+            <p id="section-8.1-3.3.1">An OAuth client to confer Assertion Issuer authority on its
+Instance Issuers, or vice versa.<a href="#section-8.1-3.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-8.1-4">The trust framework's cross-category combination rule prevents each
+of these by requiring evidence from every applicable category
+independently.<a href="#section-8.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="trust-source-differences">
+<section id="section-8.2">
+        <h3 id="name-trust-source-differences">
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-trust-source-differences" class="section-name selfRef">Trust Source Differences</a>
+        </h3>
+<p id="section-8.2-1">This Trust Method's authority source (the OAuth client's metadata)
+is fundamentally different from the authority sources of methods in
+the other categories:<a href="#section-8.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.2-2.1">
+            <p id="section-8.2-2.1.1"><code>issuer_authentication</code> methods (e.g., <code>openid_federation</code>) trust
+ecosystem operators (federation trust anchors).<a href="#section-8.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.2-2.2">
+            <p id="section-8.2-2.2.1"><code>subject_namespace_authorization</code> methods (e.g.,
+<code>domain_authorized_issuer</code>) trust namespace owners (domain
+controllers).<a href="#section-8.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.2-2.3">
+            <p id="section-8.2-2.3.1"><code>client_instance_authorization</code> methods (this category) trust
+OAuth client owners (CIMD publishers or local-registration
+configurers).<a href="#section-8.2-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-8.2-3">These three trust roots are typically different parties: a
+federation operator, a customer's domain owner, and a SaaS vendor
+operating a CIMD. Combining their decisions into one Trust Policy
+correctly composes their authorities without conflating them.<a href="#section-8.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="wire-format-stability">
+<section id="section-8.3">
+        <h3 id="name-wire-format-stability">
+<a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-wire-format-stability" class="section-name selfRef">Wire-Format Stability</a>
+        </h3>
+<p id="section-8.3-1">This document depends normatively on <span>[<a href="#CIA" class="cite xref">CIA</a>]</span> for the Client Instance
+Assertion wire format and validation procedure. <span>[<a href="#CIA" class="cite xref">CIA</a>]</span> is an
+individual Internet-Draft at the time of this writing. Changes to
+<span>[<a href="#CIA" class="cite xref">CIA</a>]</span>'s wire format affect this Trust Method's evaluation; advancement
+of this document to Standards Track is bounded by <span>[<a href="#CIA" class="cite xref">CIA</a>]</span>'s progress
+and stability. Implementations <span class="bcp14">SHOULD</span> track <span>[<a href="#CIA" class="cite xref">CIA</a>]</span> for wire-format
+changes.<a href="#section-8.3-1" class="pilcrow">¶</a></p>
+<p id="section-8.3-2">This document does not freeze any wire-format details of <span>[<a href="#CIA" class="cite xref">CIA</a>]</span>;
+the Trust Method is satisfied when the <span>[<a href="#CIA" class="cite xref">CIA</a>]</span> validation procedure
+succeeds, regardless of which <span>[<a href="#CIA" class="cite xref">CIA</a>]</span> presentation path or version
+the request uses.<a href="#section-8.3-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="token-sender-constraining">
+<section id="section-8.4">
+        <h3 id="name-token-sender-constraining">
+<a href="#section-8.4" class="section-number selfRef">8.4. </a><a href="#name-token-sender-constraining" class="section-name selfRef">Token Sender-Constraining</a>
+        </h3>
+<p id="section-8.4-1">This Trust Method binds Instance Issuer authorization at the point
+of token issuance. Once the Resource Authorization Server issues an
+access token, the token's relationship to the workload is governed
+by sender-constraining mechanisms (<span>[<a href="#RFC8705" class="cite xref">RFC8705</a>]</span>, <span>[<a href="#RFC9449" class="cite xref">RFC9449</a>]</span>) and
+not by this Trust Method. Resource Authorization Servers issuing
+tokens to workload-authenticated clients <span class="bcp14">SHOULD</span> sender-constrain
+those tokens; this Trust Method alone does not provide end-to-end
+runtime binding.<a href="#section-8.4-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="privacy-considerations">
+<section id="section-9">
+      <h2 id="name-privacy-considerations">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-privacy-considerations" class="section-name selfRef">Privacy Considerations</a>
+      </h2>
+<p id="section-9-1">The Trust Policy that lists <code>client_authorized_instance_issuer</code>
+discloses that the Resource Authorization Server evaluates Client
+Instance Assertions. This is operationally useful (clients know what
+the RAS expects) but reveals nothing about the specific Instance
+Issuers the RAS accepts; that information is in each OAuth client's
+metadata, not in the Trust Policy.<a href="#section-9-1" class="pilcrow">¶</a></p>
+<p id="section-9-2">The <code>client_instance_assertion_required</code> Trust Policy member
+discloses that every applicable token request must carry a Client
+Instance Assertion. A Trust Policy that uses this member is signaling
+a workload-centric deployment posture, which itself may be
+deployment-sensitive information.<a href="#section-9-2" class="pilcrow">¶</a></p>
+<p id="section-9-3">For privacy considerations applicable to the wire format of Client
+Instance Assertions and the resolution of CIMD documents, see
+<span>[<a href="#CIA" class="cite xref">CIA</a>]</span> and <span>[<a href="#CIMD" class="cite xref">CIMD</a>]</span>.<a href="#section-9-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana-considerations">
+<section id="section-10">
+      <h2 id="name-iana-considerations">
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<div id="identity-assertion-issuer-trust-method-category-registration">
+<section id="section-10.1">
+        <h3 id="name-identity-assertion-issuer-t">
+<a href="#section-10.1" class="section-number selfRef">10.1. </a><a href="#name-identity-assertion-issuer-t" class="section-name selfRef">Identity Assertion Issuer Trust Method Category Registration</a>
+        </h3>
+<p id="section-10.1-1">IANA is requested to add the following entry to the "Identity
+Assertion Issuer Trust Method Categories" registry established by
+<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>. Registration policy: Specification Required
+<span>[<a href="#RFC8126" class="cite xref">RFC8126</a>]</span>.<a href="#section-10.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-10.1-2">
+          <dt id="section-10.1-2.1">Category Identifier:</dt>
+          <dd style="margin-left: 1.5em" id="section-10.1-2.2">
+            <p id="section-10.1-2.2.1"><code>client_instance_authorization</code><a href="#section-10.1-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-10.1-2.3">Description:</dt>
+          <dd style="margin-left: 1.5em" id="section-10.1-2.4">
+            <p id="section-10.1-2.4.1">Does the Instance Issuer of a Client Instance Assertion have the
+OAuth client's permission to attest concrete runtime instances of
+that client?<a href="#section-10.1-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-10.1-2.5">Applicability:</dt>
+          <dd style="margin-left: 1.5em" id="section-10.1-2.6">
+            <p id="section-10.1-2.6.1">Applies to a token request when the request includes a Client
+Instance Assertion per <span>[<a href="#CIA" class="cite xref">CIA</a>]</span>, or when the applicable Trust
+Policy sets <code>client_instance_assertion_required</code> to <code>true</code>.<a href="#section-10.1-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-10.1-2.7">Evaluation Subject:</dt>
+          <dd style="margin-left: 1.5em" id="section-10.1-2.8">
+            <p id="section-10.1-2.8.1">The Instance Issuer identified by the <code>iss</code> claim of the Client
+Instance Assertion.<a href="#section-10.1-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-10.1-2.9">Reference:</dt>
+          <dd style="margin-left: 1.5em" id="section-10.1-2.10">
+            <p id="section-10.1-2.10.1">This document.<a href="#section-10.1-2.10.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="identity-assertion-issuer-trust-method-registration">
+<section id="section-10.2">
+        <h3 id="name-identity-assertion-issuer-tr">
+<a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-identity-assertion-issuer-tr" class="section-name selfRef">Identity Assertion Issuer Trust Method Registration</a>
+        </h3>
+<p id="section-10.2-1">IANA is requested to add the following entry to the "Identity
+Assertion Issuer Trust Methods" registry established by
+<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>.<a href="#section-10.2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-10.2-2">
+          <dt id="section-10.2-2.1">Identifier:</dt>
+          <dd style="margin-left: 1.5em" id="section-10.2-2.2">
+            <p id="section-10.2-2.2.1"><code>client_authorized_instance_issuer</code><a href="#section-10.2-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-10.2-2.3">Categories:</dt>
+          <dd style="margin-left: 1.5em" id="section-10.2-2.4">
+            <p id="section-10.2-2.4.1"><code>client_instance_authorization</code><a href="#section-10.2-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-10.2-2.5">Parameters:</dt>
+          <dd style="margin-left: 1.5em" id="section-10.2-2.6">
+            <p id="section-10.2-2.6.1">(none)<a href="#section-10.2-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-10.2-2.7">Reference:</dt>
+          <dd style="margin-left: 1.5em" id="section-10.2-2.8">
+            <p id="section-10.2-2.8.1">This document, <span>[<a href="#CIA" class="cite xref">CIA</a>]</span><a href="#section-10.2-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="trust-policy-member-registration">
+<section id="section-10.3">
+        <h3 id="name-trust-policy-member-registr">
+<a href="#section-10.3" class="section-number selfRef">10.3. </a><a href="#name-trust-policy-member-registr" class="section-name selfRef">Trust Policy Member Registration</a>
+        </h3>
+<p id="section-10.3-1">IANA is requested to add the following entry to the Trust Policy
+member registry established by <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> (if such a
+registry exists at the time of publication; otherwise, IANA is
+requested to publish the registration alongside the trust policy
+member registrations of <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>).<a href="#section-10.3-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-10.3-2">
+          <dt id="section-10.3-2.1">Member Name:</dt>
+          <dd style="margin-left: 1.5em" id="section-10.3-2.2">
+            <p id="section-10.3-2.2.1"><code>client_instance_assertion_required</code><a href="#section-10.3-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-10.3-2.3">Member Description:</dt>
+          <dd style="margin-left: 1.5em" id="section-10.3-2.4">
+            <p id="section-10.3-2.4.1">Boolean. When <code>true</code>, token requests evaluated under this Trust
+Policy <span class="bcp14">MUST</span> include a Client Instance Assertion per <span>[<a href="#CIA" class="cite xref">CIA</a>]</span>.<a href="#section-10.3-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-10.3-2.5">Change Controller:</dt>
+          <dd style="margin-left: 1.5em" id="section-10.3-2.6">
+            <p id="section-10.3-2.6.1">IETF<a href="#section-10.3-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-10.3-2.7">Specification Document:</dt>
+          <dd style="margin-left: 1.5em" id="section-10.3-2.8">
+            <p id="section-10.3-2.8.1">This document<a href="#section-10.3-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-11">
+      <h2 id="name-references">
+<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<div id="sec-normative-references">
+<section id="section-11.1">
+        <h3 id="name-normative-references">
+<a href="#section-11.1" class="section-number selfRef">11.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="CIA">[CIA]</dt>
+        <dd>
+<span class="refTitle">"OAuth 2.0 Client Instance Assertions using Actor Tokens"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-mcguinness-oauth-client-instance-assertion/">https://datatracker.ietf.org/doc/draft-mcguinness-oauth-client-instance-assertion/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6749">[RFC6749]</dt>
+        <dd>
+<span class="refAuthor">Hardt, D., Ed.</span>, <span class="refTitle">"The OAuth 2.0 Authorization Framework"</span>, <span class="seriesInfo">RFC 6749</span>, <span class="seriesInfo">DOI 10.17487/RFC6749</span>, <time datetime="2012-10" class="refDate">October 2012</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6749">https://www.rfc-editor.org/rfc/rfc6749</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8126">[RFC8126]</dt>
+        <dd>
+<span class="refAuthor">Cotton, M.</span>, <span class="refAuthor">Leiba, B.</span>, and <span class="refAuthor">T. Narten</span>, <span class="refTitle">"Guidelines for Writing an IANA Considerations Section in RFCs"</span>, <span class="seriesInfo">BCP 26</span>, <span class="seriesInfo">RFC 8126</span>, <span class="seriesInfo">DOI 10.17487/RFC8126</span>, <time datetime="2017-06" class="refDate">June 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8126">https://www.rfc-editor.org/rfc/rfc8126</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+        <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="TRUST-FRAMEWORK">[TRUST-FRAMEWORK]</dt>
+      <dd>
+<span class="refTitle">"OAuth Identity Assertion Issuer Trust Policy"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-mcguinness-oauth-identity-assertion-issuer-trust-policy/">https://datatracker.ietf.org/doc/draft-mcguinness-oauth-identity-assertion-issuer-trust-policy/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-11.2">
+        <h3 id="name-informative-references">
+<a href="#section-11.2" class="section-number selfRef">11.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="CIMD">[CIMD]</dt>
+        <dd>
+<span class="refTitle">"OAuth Client Identifier Metadata Document"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-parecki-oauth-client-id-metadata-document/">https://datatracker.ietf.org/doc/draft-parecki-oauth-client-id-metadata-document/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7521">[RFC7521]</dt>
+        <dd>
+<span class="refAuthor">Campbell, B.</span>, <span class="refAuthor">Mortimore, C.</span>, <span class="refAuthor">Jones, M.</span>, and <span class="refAuthor">Y. Goland</span>, <span class="refTitle">"Assertion Framework for OAuth 2.0 Client Authentication and Authorization Grants"</span>, <span class="seriesInfo">RFC 7521</span>, <span class="seriesInfo">DOI 10.17487/RFC7521</span>, <time datetime="2015-05" class="refDate">May 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7521">https://www.rfc-editor.org/rfc/rfc7521</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7523">[RFC7523]</dt>
+        <dd>
+<span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Campbell, B.</span>, and <span class="refAuthor">C. Mortimore</span>, <span class="refTitle">"JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants"</span>, <span class="seriesInfo">RFC 7523</span>, <span class="seriesInfo">DOI 10.17487/RFC7523</span>, <time datetime="2015-05" class="refDate">May 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7523">https://www.rfc-editor.org/rfc/rfc7523</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8693">[RFC8693]</dt>
+        <dd>
+<span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Nadalin, A.</span>, <span class="refAuthor">Campbell, B., Ed.</span>, <span class="refAuthor">Bradley, J.</span>, and <span class="refAuthor">C. Mortimore</span>, <span class="refTitle">"OAuth 2.0 Token Exchange"</span>, <span class="seriesInfo">RFC 8693</span>, <span class="seriesInfo">DOI 10.17487/RFC8693</span>, <time datetime="2020-01" class="refDate">January 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8693">https://www.rfc-editor.org/rfc/rfc8693</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8705">[RFC8705]</dt>
+        <dd>
+<span class="refAuthor">Campbell, B.</span>, <span class="refAuthor">Bradley, J.</span>, <span class="refAuthor">Sakimura, N.</span>, and <span class="refAuthor">T. Lodderstedt</span>, <span class="refTitle">"OAuth 2.0 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens"</span>, <span class="seriesInfo">RFC 8705</span>, <span class="seriesInfo">DOI 10.17487/RFC8705</span>, <time datetime="2020-02" class="refDate">February 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8705">https://www.rfc-editor.org/rfc/rfc8705</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9449">[RFC9449]</dt>
+      <dd>
+<span class="refAuthor">Fett, D.</span>, <span class="refAuthor">Campbell, B.</span>, <span class="refAuthor">Bradley, J.</span>, <span class="refAuthor">Lodderstedt, T.</span>, <span class="refAuthor">Jones, M.</span>, and <span class="refAuthor">D. Waite</span>, <span class="refTitle">"OAuth 2.0 Demonstrating Proof of Possession (DPoP)"</span>, <span class="seriesInfo">RFC 9449</span>, <span class="seriesInfo">DOI 10.17487/RFC9449</span>, <time datetime="2023-09" class="refDate">September 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9449">https://www.rfc-editor.org/rfc/rfc9449</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="document-history">
+<section id="appendix-A">
+      <h2 id="name-document-history">
+<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-document-history" class="section-name selfRef">Document History</a>
+      </h2>
+<p id="appendix-A-1">This appendix is non-normative and will be removed before publication.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<p id="appendix-A-2">-00<a href="#appendix-A-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-A-3.1">
+          <p id="appendix-A-3.1.1">initial draft<a href="#appendix-A-3.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-B">
+      <h2 id="name-authors-address">
+<a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Karl McGuinness</span></div>
+<div dir="auto" class="left"><span class="org">Independent</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:public@karlmcguinness.com" class="email">public@karlmcguinness.com</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>

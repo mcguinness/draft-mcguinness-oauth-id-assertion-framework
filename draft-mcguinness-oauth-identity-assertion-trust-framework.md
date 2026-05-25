@@ -1609,7 +1609,7 @@ lookup procedure ({{dii-lookup}}).
 |-|-|-|-|-|
 | 1: DNS-Inline | TXT with `issuer=` ({{dii-dns-record}}) | None (carried in TXT) | DNS control of `{A}` | Common case: authorize an issuer for a namespace with no rich policy |
 | 2: Authority-Hosted HTTPS | TXT with `uri=` | HTTPS-hosted JSON under Subject Authority's operational control | DNS control of `{A}` AND TLS on the authority-operated host | Rich policy (validity windows, format restrictions, tenant binding) at a controlled origin |
-| 3: Signed Policy at Arbitrary Origin {#publication-profile-signed} | TXT with `uri=` | HTTPS-hosted JSON with `signed_policy` ({{signed-policy-metadata}}); MAY be at any HTTPS origin | DNS control of `{A}` AND JWS signature binding the signer to the Subject Authority | Third-party hosting, CDN mirroring, disaster recovery, transparency-log integration |
+| 3: Signed Policy at Arbitrary Origin | TXT with `uri=` | HTTPS-hosted JSON with `signed_policy` ({{signed-policy-metadata}}); MAY be at any HTTPS origin | DNS control of `{A}` AND JWS signature binding the signer to the Subject Authority | Third-party hosting, CDN mirroring, disaster recovery, transparency-log integration |
 
 A Subject Authority using Profile 3 MUST publish `signed_policy`
 in the served document satisfying the binding rules of
@@ -2426,8 +2426,8 @@ summarized in {{dii-operational-conflicts}}.
 
 The inline DNS form has no signing mechanism; its authority binding
 is DNS control. Deployments requiring cryptographic proof of intent
-or third-party hosting use Publication Profile 3
-({{publication-profile-signed}}) with `signed_policy`
+or third-party hosting use the signed-policy publication profile
+({{publication-profiles}}) with `signed_policy`
 ({{signed-policy-metadata}}).
 
 ### Scope of Authorization

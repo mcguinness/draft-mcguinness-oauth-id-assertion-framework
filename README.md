@@ -1,13 +1,13 @@
 <!-- regenerate: on (set to off if you edit this file) -->
 
-# OAuth Identity Assertion Issuer Trust Framework
+# OAuth Identity Assertion Issuer Trust Policy
 
-This is the working area for the individual Internet-Draft, "OAuth Identity Assertion Issuer Trust Framework".
+This is the working area for the individual Internet-Draft, "OAuth Identity Assertion Issuer Trust Policy".
 
-* [Editor's Copy](https://mcguinness.github.io/draft-mcguinness-oauth-identity-assertion-trust-policy/#go.draft-mcguinness-oauth-identity-assertion-trust-framework.html)
-* [Datatracker Page](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-identity-assertion-trust-framework)
-* [Individual Draft](https://datatracker.ietf.org/doc/html/draft-mcguinness-oauth-identity-assertion-trust-framework)
-* [Compare Editor's Copy to Individual Draft](https://mcguinness.github.io/draft-mcguinness-oauth-identity-assertion-trust-policy/#go.draft-mcguinness-oauth-identity-assertion-trust-framework.diff)
+* [Editor's Copy](https://mcguinness.github.io/draft-mcguinness-oauth-identity-assertion-trust-policy/#go.draft-mcguinness-oauth-identity-assertion-issuer-trust-policy.html)
+* [Datatracker Page](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-identity-assertion-issuer-trust-policy)
+* [Individual Draft](https://datatracker.ietf.org/doc/html/draft-mcguinness-oauth-identity-assertion-issuer-trust-policy)
+* [Compare Editor's Copy to Individual Draft](https://mcguinness.github.io/draft-mcguinness-oauth-identity-assertion-trust-policy/#go.draft-mcguinness-oauth-identity-assertion-issuer-trust-policy.diff)
 
 
 ## Contributing
@@ -28,4 +28,3 @@ $ make
 
 Command line usage requires that you have the necessary software installed.  See
 [the instructions](https://github.com/martinthomson/i-d-template/blob/main/doc/SETUP.md).
-

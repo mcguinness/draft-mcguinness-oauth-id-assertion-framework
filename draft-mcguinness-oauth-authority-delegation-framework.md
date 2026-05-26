@@ -74,9 +74,9 @@ informative:
     title: "Attribute Authority Trust Method for OAuth Identity Assertion Issuer Trust Policy"
     target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-attribute-authority-trust/
     date: false
-  TID:
-    title: "OAuth Trusted Issuer Discovery"
-    target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-trusted-issuer-discovery/
+  TPD:
+    title: "OAuth Trust Policy Discovery"
+    target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-trust-policy-discovery/
     date: false
   TRUST-POLICY-SCENARIOS:
     title: "Deployment Scenarios for the OAuth Identity Assertion Trust Policy Family"
@@ -199,7 +199,8 @@ Full mappings of each mechanism appear in {{appendix-profiles}}.
 ### OAuth Profile Family {#oauth-profile-family}
 
 This document is the parent of an OAuth profile family for
-identity-assertion trust evaluation. The family has two layers:
+identity-assertion trust evaluation. The family is structured
+in two layers, with two companion documents:
 
 ~~~
             Authority Delegation Framework  (this document)
@@ -221,44 +222,45 @@ identity-assertion trust evaluation. The family has two layers:
   (DAI)
   subject_namespace_  client_instance_  attribute_
   authorization       authorization     attestation
+
+Companion documents (sibling to Trust Policy):
+
+  Trust Policy Discovery (TPD)   -- DNS-based discovery of
+                                    Trust Policy; resource-side
+                                    dual of DAI.
+
+  Deployment Scenarios           -- Non-normative worked examples
+                                    spanning the family.
 ~~~
 
-Each leaf profile registers one or more Trust Methods in Trust
-Policy's registry and registers against this document's Authority
-Delegation Profile registry ({{iana-profile-registry}}).
+**Trust Policy** ({{TRUST-POLICY}}) is the OAuth-side framework
+layer. It defines the Trust Policy document, the Trust Method
+machinery (categories, combination rule, registry), Subject
+Authority Determination, and grant-profile bindings. Trust Policy
+is not itself a leaf profile of this document; it is the
+framework other OAuth profiles register against.
 
-{{TID}} is a discovery companion: it lets a Resource Owner
-publish its Trust Policy at a DNS-named authority, closing the
-bilateral first-contact gap in open-world deployments. TID is the
-resource-side dual of {{DAI}}.
+**Leaf profiles** register Trust Methods in Trust Policy's
+registry and register against this document's Authority
+Delegation Profile registry ({{iana-profile-registry}}):
 
-{{TRUST-POLICY-SCENARIOS}} is a non-normative companion document
-presenting five end-to-end deployment scenarios spanning the
-family's profiles.
+- {{DAI}}: DNS+HTTPS Subject-Authority publication
+  (`domain_authorized_issuer`, `https_authorized_issuer`).
+- {{CLIENT-INSTANCE-TRUST}}: a third Trust Method category,
+  `client_instance_authorization`, for workload-to-client binding
+  (`client_authorized_instance_issuer`).
+- {{ATTRIBUTE-AUTHORITY-TRUST}}: a fourth Trust Method category,
+  `attribute_attestation`, for claim-type authorities
+  (`attribute_authority_authorized_issuer`).
 
-- **{{TRUST-POLICY}}** is the OAuth-side framework layer. It
-  instantiates this document's pattern for OAuth identity
-  assertions and defines the Trust Policy document, the Trust
-  Method machinery (categories, combination rule, registry),
-  Subject Authority Determination, and grant-profile bindings.
-  Trust Policy is not itself a leaf profile of this document; it
-  is the framework other OAuth profiles register against.
+**Companions** (not leaf profiles):
 
-- Leaf profiles register Trust Methods in Trust Policy's registry
-  and register against this document's Authority Delegation
-  Profile registry ({{iana-profile-registry}}):
-
-  - **{{DAI}}** defines a DNS+HTTPS Subject-Authority publication
-    mechanism (the `domain_authorized_issuer` and
-    `https_authorized_issuer` Trust Methods).
-  - **{{CLIENT-INSTANCE-TRUST}}** extends Trust Policy with a
-    third Trust Method category, `client_instance_authorization`,
-    applying the same pattern to client identity (the
-    `client_authorized_instance_issuer` Trust Method).
-  - **{{ATTRIBUTE-AUTHORITY-TRUST}}** extends Trust Policy with a
-    fourth Trust Method category, `attribute_attestation`,
-    applying the same pattern to attribute authorities (the
-    `attribute_authority_authorized_issuer` Trust Method).
+- {{TPD}}: a DNS-based discovery mechanism that lets a Resource
+  Owner publish a pointer to its Trust Policy. Resource-side
+  dual of {{DAI}}; closes the bilateral first-contact gap in
+  open-world deployments.
+- {{TRUST-POLICY-SCENARIOS}}: non-normative worked examples
+  showing how the family composes in deployment.
 
 ### Other OAuth-Ecosystem Specifications
 

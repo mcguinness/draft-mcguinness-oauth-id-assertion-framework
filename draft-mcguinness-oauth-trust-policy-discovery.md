@@ -1,7 +1,7 @@
 ---
 title: "OAuth Trust Policy Discovery"
 abbrev: "OAuth Trust Policy Discovery"
-docname: draft-mcguinness-oauth-trusted-issuer-discovery-latest
+docname: draft-mcguinness-oauth-trust-policy-discovery-latest
 category: std
 submissiontype: IETF
 v: 3
@@ -879,7 +879,7 @@ Profile registry of {{AUTHORITY-DELEGATION}} (§Authority
 Delegation Profile Registry):
 
 Profile Identifier:
-: `urn:ietf:params:oauth:authority-delegation-profile:trusted-issuer-discovery`
+: `urn:ietf:params:oauth:authority-delegation-profile:trust-policy-discovery`
 
 Authority Holder Form:
 : DNS-named resource-owner domain.

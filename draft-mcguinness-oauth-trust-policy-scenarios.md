@@ -46,6 +46,10 @@ informative:
     title: "Attribute Authority Trust Method for OAuth Identity Assertion Issuer Trust Policy"
     target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-attribute-authority-trust/
     date: false
+  TPD:
+    title: "OAuth Trust Policy Discovery"
+    target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-trust-policy-discovery/
+    date: false
   ID-JAG:
     title: "Identity Assertion JWT Authorization Grant"
     target: https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/
@@ -403,8 +407,20 @@ _oauth-issuer-policy.acme.example.  IN  TXT
    issuer=https://agentprovider.example"
 ~~~
 
-The tool provider publishes a Trust Policy requiring BOTH
-issuer authentication AND namespace authorization:
+The tool provider publishes a TPD record (for open-world
+discovery by agents on first contact) and the Trust Policy at
+the well-known URL:
+
+~~~
+_oauth-trust-policy.api.tool.example.  IN  TXT
+  "v=oauth-trust-policy1;
+   authority=api.tool.example;
+   policy_uri=https://api.tool.example/.well-known/identity-assertion-trust-policy;
+   trust_methods=openid_federation,domain_authorized_issuer"
+~~~
+
+The Trust Policy itself requires BOTH issuer authentication AND
+namespace authorization:
 
 ~~~ json
 {
@@ -443,7 +459,14 @@ itself as `iss` and presents it to the tool:
 }
 ~~~
 
-## Verification
+## Discovery and Verification
+
+The agent platform, encountering the tool's resource URL for the
+first time, performs TPD lookup at
+`_oauth-trust-policy.api.tool.example`. The DNS response reveals
+the Trust Policy URL and the required Trust Methods. The agent
+platform fetches the authoritative policy and confirms its
+capability to satisfy both methods.
 
 The tool evaluates the Trust Policy with the cross-category
 combination rule (AND across categories):
@@ -483,6 +506,7 @@ any particular subject namespace.
 - {{TRUST-POLICY}}: Trust Policy, Trust Method categories,
   cross-category combination rule.
 - {{DAI}}: `domain_authorized_issuer`.
+- {{TPD}}: open-world Trust Policy discovery from the resource URL.
 - {{OIDF-FEDERATION}}: federation membership.
 
 # Scenario 4: Workload Identity Binding with SPIFFE {#scenario-workload}
@@ -678,7 +702,17 @@ The pointed-at policy:
 }
 ~~~
 
-The relying party's Trust Policy:
+The relying party publishes a TPD record for open-world
+first-contact discovery:
+
+~~~
+_oauth-trust-policy.api.bank.example.  IN  TXT
+  "v=oauth-trust-policy1;
+   authority=api.bank.example;
+   policy_uri=https://api.bank.example/.well-known/identity-assertion-trust-policy"
+~~~
+
+And the Trust Policy itself:
 
 ~~~ json
 {
@@ -784,6 +818,7 @@ diploma-mill IdP. Trust Method not satisfied. Rejected.
 - {{ATTRIBUTE-AUTHORITY-TRUST}}:
   `attribute_authority_authorized_issuer`, OIDC4IDA
   verified_claims claim shape, §eKYC-IDA Variant worked example.
+- {{TPD}}: open-world Trust Policy discovery from the resource URL.
 - {{OIDC4IDA}}: OpenID Connect for Identity Assurance wire format.
 
 # Summary Comparison {#summary}
@@ -836,6 +871,10 @@ exercised by the scenarios:
   Verified Claims and §OIDC4IDA verified_claims Shape.
 - AAAP DNS+HTTPS publication:
   {{ATTRIBUTE-AUTHORITY-TRUST}} §Publication.
+- TPD DNS record format: {{TPD}} §DNS Record Format.
+- TPD lookup procedure: {{TPD}} §Lookup Procedure.
+- TPD composition with Trust Policy and Token Exchange Discovery:
+  {{TPD}} §Relationship to Token Exchange Discovery.
 
 # Security Considerations
 

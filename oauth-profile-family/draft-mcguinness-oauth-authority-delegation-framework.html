@@ -314,16 +314,19 @@ h1, h2, h3, h4, h5, h6 {
   font-size-adjust: 0.5;
   color: var(--title-color);
 }
-h1#title {
-  font-size: 32px;
-  line-height: 40px;
-  clear: both;
-}
-h1#title, h1#rfcnum {
-  margin: 1.5em 0 0.2em;
-}
-h1#rfcnum + h1#title {
-  margin: 0.2em 0;
+h1 {
+  &#title {
+    font-size: 32px;
+    line-height: 40px;
+    clear: both;
+    margin: 1.5em 0 0.2em;
+  }
+  &#rfcnum {
+    margin: 1.5em 0 0.2em;
+    & + h1#title {
+      margin: 0.2em 0;
+    }
+  }
 }
 
 h1, h2, h3 {
@@ -343,10 +346,10 @@ h4, h5, h6 {
 #abstract+p {
   font-size: 18px;
   line-height: 24px;
-}
-#abstract+p code, #abstract+p samp, #abstract+p tt {
-  font-size: 16px;
-  line-height: 0;
+  & code, & samp, & tt {
+    font-size: 16px;
+    line-height: 0;
+  }
 }
 
 p {
@@ -357,59 +360,59 @@ p {
 div {
   margin: 0;
 }
-.alignRight.art-text {
-  background-color: var(--highlight-color);
-  border: 1px solid var(--line-color);
-  border-radius: 3px;
-  padding: 0.5em 1em 0;
-  margin-bottom: 0.5em;
-}
-.alignRight.art-text pre {
-  padding: 0;
-  width: auto;
-}
 .alignRight {
   margin: 1em 0;
-}
-.alignRight > *:first-child {
-  border: none;
-  margin: 0;
-  float: right;
-  clear: both;
-}
-.alignRight > *:nth-child(2) {
-  clear: both;
-  display: block;
-  border: none;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    margin: 0;
+    float: right;
+    clear: both;
+  }
+  & > *:nth-child(2) {
+    clear: both;
+    display: block;
+    border: none;
+  }
 }
 svg {
   display: block;
-}
-/* font-family isn't space-separated, but =~ will have to do */
-svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
-  font-family: var(--font-mono);
-}
-.alignCenter.art-text {
-  background-color: var(--highlight-color);
-  border: 1px solid var(--line-color);
-  border-radius: 3px;
-  padding: 0.5em 1em 0;
-  margin-bottom: 0.5em;
-}
-.alignCenter.art-text pre {
-  padding: 0;
-  width: auto;
+  /* font-family isn't space-separated, but =~ will have to do */
+  &[font-family~="monospace" i], & [font-family~="monospace" i] {
+    font-family: var(--font-mono);
+  }
 }
 .alignCenter {
   margin: 1em 0;
-}
-.alignCenter > *:first-child {
-  border: none;
-  /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
-     support flexbox yet.
-  */
-  display: table;
-  margin: 0 auto;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+       support flexbox yet.
+    */
+    display: table;
+    margin: 0 auto;
+  }
 }
 
 /* lists */
@@ -447,26 +450,25 @@ dl {
     --indent: 5ch;
     & > dt {
       min-width: calc(var(--indent) - 2ch);
+      float: none;
     }
-  }
-  &.olPercent > dt {
-    float: none;
   }
 
   dl > dd > & {
     margin-top: 0.5em;
     margin-bottom: 0;
   }
-}
-dl:not(.dlNewline) > dt {
-  float: left;
-  margin-right: 2ch;
-  min-width: 8ch;
-}
-dl > dd {
-  margin-bottom: .8em;
-  margin-left: var(--indent) !important; /* stupid element overrides */
-  min-height: 2ex;
+
+  &:not(.dlNewline) > dt {
+    float: left;
+    margin-right: 2ch;
+    min-width: 8ch;
+  }
+  & > dd {
+    margin-bottom: .8em;
+    margin-left: var(--indent) !important; /* stupid element overrides */
+    min-height: 2ex;
+  }
 }
 :is(dl.compact, .dlCompact) > dd {
   margin-bottom: 0;
@@ -482,20 +484,22 @@ dl > dd {
 }
 
 /* links */
-a, a[href].selfRef:hover {
+a {
   text-decoration: none;
+  &[href] {
+    color: var(--link-color);
+    &:hover { text-decoration: underline; }
+    &.selfRef {
+      color: var(--text-color);
+      &:hover {
+        text-decoration: none;
+        background-color: var(--highlight-color);
+      }
+    }
+  }
 }
-a[href] {
-  color: var(--link-color);
-}
-a[href].selfRef, .iref + a[href].internal {
+.iref + a[href].internal {
   color: var(--text-color);
-}
-a[href]:hover {
-  text-decoration: underline;
-}
-a[href].selfRef:hover {
-  background-color: var(--highlight-color);
 }
 a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
   white-space: nowrap;
@@ -531,9 +535,9 @@ img {
 figure {
   margin: 0.5em 0;
   padding: 0;
-}
-figure blockquote {
-  margin: 0.8em 0.4em 0.4em;
+  & blockquote {
+    margin: 0.8em 0.4em 0.4em;
+  }
 }
 figcaption, caption {
   font-style: italic;
@@ -543,17 +547,19 @@ figcaption, caption {
 }
 @media screen {
   /* Auto-collapse boilerplate. */
-  :is(#status-of-memo, #copyright) p {
-    margin: -2px 0;
-    max-height: 0;
-    transition: max-height 2s ease, margin 0.5s ease 0.5s;
-    overflow: hidden;
-  }
-  :is(#status-of-memo, #copyright):hover p,
-  :is(#status-of-memo, #copyright) h2:target ~ p {
-    margin: 0.5em 0;
-    max-height: 500px;
-    overflow: auto;
+  :is(#status-of-memo, #copyright) {
+    & p {
+      margin: -2px 0;
+      max-height: 0;
+      transition: max-height 2s ease, margin 0.5s ease 0.5s;
+      overflow: hidden;
+    }
+    &:hover p,
+    & h2:target ~ p {
+      margin: 0.5em 0;
+      max-height: 500px;
+      overflow: auto;
+    }
   }
   pre, svg {
     display: inline-block;
@@ -603,25 +609,17 @@ table {
   max-width: 100%;
   margin: 0 0 1em;
   border-collapse: collapse;
-}
-table.right {
-  margin-left: auto;
-}
-table.center {
-  margin-left: auto;
-  margin-right: auto;
-}
-table.left {
-  margin-right: auto;
-}
-table .text-left {
-  text-align: left;
-}
-table .text-center {
-  text-align: center;
-}
-table .text-right {
-  text-align: right;
+  &.right { margin-left: auto; }
+  &.center { margin-left: auto; margin-right: auto; }
+  &.left { margin-right: auto; }
+  & .text-left { text-align: left; }
+  & .text-center { text-align: center; }
+  & .text-right { text-align: right; }
+  & caption {
+    margin: 0;
+    padding: 3px 0 3px 1em;
+  }
+  & p { margin: 0; }
 }
 
 thead, tbody {
@@ -641,13 +639,6 @@ th {
 :is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
   background-color: var(--highlight-color);
 }
-table caption {
-  margin: 0;
-  padding: 3px 0 3px 1em;
-}
-table p {
-  margin: 0;
-}
 
 /* pilcrow */
 a.pilcrow {
@@ -658,18 +649,16 @@ a.pilcrow {
     color: var(--pilcrow-weak);
     &:hover { text-decoration: none; }
   }
-}
-@media not print {
-  :hover > a.pilcrow, a.pilcrow:focus {
-    opacity: 1;
+  @media not print {
+    :hover > &, &:focus {
+      opacity: 1;
+    }
+    &[href]:hover {
+      color: var(--pilcrow-strong);
+      background-color: transparent;
+    }
   }
-  a.pilcrow[href]:hover {
-    color: var(--pilcrow-strong);
-    background-color: transparent;
-  }
-}
-@media print {
-  a.pilcrow {
+  @media print {
     display: none;
   }
 }
@@ -728,9 +717,9 @@ sub, sup {
   font-size: 0.9em;
   font-style: italic;
   margin-top: 2em;
-}
-.docInfo .prepared {
-  float: right;
+  & .prepared {
+    float: right;
+  }
 }
 
 /* table of contents */
@@ -820,23 +809,27 @@ hr.addr {
   max-width: calc(100% - 16px);
 }
 @media (min-width: 500px) {
-  #authors-addresses > section {
-    column-count: 2;
-    column-gap: 20px;
-  }
-  #authors-addresses > section > h2 {
-    column-span: all;
-  }
-  /* hack for break-inside: avoid-column */
-  #authors-addresses address {
-    display: inline-block;
-    break-inside: avoid-column;
+  #authors-addresses {
+    & > section {
+      column-count: 2;
+      column-gap: 20px;
+    }
+    & > section > h2 {
+      column-span: all;
+    }
+    /* hack for break-inside: avoid-column */
+    & address {
+      display: inline-block;
+      break-inside: avoid-column;
+    }
   }
 }
 
 /* Comments */
-.rfcEditorRemove p:first-of-type {
-  font-style: italic;
+.rfcEditorRemove {
+  & p:first-of-type {
+    font-style: italic;
+  }
 }
 .cref {
   background-color: rgba(249, 232, 105, 0.3);
@@ -847,19 +840,21 @@ hr.addr {
 }
 
 @media screen {
-  #toc nav {
-    font-family: var(--font-title);
-    font-weight: 360;
-    & > ul { margin-bottom: 2em; }
-    & ul {
-      margin: 0 0 0 4px;
-      & :is(p, li) {
-        margin: 2px 0;
+  #toc {
+    & nav {
+      font-family: var(--font-title);
+      font-weight: 360;
+      & > ul { margin-bottom: 2em; }
+      & ul {
+        margin: 0 0 0 4px;
+        & :is(p, li) {
+          margin: 2px 0;
+        }
       }
     }
-  }
-  #toc a.toplink {
-    float: right;
+    & a.toplink {
+      float: right;
+    }
   }
 }
 @media not screen {
@@ -880,54 +875,54 @@ hr.addr {
     margin: 0;
     border-bottom: 1px solid #ccc;
     opacity: 0.6;
-  }
-  #toc h2 {
-    margin: 0;
-    padding: 2px 0 2px 6px;
-    padding-right: 1em;
-    font-size: 18px;
-    line-height: 24px;
-    min-width: 190px;
-    text-align: right;
-    background-color: #444;
-    color: white;
-    cursor: pointer;
-    &::before { /* css hamburger */
-      float: right;
-      position: relative;
-      width: 1em;
-      height: 1px;
-      left: -164px;
-      margin: 8px 0 0 0;
-      background: white none repeat scroll 0 0;
-      box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
-      content: "";
+    & h2 {
+      margin: 0;
+      padding: 2px 0 2px 6px;
+      padding-right: 1em;
+      font-size: 18px;
+      line-height: 24px;
+      min-width: 190px;
+      text-align: right;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      &::before { /* css hamburger */
+        float: right;
+        position: relative;
+        width: 1em;
+        height: 1px;
+        left: -164px;
+        margin: 8px 0 0 0;
+        background: white none repeat scroll 0 0;
+        box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+        content: "";
+      }
     }
-  }
-  #toc nav {
-    display: none;
-    background-color: var(--background-color);
-    padding: 0.5em 1em 1em;
-    overflow: auto;
-    overscroll-behavior: contain;
-    height: calc(100vh - 48px);
-    border-left: 1px solid #ddd;
-  }
-  #toc.active {
-    opacity: 1;
-    & nav { display: block; }
-  }
-  /* Make the collapsed ToC header render white on gray also when it's a link */
-  #toc h2 a,
-  #toc h2 a:is(:link, :focus, :hover),
-  #toc a.toplink,
-  #toc a.toplink:hover {
-    color: white;
-    background-color: #444;
-    text-decoration: none;
-  }
-  #toc a.toplink {
-    margin: 2px 0.5em 0;
+    & nav {
+      display: none;
+      background-color: var(--background-color);
+      padding: 0.5em 1em 1em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      height: calc(100vh - 48px);
+      border-left: 1px solid #ddd;
+    }
+    &.active {
+      opacity: 1;
+      & nav { display: block; }
+    }
+    /* Make the collapsed ToC header render white on gray also when it's a link */
+    & h2 a,
+    & h2 a:is(:link, :focus, :hover),
+    & a.toplink,
+    & a.toplink:hover {
+      color: white;
+      background-color: #444;
+      text-decoration: none;
+    }
+    & a.toplink {
+      margin: 2px 0.5em 0;
+    }
   }
 }
 
@@ -946,26 +941,26 @@ hr.addr {
     margin: 0;
     padding: 0;
     z-index: 1;
-  }
-  #toc h2 {
-    margin: 0;
-    padding: 0.25em 1em 1em 0;
-  }
-  #toc nav {
-    display: block;
-    height: calc(90vh - 84px);
-    bottom: 0;
-    padding: 0.5em 0 2em;
-    overflow: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
+    & h2 {
+      margin: 0;
+      padding: 0.25em 1em 1em 0;
+    }
+    & nav {
+      display: block;
+      height: calc(90vh - 84px);
+      bottom: 0;
+      padding: 0.5em 0 2em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    & a.toplink {
+      margin: 8px 0.5em 0;
+    }
   }
   img { /* future proofing */
     max-width: 100%;
     height: auto;
-  }
-  #toc a.toplink {
-    margin: 8px 0.5em 0;
   }
 }
 
@@ -981,12 +976,13 @@ hr.addr {
   #n-copyright-notice {
     border-bottom: none;
   }
-  #toc, #n-introduction {
-    page-break-before: always;
-  }
   #toc {
+    page-break-before: always;
     border-top: none;
     padding-top: 0;
+  }
+  #n-introduction {
+    page-break-before: always;
   }
   figure, pre, .vcard {
     page-break-inside: avoid;
@@ -1048,17 +1044,19 @@ hr.addr {
 }
 
 /* SVG Trick: a prefix match works because only black and white are allowed */
-svg :is([stroke="black"], [stroke^="#000"]) {
-  stroke: var(--text-color);
-}
-svg :is([stroke="white"], [stroke^="#fff"]) {
-  stroke: var(--background-color);
-}
-svg :is([fill="black"], [fill^="#000"], :not([fill])) {
-  fill: var(--text-color);
-}
-svg :is([fill="white"], [fill^="#fff"]) {
-  fill: var(--background-color);
+svg {
+  & :is([stroke="black"], [stroke^="#000"]) {
+    stroke: var(--text-color);
+  }
+  & :is([stroke="white"], [stroke^="#fff"]) {
+    stroke: var(--background-color);
+  }
+  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+    fill: var(--text-color);
+  }
+  & :is([fill="white"], [fill^="#fff"]) {
+    fill: var(--background-color);
+  }
 }
 </style>
 
@@ -1072,7 +1070,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">McGuinness</td>
-<td class="center">Expires 26 November 2026</td>
+<td class="center">Expires 27 November 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1085,12 +1083,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-mcguinness-oauth-authority-delegation-framework-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-05-25" class="published">25 May 2026</time>
+<time datetime="2026-05-26" class="published">26 May 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-11-26">26 November 2026</time></dd>
+<dd class="expires"><time datetime="2026-11-27">27 November 2026</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1154,7 +1152,7 @@ deployments.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 26 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 27 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1337,51 +1335,68 @@ deployments.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
             <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
-                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-open-world-delegation-secur" class="internal xref">Open-World Delegation Security Model</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
-                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-pre-authentication-trust-de" class="internal xref">Pre-Authentication Trust Decisions</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.3">
-                <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="auto internal xref">8.3</a>.  <a href="#name-unverified-claim-exploitati" class="internal xref">Unverified Claim Exploitation</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.4">
-                <p id="section-toc.1-1.8.2.4.1"><a href="#section-8.4" class="auto internal xref">8.4</a>.  <a href="#name-applicability-bypass" class="internal xref">Applicability Bypass</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.5">
-                <p id="section-toc.1-1.8.2.5.1"><a href="#section-8.5" class="auto internal xref">8.5</a>.  <a href="#name-authority-source-compromise" class="internal xref">Authority Source Compromise</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.6">
-                <p id="section-toc.1-1.8.2.6.1"><a href="#section-8.6" class="auto internal xref">8.6</a>.  <a href="#name-profile-composition-risks" class="internal xref">Profile Composition Risks</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.7">
-                <p id="section-toc.1-1.8.2.7.1"><a href="#section-8.7" class="auto internal xref">8.7</a>.  <a href="#name-failure-mode-asymmetry" class="internal xref">Failure Mode Asymmetry</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.8">
-                <p id="section-toc.1-1.8.2.8.1"><a href="#section-8.8" class="auto internal xref">8.8</a>.  <a href="#name-subject-privacy" class="internal xref">Subject Privacy</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.9">
-                <p id="section-toc.1-1.8.2.9.1"><a href="#section-8.9" class="auto internal xref">8.9</a>.  <a href="#name-per-assertion-revocation" class="internal xref">Per-Assertion Revocation</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.10">
-                <p id="section-toc.1-1.8.2.10.1"><a href="#section-8.10" class="auto internal xref">8.10</a>. <a href="#name-mutual-and-bilateral-delega" class="internal xref">Mutual and Bilateral Delegation</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.11">
-                <p id="section-toc.1-1.8.2.11.1"><a href="#section-8.11" class="auto internal xref">8.11</a>. <a href="#name-consent" class="internal xref">Consent</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.12">
-                <p id="section-toc.1-1.8.2.12.1"><a href="#section-8.12" class="auto internal xref">8.12</a>. <a href="#name-audit-and-accountability" class="internal xref">Audit and Accountability</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.13">
-                <p id="section-toc.1-1.8.2.13.1"><a href="#section-8.13" class="auto internal xref">8.13</a>. <a href="#name-cross-domain-federation" class="internal xref">Cross-Domain Federation</a></p>
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-threat-model" class="internal xref">Threat Model</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.13.2.1">
-                    <p id="section-toc.1-1.8.2.13.2.1.1"><a href="#section-8.13.1" class="auto internal xref">8.13.1</a>.  <a href="#name-multi-hop-cross-domain-risk" class="internal xref">Multi-Hop Cross-Domain Risks</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1.2.1">
+                    <p id="section-toc.1-1.8.2.1.2.1.1"><a href="#section-8.1.1" class="auto internal xref">8.1.1</a>.  <a href="#name-assets" class="internal xref">Assets</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1.2.2">
+                    <p id="section-toc.1-1.8.2.1.2.2.1"><a href="#section-8.1.2" class="auto internal xref">8.1.2</a>.  <a href="#name-adversary-capabilities" class="internal xref">Adversary Capabilities</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1.2.3">
+                    <p id="section-toc.1-1.8.2.1.2.3.1"><a href="#section-8.1.3" class="auto internal xref">8.1.3</a>.  <a href="#name-trust-assumptions" class="internal xref">Trust Assumptions</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1.2.4">
+                    <p id="section-toc.1-1.8.2.1.2.4.1"><a href="#section-8.1.4" class="auto internal xref">8.1.4</a>.  <a href="#name-out-of-scope-threats" class="internal xref">Out-of-Scope Threats</a></p>
 </li>
                 </ul>
 </li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-open-world-delegation-secur" class="internal xref">Open-World Delegation Security Model</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.3">
+                <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="auto internal xref">8.3</a>.  <a href="#name-pre-authentication-trust-de" class="internal xref">Pre-Authentication Trust Decisions</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.4">
+                <p id="section-toc.1-1.8.2.4.1"><a href="#section-8.4" class="auto internal xref">8.4</a>.  <a href="#name-unverified-claim-exploitati" class="internal xref">Unverified Claim Exploitation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.5">
+                <p id="section-toc.1-1.8.2.5.1"><a href="#section-8.5" class="auto internal xref">8.5</a>.  <a href="#name-applicability-bypass" class="internal xref">Applicability Bypass</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.6">
+                <p id="section-toc.1-1.8.2.6.1"><a href="#section-8.6" class="auto internal xref">8.6</a>.  <a href="#name-authority-source-compromise" class="internal xref">Authority Source Compromise</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.7">
+                <p id="section-toc.1-1.8.2.7.1"><a href="#section-8.7" class="auto internal xref">8.7</a>.  <a href="#name-profile-composition-risks" class="internal xref">Profile Composition Risks</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.8">
+                <p id="section-toc.1-1.8.2.8.1"><a href="#section-8.8" class="auto internal xref">8.8</a>.  <a href="#name-failure-mode-asymmetry" class="internal xref">Failure Mode Asymmetry</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.9">
+                <p id="section-toc.1-1.8.2.9.1"><a href="#section-8.9" class="auto internal xref">8.9</a>.  <a href="#name-subject-privacy" class="internal xref">Subject Privacy</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.10">
+                <p id="section-toc.1-1.8.2.10.1"><a href="#section-8.10" class="auto internal xref">8.10</a>. <a href="#name-per-assertion-revocation" class="internal xref">Per-Assertion Revocation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.11">
+                <p id="section-toc.1-1.8.2.11.1"><a href="#section-8.11" class="auto internal xref">8.11</a>. <a href="#name-mutual-and-bilateral-delega" class="internal xref">Mutual and Bilateral Delegation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.12">
+                <p id="section-toc.1-1.8.2.12.1"><a href="#section-8.12" class="auto internal xref">8.12</a>. <a href="#name-consent" class="internal xref">Consent</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.13">
+                <p id="section-toc.1-1.8.2.13.1"><a href="#section-8.13" class="auto internal xref">8.13</a>. <a href="#name-audit-and-accountability" class="internal xref">Audit and Accountability</a></p>
+</li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.14">
-                <p id="section-toc.1-1.8.2.14.1"><a href="#section-8.14" class="auto internal xref">8.14</a>. <a href="#name-context-token-laundering" class="internal xref">Context Token Laundering</a></p>
+                <p id="section-toc.1-1.8.2.14.1"><a href="#section-8.14" class="auto internal xref">8.14</a>. <a href="#name-cross-domain-federation" class="internal xref">Cross-Domain Federation</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.14.2.1">
+                    <p id="section-toc.1-1.8.2.14.2.1.1"><a href="#section-8.14.1" class="auto internal xref">8.14.1</a>.  <a href="#name-multi-hop-cross-domain-risk" class="internal xref">Multi-Hop Cross-Domain Risks</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.15">
+                <p id="section-toc.1-1.8.2.15.1"><a href="#section-8.15" class="auto internal xref">8.15</a>. <a href="#name-context-token-laundering" class="internal xref">Context Token Laundering</a></p>
 </li>
             </ul>
 </li>
@@ -1483,17 +1498,17 @@ Holder for the claim's scope delegated to this asserter?<a href="#section-1.1-2.
         </ol>
 <p id="section-1.1-3">The first question is grant-profile and JWT-validation work. The
 second question is the subject of this document.<a href="#section-1.1-3" class="pilcrow">¶</a></p>
-<p id="section-1.1-4">The first question conflates with the second when the framework lets a
-signer's "authentic" status stand in for "authorized." A federated
-authorization server, validated by its federation membership, can mint
-identity assertions naming any user in any email domain unless the
-framework separately requires that the email-domain owner has
-delegated to it. Conflating signer authenticity with delegation
-authority lets any federation member impersonate users in namespaces
-they have no authority over.<a href="#section-1.1-4" class="pilcrow">¶</a></p>
+<p id="section-1.1-4">Implementations that treat the two questions as one let a signer's
+"authentic" status stand in for "authorized" status. A federated
+authorization server, validated by its federation membership, can
+then mint identity assertions naming any user in any email domain
+unless the framework separately requires that the email-domain owner
+has delegated to it. Conflating authenticity with delegation authority
+lets any federation member impersonate users in namespaces they have
+no authority over.<a href="#section-1.1-4" class="pilcrow">¶</a></p>
 <p id="section-1.1-5">This document defines the abstract pattern that prevents that
-conflation, and the profile requirements that make concrete
-realizations of the pattern interoperable.<a href="#section-1.1-5" class="pilcrow">¶</a></p>
+conflation and the profile requirements that make concrete
+realizations interoperable.<a href="#section-1.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="relationships">
@@ -1512,31 +1527,63 @@ Full mappings of each mechanism appear in <a href="#appendix-profiles" class="au
           </h4>
 <p id="section-1.2.1-1">This document is the parent of an OAuth profile family for
 identity-assertion trust evaluation. The family has two layers:<a href="#section-1.2.1-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-1.2.1-2">
+<pre>
+            Authority Delegation Framework  (this document)
+                          |
+                          | profiled for OAuth identity assertions by
+                          v
+              Identity Assertion Issuer Trust Policy
+                  (Trust Policy document, Trust Method
+                   machinery, Subject Authority Determination,
+                   ID-JAG / Actor Profile bindings)
+                          |
+                          | extended with Trust Methods by
+                          v
+        +-----------------+-----------------+--------------------+
+        |                 |                 |                    |
+        v                 v                 v                    v
+  Domain-Authorized   Client Instance   Attribute Authority   (future
+  Issuer Discovery        Trust              Trust            profiles)
+  (DAI)
+  subject_namespace_  client_instance_  attribute_
+  authorization       authorization     attestation
+</pre><a href="#section-1.2.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-1.2.1-3">Each leaf profile registers one or more Trust Methods in Trust
+Policy's registry and registers against this document's Authority
+Delegation Profile registry (<a href="#iana-profile-registry" class="auto internal xref">Section 10.1</a>).<a href="#section-1.2.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.2.1-2.1">
-              <p id="section-1.2.1-2.1.1"><strong><span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span></strong> is the OAuth-side framework layer. It
+<li class="normal" id="section-1.2.1-4.1">
+              <p id="section-1.2.1-4.1.1"><strong><span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span></strong> is the OAuth-side framework layer. It
 instantiates this document's pattern for OAuth identity
 assertions and defines the Trust Policy document, the Trust
 Method machinery (categories, combination rule, registry),
 Subject Authority Determination, and grant-profile bindings.
 Trust Policy is not itself a leaf profile of this document; it
-is the framework other OAuth profiles register against.<a href="#section-1.2.1-2.1.1" class="pilcrow">¶</a></p>
+is the framework other OAuth profiles register against.<a href="#section-1.2.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-1.2.1-2.2">
-              <p id="section-1.2.1-2.2.1">Leaf profiles register Trust Methods in Trust Policy's registry
+            <li class="normal" id="section-1.2.1-4.2">
+              <p id="section-1.2.1-4.2.1">Leaf profiles register Trust Methods in Trust Policy's registry
 and register against this document's Authority Delegation
-Profile registry (<a href="#iana-profile-registry" class="auto internal xref">Section 10.1</a>):<a href="#section-1.2.1-2.2.1" class="pilcrow">¶</a></p>
+Profile registry (<a href="#iana-profile-registry" class="auto internal xref">Section 10.1</a>):<a href="#section-1.2.1-4.2.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.2.1-2.2.2.1">
-                  <p id="section-1.2.1-2.2.2.1.1"><strong><span>[<a href="#DAI" class="cite xref">DAI</a>]</span></strong> defines a DNS+HTTPS Subject-Authority publication
+<li class="normal" id="section-1.2.1-4.2.2.1">
+                  <p id="section-1.2.1-4.2.2.1.1"><strong><span>[<a href="#DAI" class="cite xref">DAI</a>]</span></strong> defines a DNS+HTTPS Subject-Authority publication
 mechanism (the <code>domain_authorized_issuer</code> and
-<code>https_authorized_issuer</code> Trust Methods).<a href="#section-1.2.1-2.2.2.1.1" class="pilcrow">¶</a></p>
+<code>https_authorized_issuer</code> Trust Methods).<a href="#section-1.2.1-4.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
-                <li class="normal" id="section-1.2.1-2.2.2.2">
-                  <p id="section-1.2.1-2.2.2.2.1"><strong><span>[<a href="#CLIENT-INSTANCE-TRUST" class="cite xref">CLIENT-INSTANCE-TRUST</a>]</span></strong> extends Trust Policy with a
+                <li class="normal" id="section-1.2.1-4.2.2.2">
+                  <p id="section-1.2.1-4.2.2.2.1"><strong><span>[<a href="#CLIENT-INSTANCE-TRUST" class="cite xref">CLIENT-INSTANCE-TRUST</a>]</span></strong> extends Trust Policy with a
 third Trust Method category, <code>client_instance_authorization</code>,
 applying the same pattern to client identity (the
-<code>client_authorized_instance_issuer</code> Trust Method).<a href="#section-1.2.1-2.2.2.2.1" class="pilcrow">¶</a></p>
+<code>client_authorized_instance_issuer</code> Trust Method).<a href="#section-1.2.1-4.2.2.2.1" class="pilcrow">¶</a></p>
+</li>
+                <li class="normal" id="section-1.2.1-4.2.2.3">
+                  <p id="section-1.2.1-4.2.2.3.1"><strong><span>[<a href="#ATTRIBUTE-AUTHORITY-TRUST" class="cite xref">ATTRIBUTE-AUTHORITY-TRUST</a>]</span></strong> extends Trust Policy with a
+fourth Trust Method category, <code>attribute_attestation</code>,
+applying the same pattern to attribute authorities (the
+<code>attribute_authority_authorized_issuer</code> Trust Method).<a href="#section-1.2.1-4.2.2.3.1" class="pilcrow">¶</a></p>
 </li>
               </ul>
 </li>
@@ -2059,13 +2106,10 @@ claim types in scope, and optionally validity bounds.<a href="#section-3.2-2.1.1
 </li>
           <li id="section-3.2-2.2">
             <p id="section-3.2-2.2.1"><strong>Publication</strong>: the Authority Holder publishes the Delegation
-Artifact through a profile-defined channel. The publication
-channel is itself an authority binding: control of the
-publication channel is what makes the Authority Holder the
-Authority Holder. Examples of publication channels include DNS
-records under the Authority Holder's domain, HTTPS documents at
-a well-known URL on the Authority Holder's host, signed
-subordinate statements in a federation, and entries in
+Artifact through a profile-defined channel. Example channels
+include DNS records under the Authority Holder's domain, HTTPS
+documents at a well-known URL on the Authority Holder's host,
+signed subordinate statements in a federation, and entries in
 authoritative client metadata.<a href="#section-3.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-3.2-2.3">
@@ -2080,6 +2124,11 @@ Revocation latency is bounded by the profile's cache lifetime
 model; this document does not require a specific latency.<a href="#section-3.2-2.4.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
+<p id="section-3.2-3">The publication channel is itself the authority binding: control
+of the publication channel is what makes the Authority Holder the
+Authority Holder. A profile's choice of publication channel
+therefore determines who, in operational terms, IS the Authority
+Holder for the namespace, claim type, or scope being delegated.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="categories">
@@ -2125,7 +2174,31 @@ Validator <span class="bcp14">MUST</span> require at least one satisfying eviden
 applicable category. Within a single category, OR-semantics apply:
 satisfying any one applicable evidence item is sufficient. The rule is
 AND across independent categories, OR within a category.<a href="#section-3.3.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.3.1-2">Category applicability is a property of the Validator's Published
+<p id="section-3.3.1-2">Satisfying one category <span class="bcp14">MUST NOT</span> be treated as satisfying another.
+A signer authenticated by federation membership has not been
+delegated namespace authority by that fact; an Authority Holder's
+delegation to a signer does not authenticate the signer's identity
+beyond what the Delegation Artifact attests.<a href="#section-3.3.1-2" class="pilcrow">¶</a></p>
+<p id="section-3.3.1-3">OR-within-category applies when multiple evidence items from the
+same Authority Source's delegation satisfy the same category;
+selection of WHICH Authority Source applies to a given Assertion
+is deterministic (<a href="#multiple-sources" class="auto internal xref">Section 3.3.2</a>) and is not subject to
+OR-semantics. When a Validator implements multiple profiles in the
+same category from different Authority Sources, the resulting
+OR-within-category composition creates a downgrade risk that
+profile authors and deployers <span class="bcp14">MUST</span> analyze
+(<a href="#profile-composition-risks" class="auto internal xref">Section 8.7</a>).<a href="#section-3.3.1-3" class="pilcrow">¶</a></p>
+<p id="section-3.3.1-4">Profiles <span class="bcp14">MAY</span> specify additional combination rules within their own
+scope. A profile <span class="bcp14">MUST NOT</span> treat evidence for one independent category
+as satisfying another independent category. A profile that combines
+authenticity and authority in a single cryptographic artifact <span class="bcp14">MUST</span>
+document why the artifact satisfies both questions.<a href="#section-3.3.1-4" class="pilcrow">¶</a></p>
+<div id="category-applicability">
+<section id="section-3.3.1.1">
+            <h5 id="name-category-applicability">
+<a href="#section-3.3.1.1" class="section-number selfRef">3.3.1.1. </a><a href="#name-category-applicability" class="section-name selfRef">Category Applicability</a>
+            </h5>
+<p id="section-3.3.1.1-1">Category applicability is a property of the Validator's Published
 Trust Policy, not of the incoming Assertion. If the Validator's
 local policy declares that it implements a profile in a given
 category (for example, namespace authority validation), that
@@ -2139,32 +2212,15 @@ applicable when the Assertion is from a legacy issuer" or "this
 category is skipped when the Assertion carries a <code>legacy: true</code>
 claim"). Assertion-driven applicability waivers create the
 Applicability Bypass risk discussed in
-<a href="#applicability-bypass" class="auto internal xref">Section 8.4</a>.<a href="#section-3.3.1-2" class="pilcrow">¶</a></p>
-<p id="section-3.3.1-3">Migration scenarios where some traffic legitimately predates a
+<a href="#applicability-bypass" class="auto internal xref">Section 8.5</a>.<a href="#section-3.3.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.3.1.1-2">Migration scenarios where some traffic legitimately predates a
 category's availability are handled at the policy layer, not by
 silently waiving the category: the Validator <span class="bcp14">MAY</span> maintain
 separate trust policies for distinct namespaces, audiences, or
 deployment phases, but within any one policy the applicable
-categories <span class="bcp14">MUST</span> be exhaustively enforced.<a href="#section-3.3.1-3" class="pilcrow">¶</a></p>
-<p id="section-3.3.1-4">Satisfying one category <span class="bcp14">MUST NOT</span> be treated as satisfying another.
-A signer authenticated by federation membership has not been
-delegated namespace authority by that fact; an Authority Holder's
-delegation to a signer does not authenticate the signer's identity
-beyond what the Delegation Artifact attests.<a href="#section-3.3.1-4" class="pilcrow">¶</a></p>
-<p id="section-3.3.1-5">OR-within-category applies when multiple evidence items from the
-same Authority Source's delegation satisfy the same category;
-selection of WHICH Authority Source applies to a given Assertion
-is deterministic (<a href="#multiple-sources" class="auto internal xref">Section 3.3.2</a>) and is not subject to
-OR-semantics. When a Validator implements multiple profiles in the
-same category from different Authority Sources, the resulting
-OR-within-category composition creates a downgrade risk that
-profile authors and deployers <span class="bcp14">MUST</span> analyze
-(<a href="#profile-composition-risks" class="auto internal xref">Section 8.6</a>).<a href="#section-3.3.1-5" class="pilcrow">¶</a></p>
-<p id="section-3.3.1-6">Profiles <span class="bcp14">MAY</span> specify additional combination rules within their own
-scope. A profile <span class="bcp14">MUST NOT</span> treat evidence for one independent category
-as satisfying another independent category. A profile that combines
-authenticity and authority in a single cryptographic artifact <span class="bcp14">MUST</span>
-document why the artifact satisfies both questions.<a href="#section-3.3.1-6" class="pilcrow">¶</a></p>
+categories <span class="bcp14">MUST</span> be exhaustively enforced.<a href="#section-3.3.1.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="multiple-sources">
@@ -2211,7 +2267,7 @@ Source.<a href="#section-3.3.2.1-2.3.1" class="pilcrow">¶</a></p>
 of claims, that establishes preference ordering across candidate
 inputs, or that falls back from one selection input to another when
 the primary is absent enables Unverified Claim Exploitation
-(<a href="#unverified-claim" class="auto internal xref">Section 8.3</a>): an attacker constructs an Assertion satisfying
+(<a href="#unverified-claim" class="auto internal xref">Section 8.4</a>): an attacker constructs an Assertion satisfying
 multiple potential bindings and steers the Validator to a weaker
 Authority Source's policy.<a href="#section-3.3.2.1-3" class="pilcrow">¶</a></p>
 <p id="section-3.3.2.1-4">The binding function is the profile's <code>source_selection</code> matrix
@@ -2455,7 +2511,7 @@ hop separately and reason about the cumulative attack surface.<a href="#section-
 <p id="section-3.7-5">OAuth Identity Chaining (<span>[<a href="#I-D.ietf-oauth-identity-chaining" class="cite xref">I-D.ietf-oauth-identity-chaining</a>]</span>) is one
 example of multi-hop trust evaluation. Two specific failure modes that
 profile authors of multi-hop flows <span class="bcp14">MUST</span> consider are identity
-laundering and context token laundering (<a href="#context-token-laundering" class="auto internal xref">Section 8.14</a>).<a href="#section-3.7-5" class="pilcrow">¶</a></p>
+laundering and context token laundering (<a href="#context-token-laundering" class="auto internal xref">Section 8.15</a>).<a href="#section-3.7-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2983,7 +3039,7 @@ registered in <a href="#iana-profile-registry" class="auto internal xref">Sectio
 <dt id="section-6.1-1.3"><code>authority_holder_form</code></dt>
           <dd style="margin-left: 1.5em" id="section-6.1-1.4">
             <p id="section-6.1-1.4.1">How an Authority Holder is identified in the profile. Examples:
-DNS domain (the parent trust framework); CIMD URL (the client
+DNS domain (a domain-authorized issuer profile); CIMD URL (the client
 instance profile); federation entity identifier (the OIDF
 profile).<a href="#section-6.1-1.4.1" class="pilcrow">¶</a></p>
 </dd>
@@ -3157,7 +3213,7 @@ Source from any combination of multiple Assertion claims, from
 preference ordering across candidate inputs, or from
 fallback-on-absence rules, rather than from a Single Binding
 Primitive (<a href="#single-binding-primitive" class="auto internal xref">Section 3.3.2.1</a>). Multi-input selection
-enables Unverified Claim Exploitation (<a href="#unverified-claim" class="auto internal xref">Section 8.3</a>):
+enables Unverified Claim Exploitation (<a href="#unverified-claim" class="auto internal xref">Section 8.4</a>):
 an attacker constructs an Assertion that satisfies multiple
 potential bindings and steers the Validator to a weaker
 Authority Source's policy. The binding primitive <span class="bcp14">MUST</span> be a
@@ -3167,7 +3223,7 @@ single source property invariant under additional claims.<a href="#section-7-2.4
           <p id="section-7-2.5.1"><strong>Assertion-driven applicability waiver.</strong> Defining trust
 category applicability as a property of the incoming Assertion
 rather than as a property of the Validator's Published Trust
-Policy (<a href="#applicability-bypass" class="auto internal xref">Section 8.4</a>). A profile that declares a
+Policy (<a href="#applicability-bypass" class="auto internal xref">Section 8.5</a>). A profile that declares a
 category "not applicable" when the Assertion originates from a
 legacy issuer, carries a legacy-flag claim, or matches any
 Assertion-internal heuristic lets the attacker waive the
@@ -3199,7 +3255,7 @@ support and how each is interpreted.<a href="#section-7-2.8.1" class="pilcrow">�
 in the same Validator without analyzing how they compose. The
 cross-category combination rule is well-defined, but two
 profiles in the same category can introduce OR-within-category
-weakening (see <a href="#profile-composition-risks" class="auto internal xref">Section 8.6</a>).<a href="#section-7-2.9.1" class="pilcrow">¶</a></p>
+weakening (see <a href="#profile-composition-risks" class="auto internal xref">Section 8.7</a>).<a href="#section-7-2.9.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
@@ -3209,87 +3265,248 @@ weakening (see <a href="#profile-composition-risks" class="auto internal xref">S
       <h2 id="name-security-considerations">
 <a href="#section-8" class="section-number selfRef">8. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
-<div id="open-world-delegation-security-model">
+<div id="threat-model">
 <section id="section-8.1">
-        <h3 id="name-open-world-delegation-secur">
-<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-open-world-delegation-secur" class="section-name selfRef">Open-World Delegation Security Model</a>
+        <h3 id="name-threat-model">
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-threat-model" class="section-name selfRef">Threat Model</a>
         </h3>
-<p id="section-8.1-1">This pattern targets open-world deployments. Profiles operating in
+<p id="section-8.1-1">This section consolidates the threat model the Authority
+Delegation Pattern is designed against. Concrete profiles inherit
+this model and document profile-specific extensions in their own
+Security Considerations.<a href="#section-8.1-1" class="pilcrow">¶</a></p>
+<div id="assets">
+<section id="section-8.1.1">
+          <h4 id="name-assets">
+<a href="#section-8.1.1" class="section-number selfRef">8.1.1. </a><a href="#name-assets" class="section-name selfRef">Assets</a>
+          </h4>
+<p id="section-8.1.1-1">Three classes of assets are protected:<a href="#section-8.1.1-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.1.1-2.1">
+              <p id="section-8.1.1-2.1.1"><strong>Authority binding</strong>: the property that an entity claiming to be
+an Authority Holder is in fact the Authority Holder for the
+named scope. Compromise lets an attacker speak as a legitimate
+Authority.<a href="#section-8.1.1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.1.1-2.2">
+              <p id="section-8.1.1-2.2.1"><strong>Delegation integrity</strong>: the property that a Delegate listed in
+a Delegation Artifact was in fact listed by the Authority
+Holder. Compromise lets an attacker insert unauthorized
+Delegates.<a href="#section-8.1.1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.1.1-2.3">
+              <p id="section-8.1.1-2.3.1"><strong>Assertion authenticity</strong>: the property that an Assertion was
+signed by a Delegate the Authority Holder has authorized.
+Compromise lets an attacker mint assertions outside the
+delegated scope.<a href="#section-8.1.1-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+<div id="adversary-capabilities">
+<section id="section-8.1.2">
+          <h4 id="name-adversary-capabilities">
+<a href="#section-8.1.2" class="section-number selfRef">8.1.2. </a><a href="#name-adversary-capabilities" class="section-name selfRef">Adversary Capabilities</a>
+          </h4>
+<p id="section-8.1.2-1">The pattern is designed to resist adversaries with the following
+capabilities:<a href="#section-8.1.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.1.2-2.1">
+              <p id="section-8.1.2-2.1.1"><strong>Publication-channel attacker</strong>: can substitute, suppress, or
+forge responses on the publication channel binding the
+Authority Holder (DNS hijack, BGP redirect, registrar account
+compromise, TLS misissuance against the authority host, CDN
+tenant takeover, federation operator key compromise). Different
+publication channels expose different surfaces; see
+<a href="#authority-source-compromise" class="auto internal xref">Section 8.6</a>.<a href="#section-8.1.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.1.2-2.2">
+              <p id="section-8.1.2-2.2.1"><strong>Assertion-content attacker</strong>: can craft arbitrary Assertion
+payloads (any JWT claims, any combination of identifiers, any
+presentation order) provided the assertion is signed by some
+authentic key the attacker controls. This is the standard
+adversary in the cryptographic literature; the Authority
+Delegation Pattern's source-selection determinism and
+category-applicability rules (<a href="#combination-rule" class="auto internal xref">Section 3.3.1</a>,
+<a href="#unverified-claim" class="auto internal xref">Section 8.4</a>, <a href="#applicability-bypass" class="auto internal xref">Section 8.5</a>) constrain what
+this adversary can achieve.<a href="#section-8.1.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.1.2-2.3">
+              <p id="section-8.1.2-2.3.1"><strong>Authorized-but-malicious Delegate</strong>: a Delegate authorized by
+some Authority Holder that uses its authorization to attack
+Subjects (synthesizing claims, asserting about Subjects without
+the Subjects' awareness). The pattern bounds this adversary to
+the scope the Authority Holder delegated; protection against
+the Authorized Delegate's internal behavior is the Authority
+Holder's responsibility (operational diligence,
+contract/audit).<a href="#section-8.1.2-2.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.1.2-2.4">
+              <p id="section-8.1.2-2.4.1"><strong>Compromised intermediate (chained profiles)</strong>: in chained
+delegation profiles, a Subdelegate whose key or authority has
+been compromised. Bounded-depth profiles (<a href="#transitivity" class="auto internal xref">Section 3.5</a>)
+contain this adversary by construction; chained profiles
+require profile-specific countermeasures.<a href="#section-8.1.2-2.4.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.1.2-2.5">
+              <p id="section-8.1.2-2.5.1"><strong>Cross-profile composition attacker</strong>: a Validator implementing
+multiple profiles can be tricked into accepting evidence that
+satisfies one profile's category through a different profile's
+weaker check. See <a href="#profile-composition-risks" class="auto internal xref">Section 8.7</a>.<a href="#section-8.1.2-2.5.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+<div id="trust-assumptions">
+<section id="section-8.1.3">
+          <h4 id="name-trust-assumptions">
+<a href="#section-8.1.3" class="section-number selfRef">8.1.3. </a><a href="#name-trust-assumptions" class="section-name selfRef">Trust Assumptions</a>
+          </h4>
+<p id="section-8.1.3-1">The pattern assumes:<a href="#section-8.1.3-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.1.3-2.1">
+              <p id="section-8.1.3-2.1.1">The Authority Holder for any named scope is unambiguously
+identified by control of the publication channel. Profiles <span class="bcp14">MUST</span>
+document how channel control is established (typically: DNS
+control, TLS server authentication, federation signing key).<a href="#section-8.1.3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.1.3-2.2">
+              <p id="section-8.1.3-2.2.1">The Validator's local policy (which profiles it implements,
+which Authority Sources it accepts) is administered by a
+trusted party. The pattern does not defend against an attacker
+who controls the Validator's configuration.<a href="#section-8.1.3-2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.1.3-2.3">
+              <p id="section-8.1.3-2.3.1">Profile-defined extraction functions are deterministic
+(<a href="#single-binding-primitive" class="auto internal xref">Section 3.3.2.1</a>). Two cooperating Validators
+presented with the same Assertion select the same Authority
+Source.<a href="#section-8.1.3-2.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.1.3-2.4">
+              <p id="section-8.1.3-2.4.1">Cache lifetimes for retrieved Delegation Artifacts are bounded
+(<a href="#cache-freshness" class="auto internal xref">Section 5.4</a>). The pattern does not provide
+cryptographic recovery from a compromise after caches expire
+the compromised content.<a href="#section-8.1.3-2.4.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+<div id="out-of-scope-threats">
+<section id="section-8.1.4">
+          <h4 id="name-out-of-scope-threats">
+<a href="#section-8.1.4" class="section-number selfRef">8.1.4. </a><a href="#name-out-of-scope-threats" class="section-name selfRef">Out-of-Scope Threats</a>
+          </h4>
+<p id="section-8.1.4-1">This pattern does not address:<a href="#section-8.1.4-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.1.4-2.1">
+              <p id="section-8.1.4-2.1.1"><strong>Per-Assertion revocation</strong>: once an Assertion is issued, the
+pattern offers no mechanism to invalidate it within its <code>exp</code>
+window. Use OAuth Token Revocation, Token Introspection, or
+short token lifetimes.<a href="#section-8.1.4-2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.1.4-2.2">
+              <p id="section-8.1.4-2.2.1"><strong>Subject-side compromise</strong>: a compromised Subject (whose
+credentials an attacker has obtained at the Authority Holder
+or Delegate) is indistinguishable from a legitimate Subject at
+the Validator. Mitigations are out-of-band (authentication
+strength, fresh-authentication signals).<a href="#section-8.1.4-2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.1.4-2.3">
+              <p id="section-8.1.4-2.3.1"><strong>Authority Holder operational failures</strong>: a careless or
+malicious Authority Holder publishing the wrong Delegates is
+the Authority Holder's failure mode, not a pattern failure.<a href="#section-8.1.4-2.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-8.1.4-2.4">
+              <p id="section-8.1.4-2.4.1"><strong>Implementation defects in the Validator</strong>: bugs in the
+Validator's parsing or evaluation logic are out-of-scope; the
+pattern specifies what the Validator <span class="bcp14">MUST</span> do, not how the
+Validator implements it.<a href="#section-8.1.4-2.4.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+</section>
+</div>
+<div id="open-world-delegation-security-model">
+<section id="section-8.2">
+        <h3 id="name-open-world-delegation-secur">
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-open-world-delegation-secur" class="section-name selfRef">Open-World Delegation Security Model</a>
+        </h3>
+<p id="section-8.2-1">This pattern targets open-world deployments. Profiles operating in
 this space accept that the set of Delegates is not enumerable in
 advance at the Validator; the Validator relies on the Authority
 Holder's published delegation to bound the set of acceptable
-asserters.<a href="#section-8.1-1" class="pilcrow">¶</a></p>
-<p id="section-8.1-2">The security of any concrete profile rests on:<a href="#section-8.1-2" class="pilcrow">¶</a></p>
+asserters.<a href="#section-8.2-1" class="pilcrow">¶</a></p>
+<p id="section-8.2-2">The security of any concrete profile rests on:<a href="#section-8.2-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8.1-3.1">
-            <p id="section-8.1-3.1.1">The integrity of the publication channel (DNS, HTTPS, federation
-chain, etc.).<a href="#section-8.1-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.2-3.1">
+            <p id="section-8.2-3.1.1">The integrity of the publication channel (DNS, HTTPS, federation
+chain, etc.).<a href="#section-8.2-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.1-3.2">
-            <p id="section-8.1-3.2.1">The Authority Holder's operational practices (key management,
-publication discipline).<a href="#section-8.1-3.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.2-3.2">
+            <p id="section-8.2-3.2.1">The Authority Holder's operational practices (key management,
+publication discipline).<a href="#section-8.2-3.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.1-3.3">
-            <p id="section-8.1-3.3.1">The Validator's correct implementation of the verification
-procedure.<a href="#section-8.1-3.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.2-3.3">
+            <p id="section-8.2-3.3.1">The Validator's correct implementation of the verification
+procedure.<a href="#section-8.2-3.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.1-3.4">
-            <p id="section-8.1-3.4.1">The Validator's cache freshness policy.<a href="#section-8.1-3.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.2-3.4">
+            <p id="section-8.2-3.4.1">The Validator's cache freshness policy.<a href="#section-8.2-3.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.1-4">A profile that does not address each of these is incomplete.<a href="#section-8.1-4" class="pilcrow">¶</a></p>
+<p id="section-8.2-4">A profile that does not address each of these is incomplete.<a href="#section-8.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="pre-authentication-trust-decisions">
-<section id="section-8.2">
+<section id="section-8.3">
         <h3 id="name-pre-authentication-trust-de">
-<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-pre-authentication-trust-de" class="section-name selfRef">Pre-Authentication Trust Decisions</a>
+<a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-pre-authentication-trust-de" class="section-name selfRef">Pre-Authentication Trust Decisions</a>
         </h3>
-<p id="section-8.2-1">Two structural decisions the Validator makes before the Assertion
+<p id="section-8.3-1">Two structural decisions the Validator makes before the Assertion
 is cryptographically authenticated determine which Authority
 Holder's policy will be evaluated and whether any policy will be
-evaluated at all:<a href="#section-8.2-1" class="pilcrow">¶</a></p>
+evaluated at all:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8.2-2.1">
-            <p id="section-8.2-2.1.1"><strong>Source selection</strong>: which Authority Source's delegation
+<li class="normal" id="section-8.3-2.1">
+            <p id="section-8.3-2.1.1"><strong>Source selection</strong>: which Authority Source's delegation
 applies. Made before signature validation against any
-Delegation Artifact.<a href="#section-8.2-2.1.1" class="pilcrow">¶</a></p>
+Delegation Artifact.<a href="#section-8.3-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.2-2.2">
-            <p id="section-8.2-2.2.1"><strong>Category applicability</strong>: which trust categories the
+          <li class="normal" id="section-8.3-2.2">
+            <p id="section-8.3-2.2.1"><strong>Category applicability</strong>: which trust categories the
 Assertion must satisfy. Made before any claim in the Assertion
-is evaluated as authoritative.<a href="#section-8.2-2.2.1" class="pilcrow">¶</a></p>
+is evaluated as authoritative.<a href="#section-8.3-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.2-3">Both decisions are taken in an environment where the Assertion is
+<p id="section-8.3-3">Both decisions are taken in an environment where the Assertion is
 still an untrusted input. Any decision that depends on
 Assertion-internal content gives an attacker who can craft the
 Assertion a lever to influence the trust outcome. The two
 subsections below describe specific exploitation patterns
-(<a href="#unverified-claim" class="auto internal xref">Section 8.3</a> for source selection,
-<a href="#applicability-bypass" class="auto internal xref">Section 8.4</a> for category applicability) and the
-mitigations.<a href="#section-8.2-3" class="pilcrow">¶</a></p>
+(<a href="#unverified-claim" class="auto internal xref">Section 8.4</a> for source selection,
+<a href="#applicability-bypass" class="auto internal xref">Section 8.5</a> for category applicability) and the
+mitigations.<a href="#section-8.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="unverified-claim">
-<section id="section-8.3">
+<section id="section-8.4">
         <h3 id="name-unverified-claim-exploitati">
-<a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-unverified-claim-exploitati" class="section-name selfRef">Unverified Claim Exploitation</a>
+<a href="#section-8.4" class="section-number selfRef">8.4. </a><a href="#name-unverified-claim-exploitati" class="section-name selfRef">Unverified Claim Exploitation</a>
         </h3>
-<p id="section-8.3-1">Source selection chooses which Authority Source's delegation
+<p id="section-8.4-1">Source selection chooses which Authority Source's delegation
 applies to the incoming Assertion. At the point of selection,
 the Assertion's signature has not yet been validated against any
 Delegation Artifact; the Assertion is an untrusted payload. A
 profile whose source-selection algorithm considers multiple
 claims, applies preference ordering, or falls back from one
-input to another gives an attacker a selection lever.<a href="#section-8.3-1" class="pilcrow">¶</a></p>
-<p id="section-8.3-2">The attack: the attacker constructs an Assertion whose claims
+input to another gives an attacker a selection lever.<a href="#section-8.4-1" class="pilcrow">¶</a></p>
+<p id="section-8.4-2">The attack: the attacker constructs an Assertion whose claims
 satisfy multiple potential bindings. The Validator's selection
 algorithm picks the weakest (or most attacker-favorable)
 Authority Source's policy. The Assertion is evaluated against a
 Delegation Artifact that the legitimate Authority Holder for the
-target namespace never authorized.<a href="#section-8.3-2" class="pilcrow">¶</a></p>
-<p id="section-8.3-3">Worked example: an Assertion carries <code>sub: alice@victim.com</code> AND
+target namespace never authorized.<a href="#section-8.4-2" class="pilcrow">¶</a></p>
+<p id="section-8.4-3">Worked example: an Assertion carries <code>sub: alice@victim.com</code> AND
 <code>tenant_context: attacker-tenant.example</code>. A loosely written
 profile selects the Authority Source by tenant context when
 present, falling back to subject domain. The Validator selects
@@ -3297,28 +3514,28 @@ attacker-tenant.example, fetches that Authority Holder's
 Delegation Artifact (which the attacker controls), validates the
 Assertion against it, and accepts a claim about a victim.com
 subject. The attacker has impersonated alice@victim.com using a
-delegation from a namespace they control.<a href="#section-8.3-3" class="pilcrow">¶</a></p>
-<p id="section-8.3-4">The mitigation is deterministic source selection
+delegation from a namespace they control.<a href="#section-8.4-3" class="pilcrow">¶</a></p>
+<p id="section-8.4-4">The mitigation is deterministic source selection
 (<a href="#single-binding-primitive" class="auto internal xref">Section 3.3.2.1</a>): one defined binding function, no
 preference ordering, no fallback, and invariance under
 attacker-controlled inputs outside that function. Profiles <span class="bcp14">MUST</span>
 document the binding function in their <code>source_selection</code> matrix entry
 (<a href="#profile-mapping-matrix" class="auto internal xref">Section 10.1.2</a>) and <span class="bcp14">SHOULD</span> include a brief justification
 that the selected Authority Source cannot be manipulated by other
-claims in the Assertion.<a href="#section-8.3-4" class="pilcrow">¶</a></p>
+claims in the Assertion.<a href="#section-8.4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="applicability-bypass">
-<section id="section-8.4">
+<section id="section-8.5">
         <h3 id="name-applicability-bypass">
-<a href="#section-8.4" class="section-number selfRef">8.4. </a><a href="#name-applicability-bypass" class="section-name selfRef">Applicability Bypass</a>
+<a href="#section-8.5" class="section-number selfRef">8.5. </a><a href="#name-applicability-bypass" class="section-name selfRef">Applicability Bypass</a>
         </h3>
-<p id="section-8.4-1">The Cross-Category Combination Rule (<a href="#combination-rule" class="auto internal xref">Section 3.3.1</a>)
+<p id="section-8.5-1">The Cross-Category Combination Rule (<a href="#combination-rule" class="auto internal xref">Section 3.3.1</a>)
 requires the Validator to evaluate every applicable category. A
 profile that lets category applicability depend on the incoming
 Assertion gives the attacker a way to waive the category by
-constructing a matching Assertion.<a href="#section-8.4-1" class="pilcrow">¶</a></p>
-<p id="section-8.4-2">The attack: the profile declares "the delegation-authority
+constructing a matching Assertion.<a href="#section-8.5-1" class="pilcrow">¶</a></p>
+<p id="section-8.5-2">The attack: the profile declares "the delegation-authority
 category is not applicable when the Assertion is from a legacy
 issuer" (or carries a legacy-flag claim, or fails some heuristic
 that signals "legacy"). The attacker constructs an Assertion
@@ -3326,241 +3543,241 @@ matching the legacy condition. The Validator silently skips the
 entire delegation-authority evaluation; the open-world defense
 layer is bypassed and the Validator falls back to authenticity
 alone, which the Cross-Category Combination Rule was explicitly
-designed to forbid as sufficient.<a href="#section-8.4-2" class="pilcrow">¶</a></p>
-<p id="section-8.4-3">The mitigation: category applicability <span class="bcp14">MUST</span> be a property of the
+designed to forbid as sufficient.<a href="#section-8.5-2" class="pilcrow">¶</a></p>
+<p id="section-8.5-3">The mitigation: category applicability <span class="bcp14">MUST</span> be a property of the
 Validator's Published Trust Policy, not of the incoming
 Assertion. If the Validator's local policy declares that it
 implements a profile in a category, that category is applicable
 to every Assertion the Validator evaluates within the profile's
 scope. An Assertion lacking satisfying evidence for an
-applicable category <span class="bcp14">MUST</span> be rejected.<a href="#section-8.4-3" class="pilcrow">¶</a></p>
-<p id="section-8.4-4">Migration scenarios where some traffic legitimately predates a
+applicable category <span class="bcp14">MUST</span> be rejected.<a href="#section-8.5-3" class="pilcrow">¶</a></p>
+<p id="section-8.5-4">Migration scenarios where some traffic legitimately predates a
 category's availability are handled at the policy layer, not by
 silently waiving the category: a Validator <span class="bcp14">MAY</span> maintain
 separate trust policies for distinct namespaces, audiences, or
 deployment phases, but within any one policy the applicable
 categories <span class="bcp14">MUST</span> be exhaustively enforced. Per-deployment-phase
 policy is a configuration boundary; Assertion-driven waiver is
-an attacker-controlled boundary.<a href="#section-8.4-4" class="pilcrow">¶</a></p>
+an attacker-controlled boundary.<a href="#section-8.5-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="authority-source-compromise">
-<section id="section-8.5">
+<section id="section-8.6">
         <h3 id="name-authority-source-compromise">
-<a href="#section-8.5" class="section-number selfRef">8.5. </a><a href="#name-authority-source-compromise" class="section-name selfRef">Authority Source Compromise</a>
+<a href="#section-8.6" class="section-number selfRef">8.6. </a><a href="#name-authority-source-compromise" class="section-name selfRef">Authority Source Compromise</a>
         </h3>
-<p id="section-8.5-1">The authority binding (publication channel) is the highest-value
+<p id="section-8.6-1">The authority binding (publication channel) is the highest-value
 target. A compromise of the publication channel (DNS hijack, TLS
 misissuance plus DNS redirect, registrar account takeover,
 compromise of the federation operator's signing key) substitutes
 the Authority Holder's voice with the attacker's. The Delegation
 Artifacts published through the compromised channel are
-indistinguishable from legitimate ones.<a href="#section-8.5-1" class="pilcrow">¶</a></p>
-<p id="section-8.5-2">Profiles <span class="bcp14">MUST</span> document the publication channel's compromise model.
+indistinguishable from legitimate ones.<a href="#section-8.6-1" class="pilcrow">¶</a></p>
+<p id="section-8.6-2">Profiles <span class="bcp14">MUST</span> document the publication channel's compromise model.
 Profiles <span class="bcp14">SHOULD</span> recommend operational defenses (DNSSEC,
 registry-lock, CAA records, Certificate Transparency monitoring,
 federation key rotation policy) appropriate to their publication
-channel.<a href="#section-8.5-2" class="pilcrow">¶</a></p>
-<p id="section-8.5-3">This pattern does not provide cryptographic recovery from
-publication channel compromise. Recovery is operational.<a href="#section-8.5-3" class="pilcrow">¶</a></p>
+channel.<a href="#section-8.6-2" class="pilcrow">¶</a></p>
+<p id="section-8.6-3">This pattern does not provide cryptographic recovery from
+publication channel compromise. Recovery is operational.<a href="#section-8.6-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="profile-composition-risks">
-<section id="section-8.6">
+<section id="section-8.7">
         <h3 id="name-profile-composition-risks">
-<a href="#section-8.6" class="section-number selfRef">8.6. </a><a href="#name-profile-composition-risks" class="section-name selfRef">Profile Composition Risks</a>
+<a href="#section-8.7" class="section-number selfRef">8.7. </a><a href="#name-profile-composition-risks" class="section-name selfRef">Profile Composition Risks</a>
         </h3>
-<p id="section-8.6-1">When a Validator implements multiple profiles, profile composition
-creates new failure modes that no single profile addresses.<a href="#section-8.6-1" class="pilcrow">¶</a></p>
-<p id="section-8.6-2">The combination rule of <a href="#combination-rule" class="auto internal xref">Section 3.3.1</a> requires AND across
+<p id="section-8.7-1">When a Validator implements multiple profiles, profile composition
+creates new failure modes that no single profile addresses.<a href="#section-8.7-1" class="pilcrow">¶</a></p>
+<p id="section-8.7-2">The combination rule of <a href="#combination-rule" class="auto internal xref">Section 3.3.1</a> requires AND across
 applicable categories. A profile that lists itself in a category
 already covered by another profile may create an OR-within-category
-opportunity that weakens the combined posture.<a href="#section-8.6-2" class="pilcrow">¶</a></p>
-<p id="section-8.6-3">Example: a Validator that accepts BOTH <code>domain_authorized_issuer</code>
+opportunity that weakens the combined posture.<a href="#section-8.7-2" class="pilcrow">¶</a></p>
+<p id="section-8.7-3">Example: a Validator that accepts BOTH <code>domain_authorized_issuer</code>
 (canonical DNS-first lookup with HTTPS fallback) AND
 <code>https_subject_authority</code> (HTTPS-only) for subject namespace
 authorization has an OR within the namespace-authorization
 category. An attacker who can drive DNS to indeterminate bypasses
 the fail-closed property of <code>domain_authorized_issuer</code> by causing
-fallthrough to <code>https_subject_authority</code>.<a href="#section-8.6-3" class="pilcrow">¶</a></p>
-<p id="section-8.6-4">Profiles <span class="bcp14">MUST</span> document any composition risks with sibling profiles
-in the same category.<a href="#section-8.6-4" class="pilcrow">¶</a></p>
+fallthrough to <code>https_subject_authority</code>.<a href="#section-8.7-3" class="pilcrow">¶</a></p>
+<p id="section-8.7-4">Profiles <span class="bcp14">MUST</span> document any composition risks with sibling profiles
+in the same category.<a href="#section-8.7-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="failure-mode-asymmetry">
-<section id="section-8.7">
+<section id="section-8.8">
         <h3 id="name-failure-mode-asymmetry">
-<a href="#section-8.7" class="section-number selfRef">8.7. </a><a href="#name-failure-mode-asymmetry" class="section-name selfRef">Failure Mode Asymmetry</a>
+<a href="#section-8.8" class="section-number selfRef">8.8. </a><a href="#name-failure-mode-asymmetry" class="section-name selfRef">Failure Mode Asymmetry</a>
         </h3>
-<p id="section-8.7-1">Different publication channels have different attack surfaces.
+<p id="section-8.8-1">Different publication channels have different attack surfaces.
 Profiles <span class="bcp14">MUST NOT</span> imply ordering of security strengths across
 channels without justification. DNS-published artifacts trade
 TLS-misissuance resistance for DNS-resolution risk; HTTPS-published
 artifacts trade the reverse. Federation-chain artifacts trade key
 management complexity for direct DNS dependence. The right choice
-depends on the deployer's threat model.<a href="#section-8.7-1" class="pilcrow">¶</a></p>
+depends on the deployer's threat model.<a href="#section-8.8-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subject-privacy">
-<section id="section-8.8">
+<section id="section-8.9">
         <h3 id="name-subject-privacy">
-<a href="#section-8.8" class="section-number selfRef">8.8. </a><a href="#name-subject-privacy" class="section-name selfRef">Subject Privacy</a>
+<a href="#section-8.9" class="section-number selfRef">8.9. </a><a href="#name-subject-privacy" class="section-name selfRef">Subject Privacy</a>
         </h3>
-<p id="section-8.8-1">Delegation Artifacts disclose operational relationships: which
+<p id="section-8.9-1">Delegation Artifacts disclose operational relationships: which
 Delegates an Authority Holder has authorized, which Authority
 Sources a Validator trusts. This information may be
 business-sensitive (which Identity Providers a customer is
 evaluating; which authorization servers a Validator accepts;
-partner relationships).<a href="#section-8.8-1" class="pilcrow">¶</a></p>
-<p id="section-8.8-2">Profiles <span class="bcp14">SHOULD</span> address whether Delegation Artifacts are intended
+partner relationships).<a href="#section-8.9-1" class="pilcrow">¶</a></p>
+<p id="section-8.9-2">Profiles <span class="bcp14">SHOULD</span> address whether Delegation Artifacts are intended
 to be public, partly public, or confidential. Most existing
 profiles publish openly; deployments needing confidentiality must
-rely on profile-specific access control.<a href="#section-8.8-2" class="pilcrow">¶</a></p>
+rely on profile-specific access control.<a href="#section-8.9-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="per-assertion-revocation">
-<section id="section-8.9">
+<section id="section-8.10">
         <h3 id="name-per-assertion-revocation">
-<a href="#section-8.9" class="section-number selfRef">8.9. </a><a href="#name-per-assertion-revocation" class="section-name selfRef">Per-Assertion Revocation</a>
+<a href="#section-8.10" class="section-number selfRef">8.10. </a><a href="#name-per-assertion-revocation" class="section-name selfRef">Per-Assertion Revocation</a>
         </h3>
-<p id="section-8.9-1">This pattern does not address per-assertion revocation. Once an
+<p id="section-8.10-1">This pattern does not address per-assertion revocation. Once an
 Assertion is issued by a Delegate operating under a valid
 delegation, the Assertion remains valid until its <code>exp</code> claim
 regardless of subsequent revocation of the delegation. Per-assertion
 revocation needs are addressed by OAuth Token Revocation and Token
-Introspection, not by this pattern.<a href="#section-8.9-1" class="pilcrow">¶</a></p>
+Introspection, not by this pattern.<a href="#section-8.10-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="mutual-delegation">
-<section id="section-8.10">
+<section id="section-8.11">
         <h3 id="name-mutual-and-bilateral-delega">
-<a href="#section-8.10" class="section-number selfRef">8.10. </a><a href="#name-mutual-and-bilateral-delega" class="section-name selfRef">Mutual and Bilateral Delegation</a>
+<a href="#section-8.11" class="section-number selfRef">8.11. </a><a href="#name-mutual-and-bilateral-delega" class="section-name selfRef">Mutual and Bilateral Delegation</a>
         </h3>
-<p id="section-8.10-1">The pattern is described in unidirectional terms (Authority Holder
+<p id="section-8.11-1">The pattern is described in unidirectional terms (Authority Holder
 → Delegate → Assertion → Validator), but real-world deployments
 often involve mutual delegation: organization A's Authority Holder
 delegates to organization B's Delegate AND vice versa. Federation
-mesh topologies are the most common case.<a href="#section-8.10-1" class="pilcrow">¶</a></p>
-<p id="section-8.10-2">A profile <span class="bcp14">MAY</span> support mutual delegation by composing two
+mesh topologies are the most common case.<a href="#section-8.11-1" class="pilcrow">¶</a></p>
+<p id="section-8.11-2">A profile <span class="bcp14">MAY</span> support mutual delegation by composing two
 independent delegations, one in each direction. The pattern does
 not provide a mutual-delegation primitive; it relies on
 independent unidirectional delegations to express the relationship.
 A profile that requires symmetry (each side <span class="bcp14">MUST</span> trust the other
 to participate) <span class="bcp14">MUST</span> specify how that symmetry is enforced at
-validation time.<a href="#section-8.10-2" class="pilcrow">¶</a></p>
+validation time.<a href="#section-8.11-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="consent">
-<section id="section-8.11">
+<section id="section-8.12">
         <h3 id="name-consent">
-<a href="#section-8.11" class="section-number selfRef">8.11. </a><a href="#name-consent" class="section-name selfRef">Consent</a>
+<a href="#section-8.12" class="section-number selfRef">8.12. </a><a href="#name-consent" class="section-name selfRef">Consent</a>
         </h3>
-<p id="section-8.11-1">The pattern does not require user consent to delegation. The
+<p id="section-8.12-1">The pattern does not require user consent to delegation. The
 Subject's involvement in the delegation lifecycle is
-profile-specific:<a href="#section-8.11-1" class="pilcrow">¶</a></p>
+profile-specific:<a href="#section-8.12-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8.11-2.1">
-            <p id="section-8.11-2.1.1">In namespace authority delegation, the Subject is not a party to
+<li class="normal" id="section-8.12-2.1">
+            <p id="section-8.12-2.1.1">In namespace authority delegation, the Subject is not a party to
 the delegation; the namespace owner authorizes Delegates without
-requiring user consent.<a href="#section-8.11-2.1.1" class="pilcrow">¶</a></p>
+requiring user consent.<a href="#section-8.12-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.11-2.2">
-            <p id="section-8.11-2.2.1">In attribute authority delegation, the Subject may or may not
+          <li class="normal" id="section-8.12-2.2">
+            <p id="section-8.12-2.2.1">In attribute authority delegation, the Subject may or may not
 consent to the attestation. Some attribute-attestation
 ecosystems require explicit user consent (Verifiable Credentials
 presentation flows); others do not (employment-status
-attestation by an HR system).<a href="#section-8.11-2.2.1" class="pilcrow">¶</a></p>
+attestation by an HR system).<a href="#section-8.12-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.11-2.3">
-            <p id="section-8.11-2.3.1">In delegated-actor scenarios (see <a href="#actor-profile-relationship" class="auto internal xref">Section 1.2.3</a>),
+          <li class="normal" id="section-8.12-2.3">
+            <p id="section-8.12-2.3.1">In delegated-actor scenarios (see <a href="#actor-profile-relationship" class="auto internal xref">Section 1.2.3</a>),
 user consent to the actor relationship is typically a separate
 OAuth flow consent and is outside the scope of the delegation
-itself.<a href="#section-8.11-2.3.1" class="pilcrow">¶</a></p>
+itself.<a href="#section-8.12-2.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.11-3">Profiles deployed in user-facing contexts <span class="bcp14">SHOULD</span> document whether
+<p id="section-8.12-3">Profiles deployed in user-facing contexts <span class="bcp14">SHOULD</span> document whether
 and how user consent to delegation is obtained, recorded, and
-revocable.<a href="#section-8.11-3" class="pilcrow">¶</a></p>
+revocable.<a href="#section-8.12-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="audit">
-<section id="section-8.12">
+<section id="section-8.13">
         <h3 id="name-audit-and-accountability">
-<a href="#section-8.12" class="section-number selfRef">8.12. </a><a href="#name-audit-and-accountability" class="section-name selfRef">Audit and Accountability</a>
+<a href="#section-8.13" class="section-number selfRef">8.13. </a><a href="#name-audit-and-accountability" class="section-name selfRef">Audit and Accountability</a>
         </h3>
-<p id="section-8.12-1">A Validator's reliance on a Delegation Artifact is a security
+<p id="section-8.13-1">A Validator's reliance on a Delegation Artifact is a security
 decision that <span class="bcp14">SHOULD</span> be auditable. Profiles <span class="bcp14">SHOULD</span> specify what
-audit-relevant information the Validator records, at minimum:<a href="#section-8.12-1" class="pilcrow">¶</a></p>
+audit-relevant information the Validator records, at minimum:<a href="#section-8.13-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8.12-2.1">
-            <p id="section-8.12-2.1.1">The Delegation Artifact's identity (URL, hash, or other
-identifier).<a href="#section-8.12-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8.13-2.1">
+            <p id="section-8.13-2.1.1">The Delegation Artifact's identity (URL, hash, or other
+identifier).<a href="#section-8.13-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.12-2.2">
-            <p id="section-8.12-2.2.1">The Authority Holder's identifier as extracted from the
-artifact.<a href="#section-8.12-2.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.13-2.2">
+            <p id="section-8.13-2.2.1">The Authority Holder's identifier as extracted from the
+artifact.<a href="#section-8.13-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.12-2.3">
-            <p id="section-8.12-2.3.1">The Delegate's identifier and any tenant binding.<a href="#section-8.12-2.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.13-2.3">
+            <p id="section-8.13-2.3.1">The Delegate's identifier and any tenant binding.<a href="#section-8.13-2.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.12-2.4">
-            <p id="section-8.12-2.4.1">The result of validation (accept/reject) and, for accept, the
-combination of categories that satisfied.<a href="#section-8.12-2.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.13-2.4">
+            <p id="section-8.13-2.4.1">The result of validation (accept/reject) and, for accept, the
+combination of categories that satisfied.<a href="#section-8.13-2.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.12-2.5">
-            <p id="section-8.12-2.5.1">The cache state used at evaluation time (cache hit vs. live
-retrieval; cache age).<a href="#section-8.12-2.5.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.13-2.5">
+            <p id="section-8.13-2.5.1">The cache state used at evaluation time (cache hit vs. live
+retrieval; cache age).<a href="#section-8.13-2.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.12-3">Profiles <span class="bcp14">MAY</span> recommend integration with transparency logs,
+<p id="section-8.13-3">Profiles <span class="bcp14">MAY</span> recommend integration with transparency logs,
 security-event publication (CAEP/SET), or SIEM-style audit trails.
 The pattern itself does not require any specific audit mechanism;
 the recommendation is that profiles think about audit explicitly
-rather than leaving it implicit.<a href="#section-8.12-3" class="pilcrow">¶</a></p>
+rather than leaving it implicit.<a href="#section-8.13-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="cross-domain">
-<section id="section-8.13">
+<section id="section-8.14">
         <h3 id="name-cross-domain-federation">
-<a href="#section-8.13" class="section-number selfRef">8.13. </a><a href="#name-cross-domain-federation" class="section-name selfRef">Cross-Domain Federation</a>
+<a href="#section-8.14" class="section-number selfRef">8.14. </a><a href="#name-cross-domain-federation" class="section-name selfRef">Cross-Domain Federation</a>
         </h3>
-<p id="section-8.13-1">Authority Delegation frequently crosses administrative-domain
+<p id="section-8.14-1">Authority Delegation frequently crosses administrative-domain
 boundaries: an Authority Holder in domain D1 delegates to a
 Delegate in domain D2, with the Validator in domain D3. Each
 boundary adds operational, legal, and trust-management complexity
-beyond the technical evaluation:<a href="#section-8.13-1" class="pilcrow">¶</a></p>
+beyond the technical evaluation:<a href="#section-8.14-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8.13-2.1">
-            <p id="section-8.13-2.1.1">The Validator must trust the publication channel under the
+<li class="normal" id="section-8.14-2.1">
+            <p id="section-8.14-2.1.1">The Validator must trust the publication channel under the
 Authority Holder's domain even though it operates in a different
-administrative scope.<a href="#section-8.13-2.1.1" class="pilcrow">¶</a></p>
+administrative scope.<a href="#section-8.14-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.13-2.2">
-            <p id="section-8.13-2.2.1">The Delegate may be subject to different compliance regimes than
-the Authority Holder or the Validator.<a href="#section-8.13-2.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.14-2.2">
+            <p id="section-8.14-2.2.1">The Delegate may be subject to different compliance regimes than
+the Authority Holder or the Validator.<a href="#section-8.14-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.13-2.3">
-            <p id="section-8.13-2.3.1">Cross-domain key compromise has wider blast radius than
-same-domain compromise.<a href="#section-8.13-2.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.14-2.3">
+            <p id="section-8.14-2.3.1">Cross-domain key compromise has wider blast radius than
+same-domain compromise.<a href="#section-8.14-2.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.13-3">Profiles deployed in cross-domain scenarios <span class="bcp14">SHOULD</span> document the
+<p id="section-8.14-3">Profiles deployed in cross-domain scenarios <span class="bcp14">SHOULD</span> document the
 trust assumptions across boundaries: which party is responsible
 for what, how disputes are resolved, and how revocation
 propagates. Bilateral or multilateral governance arrangements
 (out-of-band) typically supplement the technical pattern in
-high-stakes cross-domain deployments.<a href="#section-8.13-3" class="pilcrow">¶</a></p>
+high-stakes cross-domain deployments.<a href="#section-8.14-3" class="pilcrow">¶</a></p>
 <div id="multi-hop-cross-domain-risks">
-<section id="section-8.13.1">
+<section id="section-8.14.1">
           <h4 id="name-multi-hop-cross-domain-risk">
-<a href="#section-8.13.1" class="section-number selfRef">8.13.1. </a><a href="#name-multi-hop-cross-domain-risk" class="section-name selfRef">Multi-Hop Cross-Domain Risks</a>
+<a href="#section-8.14.1" class="section-number selfRef">8.14.1. </a><a href="#name-multi-hop-cross-domain-risk" class="section-name selfRef">Multi-Hop Cross-Domain Risks</a>
           </h4>
-<p id="section-8.13.1-1">When Authority Delegation evaluation spans multiple hops across
+<p id="section-8.14.1-1">When Authority Delegation evaluation spans multiple hops across
 multiple trust domains, three risks compound that no single-hop
-analysis catches:<a href="#section-8.13.1-1" class="pilcrow">¶</a></p>
+analysis catches:<a href="#section-8.14.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8.13.1-2.1">
-              <p id="section-8.13.1-2.1.1"><strong>Bilateral trust accretion.</strong> Each hop introduces trust
+<li class="normal" id="section-8.14.1-2.1">
+              <p id="section-8.14.1-2.1.1"><strong>Bilateral trust accretion.</strong> Each hop introduces trust
 assumptions that no single party verifies end-to-end. AS A
 trusts AS B's federation membership; AS B trusts AS A's
 namespace authority; the Resource Server trusts AS B as an
@@ -3568,19 +3785,19 @@ issuer. No party in the chain verifies all the assumptions
 required for the chain's overall trustworthiness. Profile
 authors deploying multi-hop flows <span class="bcp14">SHOULD</span> document the full set
 of trust assumptions explicitly so that the operational party
-responsible for each can verify it.<a href="#section-8.13.1-2.1.1" class="pilcrow">¶</a></p>
+responsible for each can verify it.<a href="#section-8.14.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.13.1-2.2">
-              <p id="section-8.13.1-2.2.1"><strong>Lost scope across hops.</strong> A delegation that binds AS A to
+            <li class="normal" id="section-8.14.1-2.2">
+              <p id="section-8.14.1-2.2.1"><strong>Lost scope across hops.</strong> A delegation that binds AS A to
 asserting only about <code>example.com</code> subjects does not
 automatically bind any token AS B subsequently issues; AS B
 may re-issue the identity under its own authority without
 carrying the original constraint forward. Profiles that need scope
 to propagate across hops <span class="bcp14">MUST</span> specify the carriage mechanism (for
-example, claim-binding requirements on intermediate tokens).<a href="#section-8.13.1-2.2.1" class="pilcrow">¶</a></p>
+example, claim-binding requirements on intermediate tokens).<a href="#section-8.14.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-8.13.1-2.3">
-              <p id="section-8.13.1-2.3.1"><strong>Cross-domain auditability gap.</strong> No single party in a
+            <li class="normal" id="section-8.14.1-2.3">
+              <p id="section-8.14.1-2.3.1"><strong>Cross-domain auditability gap.</strong> No single party in a
 multi-hop chain sees the full evaluation history. The
 Validator at hop N has visibility only into the inputs it
 received and its own decision; the original Authority Holder
@@ -3588,7 +3805,7 @@ may never see whether its delegation was honored downstream.
 Profiles deployed in audit-sensitive contexts <span class="bcp14">SHOULD</span> specify
 how audit information is propagated or aggregated across the
 chain (transparency logs, security-event publication per
-<a href="#audit" class="auto internal xref">Section 8.12</a>, or governance-framework reporting).<a href="#section-8.13.1-2.3.1" class="pilcrow">¶</a></p>
+<a href="#audit" class="auto internal xref">Section 8.13</a>, or governance-framework reporting).<a href="#section-8.14.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
@@ -3596,11 +3813,11 @@ chain (transparency logs, security-event publication per
 </section>
 </div>
 <div id="context-token-laundering">
-<section id="section-8.14">
+<section id="section-8.15">
         <h3 id="name-context-token-laundering">
-<a href="#section-8.14" class="section-number selfRef">8.14. </a><a href="#name-context-token-laundering" class="section-name selfRef">Context Token Laundering</a>
+<a href="#section-8.15" class="section-number selfRef">8.15. </a><a href="#name-context-token-laundering" class="section-name selfRef">Context Token Laundering</a>
         </h3>
-<p id="section-8.14-1"><a href="#multi-hop" class="auto internal xref">Section 3.7</a> states that trust does not accrete across hops:
+<p id="section-8.15-1"><a href="#multi-hop" class="auto internal xref">Section 3.7</a> states that trust does not accrete across hops:
 each hop's Validator evaluates its own delegations independently.
 A specific failure mode where this property is violated is
 Context Token Laundering: an access token (or assertion) minted
@@ -3611,35 +3828,35 @@ subject identity (or other constrained claim) without carrying
 the original delegation's constraints forward. The downstream
 Validator, presented only with the re-issued token, has no basis
 for distinguishing a legitimately constrained chained token from
-an unconstrained token issued under the same key.<a href="#section-8.14-1" class="pilcrow">¶</a></p>
-<p id="section-8.14-2">Token-exchange flows (<span>[<a href="#RFC8693" class="cite xref">RFC8693</a>]</span>), Identity Chaining
+an unconstrained token issued under the same key.<a href="#section-8.15-1" class="pilcrow">¶</a></p>
+<p id="section-8.15-2">Token-exchange flows (<span>[<a href="#RFC8693" class="cite xref">RFC8693</a>]</span>), Identity Chaining
 (<span>[<a href="#I-D.ietf-oauth-identity-chaining" class="cite xref">I-D.ietf-oauth-identity-chaining</a>]</span>), and Transaction Tokens
 (<span>[<a href="#I-D.ietf-oauth-transaction-tokens" class="cite xref">I-D.ietf-oauth-transaction-tokens</a>]</span>) all involve transforming
 one bearer credential into another. A profile defining such a
-transformation <span class="bcp14">MUST</span> specify, for each transformation:<a href="#section-8.14-2" class="pilcrow">¶</a></p>
+transformation <span class="bcp14">MUST</span> specify, for each transformation:<a href="#section-8.15-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8.14-3.1">
-            <p id="section-8.14-3.1.1">The delegation attributes that <span class="bcp14">MUST</span> be carried forward into the
+<li class="normal" id="section-8.15-3.1">
+            <p id="section-8.15-3.1.1">The delegation attributes that <span class="bcp14">MUST</span> be carried forward into the
 downstream token (typically: the Authority Holder identifier,
 the scope bound, validity windows, and any tenant or condition
-bindings).<a href="#section-8.14-3.1.1" class="pilcrow">¶</a></p>
+bindings).<a href="#section-8.15-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.14-3.2">
-            <p id="section-8.14-3.2.1">The attributes that <span class="bcp14">MAY</span> be narrowed or attenuated through the
-transformation.<a href="#section-8.14-3.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.15-3.2">
+            <p id="section-8.15-3.2.1">The attributes that <span class="bcp14">MAY</span> be narrowed or attenuated through the
+transformation.<a href="#section-8.15-3.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.14-3.3">
-            <p id="section-8.14-3.3.1">The attributes that <span class="bcp14">MUST NOT</span> be added or broadened.<a href="#section-8.14-3.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-8.15-3.3">
+            <p id="section-8.15-3.3.1">The attributes that <span class="bcp14">MUST NOT</span> be added or broadened.<a href="#section-8.15-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.14-4">A profile permitting the downstream token to omit the upstream's
+<p id="section-8.15-4">A profile permitting the downstream token to omit the upstream's
 delegation attributes effectively reduces the downstream
 evaluation to "trust the issuer of this token," discarding the
 open-world authority binding that motivated delegation in the
 first place. This is the laundering: the upstream's
 constraint-bound trust is reissued as the downstream issuer's
-unconstrained trust.<a href="#section-8.14-4" class="pilcrow">¶</a></p>
-<p id="section-8.14-5">Context Token Laundering is structurally distinct from identity
+unconstrained trust.<a href="#section-8.15-4" class="pilcrow">¶</a></p>
+<p id="section-8.15-5">Context Token Laundering is structurally distinct from identity
 laundering: identity laundering loses the SUBJECT-NAMESPACE binding
 (the downstream token names a subject under no Authority Holder's
 delegation); context laundering loses the DELEGATION-CONSTRAINT
@@ -3648,33 +3865,33 @@ tenant, or conditions the original delegation imposed). Both are
 composition failures and both are addressed by the same
 principle: each hop's Validator <span class="bcp14">MUST</span> evaluate its own
 delegations against its own applicable Authority Holders rather
-than relying on upstream evaluation by reference.<a href="#section-8.14-5" class="pilcrow">¶</a></p>
-<p id="section-8.14-6">Profiles deploying token-exchange-based multi-hop flows <span class="bcp14">SHOULD</span>
-adopt one of the following postures:<a href="#section-8.14-6" class="pilcrow">¶</a></p>
+than relying on upstream evaluation by reference.<a href="#section-8.15-5" class="pilcrow">¶</a></p>
+<p id="section-8.15-6">Profiles deploying token-exchange-based multi-hop flows <span class="bcp14">SHOULD</span>
+adopt one of the following postures:<a href="#section-8.15-6" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8.14-7.1">
-            <p id="section-8.14-7.1.1"><strong>Forward-propagate</strong>: carry the upstream delegation attributes
+<li class="normal" id="section-8.15-7.1">
+            <p id="section-8.15-7.1.1"><strong>Forward-propagate</strong>: carry the upstream delegation attributes
 explicitly in the downstream token format so that downstream
-Validators can re-evaluate the original constraints.<a href="#section-8.14-7.1.1" class="pilcrow">¶</a></p>
+Validators can re-evaluate the original constraints.<a href="#section-8.15-7.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.14-7.2">
-            <p id="section-8.14-7.2.1"><strong>Re-evaluate</strong>: require downstream Validators to re-resolve
+          <li class="normal" id="section-8.15-7.2">
+            <p id="section-8.15-7.2.1"><strong>Re-evaluate</strong>: require downstream Validators to re-resolve
 the original Authority Holder's delegation against the
 downstream-asserted subject, treating the downstream token as
 carrying only the subject identifier and not the original
-delegation's authority.<a href="#section-8.14-7.2.1" class="pilcrow">¶</a></p>
+delegation's authority.<a href="#section-8.15-7.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-8.14-7.3">
-            <p id="section-8.14-7.3.1"><strong>Restrict downstream scope</strong>: bind the downstream token to a
+          <li class="normal" id="section-8.15-7.3">
+            <p id="section-8.15-7.3.1"><strong>Restrict downstream scope</strong>: bind the downstream token to a
 scope that does not require carrying the upstream constraint
 forward (for example, by issuing a downstream token whose
 audience is internal to a closed-world trust boundary where
-the upstream delegation does not need to apply).<a href="#section-8.14-7.3.1" class="pilcrow">¶</a></p>
+the upstream delegation does not need to apply).<a href="#section-8.15-7.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-8.14-8">A profile that takes none of these postures is unsafe for
+<p id="section-8.15-8">A profile that takes none of these postures is unsafe for
 multi-hop deployment and <span class="bcp14">MUST NOT</span> be registered as a
-multi-hop-applicable profile.<a href="#section-8.14-8" class="pilcrow">¶</a></p>
+multi-hop-applicable profile.<a href="#section-8.15-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4000,6 +4217,10 @@ Delegation Artifact.<a href="#section-11-3" class="pilcrow">¶</a></p>
 <dt id="ATTEST-CLIENT-AUTH">[ATTEST-CLIENT-AUTH]</dt>
         <dd>
 <span class="refTitle">"OAuth 2.0 Attestation-Based Client Authentication"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-ietf-oauth-attestation-based-client-auth/">https://datatracker.ietf.org/doc/draft-ietf-oauth-attestation-based-client-auth/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="ATTRIBUTE-AUTHORITY-TRUST">[ATTRIBUTE-AUTHORITY-TRUST]</dt>
+        <dd>
+<span class="refTitle">"Attribute Authority Trust Method for OAuth Identity Assertion Issuer Trust Policy"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-mcguinness-oauth-attribute-authority-trust/">https://datatracker.ietf.org/doc/draft-mcguinness-oauth-attribute-authority-trust/</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="CIA">[CIA]</dt>
         <dd>

@@ -322,16 +322,19 @@ h1, h2, h3, h4, h5, h6 {
   font-size-adjust: 0.5;
   color: var(--title-color);
 }
-h1#title {
-  font-size: 32px;
-  line-height: 40px;
-  clear: both;
-}
-h1#title, h1#rfcnum {
-  margin: 1.5em 0 0.2em;
-}
-h1#rfcnum + h1#title {
-  margin: 0.2em 0;
+h1 {
+  &#title {
+    font-size: 32px;
+    line-height: 40px;
+    clear: both;
+    margin: 1.5em 0 0.2em;
+  }
+  &#rfcnum {
+    margin: 1.5em 0 0.2em;
+    & + h1#title {
+      margin: 0.2em 0;
+    }
+  }
 }
 
 h1, h2, h3 {
@@ -351,10 +354,10 @@ h4, h5, h6 {
 #abstract+p {
   font-size: 18px;
   line-height: 24px;
-}
-#abstract+p code, #abstract+p samp, #abstract+p tt {
-  font-size: 16px;
-  line-height: 0;
+  & code, & samp, & tt {
+    font-size: 16px;
+    line-height: 0;
+  }
 }
 
 p {
@@ -365,59 +368,59 @@ p {
 div {
   margin: 0;
 }
-.alignRight.art-text {
-  background-color: var(--highlight-color);
-  border: 1px solid var(--line-color);
-  border-radius: 3px;
-  padding: 0.5em 1em 0;
-  margin-bottom: 0.5em;
-}
-.alignRight.art-text pre {
-  padding: 0;
-  width: auto;
-}
 .alignRight {
   margin: 1em 0;
-}
-.alignRight > *:first-child {
-  border: none;
-  margin: 0;
-  float: right;
-  clear: both;
-}
-.alignRight > *:nth-child(2) {
-  clear: both;
-  display: block;
-  border: none;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    margin: 0;
+    float: right;
+    clear: both;
+  }
+  & > *:nth-child(2) {
+    clear: both;
+    display: block;
+    border: none;
+  }
 }
 svg {
   display: block;
-}
-/* font-family isn't space-separated, but =~ will have to do */
-svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
-  font-family: var(--font-mono);
-}
-.alignCenter.art-text {
-  background-color: var(--highlight-color);
-  border: 1px solid var(--line-color);
-  border-radius: 3px;
-  padding: 0.5em 1em 0;
-  margin-bottom: 0.5em;
-}
-.alignCenter.art-text pre {
-  padding: 0;
-  width: auto;
+  /* font-family isn't space-separated, but =~ will have to do */
+  &[font-family~="monospace" i], & [font-family~="monospace" i] {
+    font-family: var(--font-mono);
+  }
 }
 .alignCenter {
   margin: 1em 0;
-}
-.alignCenter > *:first-child {
-  border: none;
-  /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
-     support flexbox yet.
-  */
-  display: table;
-  margin: 0 auto;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+       support flexbox yet.
+    */
+    display: table;
+    margin: 0 auto;
+  }
 }
 
 /* lists */
@@ -455,26 +458,25 @@ dl {
     --indent: 5ch;
     & > dt {
       min-width: calc(var(--indent) - 2ch);
+      float: none;
     }
-  }
-  &.olPercent > dt {
-    float: none;
   }
 
   dl > dd > & {
     margin-top: 0.5em;
     margin-bottom: 0;
   }
-}
-dl:not(.dlNewline) > dt {
-  float: left;
-  margin-right: 2ch;
-  min-width: 8ch;
-}
-dl > dd {
-  margin-bottom: .8em;
-  margin-left: var(--indent) !important; /* stupid element overrides */
-  min-height: 2ex;
+
+  &:not(.dlNewline) > dt {
+    float: left;
+    margin-right: 2ch;
+    min-width: 8ch;
+  }
+  & > dd {
+    margin-bottom: .8em;
+    margin-left: var(--indent) !important; /* stupid element overrides */
+    min-height: 2ex;
+  }
 }
 :is(dl.compact, .dlCompact) > dd {
   margin-bottom: 0;
@@ -490,20 +492,22 @@ dl > dd {
 }
 
 /* links */
-a, a[href].selfRef:hover {
+a {
   text-decoration: none;
+  &[href] {
+    color: var(--link-color);
+    &:hover { text-decoration: underline; }
+    &.selfRef {
+      color: var(--text-color);
+      &:hover {
+        text-decoration: none;
+        background-color: var(--highlight-color);
+      }
+    }
+  }
 }
-a[href] {
-  color: var(--link-color);
-}
-a[href].selfRef, .iref + a[href].internal {
+.iref + a[href].internal {
   color: var(--text-color);
-}
-a[href]:hover {
-  text-decoration: underline;
-}
-a[href].selfRef:hover {
-  background-color: var(--highlight-color);
 }
 a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
   white-space: nowrap;
@@ -539,9 +543,9 @@ img {
 figure {
   margin: 0.5em 0;
   padding: 0;
-}
-figure blockquote {
-  margin: 0.8em 0.4em 0.4em;
+  & blockquote {
+    margin: 0.8em 0.4em 0.4em;
+  }
 }
 figcaption, caption {
   font-style: italic;
@@ -551,17 +555,19 @@ figcaption, caption {
 }
 @media screen {
   /* Auto-collapse boilerplate. */
-  :is(#status-of-memo, #copyright) p {
-    margin: -2px 0;
-    max-height: 0;
-    transition: max-height 2s ease, margin 0.5s ease 0.5s;
-    overflow: hidden;
-  }
-  :is(#status-of-memo, #copyright):hover p,
-  :is(#status-of-memo, #copyright) h2:target ~ p {
-    margin: 0.5em 0;
-    max-height: 500px;
-    overflow: auto;
+  :is(#status-of-memo, #copyright) {
+    & p {
+      margin: -2px 0;
+      max-height: 0;
+      transition: max-height 2s ease, margin 0.5s ease 0.5s;
+      overflow: hidden;
+    }
+    &:hover p,
+    & h2:target ~ p {
+      margin: 0.5em 0;
+      max-height: 500px;
+      overflow: auto;
+    }
   }
   pre, svg {
     display: inline-block;
@@ -611,25 +617,17 @@ table {
   max-width: 100%;
   margin: 0 0 1em;
   border-collapse: collapse;
-}
-table.right {
-  margin-left: auto;
-}
-table.center {
-  margin-left: auto;
-  margin-right: auto;
-}
-table.left {
-  margin-right: auto;
-}
-table .text-left {
-  text-align: left;
-}
-table .text-center {
-  text-align: center;
-}
-table .text-right {
-  text-align: right;
+  &.right { margin-left: auto; }
+  &.center { margin-left: auto; margin-right: auto; }
+  &.left { margin-right: auto; }
+  & .text-left { text-align: left; }
+  & .text-center { text-align: center; }
+  & .text-right { text-align: right; }
+  & caption {
+    margin: 0;
+    padding: 3px 0 3px 1em;
+  }
+  & p { margin: 0; }
 }
 
 thead, tbody {
@@ -649,13 +647,6 @@ th {
 :is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
   background-color: var(--highlight-color);
 }
-table caption {
-  margin: 0;
-  padding: 3px 0 3px 1em;
-}
-table p {
-  margin: 0;
-}
 
 /* pilcrow */
 a.pilcrow {
@@ -666,18 +657,16 @@ a.pilcrow {
     color: var(--pilcrow-weak);
     &:hover { text-decoration: none; }
   }
-}
-@media not print {
-  :hover > a.pilcrow, a.pilcrow:focus {
-    opacity: 1;
+  @media not print {
+    :hover > &, &:focus {
+      opacity: 1;
+    }
+    &[href]:hover {
+      color: var(--pilcrow-strong);
+      background-color: transparent;
+    }
   }
-  a.pilcrow[href]:hover {
-    color: var(--pilcrow-strong);
-    background-color: transparent;
-  }
-}
-@media print {
-  a.pilcrow {
+  @media print {
     display: none;
   }
 }
@@ -736,9 +725,9 @@ sub, sup {
   font-size: 0.9em;
   font-style: italic;
   margin-top: 2em;
-}
-.docInfo .prepared {
-  float: right;
+  & .prepared {
+    float: right;
+  }
 }
 
 /* table of contents */
@@ -828,23 +817,27 @@ hr.addr {
   max-width: calc(100% - 16px);
 }
 @media (min-width: 500px) {
-  #authors-addresses > section {
-    column-count: 2;
-    column-gap: 20px;
-  }
-  #authors-addresses > section > h2 {
-    column-span: all;
-  }
-  /* hack for break-inside: avoid-column */
-  #authors-addresses address {
-    display: inline-block;
-    break-inside: avoid-column;
+  #authors-addresses {
+    & > section {
+      column-count: 2;
+      column-gap: 20px;
+    }
+    & > section > h2 {
+      column-span: all;
+    }
+    /* hack for break-inside: avoid-column */
+    & address {
+      display: inline-block;
+      break-inside: avoid-column;
+    }
   }
 }
 
 /* Comments */
-.rfcEditorRemove p:first-of-type {
-  font-style: italic;
+.rfcEditorRemove {
+  & p:first-of-type {
+    font-style: italic;
+  }
 }
 .cref {
   background-color: rgba(249, 232, 105, 0.3);
@@ -855,19 +848,21 @@ hr.addr {
 }
 
 @media screen {
-  #toc nav {
-    font-family: var(--font-title);
-    font-weight: 360;
-    & > ul { margin-bottom: 2em; }
-    & ul {
-      margin: 0 0 0 4px;
-      & :is(p, li) {
-        margin: 2px 0;
+  #toc {
+    & nav {
+      font-family: var(--font-title);
+      font-weight: 360;
+      & > ul { margin-bottom: 2em; }
+      & ul {
+        margin: 0 0 0 4px;
+        & :is(p, li) {
+          margin: 2px 0;
+        }
       }
     }
-  }
-  #toc a.toplink {
-    float: right;
+    & a.toplink {
+      float: right;
+    }
   }
 }
 @media not screen {
@@ -888,54 +883,54 @@ hr.addr {
     margin: 0;
     border-bottom: 1px solid #ccc;
     opacity: 0.6;
-  }
-  #toc h2 {
-    margin: 0;
-    padding: 2px 0 2px 6px;
-    padding-right: 1em;
-    font-size: 18px;
-    line-height: 24px;
-    min-width: 190px;
-    text-align: right;
-    background-color: #444;
-    color: white;
-    cursor: pointer;
-    &::before { /* css hamburger */
-      float: right;
-      position: relative;
-      width: 1em;
-      height: 1px;
-      left: -164px;
-      margin: 8px 0 0 0;
-      background: white none repeat scroll 0 0;
-      box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
-      content: "";
+    & h2 {
+      margin: 0;
+      padding: 2px 0 2px 6px;
+      padding-right: 1em;
+      font-size: 18px;
+      line-height: 24px;
+      min-width: 190px;
+      text-align: right;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      &::before { /* css hamburger */
+        float: right;
+        position: relative;
+        width: 1em;
+        height: 1px;
+        left: -164px;
+        margin: 8px 0 0 0;
+        background: white none repeat scroll 0 0;
+        box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+        content: "";
+      }
     }
-  }
-  #toc nav {
-    display: none;
-    background-color: var(--background-color);
-    padding: 0.5em 1em 1em;
-    overflow: auto;
-    overscroll-behavior: contain;
-    height: calc(100vh - 48px);
-    border-left: 1px solid #ddd;
-  }
-  #toc.active {
-    opacity: 1;
-    & nav { display: block; }
-  }
-  /* Make the collapsed ToC header render white on gray also when it's a link */
-  #toc h2 a,
-  #toc h2 a:is(:link, :focus, :hover),
-  #toc a.toplink,
-  #toc a.toplink:hover {
-    color: white;
-    background-color: #444;
-    text-decoration: none;
-  }
-  #toc a.toplink {
-    margin: 2px 0.5em 0;
+    & nav {
+      display: none;
+      background-color: var(--background-color);
+      padding: 0.5em 1em 1em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      height: calc(100vh - 48px);
+      border-left: 1px solid #ddd;
+    }
+    &.active {
+      opacity: 1;
+      & nav { display: block; }
+    }
+    /* Make the collapsed ToC header render white on gray also when it's a link */
+    & h2 a,
+    & h2 a:is(:link, :focus, :hover),
+    & a.toplink,
+    & a.toplink:hover {
+      color: white;
+      background-color: #444;
+      text-decoration: none;
+    }
+    & a.toplink {
+      margin: 2px 0.5em 0;
+    }
   }
 }
 
@@ -954,26 +949,26 @@ hr.addr {
     margin: 0;
     padding: 0;
     z-index: 1;
-  }
-  #toc h2 {
-    margin: 0;
-    padding: 0.25em 1em 1em 0;
-  }
-  #toc nav {
-    display: block;
-    height: calc(90vh - 84px);
-    bottom: 0;
-    padding: 0.5em 0 2em;
-    overflow: auto;
-    overscroll-behavior: contain;
-    scrollbar-width: thin;
+    & h2 {
+      margin: 0;
+      padding: 0.25em 1em 1em 0;
+    }
+    & nav {
+      display: block;
+      height: calc(90vh - 84px);
+      bottom: 0;
+      padding: 0.5em 0 2em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    & a.toplink {
+      margin: 8px 0.5em 0;
+    }
   }
   img { /* future proofing */
     max-width: 100%;
     height: auto;
-  }
-  #toc a.toplink {
-    margin: 8px 0.5em 0;
   }
 }
 
@@ -989,12 +984,13 @@ hr.addr {
   #n-copyright-notice {
     border-bottom: none;
   }
-  #toc, #n-introduction {
-    page-break-before: always;
-  }
   #toc {
+    page-break-before: always;
     border-top: none;
     padding-top: 0;
+  }
+  #n-introduction {
+    page-break-before: always;
   }
   figure, pre, .vcard {
     page-break-inside: avoid;
@@ -1056,17 +1052,19 @@ hr.addr {
 }
 
 /* SVG Trick: a prefix match works because only black and white are allowed */
-svg :is([stroke="black"], [stroke^="#000"]) {
-  stroke: var(--text-color);
-}
-svg :is([stroke="white"], [stroke^="#fff"]) {
-  stroke: var(--background-color);
-}
-svg :is([fill="black"], [fill^="#000"], :not([fill])) {
-  fill: var(--text-color);
-}
-svg :is([fill="white"], [fill^="#fff"]) {
-  fill: var(--background-color);
+svg {
+  & :is([stroke="black"], [stroke^="#000"]) {
+    stroke: var(--text-color);
+  }
+  & :is([stroke="white"], [stroke^="#fff"]) {
+    stroke: var(--background-color);
+  }
+  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+    fill: var(--text-color);
+  }
+  & :is([fill="white"], [fill^="#fff"]) {
+    fill: var(--background-color);
+  }
 }
 </style>
 
@@ -1080,7 +1078,7 @@ svg :is([fill="white"], [fill^="#fff"]) {
 </tr></thead>
 <tfoot><tr>
 <td class="left">McGuinness</td>
-<td class="center">Expires 26 November 2026</td>
+<td class="center">Expires 27 November 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1093,12 +1091,12 @@ svg :is([fill="white"], [fill^="#fff"]) {
 <dd class="internet-draft">draft-mcguinness-oauth-identity-assertion-issuer-trust-policy-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-05-25" class="published">25 May 2026</time>
+<time datetime="2026-05-26" class="published">26 May 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-11-26">26 November 2026</time></dd>
+<dd class="expires"><time datetime="2026-11-27">27 November 2026</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1170,7 +1168,7 @@ one subject-namespace authorization method usable by this policy.<a href="#secti
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 26 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 27 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1263,7 +1261,10 @@ one subject-namespace authorization method usable by this policy.<a href="#secti
                 <p id="section-toc.1-1.3.2.4.1"><a href="#section-3.4" class="auto internal xref">3.4</a>.  <a href="#name-subject-authority-determina" class="internal xref">Subject Authority Determination</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4.2.1">
-                    <p id="section-toc.1-1.3.2.4.2.1.1"><a href="#section-3.4.1" class="auto internal xref">3.4.1</a>.  <a href="#name-subdomain-authority-and-the" class="internal xref">Subdomain Authority and the Registrable-Domain Default</a></p>
+                    <p id="section-toc.1-1.3.2.4.2.1.1"><a href="#section-3.4.1" class="auto internal xref">3.4.1</a>.  <a href="#name-public-suffix-list-versioni" class="internal xref">Public Suffix List Versioning</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4.2.2">
+                    <p id="section-toc.1-1.3.2.4.2.2.1"><a href="#section-3.4.2" class="auto internal xref">3.4.2</a>.  <a href="#name-subdomain-authority-and-the" class="internal xref">Subdomain Authority and the Registrable-Domain Default</a></p>
 </li>
                 </ul>
 </li>
@@ -1309,37 +1310,40 @@ one subject-namespace authorization method usable by this policy.<a href="#secti
             <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
-                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-transitive-authorization-is" class="internal xref">Transitive Authorization is Bounded</a></p>
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-alignment-with-oauth-securi" class="internal xref">Alignment with OAuth Security BCP</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
-                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-scope-of-namespace-authoriz" class="internal xref">Scope of Namespace Authorization</a></p>
+                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-transitive-authorization-is" class="internal xref">Transitive Authorization is Bounded</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.3">
-                <p id="section-toc.1-1.6.2.3.1"><a href="#section-6.3" class="auto internal xref">6.3</a>.  <a href="#name-per-assertion-revocation-is" class="internal xref">Per-Assertion Revocation Is Out of Scope</a></p>
+                <p id="section-toc.1-1.6.2.3.1"><a href="#section-6.3" class="auto internal xref">6.3</a>.  <a href="#name-scope-of-namespace-authoriz" class="internal xref">Scope of Namespace Authorization</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.4">
-                <p id="section-toc.1-1.6.2.4.1"><a href="#section-6.4" class="auto internal xref">6.4</a>.  <a href="#name-policy-document-integrity" class="internal xref">Policy Document Integrity</a></p>
+                <p id="section-toc.1-1.6.2.4.1"><a href="#section-6.4" class="auto internal xref">6.4</a>.  <a href="#name-per-assertion-revocation-is" class="internal xref">Per-Assertion Revocation Is Out of Scope</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.5">
-                <p id="section-toc.1-1.6.2.5.1"><a href="#section-6.5" class="auto internal xref">6.5</a>.  <a href="#name-shared-infrastructure-and-h" class="internal xref">Shared Infrastructure and Hosted Well-Known Paths</a></p>
+                <p id="section-toc.1-1.6.2.5.1"><a href="#section-6.5" class="auto internal xref">6.5</a>.  <a href="#name-policy-document-integrity" class="internal xref">Policy Document Integrity</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.6">
-                <p id="section-toc.1-1.6.2.6.1"><a href="#section-6.6" class="auto internal xref">6.6</a>.  <a href="#name-policy-disclosure" class="internal xref">Policy Disclosure</a></p>
+                <p id="section-toc.1-1.6.2.6.1"><a href="#section-6.6" class="auto internal xref">6.6</a>.  <a href="#name-shared-infrastructure-and-h" class="internal xref">Shared Infrastructure and Hosted Well-Known Paths</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.7">
-                <p id="section-toc.1-1.6.2.7.1"><a href="#section-6.7" class="auto internal xref">6.7</a>.  <a href="#name-downgrade-attacks" class="internal xref">Downgrade Attacks</a></p>
+                <p id="section-toc.1-1.6.2.7.1"><a href="#section-6.7" class="auto internal xref">6.7</a>.  <a href="#name-policy-disclosure" class="internal xref">Policy Disclosure</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.8">
-                <p id="section-toc.1-1.6.2.8.1"><a href="#section-6.8" class="auto internal xref">6.8</a>.  <a href="#name-trust-policy-enumeration" class="internal xref">Trust Policy Enumeration</a></p>
+                <p id="section-toc.1-1.6.2.8.1"><a href="#section-6.8" class="auto internal xref">6.8</a>.  <a href="#name-downgrade-attacks" class="internal xref">Downgrade Attacks</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.9">
-                <p id="section-toc.1-1.6.2.9.1"><a href="#section-6.9" class="auto internal xref">6.9</a>.  <a href="#name-trust-policy-caching" class="internal xref">Trust Policy Caching</a></p>
+                <p id="section-toc.1-1.6.2.9.1"><a href="#section-6.9" class="auto internal xref">6.9</a>.  <a href="#name-trust-policy-enumeration" class="internal xref">Trust Policy Enumeration</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.10">
-                <p id="section-toc.1-1.6.2.10.1"><a href="#section-6.10" class="auto internal xref">6.10</a>. <a href="#name-subject-authority-matching" class="internal xref">Subject Authority Matching</a></p>
+                <p id="section-toc.1-1.6.2.10.1"><a href="#section-6.10" class="auto internal xref">6.10</a>. <a href="#name-trust-policy-caching" class="internal xref">Trust Policy Caching</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.11">
-                <p id="section-toc.1-1.6.2.11.1"><a href="#section-6.11" class="auto internal xref">6.11</a>. <a href="#name-observability" class="internal xref">Observability</a></p>
+                <p id="section-toc.1-1.6.2.11.1"><a href="#section-6.11" class="auto internal xref">6.11</a>. <a href="#name-subject-authority-matching" class="internal xref">Subject Authority Matching</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.12">
+                <p id="section-toc.1-1.6.2.12.1"><a href="#section-6.12" class="auto internal xref">6.12</a>. <a href="#name-observability" class="internal xref">Observability</a></p>
 </li>
             </ul>
 </li>
@@ -1365,7 +1369,10 @@ one subject-namespace authorization method usable by this policy.<a href="#secti
                     <p id="section-toc.1-1.8.2.1.2.4.1"><a href="#section-8.1.4" class="auto internal xref">8.1.4</a>.  <a href="#name-identity-assertion-issuer-t" class="internal xref">Identity Assertion Issuer Trust Methods Registry</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1.2.5">
-                    <p id="section-toc.1-1.8.2.1.2.5.1"><a href="#section-8.1.5" class="auto internal xref">8.1.5</a>.  <a href="#name-trust-evaluation-diagnostic-" class="internal xref">Trust Evaluation Diagnostic Reason Registry</a></p>
+                    <p id="section-toc.1-1.8.2.1.2.5.1"><a href="#section-8.1.5" class="auto internal xref">8.1.5</a>.  <a href="#name-trust-policy-members-regist" class="internal xref">Trust Policy Members Registry</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1.2.6">
+                    <p id="section-toc.1-1.8.2.1.2.6.1"><a href="#section-8.1.6" class="auto internal xref">8.1.6</a>.  <a href="#name-trust-evaluation-diagnostic-" class="internal xref">Trust Evaluation Diagnostic Reason Registry</a></p>
 </li>
                 </ul>
 </li>
@@ -1402,10 +1409,13 @@ one subject-namespace authorization method usable by this policy.<a href="#secti
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
-            <p id="section-toc.1-1.12.1"><a href="#appendix-B" class="auto internal xref">Appendix B</a>.  <a href="#name-document-history" class="internal xref">Document History</a></p>
+            <p id="section-toc.1-1.12.1"><a href="#appendix-B" class="auto internal xref">Appendix B</a>.  <a href="#name-frequently-asked-questions" class="internal xref">Frequently Asked Questions</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
-            <p id="section-toc.1-1.13.1"><a href="#appendix-C" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+            <p id="section-toc.1-1.13.1"><a href="#appendix-C" class="auto internal xref">Appendix C</a>.  <a href="#name-document-history" class="internal xref">Document History</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14">
+            <p id="section-toc.1-1.14.1"><a href="#appendix-D" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
 </li>
         </ul>
 </nav>
@@ -1456,15 +1466,22 @@ mechanism. The three documents together are described in
         </h3>
 <p id="section-1.1-1">This document profiles the two independent trust-evaluation
 categories of <span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span> (§Independent Trust
-Evaluation Categories) for OAuth identity assertions, naming them
-<code>issuer_authentication</code> (the Authenticity category: is the JWT
-<code>iss</code> claim a recognized signer?) and <code>subject_namespace_authorization</code>
-(the Delegation Authority category: has the namespace owner
-authorized this issuer?). Each Trust Method belongs to exactly
-one of these categories. The cross-category combination rule
-(<span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span> §Cross-Category Combination Rule)
-applies as instantiated in <a href="#rasp" class="auto internal xref">Section 4.2</a>: evidence from EACH
-applicable category is required.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+Evaluation Categories) for OAuth identity assertions:<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1.1-2.1">
+            <p id="section-1.1-2.1.1"><strong><code>issuer_authentication</code></strong> is the Authenticity category. It
+asks: is the JWT <code>iss</code> claim a recognized signer?<a href="#section-1.1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-1.1-2.2">
+            <p id="section-1.1-2.2.1"><strong><code>subject_namespace_authorization</code></strong> is the Delegation Authority
+category. It asks: has the namespace owner authorized this
+issuer to assert about subjects in its namespace?<a href="#section-1.1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-1.1-3">Each Trust Method belongs to exactly one of these categories. The
+cross-category combination rule (<span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span>
+§Cross-Category Combination Rule) applies as instantiated in
+<a href="#rasp" class="auto internal xref">Section 4.2</a>: evidence from EACH applicable category is required.<a href="#section-1.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="motivation">
@@ -1498,7 +1515,7 @@ control) or maintains manual allowlists (fragile at scale).<a href="#section-1.2
           <li class="normal" id="section-1.2-2.4">
             <p id="section-1.2-2.4.1"><strong>Shared-issuer multi-tenant Identity Providers.</strong> A customer
 authorizing such an Identity Provider today must trust its
-tenant-isolation enforcement implicitly. This framework makes
+tenant-isolation enforcement implicitly. This policy makes
 the customer's choice of authorized tenant observable on the wire
 (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Single-Issuer Multi-Tenant Identity Providers).<a href="#section-1.2-2.4.1" class="pilcrow">¶</a></p>
 </li>
@@ -1530,7 +1547,7 @@ accepts and fails closed when required evidence is missing.<a href="#section-1.3
 <p id="section-1.4-1">This policy is complementary to OpenID Federation: OpenID Federation
 can authenticate that an issuer belongs to a trusted ecosystem, while
 Domain-Authorized Issuer Discovery lets the namespace owner say which
-issuers may assert about subjects in that namespace. The framework also
+issuers may assert about subjects in that namespace. This document also
 follows existing DNS authority-publication patterns such as CAA,
 MTA-STS, SPF, DKIM, and the Email Verification Protocol. Background and
 positioning details are in <a href="#relationship-to-oidf" class="auto internal xref">Appendix A.1</a> and
@@ -1579,7 +1596,7 @@ class of evidence supplying that satisfaction.<a href="#section-1.5-3" class="pi
 Trust Method machinery (categories, combination rule, registry),
 the Subject Authority Determination concept and registry, and the
 OAuth grant-profile and Actor Profile bindings. Concrete
-publication mechanisms for specific Trust Methods (such as DAI)
+publication mechanisms for specific Trust Methods
 are out of scope and live in dedicated specifications.<a href="#section-1.6-1" class="pilcrow">¶</a></p>
 <p id="section-1.6-2">The broader Authority Delegation Pattern accommodates attribute
 authorities whose authority is not a namespace owner
@@ -1794,7 +1811,7 @@ member is deliberately named without the <code>_supported</code> suffix used
 by capability-style OAuth metadata parameters
 (<span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span>) to signal that distinction. Local policy <span class="bcp14">MAY</span> impose
 additional requirements for specific clients, subjects, or scopes;
-see <a href="#downgrade" class="auto internal xref">Section 6.7</a>.<a href="#section-3.2.1-1.8.1" class="pilcrow">¶</a></p>
+see <a href="#downgrade" class="auto internal xref">Section 6.8</a>.<a href="#section-3.2.1-1.8.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
 <dt id="section-3.2.1-1.9"><code>crit</code></dt>
@@ -2013,121 +2030,14 @@ integration point between the federation and this framework; see
 by evidence published by the Subject Authority itself (a DNS or
 HTTPS record under the Subject Authority's domain). The
 namespace-authorization trust graph is bounded to depth one
-(<a href="#transitive-authz-bounded" class="auto internal xref">Section 6.1</a>).<a href="#section-3.3.4-1" class="pilcrow">¶</a></p>
-<p id="section-3.3.4-2">The <code>domain_authorized_issuer</code> and <code>https_authorized_issuer</code> Trust
-Methods are defined in <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>. Both belong to the
-<code>subject_namespace_authorization</code> category and use the Issuer
-Authorization Policy as their Delegation Artifact. They are peer
-methods; profile authors deploying both <span class="bcp14">SHOULD</span> review the
-combination guidance in <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> to avoid the OR-within-category
-downgrade discussed in <span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span> §Profile Composition Risks of
-<span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span>.<a href="#section-3.3.4-2" class="pilcrow">¶</a></p>
-<div id="trust-method-email-verification-dns">
-<section id="section-3.3.4.1">
-            <h5 id="name-email_verification_dns">
-<a href="#section-3.3.4.1" class="section-number selfRef">3.3.4.1. </a><a href="#name-email_verification_dns" class="section-name selfRef">email_verification_dns</a>
-            </h5>
-<p id="section-3.3.4.1-1">The <code>email_verification_dns</code> method indicates that the Assertion
-Issuer is acceptable if the Subject Authority of the assertion's
-<code>email</code> Subject Identifier publishes a DNS TXT record per the Email
-Verification Protocol <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span> naming the Assertion
-Issuer. This Trust Method exists to interoperate with deployments
-that already publish a <code>_email-verification.{domain}</code> record; it
-lets a Resource Authorization Server honor those records without
-requiring the Subject Authority to also publish an
-<code>_oauth-issuer-policy</code> record.<a href="#section-3.3.4.1-1" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-3.3.4.1-2">
-<pre>
-{
-  "method": "email_verification_dns"
-}
-</pre><a href="#section-3.3.4.1-2" class="pilcrow">¶</a>
-</div>
-<p id="section-3.3.4.1-3">This Trust Method has no parameters.<a href="#section-3.3.4.1-3" class="pilcrow">¶</a></p>
-<p id="section-3.3.4.1-4">When evaluated, the Resource Authorization Server <span class="bcp14">MUST</span>:<a href="#section-3.3.4.1-4" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-3.3.4.1-5">
-<li id="section-3.3.4.1-5.1">
-                <p id="section-3.3.4.1-5.1.1">Verify that the assertion's Subject Identifier format is <code>email</code>.
-If not, the Trust Method is not satisfied by this assertion.<a href="#section-3.3.4.1-5.1.1" class="pilcrow">¶</a></p>
-</li>
-              <li id="section-3.3.4.1-5.2">
-                <p id="section-3.3.4.1-5.2.1">Determine the Subject Authority <code>A</code> from the <code>email</code> Subject
-Identifier per the <code>email</code> extraction procedure in
-<a href="#subject-authority-determination" class="auto internal xref">Section 3.4</a> (registrable domain after <code>@</code>).<a href="#section-3.3.4.1-5.2.1" class="pilcrow">¶</a></p>
-</li>
-              <li id="section-3.3.4.1-5.3">
-                <p id="section-3.3.4.1-5.3.1">Query the DNS TXT resource record set at <code>_email-verification.{A}</code>.
-Classify the DNS response as follows:<a href="#section-3.3.4.1-5.3.1" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-3.3.4.1-5.3.2">
-                  <dt id="section-3.3.4.1-5.3.2.1"><code>negative-authoritative</code></dt>
-                  <dd style="margin-left: 1.5em" id="section-3.3.4.1-5.3.2.2">
-                    <p id="section-3.3.4.1-5.3.2.2.1">NXDOMAIN, or NOERROR with an empty answer section or with no
-records parseable as Email Verification Protocol records after
-parsing per <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span>.<a href="#section-3.3.4.1-5.3.2.2.1" class="pilcrow">¶</a></p>
-</dd>
-                  <dd class="break"></dd>
-<dt id="section-3.3.4.1-5.3.2.3"><code>indeterminate</code></dt>
-                  <dd style="margin-left: 1.5em" id="section-3.3.4.1-5.3.2.4">
-                    <p id="section-3.3.4.1-5.3.2.4.1">SERVFAIL, REFUSED, timeout, truncation with no successful retry,
-or any other failure that prevents a definitive negative result.<a href="#section-3.3.4.1-5.3.2.4.1" class="pilcrow">¶</a></p>
-</dd>
-                  <dd class="break"></dd>
-<dt id="section-3.3.4.1-5.3.2.5"><code>affirmative</code></dt>
-                  <dd style="margin-left: 1.5em" id="section-3.3.4.1-5.3.2.6">
-                    <p id="section-3.3.4.1-5.3.2.6.1">NOERROR with at least one record parseable as an Email
-Verification Protocol record after parsing per
-<span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span>.<a href="#section-3.3.4.1-5.3.2.6.1" class="pilcrow">¶</a></p>
-</dd>
-                <dd class="break"></dd>
-</dl>
-</li>
-              <li id="section-3.3.4.1-5.4">
-                <p id="section-3.3.4.1-5.4.1">If <code>negative-authoritative</code>, the Trust Method is not satisfied.
-If <code>indeterminate</code>, the Resource Authorization Server <span class="bcp14">MUST</span> reject
-the assertion unless local policy permits use of a fresh cached
-affirmative result within a bounded cache lifetime. The Resource
-Authorization Server <span class="bcp14">MUST NOT</span> fall back to a different authority
-source for the same Subject Authority.<a href="#section-3.3.4.1-5.4.1" class="pilcrow">¶</a></p>
-</li>
-              <li id="section-3.3.4.1-5.5">
-                <p id="section-3.3.4.1-5.5.1">If <code>affirmative</code>, parse each record per <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span> and
-collect the <code>iss=</code> values. The set of authorized issuer
-identifiers is the union of those values.<a href="#section-3.3.4.1-5.5.1" class="pilcrow">¶</a></p>
-</li>
-              <li id="section-3.3.4.1-5.6">
-                <p id="section-3.3.4.1-5.6.1">Compare the JWT <code>iss</code> claim to the parsed <code>iss=</code> values.
-<span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span> uses bare hostnames (for example,
-<code>issuer.example</code>) while OAuth issuer identifiers are HTTPS URLs
-that <span class="bcp14">MAY</span> carry a path. The Resource Authorization Server <span class="bcp14">MUST</span>
-parse the JWT <code>iss</code> as an absolute HTTPS URL and treat the
-record's bare hostname <code>H</code> as matching only when the JWT <code>iss</code>
-has scheme <code>https</code>, host equal to <code>H</code> (case-insensitive ASCII
-after IDNA conversion per <span>[<a href="#RFC5891" class="cite xref">RFC5891</a>]</span>), default port (or no port
-component), and an empty path (or the path <code>/</code>). Any other shape
-(non-default port, non-empty path component, query string, or
-fragment) does not match. Consequently, this Trust Method is
-interoperable only with Assertion Issuers whose identifier is
-the bare-origin form <code>https://{H}</code> (or <code>https://{H}/</code>).
-Deployments whose Assertion Issuer identifiers carry paths (for
-example, <code>https://login.example/{tenant}</code>) cannot be authorized
-by this Trust Method; they <span class="bcp14">SHOULD</span> use <code>domain_authorized_issuer</code>
-(<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §domain_authorized_issuer), which expresses
-full-URL issuer identifiers in the <code>authorized_issuers[].issuer</code>
-field.<a href="#section-3.3.4.1-5.6.1" class="pilcrow">¶</a></p>
-</li>
-              <li id="section-3.3.4.1-5.7">
-                <p id="section-3.3.4.1-5.7.1">Apply the cross-category combination rule of <a href="#rasp" class="auto internal xref">Section 4.2</a>.<a href="#section-3.3.4.1-5.7.1" class="pilcrow">¶</a></p>
-</li>
-            </ol>
-<p id="section-3.3.4.1-6">A Subject Authority <span class="bcp14">MAY</span> publish both an <code>_email-verification</code> record
-and an <code>_oauth-issuer-policy</code> record. When a Resource Authorization
-Server's trust policy lists both <code>domain_authorized_issuer</code> and
-<code>email_verification_dns</code> as <code>subject_namespace_authorization</code> Trust
-Methods, the cross-category combination rule of <a href="#rasp" class="auto internal xref">Section 4.2</a> treats them
-as alternatives within the same category (OR-semantics): satisfying
-either is sufficient.<a href="#section-3.3.4.1-6" class="pilcrow">¶</a></p>
-</section>
-</div>
+(<a href="#transitive-authz-bounded" class="auto internal xref">Section 6.2</a>).<a href="#section-3.3.4-1" class="pilcrow">¶</a></p>
+<p id="section-3.3.4-2">The <code>domain_authorized_issuer</code>, <code>https_authorized_issuer</code>, and
+<code>email_verification_dns</code> Trust Methods are defined in <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>. They
+belong to the <code>subject_namespace_authorization</code> category. Profile
+authors deploying more than one method in this category <span class="bcp14">SHOULD</span> review
+the combination guidance in <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> to avoid the OR-within-category
+downgrade discussed in <span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span> §Profile Composition
+Risks of <span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span>.<a href="#section-3.3.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2181,21 +2091,46 @@ public suffix (no registrable domain exists).<a href="#section-3.4-3.2.2" class=
 be evaluated under this Trust Method; the Resource Authorization
 Server <span class="bcp14">MUST</span> reject the assertion with an OAuth <code>invalid_grant</code>
 error.<a href="#section-3.4-4" class="pilcrow">¶</a></p>
-<div id="subdomain-authority">
+<div id="psl-versioning">
 <section id="section-3.4.1">
-          <h4 id="name-subdomain-authority-and-the">
-<a href="#section-3.4.1" class="section-number selfRef">3.4.1. </a><a href="#name-subdomain-authority-and-the" class="section-name selfRef">Subdomain Authority and the Registrable-Domain Default</a>
+          <h4 id="name-public-suffix-list-versioni">
+<a href="#section-3.4.1" class="section-number selfRef">3.4.1. </a><a href="#name-public-suffix-list-versioni" class="section-name selfRef">Public Suffix List Versioning</a>
           </h4>
-<p id="section-3.4.1-1">The registrable-domain default for <code>email</code> is intentionally
+<p id="section-3.4.1-1">The Public Suffix List <span>[<a href="#PSL" class="cite xref">PSL</a>]</span> is updated continuously. Two
+Resource Authorization Servers using PSL snapshots taken at
+different times can compute different registrable domains for the
+same email address, violating the deterministic source-selection
+requirement of <span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span> §Profile Mapping Matrix
+Requirements.<a href="#section-3.4.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-2">Consumers <span class="bcp14">SHOULD</span> use a PSL snapshot from
+<code>publicsuffix.org</code> no older than 30 days. Subject Authorities
+<span class="bcp14">SHOULD</span> monitor for PSL changes that affect their registrable
+domain (typically: introduction of a new public suffix that
+shortens or lengthens the computed eTLD+1 for emails in their
+namespace). When a PSL change affects a deployed Subject Authority,
+operational coordination across cooperating consumers is required
+to maintain consistent source selection.<a href="#section-3.4.1-2" class="pilcrow">¶</a></p>
+<p id="section-3.4.1-3">This document does not specify a wire-format mechanism for binding
+a Subject Authority to a specific PSL version. Deployments
+requiring strict cross-Validator determinism rely on operational
+coordination of PSL snapshots.<a href="#section-3.4.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="subdomain-authority">
+<section id="section-3.4.2">
+          <h4 id="name-subdomain-authority-and-the">
+<a href="#section-3.4.2" class="section-number selfRef">3.4.2. </a><a href="#name-subdomain-authority-and-the" class="section-name selfRef">Subdomain Authority and the Registrable-Domain Default</a>
+          </h4>
+<p id="section-3.4.2-1">The registrable-domain default for <code>email</code> is intentionally
 conservative: it prevents a party that controls only a subdomain
 from publishing Subject Authority records that override the
-organizational policy at the registrable domain.<a href="#section-3.4.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.4.1-2">This document does not register a subdomain-exact extraction.
+organizational policy at the registrable domain.<a href="#section-3.4.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.4.2-2">This document does not register a subdomain-exact extraction.
 Specifications that do so <span class="bcp14">MUST</span> define how the parent
 registrable-domain authority delegates to the subdomain authority;
 otherwise a subdomain-takeover attacker could publish a competing
 policy at the subdomain. A non-normative sketch is provided in
-<a href="#extending" class="auto internal xref">Section 9</a>.<a href="#section-3.4.1-2" class="pilcrow">¶</a></p>
+<a href="#extending" class="auto internal xref">Section 9</a>.<a href="#section-3.4.2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2249,43 +2184,86 @@ integrity for the policy document. This member follows the signed
 metadata pattern defined for authorization server metadata in
 <span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span> and protected resource metadata in <span>[<a href="#RFC9728" class="cite xref">RFC9728</a>]</span>.<a href="#section-3.6-1" class="pilcrow">¶</a></p>
 <p id="section-3.6-2">The <code>signed_policy</code> value is a JWT <span>[<a href="#RFC7519" class="cite xref">RFC7519</a>]</span> containing policy
-members as claims. The JWT <span class="bcp14">MUST</span> be digitally signed or MACed using JWS
-<span>[<a href="#RFC7515" class="cite xref">RFC7515</a>]</span>, <span class="bcp14">MUST</span> contain an <code>iss</code> claim identifying the party
-attesting to the signed policy claims, and <span class="bcp14">MUST NOT</span> use <code>alg</code> value
-<code>none</code>. The JWT payload <span class="bcp14">SHOULD NOT</span> contain a <code>signed_policy</code> claim.<a href="#section-3.6-2" class="pilcrow">¶</a></p>
-<p id="section-3.6-3">The acceptable signer depends on which policy document is signed:<a href="#section-3.6-3" class="pilcrow">¶</a></p>
+members as claims. The JWT <span class="bcp14">MUST</span> be digitally signed using JWS
+<span>[<a href="#RFC7515" class="cite xref">RFC7515</a>]</span> with an asymmetric algorithm and <span class="bcp14">MUST</span> contain an <code>iss</code>
+claim identifying the party attesting to the signed policy claims.
+The JWT payload <span class="bcp14">SHOULD NOT</span> contain a <code>signed_policy</code> claim.<a href="#section-3.6-2" class="pilcrow">¶</a></p>
+<p id="section-3.6-3">Algorithm restrictions:<a href="#section-3.6-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-3.6-4.1">
-            <p id="section-3.6-4.1.1">For the Trust Policy document, the JWT <code>iss</code> claim <span class="bcp14">MUST</span> equal the
+            <p id="section-3.6-4.1.1">The JWT <span class="bcp14">MUST NOT</span> use <code>alg</code> value <code>none</code>.<a href="#section-3.6-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.6-4.2">
+            <p id="section-3.6-4.2.1">The JWT <span class="bcp14">MUST NOT</span> use a MAC algorithm (HS256, HS384, HS512).
+Trust Policy and Issuer Authorization Policy verification keys
+are necessarily distributed widely; a MAC-based scheme would
+require sharing the signing key with every Validator, defeating
+the signature's authority binding.<a href="#section-3.6-4.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.6-4.3">
+            <p id="section-3.6-4.3.1">Implementations <span class="bcp14">MUST</span> support ES256 and <span class="bcp14">SHOULD</span> support EdDSA and
+ES384. Implementations <span class="bcp14">MAY</span> support RS256 with key length
+≥2048 bits; RS256 is permitted for compatibility with existing
+OIDC infrastructure but is less efficient than the elliptic-curve
+alternatives.<a href="#section-3.6-4.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.6-4.4">
+            <p id="section-3.6-4.4.1"><span>[<a href="#RFC8725" class="cite xref">RFC8725</a>]</span> (JSON Web Token Best Current Practices) applies
+unchanged.<a href="#section-3.6-4.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-3.6-5">The JWT <code>typ</code> header <span class="bcp14">MUST</span> identify the signed-policy type to
+prevent cross-context confusion attacks per <span>[<a href="#RFC8725" class="cite xref">RFC8725</a>]</span> §3.11:<a href="#section-3.6-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3.6-6.1">
+            <p id="section-3.6-6.1.1">For Trust Policy documents: <code>typ: "trust-policy+jwt"</code>.<a href="#section-3.6-6.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.6-6.2">
+            <p id="section-3.6-6.2.1">For Issuer Authorization Policy documents:
+<code>typ: "issuer-authorization-policy+jwt"</code>.<a href="#section-3.6-6.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-3.6-7">Consumers <span class="bcp14">MUST</span> reject a <code>signed_policy</code> JWT whose <code>typ</code> header is
+absent or does not match the expected value for the document
+being verified.<a href="#section-3.6-7" class="pilcrow">¶</a></p>
+<p id="section-3.6-8">The acceptable signer depends on which policy document is signed:<a href="#section-3.6-8" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3.6-9.1">
+            <p id="section-3.6-9.1.1">For the Trust Policy document, the JWT <code>iss</code> claim <span class="bcp14">MUST</span> equal the
 <code>resource_authorization_server</code> claim. The verification key <span class="bcp14">MUST</span> be
 controlled by that Resource Authorization Server. Consumers <span class="bcp14">MAY</span>
 resolve the key from the Resource Authorization Server's
 authorization server metadata <code>jwks_uri</code>, federation entity
-configuration, or local configuration.<a href="#section-3.6-4.1.1" class="pilcrow">¶</a></p>
+configuration, or local configuration.<a href="#section-3.6-9.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-3.6-4.2">
-            <p id="section-3.6-4.2.1">For the Issuer Authorization Policy document, the JWT payload <span class="bcp14">MUST</span>
+          <li class="normal" id="section-3.6-9.2">
+            <p id="section-3.6-9.2.1">For the Issuer Authorization Policy document, the JWT payload <span class="bcp14">MUST</span>
 contain the <code>subject_authority</code> claim. The JWT <code>iss</code> claim <span class="bcp14">MUST</span>
 either equal <code>subject_authority</code> or identify a signing authority that
 local policy or an applicable Trust Method establishes as controlled
 by the Subject Authority. Consumers <span class="bcp14">MUST NOT</span> treat a signature by the
 Assertion Issuer named in an <code>authorized_issuers</code> entry as proof of
 Subject Authority authorization unless such a relationship is
-explicitly established.<a href="#section-3.6-4.2.1" class="pilcrow">¶</a></p>
+explicitly established.<a href="#section-3.6-9.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-3.6-5">If both unsigned policy members and <code>signed_policy</code> are present, the
+<p id="section-3.6-10">If both unsigned policy members and <code>signed_policy</code> are present, the
 signed policy claims <span class="bcp14">MUST</span> be used as the policy values for all claims
 present in the JWT. Unsigned members that are not represented as claims
 in the JWT <span class="bcp14">MAY</span> be used subject to the normal processing rules for
-unrecognized members and <code>crit</code>. Consumers <span class="bcp14">SHOULD</span> reject a policy when
-an unsigned member conflicts with the corresponding signed claim.<a href="#section-3.6-5" class="pilcrow">¶</a></p>
-<p id="section-3.6-6">If a consumer requires object-level integrity by local policy, or if
+unrecognized members and <code>crit</code>. A conflict exists when a member name
+appears in both the unsigned outer document and the signed JWT payload
+AND the values are not byte-identical after JSON canonicalization.
+Consumers <span class="bcp14">MUST</span> reject a policy that contains any such conflict; an
+attacker who can modify the outer document but not the signed JWT
+otherwise has a lever to inject visible-but-ignored members that may
+mislead operators or downstream tooling.<a href="#section-3.6-10" class="pilcrow">¶</a></p>
+<p id="section-3.6-11">If a consumer requires object-level integrity by local policy, or if
 <code>signed_policy</code> is listed in <code>crit</code>, the consumer <span class="bcp14">MUST</span> verify the
 signed JWT before acting on the policy. If signature verification
 fails, if the verification key is unacceptable, if the JWT is
 malformed, or if the required issuer binding above is not satisfied,
-the consumer <span class="bcp14">MUST</span> reject the policy as malformed.<a href="#section-3.6-6" class="pilcrow">¶</a></p>
+the consumer <span class="bcp14">MUST</span> reject the policy as malformed.<a href="#section-3.6-11" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2536,7 +2514,7 @@ recon target for adversaries probing for misconfiguration.<a href="#section-4.3-
           </tbody>
         </table>
 <p id="section-4.3-3">Additional reason codes for future Trust Methods are registered
-in <a href="#iana-diagnostic-reasons-registry" class="auto internal xref">Section 8.1.5</a>. Resource Authorization
+in <a href="#iana-diagnostic-reasons-registry" class="auto internal xref">Section 8.1.6</a>. Resource Authorization
 Servers <span class="bcp14">SHOULD</span> log one reason code per failed evaluation,
 selecting the code for the EARLIEST checkpoint that failed.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
 </section>
@@ -2707,88 +2685,105 @@ that future work; this document does not provide such a mechanism.<a href="#sect
       <h2 id="name-security-considerations">
 <a href="#section-6" class="section-number selfRef">6. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
-<div id="transitive-authz-bounded">
+<div id="rfc9700-alignment">
 <section id="section-6.1">
-        <h3 id="name-transitive-authorization-is">
-<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-transitive-authorization-is" class="section-name selfRef">Transitive Authorization is Bounded</a>
+        <h3 id="name-alignment-with-oauth-securi">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-alignment-with-oauth-securi" class="section-name selfRef">Alignment with OAuth Security BCP</a>
         </h3>
-<p id="section-6.1-1">The two trust categories make different transitivity choices, both
+<p id="section-6.1-1">This document complements the OAuth 2.0 Security Best Current
+Practice (<span>[<a href="#RFC9700" class="cite xref">RFC9700</a>]</span>); it does not duplicate or override it. The
+<code>subject_namespace_authorization</code> category is the wire-format
+analog of <span>[<a href="#RFC9700" class="cite xref">RFC9700</a>]</span> §4.4 (AS mix-up mitigations): a Resource
+Authorization Server cannot be tricked into accepting an assertion
+from an AS that the Subject Authority has not listed. Other
+<span>[<a href="#RFC9700" class="cite xref">RFC9700</a>]</span> topics (redirect URI validation, bearer-token replay,
+client authentication) apply at the grant-profile and
+client-authentication layers and are not addressed here.
+Implementations <span class="bcp14">SHOULD</span> follow <span>[<a href="#RFC9700" class="cite xref">RFC9700</a>]</span> at those layers.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="transitive-authz-bounded">
+<section id="section-6.2">
+        <h3 id="name-transitive-authorization-is">
+<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-transitive-authorization-is" class="section-name selfRef">Transitive Authorization is Bounded</a>
+        </h3>
+<p id="section-6.2-1">The two trust categories make different transitivity choices, both
 profile decisions within the general taxonomy of
-<span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span> §Bounded vs Chained Transitivity:<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+<span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span> §Bounded vs Chained Transitivity:<a href="#section-6.2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6.1-2.1">
-            <p id="section-6.1-2.1.1"><code>issuer_authentication</code> permits chained transitivity. The
+<li class="normal" id="section-6.2-2.1">
+            <p id="section-6.2-2.1.1"><code>issuer_authentication</code> permits chained transitivity. The
 <code>openid_federation</code> Trust Method accepts a chain from a leaf entity
 to a trust anchor; the trust anchor's signature on intermediate
-Subordinate Statements transitively authenticates the leaf.<a href="#section-6.1-2.1.1" class="pilcrow">¶</a></p>
+Subordinate Statements transitively authenticates the leaf.<a href="#section-6.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.1-2.2">
-            <p id="section-6.1-2.2.1"><code>subject_namespace_authorization</code> requires depth-1 (no chaining).
+          <li class="normal" id="section-6.2-2.2">
+            <p id="section-6.2-2.2.1"><code>subject_namespace_authorization</code> requires depth-1 (no chaining).
 A Subject Authority lists specific Assertion Issuers directly; it
 cannot delegate further to whoever Issuer X federates. Revocation
 latency is bounded by the Subject Authority's own cache lifetime
-and does not compound across delegations.<a href="#section-6.1-2.2.1" class="pilcrow">¶</a></p>
+and does not compound across delegations.<a href="#section-6.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-6.1-3">The two categories are independent: federation membership does not
+<p id="section-6.2-3">The two categories are independent: federation membership does not
 establish namespace authority, and namespace authorization does not
 establish authenticity. The cross-category combination rule
 (<a href="#rasp" class="auto internal xref">Section 4.2</a>) enforces this independence at evaluation time. See
-<a href="#relationship-to-oidf" class="auto internal xref">Appendix A.1</a> for positioning against OpenID Federation.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
+<a href="#relationship-to-oidf" class="auto internal xref">Appendix A.1</a> for positioning against OpenID Federation.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="scope-of-namespace-authorization">
-<section id="section-6.2">
+<section id="section-6.3">
         <h3 id="name-scope-of-namespace-authoriz">
-<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-scope-of-namespace-authoriz" class="section-name selfRef">Scope of Namespace Authorization</a>
+<a href="#section-6.3" class="section-number selfRef">6.3. </a><a href="#name-scope-of-namespace-authoriz" class="section-name selfRef">Scope of Namespace Authorization</a>
         </h3>
-<p id="section-6.2-1">A trust policy describes issuer acceptability. It does not
+<p id="section-6.3-1">A trust policy describes issuer acceptability. It does not
 validate an assertion's signature, audience, expiration, replay
 protection, subject, or client binding; Resource Authorization
 Servers <span class="bcp14">MUST</span> validate the assertion according to the applicable
-grant profile before issuing an access token.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
-<p id="section-6.2-2">A Subject Authority's authorization of an Assertion Issuer is a
-narrow statement. It says exactly:<a href="#section-6.2-2" class="pilcrow">¶</a></p>
+grant profile before issuing an access token.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
+<p id="section-6.3-2">A Subject Authority's authorization of an Assertion Issuer is a
+narrow statement. It says exactly:<a href="#section-6.3-2" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-6.2-3.1">
-            <p id="section-6.2-3.1.1">This Assertion Issuer is authorized by the namespace authority to
-assert this class of subject identifiers under this namespace.<a href="#section-6.2-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-6.3-3.1">
+            <p id="section-6.3-3.1.1">This Assertion Issuer is authorized by the namespace authority to
+assert this class of subject identifiers under this namespace.<a href="#section-6.3-3.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-6.2-4">It does NOT say, and Resource Authorization Servers <span class="bcp14">MUST NOT</span>
-infer from a successful trust-policy evaluation, that:<a href="#section-6.2-4" class="pilcrow">¶</a></p>
+<p id="section-6.3-4">It does NOT say, and Resource Authorization Servers <span class="bcp14">MUST NOT</span>
+infer from a successful trust-policy evaluation, that:<a href="#section-6.3-4" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6.2-5.1">
-            <p id="section-6.2-5.1.1">The named subject exists at the Assertion Issuer.<a href="#section-6.2-5.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-6.3-5.1">
+            <p id="section-6.3-5.1.1">The named subject exists at the Assertion Issuer.<a href="#section-6.3-5.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.2-5.2">
-            <p id="section-6.2-5.2.1">The named subject controls the local-part of the email address
-(see <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Email Local-Part Is Not Authenticated).<a href="#section-6.2-5.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.3-5.2">
+            <p id="section-6.3-5.2.1">The named subject controls the local-part of the email address
+(see <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Email Local-Part Is Not Authenticated).<a href="#section-6.3-5.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.2-5.3">
-            <p id="section-6.2-5.3.1">The named subject is currently employed, enrolled, or otherwise
-in an active relationship with the namespace owner.<a href="#section-6.2-5.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.3-5.3">
+            <p id="section-6.3-5.3.1">The named subject is currently employed, enrolled, or otherwise
+in an active relationship with the namespace owner.<a href="#section-6.3-5.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.2-5.4">
-            <p id="section-6.2-5.4.1">The Assertion Issuer performed strong authentication (multi-factor,
-hardware-bound, recent, etc.) before issuing the assertion.<a href="#section-6.2-5.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.3-5.4">
+            <p id="section-6.3-5.4.1">The Assertion Issuer performed strong authentication (multi-factor,
+hardware-bound, recent, etc.) before issuing the assertion.<a href="#section-6.3-5.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.2-5.5">
-            <p id="section-6.2-5.5.1">The Assertion Issuer's account-linking semantics
+          <li class="normal" id="section-6.3-5.5">
+            <p id="section-6.3-5.5.1">The Assertion Issuer's account-linking semantics
 (case-insensitivity, plus-address normalization, alias handling)
-match those of any particular Resource Authorization Server.<a href="#section-6.2-5.5.1" class="pilcrow">¶</a></p>
+match those of any particular Resource Authorization Server.<a href="#section-6.3-5.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.2-5.6">
-            <p id="section-6.2-5.6.1">The assertion is suitable for every Resource Authorization
+          <li class="normal" id="section-6.3-5.6">
+            <p id="section-6.3-5.6.1">The assertion is suitable for every Resource Authorization
 Server's authorization purpose, regardless of risk class, scope
-sensitivity, or compliance regime.<a href="#section-6.2-5.6.1" class="pilcrow">¶</a></p>
+sensitivity, or compliance regime.<a href="#section-6.3-5.6.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-6.2-6">These properties are out of scope for namespace authorization and
+<p id="section-6.3-6">These properties are out of scope for namespace authorization and
 are the responsibility of the Assertion Issuer's authentication
 process, the Resource Authorization Server's local policy, and
-mechanisms outside this framework.<a href="#section-6.2-6" class="pilcrow">¶</a></p>
-<p id="section-6.2-7">The <code>email_verified=true</code> claim required for <code>email</code> Subject
+mechanisms outside this framework.<a href="#section-6.3-6" class="pilcrow">¶</a></p>
+<p id="section-6.3-7">The <code>email_verified=true</code> claim required for <code>email</code> Subject
 Identifiers (<a href="#subject-authority-determination" class="auto internal xref">Section 3.4</a>) is a PREREQUISITE for deriving
 namespace authority from the email's domain, not proof of current
 mailbox control or organizational status. An Assertion Issuer
@@ -2796,13 +2791,13 @@ mailbox control or organizational status. An Assertion Issuer
 years before the assertion is issued; the Resource Authorization
 Server <span class="bcp14">SHOULD NOT</span> treat <code>email_verified=true</code> as evidence of
 liveness of the mailbox or of the subject's current relationship
-to the namespace.<a href="#section-6.2-7" class="pilcrow">¶</a></p>
-<p id="section-6.2-8">Resource Authorization Servers requiring stronger guarantees on
+to the namespace.<a href="#section-6.3-7" class="pilcrow">¶</a></p>
+<p id="section-6.3-8">Resource Authorization Servers requiring stronger guarantees on
 any of the above properties <span class="bcp14">MUST</span> obtain them through mechanisms
 outside this framework: explicit authentication-method or AAL
 claims, fresh-authentication signals, account-status attestations
-from the namespace authority, or out-of-band verification.<a href="#section-6.2-8" class="pilcrow">¶</a></p>
-<p id="section-6.2-9">The <code>subject_namespace_authorization</code> category constrains WHICH
+from the namespace authority, or out-of-band verification.<a href="#section-6.3-8" class="pilcrow">¶</a></p>
+<p id="section-6.3-9">The <code>subject_namespace_authorization</code> category constrains WHICH
 Assertion Issuers may assert about a namespace; it does NOT
 constrain which Resource Authorization Servers an authorized
 Assertion Issuer may target. Audience binding is enforced by the
@@ -2810,81 +2805,81 @@ assertion's <code>aud</code> claim and the applicable grant profile, not by
 the Subject Authority. Subject Authorities that need to restrict
 their authorized issuers' audience targets rely on out-of-band
 agreements; this document defines no wire-level mechanism for
-that restriction.<a href="#section-6.2-9" class="pilcrow">¶</a></p>
+that restriction.<a href="#section-6.3-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="per-assertion-revocation">
-<section id="section-6.3">
+<section id="section-6.4">
         <h3 id="name-per-assertion-revocation-is">
-<a href="#section-6.3" class="section-number selfRef">6.3. </a><a href="#name-per-assertion-revocation-is" class="section-name selfRef">Per-Assertion Revocation Is Out of Scope</a>
+<a href="#section-6.4" class="section-number selfRef">6.4. </a><a href="#name-per-assertion-revocation-is" class="section-name selfRef">Per-Assertion Revocation Is Out of Scope</a>
         </h3>
-<p id="section-6.3-1">This framework establishes whether an Assertion Issuer is authorized
+<p id="section-6.4-1">This policy establishes whether an Assertion Issuer is authorized
 to assert about a subject; it does not define a mechanism to revoke
 an individual assertion. JWT bearer tokens are stateless: once
 issued, they are valid until their <code>exp</code> claim regardless of session
 state at the Assertion Issuer, the user logging out, the Identity
 Provider revoking the user's credentials, or the Subject Authority
-withdrawing the issuer's authorization via DAI.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
-<p id="section-6.3-2">Per-assertion revocation needs are addressed by mechanisms outside
-this framework:<a href="#section-6.3-2" class="pilcrow">¶</a></p>
+withdrawing the issuer's authorization via DAI.<a href="#section-6.4-1" class="pilcrow">¶</a></p>
+<p id="section-6.4-2">Per-assertion revocation needs are addressed by mechanisms outside
+this framework:<a href="#section-6.4-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6.3-3.1">
-            <p id="section-6.3-3.1.1">OAuth 2.0 Token Revocation <span>[<a href="#RFC7009" class="cite xref">RFC7009</a>]</span> for tokens whose issuance
-passed through this framework.<a href="#section-6.3-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-6.4-3.1">
+            <p id="section-6.4-3.1.1">OAuth 2.0 Token Revocation <span>[<a href="#RFC7009" class="cite xref">RFC7009</a>]</span> for tokens whose issuance
+passed through this framework.<a href="#section-6.4-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.3-3.2">
-            <p id="section-6.3-3.2.1">OAuth 2.0 Token Introspection <span>[<a href="#RFC7662" class="cite xref">RFC7662</a>]</span> for receivers that want
-real-time validity checks.<a href="#section-6.3-3.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.4-3.2">
+            <p id="section-6.4-3.2.1">OAuth 2.0 Token Introspection <span>[<a href="#RFC7662" class="cite xref">RFC7662</a>]</span> for receivers that want
+real-time validity checks.<a href="#section-6.4-3.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-6.3-3.3">
-            <p id="section-6.3-3.3.1">Short assertion lifetimes (governed by the applicable grant
+          <li class="normal" id="section-6.4-3.3">
+            <p id="section-6.4-3.3.1">Short assertion lifetimes (governed by the applicable grant
 profile) reduce the exposure window for a leaked or compromised
-assertion.<a href="#section-6.3-3.3.1" class="pilcrow">¶</a></p>
+assertion.<a href="#section-6.4-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-6.3-4">Subject Authority withdrawal of an issuer's authorization via DAI
+<p id="section-6.4-4">Subject Authority withdrawal of an issuer's authorization via DAI
 prevents NEW assertions from that issuer being accepted (subject to
 the latency model in <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Operational Considerations) but does not
 invalidate already-issued assertions still within their <code>exp</code>
 window. Resource Authorization Servers that require synchronous
 revocation <span class="bcp14">MUST</span> implement <span>[<a href="#RFC7009" class="cite xref">RFC7009</a>]</span>, <span>[<a href="#RFC7662" class="cite xref">RFC7662</a>]</span>, or an
-equivalent at a layer outside this framework.<a href="#section-6.3-4" class="pilcrow">¶</a></p>
+equivalent at a layer outside this framework.<a href="#section-6.4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="integrity">
-<section id="section-6.4">
+<section id="section-6.5">
         <h3 id="name-policy-document-integrity">
-<a href="#section-6.4" class="section-number selfRef">6.4. </a><a href="#name-policy-document-integrity" class="section-name selfRef">Policy Document Integrity</a>
+<a href="#section-6.5" class="section-number selfRef">6.5. </a><a href="#name-policy-document-integrity" class="section-name selfRef">Policy Document Integrity</a>
         </h3>
-<p id="section-6.4-1">The trust policy <span class="bcp14">MUST</span> be served over HTTPS with TLS server
+<p id="section-6.5-1">The trust policy <span class="bcp14">MUST</span> be served over HTTPS with TLS server
 authentication. Deployments needing integrity beyond TLS use the
 <code>signed_policy</code> member (<a href="#signed-policy-metadata" class="auto internal xref">Section 3.6</a>), with the
 signer binding rules defined there. Mirrored or cached copies
 <span class="bcp14">MUST NOT</span> be relied on beyond their HTTP cache lifetime
-(<a href="#caching" class="auto internal xref">Section 6.9</a>).<a href="#section-6.4-1" class="pilcrow">¶</a></p>
+(<a href="#caching" class="auto internal xref">Section 6.10</a>).<a href="#section-6.5-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="shared-infrastructure">
-<section id="section-6.5">
+<section id="section-6.6">
         <h3 id="name-shared-infrastructure-and-h">
-<a href="#section-6.5" class="section-number selfRef">6.5. </a><a href="#name-shared-infrastructure-and-h" class="section-name selfRef">Shared Infrastructure and Hosted Well-Known Paths</a>
+<a href="#section-6.6" class="section-number selfRef">6.6. </a><a href="#name-shared-infrastructure-and-h" class="section-name selfRef">Shared Infrastructure and Hosted Well-Known Paths</a>
         </h3>
-<p id="section-6.5-1">Many deployments host <code>/.well-known/</code> resources behind third-party
+<p id="section-6.6-1">Many deployments host <code>/.well-known/</code> resources behind third-party
 Content Delivery Networks (CDNs), shared edge platforms, or
 multi-tenant cloud hosting systems. TLS server authentication proves
 that the client reached an endpoint serving the requested host name;
 it does not prove that every routing rule, origin-pull rule, cache
 rule, or tenant boundary inside the shared platform is controlled by
-the namespace owner.<a href="#section-6.5-1" class="pilcrow">¶</a></p>
-<p id="section-6.5-2">This matters for both the Resource Authorization Server trust policy
+the namespace owner.<a href="#section-6.6-1" class="pilcrow">¶</a></p>
+<p id="section-6.6-2">This matters for both the Resource Authorization Server trust policy
 and the Subject Authority's Issuer Authorization Policy. If an
 attacker can exploit shared infrastructure to serve a forged
 <code>/.well-known/oauth-issuer-policy</code> response for a victim domain, the
 attacker can attempt to authorize an Assertion Issuer for that
 victim's namespace even though the HTTPS connection itself succeeds.
 Similar risks arise from misconfigured path routing, dangling origins,
-tenant takeover, cache poisoning, or origin authentication failures.<a href="#section-6.5-2" class="pilcrow">¶</a></p>
-<p id="section-6.5-3">Administrators <span class="bcp14">SHOULD</span> avoid delegating security-critical well-known
+tenant takeover, cache poisoning, or origin authentication failures.<a href="#section-6.6-2" class="pilcrow">¶</a></p>
+<p id="section-6.6-3">Administrators <span class="bcp14">SHOULD</span> avoid delegating security-critical well-known
 paths to multi-tenant infrastructure unless they can ensure exclusive
 control over routing for those paths, authenticated origin access,
 cache invalidation, and tenant isolation. Deployments that host policy
@@ -2893,34 +2888,34 @@ cryptographic integrity for the policy document itself, such as a
 JWS-signed JWT <span>[<a href="#RFC7515" class="cite xref">RFC7515</a>]</span>, rather than relying solely on the
 TLS channel to the shared edge. The signing key <span class="bcp14">SHOULD</span> be controlled by
 the Subject Authority or Resource Authorization Server independently
-of CDN tenant configuration.<a href="#section-6.5-3" class="pilcrow">¶</a></p>
-<p id="section-6.5-4">Consumers that require object-level integrity <span class="bcp14">SHOULD</span> require and verify
+of CDN tenant configuration.<a href="#section-6.6-3" class="pilcrow">¶</a></p>
+<p id="section-6.6-4">Consumers that require object-level integrity <span class="bcp14">SHOULD</span> require and verify
 the <code>signed_policy</code> member before acting on the policy and <span class="bcp14">SHOULD</span>
 treat a valid TLS connection to a shared edge as insufficient by itself
-when local policy requires object-level integrity.<a href="#section-6.5-4" class="pilcrow">¶</a></p>
+when local policy requires object-level integrity.<a href="#section-6.6-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="policy-disclosure">
-<section id="section-6.6">
+<section id="section-6.7">
         <h3 id="name-policy-disclosure">
-<a href="#section-6.6" class="section-number selfRef">6.6. </a><a href="#name-policy-disclosure" class="section-name selfRef">Policy Disclosure</a>
+<a href="#section-6.7" class="section-number selfRef">6.7. </a><a href="#name-policy-disclosure" class="section-name selfRef">Policy Disclosure</a>
         </h3>
-<p id="section-6.6-1">The trust policy can reveal which trust frameworks, registries,
+<p id="section-6.7-1">The trust policy can reveal which trust frameworks, registries,
 federation anchors, and Subject Identifier formats a Resource
 Authorization Server accepts. Deployments <span class="bcp14">SHOULD</span> consider whether
-the policy URI is public, authenticated, or audience-specific.<a href="#section-6.6-1" class="pilcrow">¶</a></p>
-<p id="section-6.6-2">If an authenticated or audience-specific policy is used, Resource
+the policy URI is public, authenticated, or audience-specific.<a href="#section-6.7-1" class="pilcrow">¶</a></p>
+<p id="section-6.7-2">If an authenticated or audience-specific policy is used, Resource
 Authorization Servers <span class="bcp14">SHOULD</span> ensure that clients receive a policy
 consistent with the policy enforced at the token endpoint, otherwise a
-client can be induced to obtain assertions that cannot succeed.<a href="#section-6.6-2" class="pilcrow">¶</a></p>
+client can be induced to obtain assertions that cannot succeed.<a href="#section-6.7-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="downgrade">
-<section id="section-6.7">
+<section id="section-6.8">
         <h3 id="name-downgrade-attacks">
-<a href="#section-6.7" class="section-number selfRef">6.7. </a><a href="#name-downgrade-attacks" class="section-name selfRef">Downgrade Attacks</a>
+<a href="#section-6.8" class="section-number selfRef">6.8. </a><a href="#name-downgrade-attacks" class="section-name selfRef">Downgrade Attacks</a>
         </h3>
-<p id="section-6.7-1">A Resource Authorization Server that supports multiple Trust Methods
+<p id="section-6.8-1">A Resource Authorization Server that supports multiple Trust Methods
 <span class="bcp14">SHOULD</span> define local precedence rules. Clients <span class="bcp14">MUST NOT</span> choose a
 weaker Trust Method if the Resource Authorization Server requires a
 stronger one for the requested subject, client, or scope. Because
@@ -2930,15 +2925,15 @@ request time rather than relying on the policy document alone. The
 cross-category combination rule in <a href="#rasp" class="auto internal xref">Section 4.2</a> prevents downgrade across
 categories (for example, satisfying only an <code>issuer_authentication</code>
 method when a <code>subject_namespace_authorization</code> method is also
-applicable).<a href="#section-6.7-1" class="pilcrow">¶</a></p>
+applicable).<a href="#section-6.8-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="trust-policy-enumeration">
-<section id="section-6.8">
+<section id="section-6.9">
         <h3 id="name-trust-policy-enumeration">
-<a href="#section-6.8" class="section-number selfRef">6.8. </a><a href="#name-trust-policy-enumeration" class="section-name selfRef">Trust Policy Enumeration</a>
+<a href="#section-6.9" class="section-number selfRef">6.9. </a><a href="#name-trust-policy-enumeration" class="section-name selfRef">Trust Policy Enumeration</a>
         </h3>
-<p id="section-6.8-1">Trust policies are typically published as unauthenticated HTTPS
+<p id="section-6.9-1">Trust policies are typically published as unauthenticated HTTPS
 resources. Adversaries can scrape policies across many Resource
 Authorization Servers to map an entire federation deployment
 landscape: which Resource Authorization Servers participate in
@@ -2949,15 +2944,15 @@ information aids targeted attacks against federation infrastructure
 anchor). Operators <span class="bcp14">SHOULD</span> treat the choice of what to publish in a
 trust policy as a security disclosure decision, not only an
 operational convenience, and <span class="bcp14">SHOULD</span> avoid revealing more
-relationships than necessary.<a href="#section-6.8-1" class="pilcrow">¶</a></p>
+relationships than necessary.<a href="#section-6.9-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="caching">
-<section id="section-6.9">
+<section id="section-6.10">
         <h3 id="name-trust-policy-caching">
-<a href="#section-6.9" class="section-number selfRef">6.9. </a><a href="#name-trust-policy-caching" class="section-name selfRef">Trust Policy Caching</a>
+<a href="#section-6.10" class="section-number selfRef">6.10. </a><a href="#name-trust-policy-caching" class="section-name selfRef">Trust Policy Caching</a>
         </h3>
-<p id="section-6.9-1">Clients and Resource Authorization Servers <span class="bcp14">SHOULD</span> respect HTTP
+<p id="section-6.10-1">Clients and Resource Authorization Servers <span class="bcp14">SHOULD</span> respect HTTP
 caching headers on the trust policy document, subject to local
 maximum cache lifetimes. A Resource Authorization Server changing
 its trust policy <span class="bcp14">SHOULD</span> use short cache lifetimes during migration.
@@ -2965,28 +2960,28 @@ Revocation of a Trust Anchor or federation entity <span class="bcp14">SHOULD NOT
 on cached policy expiration alone; revocation status
 of validated trust evidence <span class="bcp14">MUST</span> be checked at the cadence required
 by the applicable Trust Method specification. Transport integrity of
-the policy document itself is addressed in <a href="#integrity" class="auto internal xref">Section 6.4</a>.<a href="#section-6.9-1" class="pilcrow">¶</a></p>
+the policy document itself is addressed in <a href="#integrity" class="auto internal xref">Section 6.5</a>.<a href="#section-6.10-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subject-authority-matching">
-<section id="section-6.10">
+<section id="section-6.11">
         <h3 id="name-subject-authority-matching">
-<a href="#section-6.10" class="section-number selfRef">6.10. </a><a href="#name-subject-authority-matching" class="section-name selfRef">Subject Authority Matching</a>
+<a href="#section-6.11" class="section-number selfRef">6.11. </a><a href="#name-subject-authority-matching" class="section-name selfRef">Subject Authority Matching</a>
         </h3>
-<p id="section-6.10-1">A Trust Method that depends on a Subject Authority <span class="bcp14">MUST</span> define how
+<p id="section-6.11-1">A Trust Method that depends on a Subject Authority <span class="bcp14">MUST</span> define how
 that Subject Authority is determined from the assertion's Subject
 Identifier (see <a href="#subject-authority-determination" class="auto internal xref">Section 3.4</a> for the determination defined by
 this document). The determination <span class="bcp14">MUST</span> avoid wildcard, suffix,
 regular-expression, and substring matching unless explicitly
-specified by the relevant Subject Identifier format.<a href="#section-6.10-1" class="pilcrow">¶</a></p>
+specified by the relevant Subject Identifier format.<a href="#section-6.11-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="observability">
-<section id="section-6.11">
+<section id="section-6.12">
         <h3 id="name-observability">
-<a href="#section-6.11" class="section-number selfRef">6.11. </a><a href="#name-observability" class="section-name selfRef">Observability</a>
+<a href="#section-6.12" class="section-number selfRef">6.12. </a><a href="#name-observability" class="section-name selfRef">Observability</a>
         </h3>
-<p id="section-6.11-1">Trust policy evaluation is a security-critical decision and <span class="bcp14">SHOULD</span>
+<p id="section-6.12-1">Trust policy evaluation is a security-critical decision and <span class="bcp14">SHOULD</span>
 be auditable. Resource Authorization Servers <span class="bcp14">SHOULD</span> log, for each
 processed identity assertion, at minimum: the Assertion Issuer
 identifier; the trust policy URI and its <code>last_updated</code> value (or
@@ -2996,7 +2991,7 @@ Authorization Policy origin where applicable; the Subject
 Identifier format used for subject-namespace evaluation; and the
 outcome (<code>accepted</code> or the specific rejection reason). Log records
 <span class="bcp14">SHOULD</span> support correlation across the issuance and verification
-halves of an identity-chain transaction.<a href="#section-6.11-1" class="pilcrow">¶</a></p>
+halves of an identity-chain transaction.<a href="#section-6.12-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3176,83 +3171,147 @@ JSON types and whether each is <span class="bcp14">REQUIRED</span> or <span clas
           <dd class="break"></dd>
 </dl>
 <p id="section-8.1.4-5">Initial entries:<a href="#section-8.1.4-5" class="pilcrow">¶</a></p>
+<p id="section-8.1.4-6">| Identifier | Categories | Parameters | Reference |
+|-|-|-|-|
+| <code>openid_federation</code> | <code>issuer_authentication</code> | <code>trust_anchors</code> (array of string, <span class="bcp14">REQUIRED</span>); <code>trust_marks</code> (array of object, <span class="bcp14">OPTIONAL</span>) | This document |
+Additional <code>subject_namespace_authorization</code> Trust Methods are
+registered by <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>.<a href="#section-8.1.4-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana-trust-policy-members-registry">
+<section id="section-8.1.5">
+          <h4 id="name-trust-policy-members-regist">
+<a href="#section-8.1.5" class="section-number selfRef">8.1.5. </a><a href="#name-trust-policy-members-regist" class="section-name selfRef">Trust Policy Members Registry</a>
+          </h4>
+<p id="section-8.1.5-1">IANA is requested to establish a new registry titled "Identity
+Assertion Issuer Trust Policy Members" under the "OAuth Parameters"
+registry group.<a href="#section-8.1.5-1" class="pilcrow">¶</a></p>
+<p id="section-8.1.5-2">Registration policy: Specification Required <span>[<a href="#RFC8126" class="cite xref">RFC8126</a>]</span>.<a href="#section-8.1.5-2" class="pilcrow">¶</a></p>
+<p id="section-8.1.5-3">Each registry entry contains:<a href="#section-8.1.5-3" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-8.1.5-4">
+            <dt id="section-8.1.5-4.1">Member Name:</dt>
+            <dd style="margin-left: 1.5em" id="section-8.1.5-4.2">
+              <p id="section-8.1.5-4.2.1">JSON member name used in the Trust Policy document.<a href="#section-8.1.5-4.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-8.1.5-4.3">Member Description:</dt>
+            <dd style="margin-left: 1.5em" id="section-8.1.5-4.4">
+              <p id="section-8.1.5-4.4.1">A short description of the member's semantics.<a href="#section-8.1.5-4.4.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-8.1.5-4.5">Change Controller:</dt>
+            <dd style="margin-left: 1.5em" id="section-8.1.5-4.6">
+              <p id="section-8.1.5-4.6.1">The party responsible for change control.<a href="#section-8.1.5-4.6.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-8.1.5-4.7">Specification Document:</dt>
+            <dd style="margin-left: 1.5em" id="section-8.1.5-4.8">
+              <p id="section-8.1.5-4.8.1">A reference to the specification defining the member.<a href="#section-8.1.5-4.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+<p id="section-8.1.5-5">Initial entries:<a href="#section-8.1.5-5" class="pilcrow">¶</a></p>
 <table class="center" id="table-2">
             <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
 <thead>
               <tr>
-                <th class="text-left" rowspan="1" colspan="1">Identifier</th>
-                <th class="text-left" rowspan="1" colspan="1">Categories</th>
-                <th class="text-left" rowspan="1" colspan="1">Parameters</th>
-                <th class="text-left" rowspan="1" colspan="1">Reference</th>
+                <th class="text-left" rowspan="1" colspan="1">Member Name</th>
+                <th class="text-left" rowspan="1" colspan="1">Member Description</th>
+                <th class="text-left" rowspan="1" colspan="1">Change Controller</th>
+                <th class="text-left" rowspan="1" colspan="1">Specification Document</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <code>openid_federation</code>
+                  <code>resource_authorization_server</code>
 </td>
-                <td class="text-left" rowspan="1" colspan="1">
-                  <code>issuer_authentication</code>
-</td>
-                <td class="text-left" rowspan="1" colspan="1">
-                  <code>trust_anchors</code> (array of string, <span class="bcp14">REQUIRED</span>); <code>trust_marks</code> (array of object, <span class="bcp14">OPTIONAL</span>)</td>
+                <td class="text-left" rowspan="1" colspan="1">Resource Authorization Server issuer identifier</td>
+                <td class="text-left" rowspan="1" colspan="1">IETF</td>
                 <td class="text-left" rowspan="1" colspan="1">This document</td>
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <code>email_verification_dns</code>
+                  <code>authorization_grant_profiles_supported</code>
 </td>
+                <td class="text-left" rowspan="1" colspan="1">Supported identity assertion grant profile identifiers</td>
+                <td class="text-left" rowspan="1" colspan="1">IETF</td>
+                <td class="text-left" rowspan="1" colspan="1">This document</td>
+              </tr>
+              <tr>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <code>subject_namespace_authorization</code>
+                  <code>subject_identifier_formats_supported</code>
 </td>
-                <td class="text-left" rowspan="1" colspan="1">(none)</td>
-                <td class="text-left" rowspan="1" colspan="1">This document, <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span>
+                <td class="text-left" rowspan="1" colspan="1">Supported Subject Identifier formats</td>
+                <td class="text-left" rowspan="1" colspan="1">IETF</td>
+                <td class="text-left" rowspan="1" colspan="1">This document</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>issuer_trust_methods</code>
 </td>
+                <td class="text-left" rowspan="1" colspan="1">Trust Method requirements enforced for incoming identity assertions</td>
+                <td class="text-left" rowspan="1" colspan="1">IETF</td>
+                <td class="text-left" rowspan="1" colspan="1">This document</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>crit</code>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">Critical extension identifiers or policy members</td>
+                <td class="text-left" rowspan="1" colspan="1">IETF</td>
+                <td class="text-left" rowspan="1" colspan="1">This document</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>signed_policy</code>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">Signed JWT containing policy members as claims</td>
+                <td class="text-left" rowspan="1" colspan="1">IETF</td>
+                <td class="text-left" rowspan="1" colspan="1">This document</td>
               </tr>
             </tbody>
           </table>
-<p id="section-8.1.4-7">Additional <code>subject_namespace_authorization</code> Trust Methods are
-registered by <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>.<a href="#section-8.1.4-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-diagnostic-reasons-registry">
-<section id="section-8.1.5">
+<section id="section-8.1.6">
           <h4 id="name-trust-evaluation-diagnostic-">
-<a href="#section-8.1.5" class="section-number selfRef">8.1.5. </a><a href="#name-trust-evaluation-diagnostic-" class="section-name selfRef">Trust Evaluation Diagnostic Reason Registry</a>
+<a href="#section-8.1.6" class="section-number selfRef">8.1.6. </a><a href="#name-trust-evaluation-diagnostic-" class="section-name selfRef">Trust Evaluation Diagnostic Reason Registry</a>
           </h4>
-<p id="section-8.1.5-1">IANA is requested to establish a new registry titled "Identity
+<p id="section-8.1.6-1">IANA is requested to establish a new registry titled "Identity
 Assertion Issuer Trust Evaluation Diagnostic Reasons" under the
-"OAuth Parameters" registry group.<a href="#section-8.1.5-1" class="pilcrow">¶</a></p>
-<p id="section-8.1.5-2">Registration policy: Specification Required <span>[<a href="#RFC8126" class="cite xref">RFC8126</a>]</span>.<a href="#section-8.1.5-2" class="pilcrow">¶</a></p>
-<p id="section-8.1.5-3">Each registry entry contains:<a href="#section-8.1.5-3" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-8.1.5-4">
-            <dt id="section-8.1.5-4.1">Reason Code:</dt>
-            <dd style="margin-left: 1.5em" id="section-8.1.5-4.2">
-              <p id="section-8.1.5-4.2.1">Short string identifying the diagnostic reason. Reason codes
+"OAuth Parameters" registry group.<a href="#section-8.1.6-1" class="pilcrow">¶</a></p>
+<p id="section-8.1.6-2">Registration policy: Specification Required <span>[<a href="#RFC8126" class="cite xref">RFC8126</a>]</span>.<a href="#section-8.1.6-2" class="pilcrow">¶</a></p>
+<p id="section-8.1.6-3">Each registry entry contains:<a href="#section-8.1.6-3" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-8.1.6-4">
+            <dt id="section-8.1.6-4.1">Reason Code:</dt>
+            <dd style="margin-left: 1.5em" id="section-8.1.6-4.2">
+              <p id="section-8.1.6-4.2.1">Short string identifying the diagnostic reason. Reason codes
 <span class="bcp14">MUST</span> use the character set <code>[a-z0-9_]</code> and <span class="bcp14">SHOULD</span> describe the
-trust-evaluation failure condition.<a href="#section-8.1.5-4.2.1" class="pilcrow">¶</a></p>
+trust-evaluation failure condition.<a href="#section-8.1.6-4.2.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-8.1.5-4.3">Description:</dt>
-            <dd style="margin-left: 1.5em" id="section-8.1.5-4.4">
-              <p id="section-8.1.5-4.4.1">A short description of the condition the reason code identifies.<a href="#section-8.1.5-4.4.1" class="pilcrow">¶</a></p>
+<dt id="section-8.1.6-4.3">Description:</dt>
+            <dd style="margin-left: 1.5em" id="section-8.1.6-4.4">
+              <p id="section-8.1.6-4.4.1">A short description of the condition the reason code identifies.<a href="#section-8.1.6-4.4.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-8.1.5-4.5">Disclosure Class:</dt>
-            <dd style="margin-left: 1.5em" id="section-8.1.5-4.6">
-              <p id="section-8.1.5-4.6.1">One of <code>trusted-context</code> or <code>public</code>. Reason codes initially
+<dt id="section-8.1.6-4.5">Disclosure Class:</dt>
+            <dd style="margin-left: 1.5em" id="section-8.1.6-4.6">
+              <p id="section-8.1.6-4.6.1">One of <code>trusted-context</code> or <code>public</code>. Reason codes initially
 registered by this document are <code>trusted-context</code>; future
 specifications <span class="bcp14">MAY</span> register codes intended for public disclosure
-if they carry no operationally sensitive information.<a href="#section-8.1.5-4.6.1" class="pilcrow">¶</a></p>
+if they carry no operationally sensitive information.<a href="#section-8.1.6-4.6.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-8.1.5-4.7">Reference:</dt>
-            <dd style="margin-left: 1.5em" id="section-8.1.5-4.8">
-              <p id="section-8.1.5-4.8.1">A reference to the specification defining the reason code.<a href="#section-8.1.5-4.8.1" class="pilcrow">¶</a></p>
+<dt id="section-8.1.6-4.7">Reference:</dt>
+            <dd style="margin-left: 1.5em" id="section-8.1.6-4.8">
+              <p id="section-8.1.6-4.8.1">A reference to the specification defining the reason code.<a href="#section-8.1.6-4.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
-<p id="section-8.1.5-5">Initial entries (all <code>trusted-context</code>, defined in
+<p id="section-8.1.6-5">Initial entries (all <code>trusted-context</code>, defined in
 <a href="#diagnostic-reasons" class="auto internal xref">Section 4.3</a>): <code>issuer_not_authenticated</code>,
 <code>issuer_not_authorized_for_subject_authority</code>,
 <code>subject_authority_policy_not_found</code>,
@@ -3261,7 +3320,7 @@ if they carry no operationally sensitive information.<a href="#section-8.1.5-4.6
 <code>tenant_binding_required</code>, <code>tenant_binding_mismatch</code>,
 <code>subject_identifier_format_not_authorized</code>, <code>policy_expired</code>,
 <code>policy_not_yet_valid</code>, <code>trust_method_not_satisfied</code>,
-<code>applicability_bypass_attempted</code>.<a href="#section-8.1.5-5" class="pilcrow">¶</a></p>
+<code>applicability_bypass_attempted</code>.<a href="#section-8.1.6-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3343,7 +3402,7 @@ separate specifications such as <span>[<a href="#DAI" class="cite xref">DAI</a>]
 to accommodate additional Subject Identifier formats and publication
 mechanisms via future specifications. This section describes the
 extension procedure for spec authors.<a href="#section-9-1" class="pilcrow">¶</a></p>
-<p id="section-9-2">To extend this framework to a new Subject Identifier format, a future
+<p id="section-9-2">To extend this policy to a new Subject Identifier format, a future
 specification:<a href="#section-9-2" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-9-3">
 <li id="section-9-3.1">
@@ -3363,7 +3422,7 @@ Authority is a domain that can publish DNS records, the existing
 modification; the new format simply joins <code>email</code> as a value that
 can appear in <code>subject_identifier_formats</code> on <code>authorized_issuers</code>
 entries. The <code>email_verification_dns</code> Trust Method
-(<a href="#trust-method-email-verification-dns" class="auto internal xref">Section 3.3.4.1</a>) is intentionally
+(<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §email_verification_dns) is intentionally
 email-specific and is NOT reusable for other formats; new formats
 that need a non-<code>domain_authorized_issuer</code> mechanism must register
 their own. If the computed Subject Authority is not a domain or
@@ -3386,7 +3445,7 @@ Issuer Authorization Policy document format (<span>[<a href="#DAI" class="cite x
 verification flow (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Verification), the Trust Method category
 structure and combination rule (<a href="#trust-method-categories" class="auto internal xref">Section 3.3.2</a>,
 <a href="#rasp" class="auto internal xref">Section 4.2</a>), and the bounded-transitivity property of namespace
-authorization (<a href="#transitive-authz-bounded" class="auto internal xref">Section 6.1</a>) remain unchanged
+authorization (<a href="#transitive-authz-bounded" class="auto internal xref">Section 6.2</a>) remain unchanged
 across extensions.
 This stability is the framework's reusability guarantee: spec
 authors extending it for a new attribute-bearing claim type inherit
@@ -3415,7 +3474,7 @@ document otherwise.<a href="#section-9.1-2.2.1" class="pilcrow">¶</a></p>
 extraction that derives the Subject Authority from the exact
 email host. To preserve the protection the registrable-domain
 default provides against subdomain takeover
-(<a href="#subdomain-authority" class="auto internal xref">Section 3.4.1</a>), the registrable-domain authority <span class="bcp14">MUST</span>
+(<a href="#subdomain-authority" class="auto internal xref">Section 3.4.2</a>), the registrable-domain authority <span class="bcp14">MUST</span>
 publish an explicit delegation naming the authorized subdomain
 authorities; without that delegation, the extraction <span class="bcp14">MUST</span> fall
 back to the registrable-domain authority.<a href="#section-9.1-2.3.1" class="pilcrow">¶</a></p>
@@ -3559,6 +3618,22 @@ document.<a href="#section-9.1-3" class="pilcrow">¶</a></p>
         <dd>
 <span class="refAuthor">Hallam-Baker, P.</span>, <span class="refAuthor">Stradling, R.</span>, and <span class="refAuthor">J. Hoffman-Andrews</span>, <span class="refTitle">"DNS Certification Authority Authorization (CAA) Resource Record"</span>, <span class="seriesInfo">RFC 8659</span>, <span class="seriesInfo">DOI 10.17487/RFC8659</span>, <time datetime="2019-11" class="refDate">November 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8659">https://www.rfc-editor.org/rfc/rfc8659</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="RFC8705">[RFC8705]</dt>
+        <dd>
+<span class="refAuthor">Campbell, B.</span>, <span class="refAuthor">Bradley, J.</span>, <span class="refAuthor">Sakimura, N.</span>, and <span class="refAuthor">T. Lodderstedt</span>, <span class="refTitle">"OAuth 2.0 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens"</span>, <span class="seriesInfo">RFC 8705</span>, <span class="seriesInfo">DOI 10.17487/RFC8705</span>, <time datetime="2020-02" class="refDate">February 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8705">https://www.rfc-editor.org/rfc/rfc8705</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8725">[RFC8725]</dt>
+        <dd>
+<span class="refAuthor">Sheffer, Y.</span>, <span class="refAuthor">Hardt, D.</span>, and <span class="refAuthor">M. Jones</span>, <span class="refTitle">"JSON Web Token Best Current Practices"</span>, <span class="seriesInfo">BCP 225</span>, <span class="seriesInfo">RFC 8725</span>, <span class="seriesInfo">DOI 10.17487/RFC8725</span>, <time datetime="2020-02" class="refDate">February 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8725">https://www.rfc-editor.org/rfc/rfc8725</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9449">[RFC9449]</dt>
+        <dd>
+<span class="refAuthor">Fett, D.</span>, <span class="refAuthor">Campbell, B.</span>, <span class="refAuthor">Bradley, J.</span>, <span class="refAuthor">Lodderstedt, T.</span>, <span class="refAuthor">Jones, M.</span>, and <span class="refAuthor">D. Waite</span>, <span class="refTitle">"OAuth 2.0 Demonstrating Proof of Possession (DPoP)"</span>, <span class="seriesInfo">RFC 9449</span>, <span class="seriesInfo">DOI 10.17487/RFC9449</span>, <time datetime="2023-09" class="refDate">September 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9449">https://www.rfc-editor.org/rfc/rfc9449</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9700">[RFC9700]</dt>
+        <dd>
+<span class="refAuthor">Lodderstedt, T.</span>, <span class="refAuthor">Bradley, J.</span>, <span class="refAuthor">Labunets, A.</span>, and <span class="refAuthor">D. Fett</span>, <span class="refTitle">"Best Current Practice for OAuth 2.0 Security"</span>, <span class="seriesInfo">BCP 240</span>, <span class="seriesInfo">RFC 9700</span>, <span class="seriesInfo">DOI 10.17487/RFC9700</span>, <time datetime="2025-01" class="refDate">January 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9700">https://www.rfc-editor.org/rfc/rfc9700</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="WICG-EMAIL-VERIF">[WICG-EMAIL-VERIF]</dt>
       <dd>
 <span class="refTitle">"Email Verification Protocol"</span>, <span>n.d.</span>, <span>&lt;<a href="https://wicg.github.io/email-verification-protocol/">https://wicg.github.io/email-verification-protocol/</a>&gt;</span>. </dd>
@@ -3587,7 +3662,7 @@ trust chains rooted at federation trust anchors. It does not, by
 itself, answer "is this authorization server authoritative for
 subjects in this namespace?". That question is independent of
 federation membership.<a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
-<p id="appendix-A.1-2">This framework is complementary to OpenID Federation, not a replacement
+<p id="appendix-A.1-2">This policy is complementary to OpenID Federation, not a replacement
 for or alternative to it:<a href="#appendix-A.1-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="appendix-A.1-3.1">
@@ -3614,22 +3689,103 @@ trust-chain, metadata-publication, or policy-propagation mechanisms.<a href="#ap
 </div>
 </section>
 </div>
-<div id="document-history">
+<div id="frequently-asked-questions">
 <section id="appendix-B">
-      <h2 id="name-document-history">
-<a href="#appendix-B" class="section-number selfRef">Appendix B. </a><a href="#name-document-history" class="section-name selfRef">Document History</a>
+      <h2 id="name-frequently-asked-questions">
+<a href="#appendix-B" class="section-number selfRef">Appendix B. </a><a href="#name-frequently-asked-questions" class="section-name selfRef">Frequently Asked Questions</a>
       </h2>
-<p id="appendix-B-1">This appendix is non-normative and will be removed before publication.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
-<p id="appendix-B-2">-00<a href="#appendix-B-2" class="pilcrow">¶</a></p>
+<p id="appendix-B-1">This appendix is non-normative.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+<p id="appendix-B-2"><strong>Q: Do I need both OpenID Federation and DAI?</strong><a href="#appendix-B-2" class="pilcrow">¶</a></p>
+<p id="appendix-B-3">No. Each Trust Method category is independent. A Resource
+Authorization Server lists in its Trust Policy only the methods it
+requires. Common combinations:<a href="#appendix-B-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-B-3.1">
-          <p id="appendix-B-3.1.1">initial draft<a href="#appendix-B-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="appendix-B-4.1">
+          <p id="appendix-B-4.1.1">Federation-only: <code>openid_federation</code>. Acceptable when the
+deployment trusts federation membership without per-namespace
+authority binding.<a href="#appendix-B-4.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-B-4.2">
+          <p id="appendix-B-4.2.1">Namespace-only: <code>domain_authorized_issuer</code>. Acceptable when the
+deployment trusts directly-published namespace authority without
+ecosystem-membership signals.<a href="#appendix-B-4.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-B-4.3">
+          <p id="appendix-B-4.3.1">Both: requires evidence from each category. Strongest combined
+posture.<a href="#appendix-B-4.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="appendix-B-5"><strong>Q: Can I use Trust Policy without DAI?</strong><a href="#appendix-B-5" class="pilcrow">¶</a></p>
+<p id="appendix-B-6">Yes. Trust Policy is the framework; DAI is one
+<code>subject_namespace_authorization</code> Trust Method. Other Trust Methods
+in that category <span class="bcp14">MAY</span> be defined by other specifications. A Resource
+Authorization Server using only <code>openid_federation</code> for
+issuer-authentication and a non-DAI namespace-authorization method
+remains within scope.<a href="#appendix-B-6" class="pilcrow">¶</a></p>
+<p id="appendix-B-7"><strong>Q: What if my Subject Authority has no DNS access?</strong><a href="#appendix-B-7" class="pilcrow">¶</a></p>
+<p id="appendix-B-8">The DAI HTTPS form (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span>) supports an HTTPS well-known URL
+fallback when the Subject Authority has DNS but not the inline
+record; the <code>https_authorized_issuer</code> Trust Method (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span>) skips
+DNS entirely. A Subject Authority with no DNS presence cannot
+participate in DAI but <span class="bcp14">MAY</span> be reachable via OpenID Federation if
+the federation accepts it as a leaf entity.<a href="#appendix-B-8" class="pilcrow">¶</a></p>
+<p id="appendix-B-9"><strong>Q: Does this work for path-bearing issuer identifiers (such as
+<code>https://login.example.com/{tenant}/v2.0</code>)?</strong><a href="#appendix-B-9" class="pilcrow">¶</a></p>
+<p id="appendix-B-10">Yes for <code>domain_authorized_issuer</code>, which uses case-sensitive URL
+string comparison and accepts path-bearing issuer identifiers
+directly in <code>authorized_issuers[].issuer</code>. Not for
+<code>email_verification_dns</code>, which is interoperable only with bare-
+origin issuer identifiers per <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span>.<a href="#appendix-B-10" class="pilcrow">¶</a></p>
+<p id="appendix-B-11"><strong>Q: How does this relate to OIDC4IDA / eKYC-IDA?</strong><a href="#appendix-B-11" class="pilcrow">¶</a></p>
+<p id="appendix-B-12">OIDC4IDA defines the wire format for verified identity claims with
+provenance metadata. This document defines the OAuth-side
+trust-evaluation framework. The two compose: the
+<code>verified_claims.verification.trust_framework</code> value identifies an
+Attribute Authority whose published policy this document's Trust
+Methods consult. See the Attribute Authority Trust draft for the
+explicit composition.<a href="#appendix-B-12" class="pilcrow">¶</a></p>
+<p id="appendix-B-13"><strong>Q: What's the difference between Trust Policy and DAI?</strong><a href="#appendix-B-13" class="pilcrow">¶</a></p>
+<p id="appendix-B-14">Trust Policy is the OAuth-side framework defining what an Assertion
+Issuer must satisfy. DAI is a wire-format mechanism by which a
+Subject Authority publishes which issuers it authorizes for its
+namespace. Trust Policy is published by the Resource Authorization
+Server; DAI is published by the Subject Authority. Both are
+required for the common deployment case; either can stand alone.<a href="#appendix-B-14" class="pilcrow">¶</a></p>
+<p id="appendix-B-15"><strong>Q: What happens during PSL changes?</strong><a href="#appendix-B-15" class="pilcrow">¶</a></p>
+<p id="appendix-B-16">Resource Authorization Servers <span class="bcp14">SHOULD</span> use a PSL snapshot no older
+than 30 days. PSL changes that affect a deployed Subject Authority
+require operational coordination across consumers. See
+<a href="#psl-versioning" class="auto internal xref">Section 3.4.1</a>.<a href="#appendix-B-16" class="pilcrow">¶</a></p>
+<p id="appendix-B-17"><strong>Q: How do I revoke a delegation in DAI?</strong><a href="#appendix-B-17" class="pilcrow">¶</a></p>
+<p id="appendix-B-18">Remove the affected entry (or set <code>valid_until</code> to the past) from
+the published Issuer Authorization Policy. Revocation latency is
+bounded by the cache lifetime of the most stale layer. See
+<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Operational Considerations.<a href="#appendix-B-18" class="pilcrow">¶</a></p>
+<p id="appendix-B-19"><strong>Q: Can a Resource Authorization Server require client-instance
+binding for some clients but not others?</strong><a href="#appendix-B-19" class="pilcrow">¶</a></p>
+<p id="appendix-B-20">Yes, via local policy. The Trust Policy's
+<code>client_instance_assertion_required</code> member is a policy-wide
+requirement; per-client requirements can be enforced at token
+request time using local policy and the diagnostic reason codes of
+<a href="#diagnostic-reasons" class="auto internal xref">Section 4.3</a>.<a href="#appendix-B-20" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="document-history">
+<section id="appendix-C">
+      <h2 id="name-document-history">
+<a href="#appendix-C" class="section-number selfRef">Appendix C. </a><a href="#name-document-history" class="section-name selfRef">Document History</a>
+      </h2>
+<p id="appendix-C-1">This appendix is non-normative and will be removed before publication.<a href="#appendix-C-1" class="pilcrow">¶</a></p>
+<p id="appendix-C-2">-00<a href="#appendix-C-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-C-3.1">
+          <p id="appendix-C-3.1.1">initial draft<a href="#appendix-C-3.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
 </div>
 <div id="authors-addresses">
-<section id="appendix-C">
+<section id="appendix-D">
       <h2 id="name-authors-address">
 <a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
       </h2>

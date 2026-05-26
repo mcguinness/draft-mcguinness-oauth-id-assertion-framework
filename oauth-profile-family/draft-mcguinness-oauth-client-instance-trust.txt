@@ -4,8 +4,8 @@
 
 Web Authorization Protocol                                 K. McGuinness
 Internet-Draft                                               Independent
-Intended status: Standards Track                             25 May 2026
-Expires: 26 November 2026
+Intended status: Standards Track                             26 May 2026
+Expires: 27 November 2026
 
 
  Client Instance Trust Method for OAuth Identity Assertion Issuer Trust
@@ -64,7 +64,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 26 November 2026.
+   This Internet-Draft will expire on 27 November 2026.
 
 Copyright Notice
 
@@ -92,28 +92,29 @@ Table of Contents
      4.2.  Scope of This Trust Method
    5.  Trust Policy Extension
    6.  Combined Evaluation
-   7.  Worked Example (Non-Normative)
-     7.1.  Cast
-     7.2.  Trust Policy
-     7.3.  Token Request
-     7.4.  Verification
-     7.5.  Threat: Compromised Instance Issuer Outside the Client's
+   7.  Working with SPIFFE / SPIRE
+   8.  Worked Example (Non-Normative)
+     8.1.  Cast
+     8.2.  Trust Policy
+     8.3.  Token Request
+     8.4.  Verification
+     8.5.  Threat: Compromised Instance Issuer Outside the Client's
            List
-   8.  Security Considerations
-     8.1.  Independence of Trust Evaluations
-     8.2.  Trust Source Differences
-     8.3.  Wire-Format Stability
-     8.4.  Token Sender-Constraining
-   9.  Privacy Considerations
-   10. IANA Considerations
-     10.1.  Identity Assertion Issuer Trust Method Category
+   9.  Security Considerations
+     9.1.  Independence of Trust Evaluations
+     9.2.  Trust Source Differences
+     9.3.  Wire-Format Stability
+     9.4.  Token Sender-Constraining
+   10. Privacy Considerations
+   11. IANA Considerations
+     11.1.  Identity Assertion Issuer Trust Method Category
             Registration
-     10.2.  Identity Assertion Issuer Trust Method Registration
-     10.3.  Trust Policy Member Registration
-     10.4.  Authority Delegation Profile Registration
-   11. References
-     11.1.  Normative References
-     11.2.  Informative References
+     11.2.  Identity Assertion Issuer Trust Method Registration
+     11.3.  Trust Policy Member Registration
+     11.4.  Authority Delegation Profile Registration
+   12. References
+     12.1.  Normative References
+     12.2.  Informative References
    Appendix A.  Document History
    Author's Address
 
@@ -430,7 +431,92 @@ Table of Contents
       authority on its authorized Instance Issuers; the two trust
       decisions remain separate.
 
-7.  Worked Example (Non-Normative)
+7.  Working with SPIFFE / SPIRE
+
+   This section is non-normative.  It explains how SPIFFE [SPIFFE] and
+   SPIRE deployments map onto the client_instance_authorization
+   category.  The wire-format details of Client Instance Assertions
+   remain [CIA]'s responsibility; this section establishes only the
+   trust-policy and identity mappings.
+
+   SPIFFE defines a trust domain (typically a DNS-like name such as
+   prod.example.com) under which a SPIFFE Verifiable Identity Document
+   (SVID) authority issues identity documents for workloads.  SPIRE is
+   the most common implementation of a SPIFFE trust domain authority.
+   The relevant SPIFFE concepts map onto this document's vocabulary as
+   follows:
+
+   +================================+==================================+
+   | SPIFFE concept                 | This document                    |
+   +================================+==================================+
+   | SPIFFE trust domain (e.g.,     | Instance Issuer                  |
+   | spiffe://prod.example.com)     | identifier                       |
+   +--------------------------------+----------------------------------+
+   | SPIRE server or equivalent     | The party identified by          |
+   | SVID-issuing authority         | Instance Issuer in CIMD          |
+   +--------------------------------+----------------------------------+
+   | SVID issued to a workload      | The cryptographic basis          |
+   |                                | on which the workload            |
+   |                                | mints a Client Instance          |
+   |                                | Assertion per [CIA]              |
+   +--------------------------------+----------------------------------+
+   | Workload's SPIFFE ID (e.g.,    | The runtime identity             |
+   | spiffe://prod.example.com/svc/ | bound to the OAuth               |
+   | api)                           | client_id                        |
+   +--------------------------------+----------------------------------+
+   | Workload's possession of SVID  | Proof of identity                |
+   | private key                    | required by [CIA]                |
+   |                                | validation                       |
+   +--------------------------------+----------------------------------+
+
+                                  Table 1
+
+   A deployment integrating SPIFFE with an OAuth client follows the
+   following pattern:
+
+   1.  The OAuth client owner authorizes the SPIFFE trust domain
+       authority by listing the trust domain identifier in the client's
+       instance_issuers metadata per [CIA] (e.g., "instance_issuers":
+       ["spiffe://prod.example.com"] in the client's CIMD document).
+
+   2.  A workload in the SPIFFE trust domain obtains its SVID from the
+       SPIRE deployment.
+
+   3.  The workload mints a Client Instance Assertion per [CIA], signed
+       using the SVID's key material, binding the workload's SPIFFE ID
+       to the OAuth client_id.
+
+   4.  The workload presents the Client Instance Assertion to the
+       Resource Authorization Server in a token request.
+
+   5.  The Resource Authorization Server evaluates the
+       client_authorized_instance_issuer Trust Method per Section 4:
+       resolves the OAuth client's CIMD, finds the trust domain
+       identifier in instance_issuers, and validates the assertion per
+       [CIA] (signature, descriptor match, confirmation-key possession).
+
+   The SPIFFE trust domain authority is the Authority Holder of the
+   client-instance binding (per [AUTHORITY-DELEGATION]); the workload
+   identified by its SPIFFE ID is the Delegate; the SVID plus the Client
+   Instance Assertion are the wire-format evidence.  A compromise of the
+   SPIRE deployment substitutes the Instance Issuer's voice with the
+   attacker's, with the same blast radius (Section 9.2) any Instance
+   Issuer compromise has.
+
+   A deployment supporting both SPIFFE-based and non-SPIFFE Instance
+   Issuers lists both in the client's instance_issuers.  The trust
+   evaluation is per-Instance-Issuer; the Authority Delegation Pattern's
+   OR-within-category rule ([AUTHORITY-DELEGATION] §Cross-Category
+   Combination Rule) applies.
+
+   This document does not require SPIFFE for client_instance_
+   authorization.  Other workload-identity authorities (cloud provider
+   IMDS-issued identity, Kubernetes ServiceAccount tokens mediated by an
+   SVID-style issuer, custom hardware-rooted attestation) work the same
+   way: list the authority's identifier in instance_issuers and rely on
+   [CIA] for wire-format validation.
+
+8.  Worked Example (Non-Normative)
 
    This appendix is non-normative.
 
@@ -439,7 +525,7 @@ Table of Contents
    namespace authority for the asserted subject, and client-instance
    authorization for the Instance Issuer.
 
-7.1.  Cast
+8.1.  Cast
 
    *  *Assertion Issuer*, https://idp.partner.example.  Authenticates
       Alice and mints an ID-JAG.  Federated member of
@@ -457,7 +543,7 @@ Table of Contents
    *  *Resource Authorization Server*, https://auth.example.org.
       Publishes the Trust Policy below.
 
-7.2.  Trust Policy
+8.2.  Trust Policy
 
    {
      "resource_authorization_server": "https://auth.example.org",
@@ -481,7 +567,7 @@ Table of Contents
      "crit": ["client_instance_assertion_required"]
    }
 
-7.3.  Token Request
+8.3.  Token Request
 
    The Workload presents an ID-JAG (for Alice) AND a Client Instance
    Assertion (binding the Workload to the OAuth client).  For
@@ -500,7 +586,7 @@ Table of Contents
    &actor_token=eyJ...(Client Instance Assertion)
    &actor_token_type=urn:ietf:params:oauth:token-type:client-instance-jwt
 
-7.4.  Verification
+8.4.  Verification
 
    The Resource Authorization Server applies the [TRUST-POLICY]
    §Resource Authorization Server Processing procedure with the three-
@@ -527,7 +613,7 @@ Table of Contents
 
    All three categories satisfied; the token request proceeds.
 
-7.5.  Threat: Compromised Instance Issuer Outside the Client's List
+8.5.  Threat: Compromised Instance Issuer Outside the Client's List
 
    Suppose an attacker controls an Instance Issuer
    spiffe://attacker.example and obtains a SPIFFE SVID for a workload in
@@ -546,9 +632,9 @@ Table of Contents
    membership and namespace authority do not extend to this question;
    only the OAuth client owner's metadata decides.
 
-8.  Security Considerations
+9.  Security Considerations
 
-8.1.  Independence of Trust Evaluations
+9.1.  Independence of Trust Evaluations
 
    The three Trust Method categories evaluated under a combined Trust
    Policy answer three independent questions about two different
@@ -574,7 +660,7 @@ Table of Contents
    of these by requiring evidence from every applicable category
    independently.
 
-8.2.  Trust Source Differences
+9.2.  Trust Source Differences
 
    This Trust Method's authority source (the OAuth client's metadata) is
    fundamentally different from the authority sources of methods in the
@@ -595,7 +681,7 @@ Table of Contents
    CIMD.  Combining their decisions into one Trust Policy correctly
    composes their authorities without conflating them.
 
-8.3.  Wire-Format Stability
+9.3.  Wire-Format Stability
 
    This document depends normatively on [CIA] for the Client Instance
    Assertion wire format and validation procedure.  [CIA] is an
@@ -610,7 +696,7 @@ Table of Contents
    succeeds, regardless of which [CIA] presentation path or version the
    request uses.
 
-8.4.  Token Sender-Constraining
+9.4.  Token Sender-Constraining
 
    This Trust Method binds Instance Issuer authorization at the point of
    token issuance.  Once the Resource Authorization Server issues an
@@ -620,7 +706,7 @@ Table of Contents
    workload-authenticated clients SHOULD sender-constrain those tokens;
    this Trust Method alone does not provide end-to-end runtime binding.
 
-9.  Privacy Considerations
+10.  Privacy Considerations
 
    The Trust Policy that lists client_authorized_instance_issuer
    discloses that the Resource Authorization Server evaluates Client
@@ -639,9 +725,9 @@ Table of Contents
    Instance Assertions and the resolution of CIMD documents, see [CIA]
    and [CIMD].
 
-10.  IANA Considerations
+11.  IANA Considerations
 
-10.1.  Identity Assertion Issuer Trust Method Category Registration
+11.1.  Identity Assertion Issuer Trust Method Category Registration
 
    IANA is requested to add the following entry to the "Identity
    Assertion Issuer Trust Method Categories" registry established by
@@ -663,7 +749,7 @@ Table of Contents
 
    Reference:  This document.
 
-10.2.  Identity Assertion Issuer Trust Method Registration
+11.2.  Identity Assertion Issuer Trust Method Registration
 
    IANA is requested to add the following entry to the "Identity
    Assertion Issuer Trust Methods" registry established by
@@ -677,13 +763,11 @@ Table of Contents
 
    Reference:  This document, [CIA]
 
-10.3.  Trust Policy Member Registration
+11.3.  Trust Policy Member Registration
 
-   IANA is requested to add the following entry to the Trust Policy
-   member registry established by [TRUST-POLICY] (if such a registry
-   exists at the time of publication; otherwise, IANA is requested to
-   publish the registration alongside the trust policy member
-   registrations of [TRUST-POLICY]).
+   IANA is requested to add the following entry to the "Identity
+   Assertion Issuer Trust Policy Members" registry established by
+   [TRUST-POLICY].
 
    Member Name:  client_instance_assertion_required
 
@@ -695,7 +779,7 @@ Table of Contents
 
    Specification Document:  This document
 
-10.4.  Authority Delegation Profile Registration
+11.4.  Authority Delegation Profile Registration
 
    This document registers an entry in the Authority Delegation Profile
    registry of [AUTHORITY-DELEGATION] (§Authority Delegation Profile
@@ -739,9 +823,9 @@ Table of Contents
       list names Instance Issuers directly; an OAuth client cannot
       delegate authority over its client identity to other authorities.
 
-11.  References
+12.  References
 
-11.1.  Normative References
+12.1.  Normative References
 
    [CIA]      "OAuth 2.0 Client Instance Assertions using Actor Tokens",
               <https://datatracker.ietf.org/doc/draft-mcguinness-oauth-
@@ -770,7 +854,7 @@ Table of Contents
               <https://datatracker.ietf.org/doc/draft-mcguinness-oauth-
               identity-assertion-issuer-trust-policy/>.
 
-11.2.  Informative References
+12.2.  Informative References
 
    [AUTHORITY-DELEGATION]
               "OAuth Authority Delegation Framework",
@@ -810,6 +894,10 @@ Table of Contents
               Jones, M., and D. Waite, "OAuth 2.0 Demonstrating Proof of
               Possession (DPoP)", RFC 9449, DOI 10.17487/RFC9449,
               September 2023, <https://www.rfc-editor.org/rfc/rfc9449>.
+
+   [SPIFFE]   "Secure Production Identity Framework for Everyone
+              (SPIFFE)", n.d., <https://spiffe.io/docs/latest/spiffe-
+              about/spiffe-concepts/>.
 
 Appendix A.  Document History
 

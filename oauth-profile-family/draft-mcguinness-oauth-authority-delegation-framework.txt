@@ -4,8 +4,8 @@
 
 Web Authorization Protocol                                 K. McGuinness
 Internet-Draft                                               Independent
-Intended status: Informational                               25 May 2026
-Expires: 26 November 2026
+Intended status: Informational                               26 May 2026
+Expires: 27 November 2026
 
 
                   OAuth Authority Delegation Framework
@@ -63,7 +63,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 26 November 2026.
+   This Internet-Draft will expire on 27 November 2026.
 
 Copyright Notice
 
@@ -126,21 +126,26 @@ Table of Contents
      6.2.  What a Profile MAY Specify
    7.  Design Guidance for Profile Authors
    8.  Security Considerations
-     8.1.  Open-World Delegation Security Model
-     8.2.  Pre-Authentication Trust Decisions
-     8.3.  Unverified Claim Exploitation
-     8.4.  Applicability Bypass
-     8.5.  Authority Source Compromise
-     8.6.  Profile Composition Risks
-     8.7.  Failure Mode Asymmetry
-     8.8.  Subject Privacy
-     8.9.  Per-Assertion Revocation
-     8.10. Mutual and Bilateral Delegation
-     8.11. Consent
-     8.12. Audit and Accountability
-     8.13. Cross-Domain Federation
-       8.13.1.  Multi-Hop Cross-Domain Risks
-     8.14. Context Token Laundering
+     8.1.  Threat Model
+       8.1.1.  Assets
+       8.1.2.  Adversary Capabilities
+       8.1.3.  Trust Assumptions
+       8.1.4.  Out-of-Scope Threats
+     8.2.  Open-World Delegation Security Model
+     8.3.  Pre-Authentication Trust Decisions
+     8.4.  Unverified Claim Exploitation
+     8.5.  Applicability Bypass
+     8.6.  Authority Source Compromise
+     8.7.  Profile Composition Risks
+     8.8.  Failure Mode Asymmetry
+     8.9.  Subject Privacy
+     8.10. Per-Assertion Revocation
+     8.11. Mutual and Bilateral Delegation
+     8.12. Consent
+     8.13. Audit and Accountability
+     8.14. Cross-Domain Federation
+       8.14.1.  Multi-Hop Cross-Domain Risks
+     8.15. Context Token Laundering
    9.  Privacy Considerations
    10. IANA Considerations
      10.1.  Authority Delegation Profile Registry
@@ -198,18 +203,18 @@ Table of Contents
    The first question is grant-profile and JWT-validation work.  The
    second question is the subject of this document.
 
-   The first question conflates with the second when the framework lets
-   a signer's "authentic" status stand in for "authorized."  A federated
+   Implementations that treat the two questions as one let a signer's
+   "authentic" status stand in for "authorized" status.  A federated
    authorization server, validated by its federation membership, can
-   mint identity assertions naming any user in any email domain unless
-   the framework separately requires that the email-domain owner has
-   delegated to it.  Conflating signer authenticity with delegation
+   then mint identity assertions naming any user in any email domain
+   unless the framework separately requires that the email-domain owner
+   has delegated to it.  Conflating authenticity with delegation
    authority lets any federation member impersonate users in namespaces
    they have no authority over.
 
    This document defines the abstract pattern that prevents that
-   conflation, and the profile requirements that make concrete
-   realizations of the pattern interoperable.
+   conflation and the profile requirements that make concrete
+   realizations interoperable.
 
 1.2.  Relationships to Existing Work
 
@@ -222,6 +227,30 @@ Table of Contents
 
    This document is the parent of an OAuth profile family for identity-
    assertion trust evaluation.  The family has two layers:
+
+             Authority Delegation Framework  (this document)
+                           |
+                           | profiled for OAuth identity assertions by
+                           v
+               Identity Assertion Issuer Trust Policy
+                   (Trust Policy document, Trust Method
+                    machinery, Subject Authority Determination,
+                    ID-JAG / Actor Profile bindings)
+                           |
+                           | extended with Trust Methods by
+                           v
+         +-----------------+-----------------+--------------------+
+         |                 |                 |                    |
+         v                 v                 v                    v
+   Domain-Authorized   Client Instance   Attribute Authority   (future
+   Issuer Discovery        Trust              Trust            profiles)
+   (DAI)
+   subject_namespace_  client_instance_  attribute_
+   authorization       authorization     attestation
+
+   Each leaf profile registers one or more Trust Methods in Trust
+   Policy's registry and registers against this document's Authority
+   Delegation Profile registry (Section 10.1).
 
    *  *[TRUST-POLICY]* is the OAuth-side framework layer.  It
       instantiates this document's pattern for OAuth identity assertions
@@ -243,6 +272,11 @@ Table of Contents
          Trust Method category, client_instance_authorization, applying
          the same pattern to client identity (the
          client_authorized_instance_issuer Trust Method).
+
+      -  *[ATTRIBUTE-AUTHORITY-TRUST]* extends Trust Policy with a
+         fourth Trust Method category, attribute_attestation, applying
+         the same pattern to attribute authorities (the
+         attribute_authority_authorized_issuer Trust Method).
 
 1.2.2.  Other OAuth-Ecosystem Specifications
 
@@ -600,14 +634,11 @@ Table of Contents
        types in scope, and optionally validity bounds.
 
    2.  *Publication*: the Authority Holder publishes the Delegation
-       Artifact through a profile-defined channel.  The publication
-       channel is itself an authority binding: control of the
-       publication channel is what makes the Authority Holder the
-       Authority Holder.  Examples of publication channels include DNS
-       records under the Authority Holder's domain, HTTPS documents at a
-       well-known URL on the Authority Holder's host, signed subordinate
-       statements in a federation, and entries in authoritative client
-       metadata.
+       Artifact through a profile-defined channel.  Example channels
+       include DNS records under the Authority Holder's domain, HTTPS
+       documents at a well-known URL on the Authority Holder's host,
+       signed subordinate statements in a federation, and entries in
+       authoritative client metadata.
 
    3.  *Use*: the Delegate produces Assertions within the delegated
        scope.  The Validator retrieves the Delegation Artifact and
@@ -617,6 +648,12 @@ Table of Contents
        Delegation Artifact, or the artifact's validity bound expires.
        Revocation latency is bounded by the profile's cache lifetime
        model; this document does not require a specific latency.
+
+   The publication channel is itself the authority binding: control of
+   the publication channel is what makes the Authority Holder the
+   Authority Holder.  A profile's choice of publication channel
+   therefore determines who, in operational terms, IS the Authority
+   Holder for the namespace, claim type, or scope being delegated.
 
 3.3.  Independent Trust Evaluation Categories
 
@@ -655,28 +692,6 @@ Table of Contents
    apply: satisfying any one applicable evidence item is sufficient.
    The rule is AND across independent categories, OR within a category.
 
-   Category applicability is a property of the Validator's Published
-   Trust Policy, not of the incoming Assertion.  If the Validator's
-   local policy declares that it implements a profile in a given
-   category (for example, namespace authority validation), that category
-   is applicable to every Assertion the Validator evaluates within the
-   profile's scope.  The Assertion itself MUST NOT be able to waive the
-   category: an Assertion lacking satisfying evidence for an applicable
-   category MUST be rejected.  Profiles MUST NOT define applicability
-   conditions that depend on properties of the Assertion under
-   evaluation (for example, "this category is not applicable when the
-   Assertion is from a legacy issuer" or "this category is skipped when
-   the Assertion carries a legacy: true claim").  Assertion-driven
-   applicability waivers create the Applicability Bypass risk discussed
-   in Section 8.4.
-
-   Migration scenarios where some traffic legitimately predates a
-   category's availability are handled at the policy layer, not by
-   silently waiving the category: the Validator MAY maintain separate
-   trust policies for distinct namespaces, audiences, or deployment
-   phases, but within any one policy the applicable categories MUST be
-   exhaustively enforced.
-
    Satisfying one category MUST NOT be treated as satisfying another.  A
    signer authenticated by federation membership has not been delegated
    namespace authority by that fact; an Authority Holder's delegation to
@@ -690,13 +705,37 @@ Table of Contents
    implements multiple profiles in the same category from different
    Authority Sources, the resulting OR-within-category composition
    creates a downgrade risk that profile authors and deployers MUST
-   analyze (Section 8.6).
+   analyze (Section 8.7).
 
    Profiles MAY specify additional combination rules within their own
    scope.  A profile MUST NOT treat evidence for one independent
    category as satisfying another independent category.  A profile that
    combines authenticity and authority in a single cryptographic
    artifact MUST document why the artifact satisfies both questions.
+
+3.3.1.1.  Category Applicability
+
+   Category applicability is a property of the Validator's Published
+   Trust Policy, not of the incoming Assertion.  If the Validator's
+   local policy declares that it implements a profile in a given
+   category (for example, namespace authority validation), that category
+   is applicable to every Assertion the Validator evaluates within the
+   profile's scope.  The Assertion itself MUST NOT be able to waive the
+   category: an Assertion lacking satisfying evidence for an applicable
+   category MUST be rejected.  Profiles MUST NOT define applicability
+   conditions that depend on properties of the Assertion under
+   evaluation (for example, "this category is not applicable when the
+   Assertion is from a legacy issuer" or "this category is skipped when
+   the Assertion carries a legacy: true claim").  Assertion-driven
+   applicability waivers create the Applicability Bypass risk discussed
+   in Section 8.5.
+
+   Migration scenarios where some traffic legitimately predates a
+   category's availability are handled at the policy layer, not by
+   silently waiving the category: the Validator MAY maintain separate
+   trust policies for distinct namespaces, audiences, or deployment
+   phases, but within any one policy the applicable categories MUST be
+   exhaustively enforced.
 
 3.3.2.  Multiple Authority Sources Within a Category
 
@@ -732,7 +771,7 @@ Table of Contents
    of claims, that establishes preference ordering across candidate
    inputs, or that falls back from one selection input to another when
    the primary is absent enables Unverified Claim Exploitation
-   (Section 8.3): an attacker constructs an Assertion satisfying
+   (Section 8.4): an attacker constructs an Assertion satisfying
    multiple potential bindings and steers the Validator to a weaker
    Authority Source's policy.
 
@@ -925,7 +964,7 @@ Table of Contents
    OAuth Identity Chaining ([I-D.ietf-oauth-identity-chaining]) is one
    example of multi-hop trust evaluation.  Two specific failure modes
    that profile authors of multi-hop flows MUST consider are identity
-   laundering and context token laundering (Section 8.14).
+   laundering and context token laundering (Section 8.15).
 
 4.  Delegation Artifacts
 
@@ -1288,9 +1327,9 @@ Table of Contents
       the profile, registered in Section 10.1.
 
    authority_holder_form  How an Authority Holder is identified in the
-      profile.  Examples: DNS domain (the parent trust framework); CIMD
-      URL (the client instance profile); federation entity identifier
-      (the OIDF profile).
+      profile.  Examples: DNS domain (a domain-authorized issuer
+      profile); CIMD URL (the client instance profile); federation
+      entity identifier (the OIDF profile).
 
    delegation_artifact_format  The wire format of the Delegation
       Artifact.  Examples: JSON document at a well-known HTTPS URL; DNS
@@ -1400,7 +1439,7 @@ Table of Contents
       ordering across candidate inputs, or from fallback-on-absence
       rules, rather than from a Single Binding Primitive
       (Section 3.3.2.1).  Multi-input selection enables Unverified Claim
-      Exploitation (Section 8.3): an attacker constructs an Assertion
+      Exploitation (Section 8.4): an attacker constructs an Assertion
       that satisfies multiple potential bindings and steers the
       Validator to a weaker Authority Source's policy.  The binding
       primitive MUST be a single source property invariant under
@@ -1409,7 +1448,7 @@ Table of Contents
    *  *Assertion-driven applicability waiver.* Defining trust category
       applicability as a property of the incoming Assertion rather than
       as a property of the Validator's Published Trust Policy
-      (Section 8.4).  A profile that declares a category "not
+      (Section 8.5).  A profile that declares a category "not
       applicable" when the Assertion originates from a legacy issuer,
       carries a legacy-flag claim, or matches any Assertion-internal
       heuristic lets the attacker waive the category by constructing a
@@ -1436,11 +1475,123 @@ Table of Contents
       the same Validator without analyzing how they compose.  The cross-
       category combination rule is well-defined, but two profiles in the
       same category can introduce OR-within-category weakening (see
-      Section 8.6).
+      Section 8.7).
 
 8.  Security Considerations
 
-8.1.  Open-World Delegation Security Model
+8.1.  Threat Model
+
+   This section consolidates the threat model the Authority Delegation
+   Pattern is designed against.  Concrete profiles inherit this model
+   and document profile-specific extensions in their own Security
+   Considerations.
+
+8.1.1.  Assets
+
+   Three classes of assets are protected:
+
+   *  *Authority binding*: the property that an entity claiming to be an
+      Authority Holder is in fact the Authority Holder for the named
+      scope.  Compromise lets an attacker speak as a legitimate
+      Authority.
+
+   *  *Delegation integrity*: the property that a Delegate listed in a
+      Delegation Artifact was in fact listed by the Authority Holder.
+      Compromise lets an attacker insert unauthorized Delegates.
+
+   *  *Assertion authenticity*: the property that an Assertion was
+      signed by a Delegate the Authority Holder has authorized.
+      Compromise lets an attacker mint assertions outside the delegated
+      scope.
+
+8.1.2.  Adversary Capabilities
+
+   The pattern is designed to resist adversaries with the following
+   capabilities:
+
+   *  *Publication-channel attacker*: can substitute, suppress, or forge
+      responses on the publication channel binding the Authority Holder
+      (DNS hijack, BGP redirect, registrar account compromise, TLS
+      misissuance against the authority host, CDN tenant takeover,
+      federation operator key compromise).  Different publication
+      channels expose different surfaces; see Section 8.6.
+
+   *  *Assertion-content attacker*: can craft arbitrary Assertion
+      payloads (any JWT claims, any combination of identifiers, any
+      presentation order) provided the assertion is signed by some
+      authentic key the attacker controls.  This is the standard
+      adversary in the cryptographic literature; the Authority
+      Delegation Pattern's source-selection determinism and category-
+      applicability rules (Section 3.3.1, Section 8.4, Section 8.5)
+      constrain what this adversary can achieve.
+
+   *  *Authorized-but-malicious Delegate*: a Delegate authorized by some
+      Authority Holder that uses its authorization to attack Subjects
+      (synthesizing claims, asserting about Subjects without the
+      Subjects' awareness).  The pattern bounds this adversary to the
+      scope the Authority Holder delegated; protection against the
+      Authorized Delegate's internal behavior is the Authority Holder's
+      responsibility (operational diligence, contract/audit).
+
+   *  *Compromised intermediate (chained profiles)*: in chained
+      delegation profiles, a Subdelegate whose key or authority has been
+      compromised.  Bounded-depth profiles (Section 3.5) contain this
+      adversary by construction; chained profiles require profile-
+      specific countermeasures.
+
+   *  *Cross-profile composition attacker*: a Validator implementing
+      multiple profiles can be tricked into accepting evidence that
+      satisfies one profile's category through a different profile's
+      weaker check.  See Section 8.7.
+
+8.1.3.  Trust Assumptions
+
+   The pattern assumes:
+
+   *  The Authority Holder for any named scope is unambiguously
+      identified by control of the publication channel.  Profiles MUST
+      document how channel control is established (typically: DNS
+      control, TLS server authentication, federation signing key).
+
+   *  The Validator's local policy (which profiles it implements, which
+      Authority Sources it accepts) is administered by a trusted party.
+      The pattern does not defend against an attacker who controls the
+      Validator's configuration.
+
+   *  Profile-defined extraction functions are deterministic
+      (Section 3.3.2.1).  Two cooperating Validators presented with the
+      same Assertion select the same Authority Source.
+
+   *  Cache lifetimes for retrieved Delegation Artifacts are bounded
+      (Section 5.4).  The pattern does not provide cryptographic
+      recovery from a compromise after caches expire the compromised
+      content.
+
+8.1.4.  Out-of-Scope Threats
+
+   This pattern does not address:
+
+   *  *Per-Assertion revocation*: once an Assertion is issued, the
+      pattern offers no mechanism to invalidate it within its exp
+      window.  Use OAuth Token Revocation, Token Introspection, or short
+      token lifetimes.
+
+   *  *Subject-side compromise*: a compromised Subject (whose
+      credentials an attacker has obtained at the Authority Holder or
+      Delegate) is indistinguishable from a legitimate Subject at the
+      Validator.  Mitigations are out-of-band (authentication strength,
+      fresh-authentication signals).
+
+   *  *Authority Holder operational failures*: a careless or malicious
+      Authority Holder publishing the wrong Delegates is the Authority
+      Holder's failure mode, not a pattern failure.
+
+   *  *Implementation defects in the Validator*: bugs in the Validator's
+      parsing or evaluation logic are out-of-scope; the pattern
+      specifies what the Validator MUST do, not how the Validator
+      implements it.
+
+8.2.  Open-World Delegation Security Model
 
    This pattern targets open-world deployments.  Profiles operating in
    this space accept that the set of Delegates is not enumerable in
@@ -1463,7 +1614,7 @@ Table of Contents
 
    A profile that does not address each of these is incomplete.
 
-8.2.  Pre-Authentication Trust Decisions
+8.3.  Pre-Authentication Trust Decisions
 
    Two structural decisions the Validator makes before the Assertion is
    cryptographically authenticated determine which Authority Holder's
@@ -1481,11 +1632,11 @@ Table of Contents
    still an untrusted input.  Any decision that depends on Assertion-
    internal content gives an attacker who can craft the Assertion a
    lever to influence the trust outcome.  The two subsections below
-   describe specific exploitation patterns (Section 8.3 for source
-   selection, Section 8.4 for category applicability) and the
+   describe specific exploitation patterns (Section 8.4 for source
+   selection, Section 8.5 for category applicability) and the
    mitigations.
 
-8.3.  Unverified Claim Exploitation
+8.4.  Unverified Claim Exploitation
 
    Source selection chooses which Authority Source's delegation applies
    to the incoming Assertion.  At the point of selection, the
@@ -1520,7 +1671,7 @@ Table of Contents
    brief justification that the selected Authority Source cannot be
    manipulated by other claims in the Assertion.
 
-8.4.  Applicability Bypass
+8.5.  Applicability Bypass
 
    The Cross-Category Combination Rule (Section 3.3.1) requires the
    Validator to evaluate every applicable category.  A profile that lets
@@ -1554,7 +1705,7 @@ Table of Contents
    configuration boundary; Assertion-driven waiver is an attacker-
    controlled boundary.
 
-8.5.  Authority Source Compromise
+8.6.  Authority Source Compromise
 
    The authority binding (publication channel) is the highest-value
    target.  A compromise of the publication channel (DNS hijack, TLS
@@ -1572,7 +1723,7 @@ Table of Contents
    This pattern does not provide cryptographic recovery from publication
    channel compromise.  Recovery is operational.
 
-8.6.  Profile Composition Risks
+8.7.  Profile Composition Risks
 
    When a Validator implements multiple profiles, profile composition
    creates new failure modes that no single profile addresses.
@@ -1593,7 +1744,7 @@ Table of Contents
    Profiles MUST document any composition risks with sibling profiles in
    the same category.
 
-8.7.  Failure Mode Asymmetry
+8.8.  Failure Mode Asymmetry
 
    Different publication channels have different attack surfaces.
    Profiles MUST NOT imply ordering of security strengths across
@@ -1603,7 +1754,7 @@ Table of Contents
    management complexity for direct DNS dependence.  The right choice
    depends on the deployer's threat model.
 
-8.8.  Subject Privacy
+8.9.  Subject Privacy
 
    Delegation Artifacts disclose operational relationships: which
    Delegates an Authority Holder has authorized, which Authority Sources
@@ -1616,7 +1767,7 @@ Table of Contents
    publish openly; deployments needing confidentiality must rely on
    profile-specific access control.
 
-8.9.  Per-Assertion Revocation
+8.10.  Per-Assertion Revocation
 
    This pattern does not address per-assertion revocation.  Once an
    Assertion is issued by a Delegate operating under a valid delegation,
@@ -1625,7 +1776,7 @@ Table of Contents
    needs are addressed by OAuth Token Revocation and Token
    Introspection, not by this pattern.
 
-8.10.  Mutual and Bilateral Delegation
+8.11.  Mutual and Bilateral Delegation
 
    The pattern is described in unidirectional terms (Authority Holder →
    Delegate → Assertion → Validator), but real-world deployments often
@@ -1640,7 +1791,7 @@ Table of Contents
    symmetry (each side MUST trust the other to participate) MUST specify
    how that symmetry is enforced at validation time.
 
-8.11.  Consent
+8.12.  Consent
 
    The pattern does not require user consent to delegation.  The
    Subject's involvement in the delegation lifecycle is profile-
@@ -1663,7 +1814,7 @@ Table of Contents
    Profiles deployed in user-facing contexts SHOULD document whether and
    how user consent to delegation is obtained, recorded, and revocable.
 
-8.12.  Audit and Accountability
+8.13.  Audit and Accountability
 
    A Validator's reliance on a Delegation Artifact is a security
    decision that SHOULD be auditable.  Profiles SHOULD specify what
@@ -1688,7 +1839,7 @@ Table of Contents
    recommendation is that profiles think about audit explicitly rather
    than leaving it implicit.
 
-8.13.  Cross-Domain Federation
+8.14.  Cross-Domain Federation
 
    Authority Delegation frequently crosses administrative-domain
    boundaries: an Authority Holder in domain D1 delegates to a Delegate
@@ -1713,7 +1864,7 @@ Table of Contents
    supplement the technical pattern in high-stakes cross-domain
    deployments.
 
-8.13.1.  Multi-Hop Cross-Domain Risks
+8.14.1.  Multi-Hop Cross-Domain Risks
 
    When Authority Delegation evaluation spans multiple hops across
    multiple trust domains, three risks compound that no single-hop
@@ -1743,10 +1894,10 @@ Table of Contents
       delegation was honored downstream.  Profiles deployed in audit-
       sensitive contexts SHOULD specify how audit information is
       propagated or aggregated across the chain (transparency logs,
-      security-event publication per Section 8.12, or governance-
+      security-event publication per Section 8.13, or governance-
       framework reporting).
 
-8.14.  Context Token Laundering
+8.15.  Context Token Laundering
 
    Section 3.7 states that trust does not accrete across hops: each
    hop's Validator evaluates its own delegations independently.  A
@@ -2020,6 +2171,12 @@ Table of Contents
               "OAuth 2.0 Attestation-Based Client Authentication",
               <https://datatracker.ietf.org/doc/draft-ietf-oauth-
               attestation-based-client-auth/>.
+
+   [ATTRIBUTE-AUTHORITY-TRUST]
+              "Attribute Authority Trust Method for OAuth Identity
+              Assertion Issuer Trust Policy",
+              <https://datatracker.ietf.org/doc/draft-mcguinness-oauth-
+              attribute-authority-trust/>.
 
    [CIA]      "OAuth 2.0 Client Instance Assertions using Actor Tokens",
               <https://datatracker.ietf.org/doc/draft-mcguinness-oauth-

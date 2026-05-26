@@ -2,7 +2,7 @@
 title: "Attribute Authority Trust Method for OAuth Identity Assertion Issuer Trust Policy"
 abbrev: "OAuth Attribute Authority Trust"
 docname: draft-mcguinness-oauth-attribute-authority-trust-latest
-category: std
+category: info
 submissiontype: IETF
 v: 3
 
@@ -106,6 +106,24 @@ that a specific Subject actually has a specific attribute value.
 
 # Introduction
 
+## Document Status
+
+This document is Informational. The Authority Delegation Pattern,
+Trust Policy framework, and `subject_namespace_authorization`
+category in {{AUTHORITY-DELEGATION}}, {{TRUST-POLICY}}, and {{DAI}}
+constitute the Standards-Track core of the family and address the
+two primary trust questions (issuer authentication and subject
+namespace authorization). The `attribute_attestation` category
+defined here addresses a third trust question that arises in
+specific deployments (verified-claims carriage, professional
+credentialing). It is published Informational pending validated
+deployment demand. The category, its wire format, and IANA
+registrations are stable enough to deploy, but the document is not
+yet on a Standards-Track timeline. Implementers MAY deploy this
+profile; deployments inform future Standards-Track progression.
+
+## The Third Trust Question
+
 The OAuth Identity Assertion Issuer Trust Policy {{TRUST-POLICY}}
 keeps issuer authentication and subject namespace authorization as
 distinct trust questions. Federation membership does not establish
@@ -201,76 +219,31 @@ identity assertions.
 
 ## Relationship to eKYC-IDA Verified Claims {#ekyc-ida}
 
-The OpenID Foundation's eKYC and Identity Assurance Working Group
-publishes specifications {{IDA-VERIFIED-CLAIMS}} for carrying
-verified identity claims with provenance metadata in OAuth and
-OpenID Connect. OpenID Connect for Identity Assurance
-({{OIDC4IDA}}) defines a `verified_claims` payload that wraps an
-identity-assurance attestation:
+The OpenID eKYC/IDA WG specifications {{IDA-VERIFIED-CLAIMS}} carry
+verified identity claims with provenance metadata. OIDC4IDA
+{{OIDC4IDA}} defines the `verified_claims` payload (a `verification`
+object naming a `trust_framework` plus a `claims` payload).
 
-~~~ json
-{
-  "verified_claims": {
-    "verification": {
-      "trust_framework": "eidas",
-      "evidence": [
-        {
-          "type": "document",
-          "method": "pipp",
-          "document_details": { "type": "passport" }
-        }
-      ],
-      "verification_process": "..."
-    },
-    "claims": {
-      "given_name": "Alice",
-      "birthdate": "1990-01-01"
-    }
-  }
-}
-~~~
+OIDC4IDA owns the wire format, the evidence/verification-method
+vocabulary, and the verification metadata schema. It does NOT define
+how a trust framework's owner (eIDAS, NIST, GLEIF, a national scheme)
+publishes which Issuers it has authorized, nor an OAuth-side trust
+evaluation for the Verifier to discover whether an Issuer claiming
+`"trust_framework": "eidas"` is authorized under eIDAS. OIDC4IDA's
+trust model is implicit: the Verifier is assumed to know out of band.
 
-OIDC4IDA owns:
+This document closes that gap when the trust framework identifier maps
+to a DNS-named Attribute Authority. The `verified_claims.verification.
+trust_framework` value identifies the Attribute Authority (directly if
+already DNS-named, or via the mapping in
+{{attribute-authority-determination}}). The JWT's `iss` is the
+Assertion Issuer; the Resource Authorization Server consults the
+authority's AAAP per {{lookup}} to evaluate whether `iss` is
+authorized. A worked example appears in {{ekyc-ida-example}}.
 
-- The wire format for verified-claims payloads.
-- The standardized vocabulary for evidence types, verification
-  methods, and trust frameworks.
-- The verification metadata schema (`verification` object).
-
-OIDC4IDA does NOT define:
-
-- A wire-format mechanism by which the trust framework's owner
-  (for example, eIDAS, NIST, GLEIF, a national identity scheme)
-  publishes which Assertion Issuers it has authorized to issue
-  verified claims under it.
-- An OAuth-side trust-evaluation framework for the Verifier to
-  discover whether the Issuer claiming
-  `"trust_framework": "eidas"` is in fact authorized under eIDAS.
-
-OIDC4IDA's trust model is implicit: the Verifier is assumed to know,
-out of band, which Issuers it trusts under which trust frameworks.
-
-This document closes that gap when the trust framework identifier can
-be mapped to a DNS-named Attribute Authority. The trust framework named
-in `verified_claims.verification.trust_framework` identifies the
-Attribute Authority of this document directly when it is already a
-DNS-named domain, or indirectly through the deterministic mapping
-described in {{attribute-authority-determination}}. The JWT's `iss` is
-the Assertion Issuer; the `verified_claims.claims` payload is the body
-of attestations the Authority authorizes the Issuer to make.
-
-When evaluating an OIDC4IDA payload, the Resource Authorization
-Server consults the trust framework's Attribute Authority
-Authorization Policy (per the lookup procedure in {{lookup}}) to
-discover whether the JWT's Issuer is listed as authorized under
-that trust framework. A worked example appears in
-{{ekyc-ida-example}}.
-
-A deployment using OIDC4IDA typically uses OIDC4IDA for the
-claim-payload wire format and this document for the OAuth-side
-issuer-trust evaluation. {{claim-shape}} defines two recognized
-attribute-claim shapes: the flat-triple convention and the
-OIDC4IDA `verified_claims` wrapper.
+A deployment using OIDC4IDA typically uses it for the claim payload
+and this document for OAuth-side issuer trust. {{claim-shape}} defines
+both recognized claim shapes (flat-triple and OIDC4IDA wrapper).
 
 ## Relationship to OIDC Distributed Claims
 

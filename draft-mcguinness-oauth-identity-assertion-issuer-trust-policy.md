@@ -264,8 +264,8 @@ needing attribute attestation outside namespace-bound subject
 identity should look to W3C Verifiable Credentials, OpenID for
 Verifiable Credentials, and domain-specific frameworks. Where
 their attestations are conveyed as OAuth identity assertions whose
-subject is namespace-bound, this document's trust framework
-governs the issuer-trust layer regardless of the
+subject is namespace-bound, this document's Trust Policy
+framework governs the issuer-trust layer regardless of the
 attribute-attestation layer beneath it.
 
 Future extensions to additional Subject Identifier formats follow
@@ -912,7 +912,7 @@ request, the Resource Authorization Server MUST:
    business policy. Client authentication, sender-constraining, and
    client identifier resolution are governed by the applicable
    grant profile and OAuth client-authentication mechanisms; they
-   are not specified by this trust framework.
+   are not specified by this document.
 
 Failure to satisfy issuer trust, subject identifier, or assertion
 claim requirements in the trust policy MUST result in an OAuth
@@ -1008,7 +1008,7 @@ members including `act.iss`, `act.sub`, and (optionally)
 `act.sub_profile`. The actor profile establishes that the token
 issuer's authority to assert a specific `(act.iss, act.sub)` actor
 identifier pair is not automatic and must be evaluated against a
-trust framework, but defers the framework itself to local policy or
+trust policy, but defers that policy itself to local rules or
 bilateral agreement.
 
 This section binds the Trust Method machinery of this document
@@ -1691,87 +1691,42 @@ This appendix is non-normative.
 
 **Q: Do I need both OpenID Federation and DAI?**
 
-No. Each Trust Method category is independent. A Resource
-Authorization Server lists in its Trust Policy only the methods it
-requires. Common combinations:
-
-- Federation-only: `openid_federation`. Acceptable when the
-  deployment trusts federation membership without per-namespace
-  authority binding.
-- Namespace-only: `domain_authorized_issuer`. Acceptable when the
-  deployment trusts directly-published namespace authority without
-  ecosystem-membership signals.
-- Both: requires evidence from each category. Strongest combined
-  posture.
-
-**Q: Can I use Trust Policy without DAI?**
-
-Yes. Trust Policy is the framework; DAI is one
-`subject_namespace_authorization` Trust Method. Other Trust Methods
-in that category MAY be defined by other specifications. A Resource
-Authorization Server using only `openid_federation` for
-issuer-authentication and a non-DAI namespace-authorization method
-remains within scope.
-
-**Q: What if my Subject Authority has no DNS access?**
-
-The DAI HTTPS form ({{DAI}}) supports an HTTPS well-known URL
-fallback when the Subject Authority has DNS but not the inline
-record; the `https_authorized_issuer` Trust Method ({{DAI}}) skips
-DNS entirely. A Subject Authority with no DNS presence cannot
-participate in DAI but MAY be reachable via OpenID Federation if
-the federation accepts it as a leaf entity.
-
-**Q: Does this work for path-bearing issuer identifiers (such as
-`https://login.example.com/{tenant}/v2.0`)?**
-
-Yes for `domain_authorized_issuer`, which uses case-sensitive URL
-string comparison and accepts path-bearing issuer identifiers
-directly in `authorized_issuers[].issuer`. Not for
-`email_verification_dns`, which is interoperable only with bare-
-origin issuer identifiers per {{WICG-EMAIL-VERIF}}.
-
-**Q: How does this relate to OIDC4IDA / eKYC-IDA?**
-
-OIDC4IDA defines the wire format for verified identity claims with
-provenance metadata. This document defines the OAuth-side
-trust-evaluation framework. The two compose: the
-`verified_claims.verification.trust_framework` value identifies an
-Attribute Authority whose published policy this document's Trust
-Methods consult. See the Attribute Authority Trust draft for the
-explicit composition.
+No. Each Trust Method category is independent and a Trust Policy
+lists only the categories required. Federation-only, namespace-only,
+or both-categories deployments are all valid.
 
 **Q: What's the difference between Trust Policy and DAI?**
 
 Trust Policy is the OAuth-side framework defining what an Assertion
-Issuer must satisfy. DAI is a wire-format mechanism by which a
-Subject Authority publishes which issuers it authorizes for its
-namespace. Trust Policy is published by the Resource Authorization
-Server; DAI is published by the Subject Authority. Both are
-required for the common deployment case; either can stand alone.
+Issuer must satisfy. DAI is one wire-format Trust Method by which a
+Subject Authority publishes its authorized issuers. Trust Policy is
+RAS-published; DAI is Subject-Authority-published.
 
-**Q: What happens during PSL changes?**
+**Q: What if my Subject Authority has no DNS access?**
 
-Resource Authorization Servers SHOULD use a PSL snapshot no older
-than 30 days. PSL changes that affect a deployed Subject Authority
-require operational coordination across consumers. See
-{{psl-versioning}}.
+DAI supports an HTTPS well-known URL fallback; the
+`https_authorized_issuer` Trust Method ({{DAI}}) skips DNS entirely.
+A Subject Authority with no DNS presence cannot participate in DAI.
+
+**Q: Does this work for path-bearing issuer identifiers
+(`https://login.example.com/{tenant}/v2.0`)?**
+
+Yes for `domain_authorized_issuer` (case-sensitive URL string
+comparison). Not for `email_verification_dns` (bare-origin
+identifiers only, per {{WICG-EMAIL-VERIF}}).
+
+**Q: How does this relate to OIDC4IDA / eKYC-IDA?**
+
+OIDC4IDA defines the wire format for verified claims with provenance
+metadata; this document defines the OAuth-side trust-evaluation
+framework. The two compose via
+`verified_claims.verification.trust_framework`; see the Attribute
+Authority Trust draft.
 
 **Q: How do I revoke a delegation in DAI?**
 
-Remove the affected entry (or set `valid_until` to the past) from
-the published Issuer Authorization Policy. Revocation latency is
-bounded by the cache lifetime of the most stale layer. See
-{{DAI}} §Operational Considerations.
-
-**Q: Can a Resource Authorization Server require client-instance
-binding for some clients but not others?**
-
-Yes, via local policy. The Trust Policy's
-`client_instance_assertion_required` member is a policy-wide
-requirement; per-client requirements can be enforced at token
-request time using local policy and the diagnostic reason codes of
-{{diagnostic-reasons}}.
+Remove the entry or set `valid_until` to the past. Revocation latency
+is bounded by cache lifetime; see {{DAI}} §Operational Considerations.
 
 # Document History
 

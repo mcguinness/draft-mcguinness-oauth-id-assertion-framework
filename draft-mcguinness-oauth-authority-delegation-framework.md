@@ -12,7 +12,7 @@ workgroup: "Web Authorization Protocol"
 keyword:
   - OAuth
   - authority delegation
-  - trust framework
+  - trust policy
   - issuer trust
   - identity assertion
 
@@ -81,6 +81,10 @@ informative:
   TRUST-POLICY-SCENARIOS:
     title: "Deployment Scenarios for the OAuth Identity Assertion Trust Policy Family"
     target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-trust-policy-scenarios/
+    date: false
+  GETTING-STARTED:
+    title: "Getting Started with the OAuth Authority Delegation Family"
+    target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-trust-policy-getting-started/
     date: false
   CIA:
     title: "OAuth 2.0 Client Instance Assertions using Actor Tokens"
@@ -214,14 +218,24 @@ in two layers, with two companion documents:
                           |
                           | extended with Trust Methods by
                           v
-        +-----------------+-----------------+--------------------+
-        |                 |                 |                    |
-        v                 v                 v                    v
-  Domain-Authorized   Client Instance   Attribute Authority   (future
-  Issuer Discovery        Trust              Trust            profiles)
-  (DAI)
-  subject_namespace_  client_instance_  attribute_
-  authorization       authorization     attestation
+        Standards-Track core profiles:
+        +-----------------+-----------------+
+        |                 |                 |
+        v                 v                 v
+  Domain-Authorized   Client Instance   (future
+  Issuer Discovery        Trust         Standards-Track
+  (DAI)                                 profiles)
+  subject_namespace_  client_instance_
+  authorization       authorization
+
+        Informational extensions:
+        +-----------------+
+        |                 |
+        v                 v
+  Attribute Authority   (future Informational
+        Trust            profiles)
+  attribute_
+  attestation
 
 Companion documents (sibling to Trust Policy):
 
@@ -231,6 +245,8 @@ Companion documents (sibling to Trust Policy):
 
   Deployment Scenarios           -- Non-normative worked examples
                                     spanning the family.
+
+  Getting Started                -- Non-normative entry point.
 ~~~
 
 **Trust Policy** ({{TRUST-POLICY}}) is the OAuth-side framework
@@ -240,8 +256,8 @@ Authority Determination, and grant-profile bindings. Trust Policy
 is not itself a leaf profile of this document; it is the
 framework other OAuth profiles register against.
 
-**Leaf profiles** register Trust Methods in Trust Policy's
-registry and register against this document's Authority
+**Standards-Track leaf profiles** register Trust Methods in Trust
+Policy's registry and register against this document's Authority
 Delegation Profile registry ({{iana-profile-registry}}):
 
 - {{DAI}}: DNS+HTTPS Subject-Authority publication
@@ -249,9 +265,15 @@ Delegation Profile registry ({{iana-profile-registry}}):
 - {{CLIENT-INSTANCE-TRUST}}: a third Trust Method category,
   `client_instance_authorization`, for workload-to-client binding
   (`client_authorized_instance_issuer`).
+
+**Informational extensions** register Trust Methods but are
+published Informational pending validated deployment demand:
+
 - {{ATTRIBUTE-AUTHORITY-TRUST}}: a fourth Trust Method category,
   `attribute_attestation`, for claim-type authorities
-  (`attribute_authority_authorized_issuer`).
+  (`attribute_authority_authorized_issuer`). Addresses
+  verified-claims carriage (OIDC4IDA, eKYC-IDA) and credentialing
+  bodies.
 
 **Companions** (not leaf profiles):
 
@@ -261,6 +283,8 @@ Delegation Profile registry ({{iana-profile-registry}}):
   open-world deployments.
 - {{TRUST-POLICY-SCENARIOS}}: non-normative worked examples
   showing how the family composes in deployment.
+- {{GETTING-STARTED}}: non-normative entry-point guide. The
+  recommended first read for a deployer encountering the family.
 
 ### Other OAuth-Ecosystem Specifications
 
@@ -1469,91 +1493,60 @@ Three classes of assets are protected:
 
 ### Adversary Capabilities
 
-The pattern is designed to resist adversaries with the following
-capabilities:
+The pattern is designed to resist:
 
-- **Publication-channel attacker**: can substitute, suppress, or
-  forge responses on the publication channel binding the
-  Authority Holder (DNS hijack, BGP redirect, registrar account
-  compromise, TLS misissuance against the authority host, CDN
-  tenant takeover, federation operator key compromise). Different
-  publication channels expose different surfaces; see
+- **Publication-channel attacker**: substitutes, suppresses, or
+  forges responses on the channel binding the Authority Holder (DNS
+  hijack, BGP redirect, registrar compromise, TLS misissuance, CDN
+  takeover, federation key compromise). See
   {{authority-source-compromise}}.
 
-- **Assertion-content attacker**: can craft arbitrary Assertion
-  payloads (any JWT claims, any combination of identifiers, any
-  presentation order) provided the assertion is signed by some
-  authentic key the attacker controls. This is the standard
-  adversary in the cryptographic literature; the Authority
-  Delegation Pattern's source-selection determinism and
-  category-applicability rules ({{combination-rule}},
-  {{unverified-claim}}, {{applicability-bypass}}) constrain what
-  this adversary can achieve.
+- **Assertion-content attacker**: crafts arbitrary Assertion
+  payloads signed by an attacker-controlled authentic key. The
+  combination rule, source-selection determinism, and category
+  applicability ({{combination-rule}}, {{unverified-claim}},
+  {{applicability-bypass}}) constrain what this adversary achieves.
 
-- **Authorized-but-malicious Delegate**: a Delegate authorized by
-  some Authority Holder that uses its authorization to attack
-  Subjects (synthesizing claims, asserting about Subjects without
-  the Subjects' awareness). The pattern bounds this adversary to
-  the scope the Authority Holder delegated; protection against
-  the Authorized Delegate's internal behavior is the Authority
-  Holder's responsibility (operational diligence,
-  contract/audit).
+- **Authorized-but-malicious Delegate**: a Delegate that abuses its
+  authorization to attack Subjects. The pattern bounds this to the
+  scope the Authority Holder delegated; defending against the
+  Delegate's internal behavior is the Authority Holder's
+  responsibility.
 
-- **Compromised intermediate (chained profiles)**: in chained
-  delegation profiles, a Subdelegate whose key or authority has
-  been compromised. Bounded-depth profiles ({{transitivity}})
-  contain this adversary by construction; chained profiles
+- **Compromised intermediate (chained profiles)**: a Subdelegate
+  whose key or authority is compromised. Bounded-depth profiles
+  ({{transitivity}}) contain this by construction; chained profiles
   require profile-specific countermeasures.
 
-- **Cross-profile composition attacker**: a Validator implementing
-  multiple profiles can be tricked into accepting evidence that
-  satisfies one profile's category through a different profile's
+- **Cross-profile composition attacker**: tricks a Validator into
+  satisfying one profile's category through a different profile's
   weaker check. See {{profile-composition-risks}}.
 
 ### Trust Assumptions
 
 The pattern assumes:
 
-- The Authority Holder for any named scope is unambiguously
-  identified by control of the publication channel. Profiles MUST
-  document how channel control is established (typically: DNS
-  control, TLS server authentication, federation signing key).
-
-- The Validator's local policy (which profiles it implements,
-  which Authority Sources it accepts) is administered by a
-  trusted party. The pattern does not defend against an attacker
-  who controls the Validator's configuration.
-
-- Profile-defined extraction functions are deterministic
-  ({{single-binding-primitive}}). Two cooperating Validators
-  presented with the same Assertion select the same Authority
-  Source.
-
-- Cache lifetimes for retrieved Delegation Artifacts are bounded
-  ({{cache-freshness}}). The pattern does not provide
-  cryptographic recovery from a compromise after caches expire
-  the compromised content.
+- The Authority Holder is unambiguously identified by control of
+  the publication channel (DNS, TLS, federation key). Profiles MUST
+  document how channel control is established.
+- The Validator's local policy is administered by a trusted party.
+  The pattern does not defend against a configuration attacker.
+- Extraction functions are deterministic
+  ({{single-binding-primitive}}).
+- Cache lifetimes are bounded ({{cache-freshness}}); the pattern
+  does not recover from compromise within the cache window.
 
 ### Out-of-Scope Threats
 
 This pattern does not address:
 
-- **Per-Assertion revocation**: once an Assertion is issued, the
-  pattern offers no mechanism to invalidate it within its `exp`
-  window. Use OAuth Token Revocation, Token Introspection, or
-  short token lifetimes.
-- **Subject-side compromise**: a compromised Subject (whose
-  credentials an attacker has obtained at the Authority Holder
-  or Delegate) is indistinguishable from a legitimate Subject at
-  the Validator. Mitigations are out-of-band (authentication
-  strength, fresh-authentication signals).
-- **Authority Holder operational failures**: a careless or
-  malicious Authority Holder publishing the wrong Delegates is
-  the Authority Holder's failure mode, not a pattern failure.
-- **Implementation defects in the Validator**: bugs in the
-  Validator's parsing or evaluation logic are out-of-scope; the
-  pattern specifies what the Validator MUST do, not how the
-  Validator implements it.
+- **Per-Assertion revocation**: use Token Revocation, Introspection,
+  or short token lifetimes.
+- **Subject-side compromise**: indistinguishable from a legitimate
+  Subject at the Validator. Out-of-band mitigations only.
+- **Authority Holder operational failures**: the Authority Holder's
+  failure mode, not a pattern failure.
+- **Validator implementation defects**: out of scope.
 
 ## Open-World Delegation Security Model
 

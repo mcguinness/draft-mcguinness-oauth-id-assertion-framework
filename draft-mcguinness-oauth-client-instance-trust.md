@@ -77,7 +77,7 @@ when an OAuth client presents a Client Instance Assertion per
 workload's Instance Issuer authorized by the OAuth client to attest
 that binding?
 
-This document extends the trust framework to address this question.
+This document extends the Trust Policy framework to address this question.
 It registers a third Trust Method category,
 `client_instance_authorization`, and a Trust Method,
 `client_authorized_instance_issuer`, that defers all wire-format
@@ -118,7 +118,7 @@ or it does not; clients have no machine-readable way to discover
 which authorization servers expect the assertion or to know that the
 RAS will evaluate it against {{CIA}}'s rules.
 
-This document fills that gap. It extends the trust framework's
+This document fills that gap. It extends the Trust Policy framework's
 category registry with `client_instance_authorization` and
 registers `client_authorized_instance_issuer` as a Trust Method in
 that category. The Trust Method defers all wire-format validation to
@@ -603,7 +603,7 @@ combined framework. Conflating evaluations would allow:
 - An OAuth client to confer Assertion Issuer authority on its
   Instance Issuers, or vice versa.
 
-The trust framework's cross-category combination rule prevents each
+The Trust Policy framework's cross-category combination rule prevents each
 of these by requiring evidence from every applicable category
 independently.
 

@@ -226,7 +226,8 @@ Table of Contents
 1.2.1.  OAuth Profile Family
 
    This document is the parent of an OAuth profile family for identity-
-   assertion trust evaluation.  The family has two layers:
+   assertion trust evaluation.  The family is structured in two layers,
+   with two companion documents:
 
              Authority Delegation Framework  (this document)
                            |
@@ -248,39 +249,46 @@ Table of Contents
    subject_namespace_  client_instance_  attribute_
    authorization       authorization     attestation
 
-   Each leaf profile registers one or more Trust Methods in Trust
-   Policy's registry and registers against this document's Authority
-   Delegation Profile registry (Section 10.1).
+ Companion documents (sibling to Trust Policy):
 
-   [TRUST-POLICY-SCENARIOS] is a non-normative companion document
-   presenting five end-to-end deployment scenarios spanning the family's
-   profiles.
+   Trust Policy Discovery (TPD)   -- DNS-based discovery of
+                                     Trust Policy; resource-side
+                                     dual of DAI.
 
-   *  *[TRUST-POLICY]* is the OAuth-side framework layer.  It
-      instantiates this document's pattern for OAuth identity assertions
-      and defines the Trust Policy document, the Trust Method machinery
-      (categories, combination rule, registry), Subject Authority
-      Determination, and grant-profile bindings.  Trust Policy is not
-      itself a leaf profile of this document; it is the framework other
-      OAuth profiles register against.
+   Deployment Scenarios           -- Non-normative worked examples
+                                     spanning the family.
 
-   *  Leaf profiles register Trust Methods in Trust Policy's registry
-      and register against this document's Authority Delegation Profile
-      registry (Section 10.1):
+   *Trust Policy* ([TRUST-POLICY]) is the OAuth-side framework layer.
+   It defines the Trust Policy document, the Trust Method machinery
+   (categories, combination rule, registry), Subject Authority
+   Determination, and grant-profile bindings.  Trust Policy is not
+   itself a leaf profile of this document; it is the framework other
+   OAuth profiles register against.
 
-      -  *[DAI]* defines a DNS+HTTPS Subject-Authority publication
-         mechanism (the domain_authorized_issuer and
-         https_authorized_issuer Trust Methods).
+   *Leaf profiles* register Trust Methods in Trust Policy's registry and
+   register against this document's Authority Delegation Profile
+   registry (Section 10.1):
 
-      -  *[CLIENT-INSTANCE-TRUST]* extends Trust Policy with a third
-         Trust Method category, client_instance_authorization, applying
-         the same pattern to client identity (the
-         client_authorized_instance_issuer Trust Method).
+   *  [DAI]: DNS+HTTPS Subject-Authority publication
+      (domain_authorized_issuer, https_authorized_issuer).
 
-      -  *[ATTRIBUTE-AUTHORITY-TRUST]* extends Trust Policy with a
-         fourth Trust Method category, attribute_attestation, applying
-         the same pattern to attribute authorities (the
-         attribute_authority_authorized_issuer Trust Method).
+   *  [CLIENT-INSTANCE-TRUST]: a third Trust Method category,
+      client_instance_authorization, for workload-to-client binding
+      (client_authorized_instance_issuer).
+
+   *  [ATTRIBUTE-AUTHORITY-TRUST]: a fourth Trust Method category,
+      attribute_attestation, for claim-type authorities
+      (attribute_authority_authorized_issuer).
+
+   *Companions* (not leaf profiles):
+
+   *  [TPD]: a DNS-based discovery mechanism that lets a Resource Owner
+      publish a pointer to its Trust Policy.  Resource-side dual of
+      [DAI]; closes the bilateral first-contact gap in open-world
+      deployments.
+
+   *  [TRUST-POLICY-SCENARIOS]: non-normative worked examples showing
+      how the family composes in deployment.
 
 1.2.2.  Other OAuth-Ecosystem Specifications
 
@@ -2261,6 +2269,10 @@ Table of Contents
               "Delegated Credentials for TLS and DTLS", RFC 9345,
               DOI 10.17487/RFC9345, July 2023,
               <https://www.rfc-editor.org/rfc/rfc9345>.
+
+   [TPD]      "OAuth Trust Policy Discovery",
+              <https://datatracker.ietf.org/doc/draft-mcguinness-oauth-
+              trust-policy-discovery/>.
 
    [TRUST-POLICY]
               "OAuth Identity Assertion Issuer Trust Policy",

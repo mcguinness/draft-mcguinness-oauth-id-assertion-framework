@@ -18,15 +18,17 @@ professional certification) whose authority is not the subject's
 namespace owner: is the asserting issuer authorized by the relevant
 attribute authority to attest that claim? 
        This document extends the Trust Policy framework to address this
-question. It registers a third Trust Method category,
+question. It registers an additional Trust Method category,
  attribute_attestation , and a Trust Method,
  attribute_authority_authorized_issuer , that lets an attribute
 authority (a university, an employer, a KYC provider, a
 credentialing body, or any other claim-type authority) publish the
 set of Assertion Issuers it authorizes to attest its claim types.
-The wire format follows the DNS-based publication pattern of
+The policy format uses a DNS+HTTPS publication pattern aligned with
   at a different owner name, accommodating any attribute
-authority whose identity can be expressed as a DNS-named domain. 
+authority whose identity can be expressed as a DNS-named domain. This
+document authorizes issuers to attest claim types; it does not prove
+that a specific Subject actually has a specific attribute value. 
     " name="description">
 <meta content="xml2rfc 3.33.0" name="generator">
 <meta content="OAuth" name="keyword">
@@ -1112,15 +1114,17 @@ professional certification) whose authority is not the subject's
 namespace owner: is the asserting issuer authorized by the relevant
 attribute authority to attest that claim?<a href="#section-abstract-2" class="pilcrow">¶</a></p>
 <p id="section-abstract-3">This document extends the Trust Policy framework to address this
-question. It registers a third Trust Method category,
+question. It registers an additional Trust Method category,
 <code>attribute_attestation</code>, and a Trust Method,
 <code>attribute_authority_authorized_issuer</code>, that lets an attribute
 authority (a university, an employer, a KYC provider, a
 credentialing body, or any other claim-type authority) publish the
 set of Assertion Issuers it authorizes to attest its claim types.
-The wire format follows the DNS-based publication pattern of
+The policy format uses a DNS+HTTPS publication pattern aligned with
 <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> at a different owner name, accommodating any attribute
-authority whose identity can be expressed as a DNS-named domain.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
+authority whose identity can be expressed as a DNS-named domain. This
+document authorizes issuers to attest claim types; it does not prove
+that a specific Subject actually has a specific attribute value.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-discussion-venues">
@@ -1208,143 +1212,155 @@ authority whose identity can be expressed as a DNS-named domain.<a href="#sectio
             <p id="section-toc.1-1.2.1"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-terminology" class="internal xref">Terminology</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
-            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-the-attribute_attestation-c" class="internal xref">The attribute_attestation Category</a></p>
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-trust-policy-extension" class="internal xref">Trust Policy Extension</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
-            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-attribute-claim-shape-and-a" class="internal xref">Attribute Claim Shape and Authority Determination</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
-                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-flat-triple-shape-default" class="internal xref">Flat-Triple Shape (Default)</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
-                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-oidc4ida-verified_claims-sh" class="internal xref">OIDC4IDA verified_claims Shape</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
-                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-attribute-authority-determi" class="internal xref">Attribute Authority Determination</a></p>
-</li>
-            </ul>
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-the-attribute_attestation-c" class="internal xref">The attribute_attestation Category</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
-            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-the-attribute_authority_aut" class="internal xref">The attribute_authority_authorized_issuer Trust Method</a></p>
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-attribute-claim-shape-and-a" class="internal xref">Attribute Claim Shape and Authority Determination</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
-                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-evaluation" class="internal xref">Evaluation</a></p>
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-attribute-type-identifiers" class="internal xref">Attribute Type Identifiers</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
-                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-scope-of-this-trust-method" class="internal xref">Scope of This Trust Method</a></p>
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-flat-triple-shape-default" class="internal xref">Flat-Triple Shape (Default)</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-oidc4ida-verified_claims-sh" class="internal xref">OIDC4IDA verified_claims Shape</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.4">
+                <p id="section-toc.1-1.5.2.4.1"><a href="#section-5.4" class="auto internal xref">5.4</a>.  <a href="#name-attribute-authority-determi" class="internal xref">Attribute Authority Determination</a></p>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
-            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-attribute-authority-authori" class="internal xref">Attribute Authority Authorization Policy</a></p>
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-the-attribute_authority_aut" class="internal xref">The attribute_authority_authorized_issuer Trust Method</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
-                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-members" class="internal xref">Members</a></p>
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-evaluation" class="internal xref">Evaluation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
+                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-scope-of-this-trust-method" class="internal xref">Scope of This Trust Method</a></p>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
-            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-publication" class="internal xref">Publication</a></p>
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-attribute-authority-authori" class="internal xref">Attribute Authority Authorization Policy</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
-                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-lookup-procedure" class="internal xref">Lookup Procedure</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
-                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-failure-handling" class="internal xref">Failure Handling</a></p>
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-members" class="internal xref">Members</a></p>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
-            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-combined-evaluation" class="internal xref">Combined Evaluation</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
-            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-worked-example-non-normativ" class="internal xref">Worked Example (Non-Normative)</a></p>
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-publication" class="internal xref">Publication</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1">
-                <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-publication-2" class="internal xref">Publication</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-lookup-procedure" class="internal xref">Lookup Procedure</a></p>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2">
-                <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="auto internal xref">9.2</a>.  <a href="#name-assertion" class="internal xref">Assertion</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3">
-                <p id="section-toc.1-1.9.2.3.1"><a href="#section-9.3" class="auto internal xref">9.3</a>.  <a href="#name-hiring-platform-trust-polic" class="internal xref">Hiring Platform Trust Policy</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.4">
-                <p id="section-toc.1-1.9.2.4.1"><a href="#section-9.4" class="auto internal xref">9.4</a>.  <a href="#name-verification" class="internal xref">Verification</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.5">
-                <p id="section-toc.1-1.9.2.5.1"><a href="#section-9.5" class="auto internal xref">9.5</a>.  <a href="#name-threat-unauthorized-attribu" class="internal xref">Threat: Unauthorized Attribute Attestation</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.6">
-                <p id="section-toc.1-1.9.2.6.1"><a href="#section-9.6" class="auto internal xref">9.6</a>.  <a href="#name-threat-cross-authority-attr" class="internal xref">Threat: Cross-Authority Attribute Substitution</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.7">
-                <p id="section-toc.1-1.9.2.7.1"><a href="#section-9.7" class="auto internal xref">9.7</a>.  <a href="#name-ekyc-ida-variant" class="internal xref">eKYC-IDA Variant</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-failure-handling" class="internal xref">Failure Handling</a></p>
 </li>
             </ul>
 </li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-combined-evaluation" class="internal xref">Combined Evaluation</a></p>
+</li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
-            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-worked-example-non-normativ" class="internal xref">Worked Example (Non-Normative)</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.1">
-                <p id="section-toc.1-1.10.2.1.1"><a href="#section-10.1" class="auto internal xref">10.1</a>.  <a href="#name-independence-of-attribute-c" class="internal xref">Independence of Attribute Claims</a></p>
+                <p id="section-toc.1-1.10.2.1.1"><a href="#section-10.1" class="auto internal xref">10.1</a>.  <a href="#name-publication-2" class="internal xref">Publication</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2">
-                <p id="section-toc.1-1.10.2.2.1"><a href="#section-10.2" class="auto internal xref">10.2</a>.  <a href="#name-attribute-authority-vs-subj" class="internal xref">Attribute Authority vs Subject Namespace</a></p>
+                <p id="section-toc.1-1.10.2.2.1"><a href="#section-10.2" class="auto internal xref">10.2</a>.  <a href="#name-assertion" class="internal xref">Assertion</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.3">
-                <p id="section-toc.1-1.10.2.3.1"><a href="#section-10.3" class="auto internal xref">10.3</a>.  <a href="#name-attribute-verification-is-i" class="internal xref">Attribute Verification Is Issuer-Level</a></p>
+                <p id="section-toc.1-1.10.2.3.1"><a href="#section-10.3" class="auto internal xref">10.3</a>.  <a href="#name-hiring-platform-trust-polic" class="internal xref">Hiring Platform Trust Policy</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.4">
-                <p id="section-toc.1-1.10.2.4.1"><a href="#section-10.4" class="auto internal xref">10.4</a>.  <a href="#name-subdomain-authority" class="internal xref">Subdomain Authority</a></p>
+                <p id="section-toc.1-1.10.2.4.1"><a href="#section-10.4" class="auto internal xref">10.4</a>.  <a href="#name-verification" class="internal xref">Verification</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.5">
-                <p id="section-toc.1-1.10.2.5.1"><a href="#section-10.5" class="auto internal xref">10.5</a>.  <a href="#name-same-authority-attribute-co" class="internal xref">Same-Authority Attribute Confusion</a></p>
+                <p id="section-toc.1-1.10.2.5.1"><a href="#section-10.5" class="auto internal xref">10.5</a>.  <a href="#name-threat-unauthorized-attribu" class="internal xref">Threat: Unauthorized Attribute Attestation</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.6">
-                <p id="section-toc.1-1.10.2.6.1"><a href="#section-10.6" class="auto internal xref">10.6</a>.  <a href="#name-composition-with-subject-na" class="internal xref">Composition with Subject Namespace Authorization</a></p>
+                <p id="section-toc.1-1.10.2.6.1"><a href="#section-10.6" class="auto internal xref">10.6</a>.  <a href="#name-threat-cross-authority-attr" class="internal xref">Threat: Cross-Authority Attribute Substitution</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.7">
+                <p id="section-toc.1-1.10.2.7.1"><a href="#section-10.7" class="auto internal xref">10.7</a>.  <a href="#name-ekyc-ida-variant" class="internal xref">eKYC-IDA Variant</a></p>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
-            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-privacy-considerations" class="internal xref">Privacy Considerations</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
-            <p id="section-toc.1-1.12.1"><a href="#section-12" class="auto internal xref">12</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.1">
-                <p id="section-toc.1-1.12.2.1.1"><a href="#section-12.1" class="auto internal xref">12.1</a>.  <a href="#name-trust-method-category-regis" class="internal xref">Trust Method Category Registration</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.1">
+                <p id="section-toc.1-1.11.2.1.1"><a href="#section-11.1" class="auto internal xref">11.1</a>.  <a href="#name-independence-of-attribute-c" class="internal xref">Independence of Attribute Claims</a></p>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.2">
-                <p id="section-toc.1-1.12.2.2.1"><a href="#section-12.2" class="auto internal xref">12.2</a>.  <a href="#name-trust-method-registration" class="internal xref">Trust Method Registration</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.2">
+                <p id="section-toc.1-1.11.2.2.1"><a href="#section-11.2" class="auto internal xref">11.2</a>.  <a href="#name-attribute-authority-vs-subj" class="internal xref">Attribute Authority vs Subject Namespace</a></p>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.3">
-                <p id="section-toc.1-1.12.2.3.1"><a href="#section-12.3" class="auto internal xref">12.3</a>.  <a href="#name-well-known-uri" class="internal xref">Well-Known URI</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.3">
+                <p id="section-toc.1-1.11.2.3.1"><a href="#section-11.3" class="auto internal xref">11.3</a>.  <a href="#name-protected-attribute-omissio" class="internal xref">Protected Attribute Omission</a></p>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.4">
-                <p id="section-toc.1-1.12.2.4.1"><a href="#section-12.4" class="auto internal xref">12.4</a>.  <a href="#name-underscored-dns-node-name" class="internal xref">Underscored DNS Node Name</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.4">
+                <p id="section-toc.1-1.11.2.4.1"><a href="#section-11.4" class="auto internal xref">11.4</a>.  <a href="#name-attribute-verification-is-i" class="internal xref">Attribute Verification Is Issuer-Level</a></p>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.5">
-                <p id="section-toc.1-1.12.2.5.1"><a href="#section-12.5" class="auto internal xref">12.5</a>.  <a href="#name-authority-delegation-profil" class="internal xref">Authority Delegation Profile Registration</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.5">
+                <p id="section-toc.1-1.11.2.5.1"><a href="#section-11.5" class="auto internal xref">11.5</a>.  <a href="#name-subdomain-authority" class="internal xref">Subdomain Authority</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.6">
+                <p id="section-toc.1-1.11.2.6.1"><a href="#section-11.6" class="auto internal xref">11.6</a>.  <a href="#name-same-authority-attribute-co" class="internal xref">Same-Authority Attribute Confusion</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.7">
+                <p id="section-toc.1-1.11.2.7.1"><a href="#section-11.7" class="auto internal xref">11.7</a>.  <a href="#name-composition-with-subject-na" class="internal xref">Composition with Subject Namespace Authorization</a></p>
 </li>
             </ul>
 </li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#section-12" class="auto internal xref">12</a>. <a href="#name-privacy-considerations" class="internal xref">Privacy Considerations</a></p>
+</li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
-            <p id="section-toc.1-1.13.1"><a href="#section-13" class="auto internal xref">13</a>. <a href="#name-references" class="internal xref">References</a></p>
+            <p id="section-toc.1-1.13.1"><a href="#section-13" class="auto internal xref">13</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.1">
-                <p id="section-toc.1-1.13.2.1.1"><a href="#section-13.1" class="auto internal xref">13.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+                <p id="section-toc.1-1.13.2.1.1"><a href="#section-13.1" class="auto internal xref">13.1</a>.  <a href="#name-trust-method-category-regis" class="internal xref">Trust Method Category Registration</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.2">
-                <p id="section-toc.1-1.13.2.2.1"><a href="#section-13.2" class="auto internal xref">13.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+                <p id="section-toc.1-1.13.2.2.1"><a href="#section-13.2" class="auto internal xref">13.2</a>.  <a href="#name-trust-policy-member-registr" class="internal xref">Trust Policy Member Registration</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.3">
+                <p id="section-toc.1-1.13.2.3.1"><a href="#section-13.3" class="auto internal xref">13.3</a>.  <a href="#name-trust-method-registration" class="internal xref">Trust Method Registration</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.4">
+                <p id="section-toc.1-1.13.2.4.1"><a href="#section-13.4" class="auto internal xref">13.4</a>.  <a href="#name-well-known-uri" class="internal xref">Well-Known URI</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.5">
+                <p id="section-toc.1-1.13.2.5.1"><a href="#section-13.5" class="auto internal xref">13.5</a>.  <a href="#name-underscored-dns-node-name" class="internal xref">Underscored DNS Node Name</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.6">
+                <p id="section-toc.1-1.13.2.6.1"><a href="#section-13.6" class="auto internal xref">13.6</a>.  <a href="#name-authority-delegation-profil" class="internal xref">Authority Delegation Profile Registration</a></p>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14">
-            <p id="section-toc.1-1.14.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-document-history" class="internal xref">Document History</a></p>
+            <p id="section-toc.1-1.14.1"><a href="#section-14" class="auto internal xref">14</a>. <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.1">
+                <p id="section-toc.1-1.14.2.1.1"><a href="#section-14.1" class="auto internal xref">14.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.2">
+                <p id="section-toc.1-1.14.2.2.1"><a href="#section-14.2" class="auto internal xref">14.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15">
-            <p id="section-toc.1-1.15.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+            <p id="section-toc.1-1.15.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-document-history" class="internal xref">Document History</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16">
+            <p id="section-toc.1-1.16.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
 </li>
         </ul>
 </nav>
@@ -1406,7 +1422,7 @@ defines that mechanism.<a href="#section-1-5" class="pilcrow">¶</a></p>
 <a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-relationship-to-the-oauth-p" class="section-name selfRef">Relationship to the OAuth Profile Family</a>
         </h3>
 <p id="section-1.1-1">This document extends the OAuth profile family of
-<span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span> with a third Trust Method category. The
+<span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span> with an additional Trust Method category. The
 family is:<a href="#section-1.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-1.1-2.1">
@@ -1425,7 +1441,7 @@ Determination, and two initial categories
 DNS+HTTPS Subject Authority publication.<a href="#section-1.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-1.1-2.4">
-            <p id="section-1.1-2.4.1"><strong>This document</strong>: registers a third category,
+            <p id="section-1.1-2.4.1"><strong>This document</strong>: registers an additional category,
 <code>attribute_attestation</code>, applying the same Authority Delegation
 Pattern to claim-type authority. The Authority Holder is the
 attribute authority (a university, employer, KYC provider, or
@@ -1436,7 +1452,7 @@ the Attribute Authority Authorization Policy.<a href="#section-1.1-2.4.1" class=
         </ul>
 <p id="section-1.1-3">This document depends normatively on <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span> (Trust Method
 machinery, cross-category combination rule, IANA registries) and
-borrows the DNS+HTTPS publication pattern of <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>.<a href="#section-1.1-3" class="pilcrow">¶</a></p>
+on <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> for the DNS+HTTPS authority-publication pattern.<a href="#section-1.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="relationship-to-verifiable-credentials">
@@ -1531,20 +1547,23 @@ discover whether the Issuer claiming
         </ul>
 <p id="section-1.3-7">OIDC4IDA's trust model is implicit: the Verifier is assumed to know,
 out of band, which Issuers it trusts under which trust frameworks.<a href="#section-1.3-7" class="pilcrow">¶</a></p>
-<p id="section-1.3-8">This document closes that gap. The trust framework named in
-<code>verified_claims.verification.trust_framework</code> is the Attribute
-Authority of this document; the JWT's <code>iss</code> is the Assertion
-Issuer; the <code>verified_claims.claims</code> payload is the body of
-attestations the Authority authorizes the Issuer to make.<a href="#section-1.3-8" class="pilcrow">¶</a></p>
+<p id="section-1.3-8">This document closes that gap when the trust framework identifier can
+be mapped to a DNS-named Attribute Authority. The trust framework named
+in <code>verified_claims.verification.trust_framework</code> identifies the
+Attribute Authority of this document directly when it is already a
+DNS-named domain, or indirectly through the deterministic mapping
+described in <a href="#attribute-authority-determination" class="auto internal xref">Section 5.4</a>. The JWT's <code>iss</code> is
+the Assertion Issuer; the <code>verified_claims.claims</code> payload is the body
+of attestations the Authority authorizes the Issuer to make.<a href="#section-1.3-8" class="pilcrow">¶</a></p>
 <p id="section-1.3-9">When evaluating an OIDC4IDA payload, the Resource Authorization
 Server consults the trust framework's Attribute Authority
-Authorization Policy (per the lookup procedure in <a href="#lookup" class="auto internal xref">Section 7.1</a>) to
+Authorization Policy (per the lookup procedure in <a href="#lookup" class="auto internal xref">Section 8.1</a>) to
 discover whether the JWT's Issuer is listed as authorized under
 that trust framework. A worked example appears in
-<a href="#ekyc-ida-example" class="auto internal xref">Section 9.7</a>.<a href="#section-1.3-9" class="pilcrow">¶</a></p>
+<a href="#ekyc-ida-example" class="auto internal xref">Section 10.7</a>.<a href="#section-1.3-9" class="pilcrow">¶</a></p>
 <p id="section-1.3-10">A deployment using OIDC4IDA typically uses OIDC4IDA for the
 claim-payload wire format and this document for the OAuth-side
-issuer-trust evaluation. <a href="#claim-shape" class="auto internal xref">Section 4</a> defines two recognized
+issuer-trust evaluation. <a href="#claim-shape" class="auto internal xref">Section 5</a> defines two recognized
 attribute-claim shapes: the flat-triple convention and the
 OIDC4IDA <code>verified_claims</code> wrapper.<a href="#section-1.3-10" class="pilcrow">¶</a></p>
 </section>
@@ -1586,11 +1605,11 @@ category.<a href="#section-1.5-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-1.5-2.3">
             <p id="section-1.5-2.3.1">The Attribute Authority Authorization Policy document
-(<a href="#aaap-document" class="auto internal xref">Section 6</a>).<a href="#section-1.5-2.3.1" class="pilcrow">¶</a></p>
+(<a href="#aaap-document" class="auto internal xref">Section 7</a>).<a href="#section-1.5-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-1.5-2.4">
             <p id="section-1.5-2.4.1">A DNS+HTTPS publication mechanism for that policy
-(<a href="#publication" class="auto internal xref">Section 7</a>).<a href="#section-1.5-2.4.1" class="pilcrow">¶</a></p>
+(<a href="#publication" class="auto internal xref">Section 8</a>).<a href="#section-1.5-2.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.5-3">This document does not define:<a href="#section-1.5-3" class="pilcrow">¶</a></p>
@@ -1659,67 +1678,121 @@ names and value spaces are defined by other specifications.<a href="#section-2-2
         <dd style="margin-left: 1.5em" id="section-2-2.6">
           <p id="section-2-2.6.1">The JSON document published by an Attribute Authority that
 authorizes Assertion Issuers to attest its claim types. Defined
-in <a href="#aaap-document" class="auto internal xref">Section 6</a>.<a href="#section-2-2.6.1" class="pilcrow">¶</a></p>
+in <a href="#aaap-document" class="auto internal xref">Section 7</a>.<a href="#section-2-2.6.1" class="pilcrow">¶</a></p>
 </dd>
       <dd class="break"></dd>
 </dl>
 </section>
 </div>
-<div id="category">
+<div id="policy-extension">
 <section id="section-3">
-      <h2 id="name-the-attribute_attestation-c">
-<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-the-attribute_attestation-c" class="section-name selfRef">The attribute_attestation Category</a>
+      <h2 id="name-trust-policy-extension">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-trust-policy-extension" class="section-name selfRef">Trust Policy Extension</a>
       </h2>
-<p id="section-3-1">This document registers <code>attribute_attestation</code> as a Trust Method
-category in the IANA "Identity Assertion Issuer Trust Method
-Categories" registry established by <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span>.<a href="#section-3-1" class="pilcrow">¶</a></p>
-<p id="section-3-2">Category definition:<a href="#section-3-2" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-3-3">
-        <dt id="section-3-3.1"><code>attribute_attestation</code></dt>
-        <dd style="margin-left: 1.5em" id="section-3-3.2">
-          <p id="section-3-3.2.1">Has the Attribute Authority for an asserted attribute claim
-authorized the Assertion Issuer to attest that claim? An
-attestation from the Attribute Authority's published policy
-answers this question.<a href="#section-3-3.2.1" class="pilcrow">¶</a></p>
+<p id="section-3-1">This document defines an optional Trust Policy member.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3-2">
+        <dt id="section-3-2.1"><code>attribute_attestation_claims</code></dt>
+        <dd style="margin-left: 1.5em" id="section-3-2.2">
+          <p id="section-3-2.2.1"><span class="bcp14">OPTIONAL</span>. JSON array of Attribute Type Identifiers (<a href="#attribute-type-identifiers" class="auto internal xref">Section 5.1</a>).
+Each value names an attribute claim that the Resource Authorization
+Server treats as requiring <code>attribute_attestation</code> evaluation.<a href="#section-3-2.2.1" class="pilcrow">¶</a></p>
 </dd>
       <dd class="break"></dd>
 </dl>
-<p id="section-3-4">Applicability:<a href="#section-3-4" class="pilcrow">¶</a></p>
-<p id="section-3-5">This category applies to a token request when the identity
-assertion carries one or more attribute claims accompanied by an
-Attribute Authority designation. The applicability of the category
-is per-attribute: the Resource Authorization Server evaluates the
-category once for each attribute claim that is subject to attribute
-authority verification.<a href="#section-3-5" class="pilcrow">¶</a></p>
-<p id="section-3-6">An assertion carrying NO attribute claims does not trigger
+<p id="section-3-3">When this member is present, every listed attribute that appears in an
+identity assertion <span class="bcp14">MUST</span> be evaluated under the <code>attribute_attestation</code>
+category. If a listed attribute appears without the authority metadata
+required by one of the recognized claim shapes in <a href="#claim-shape" class="auto internal xref">Section 5</a>, the
+Resource Authorization Server <span class="bcp14">MUST</span> reject the assertion with an OAuth
+<code>invalid_grant</code> error.<a href="#section-3-3" class="pilcrow">¶</a></p>
+<p id="section-3-4">When this member is absent, applicability is determined by local policy
+and by the presence of authority metadata in the assertion. A Resource
+Authorization Server <span class="bcp14">MUST NOT</span> accept a protected attribute claim merely
+because the issuer omitted authority metadata.<a href="#section-3-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="category">
+<section id="section-4">
+      <h2 id="name-the-attribute_attestation-c">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-the-attribute_attestation-c" class="section-name selfRef">The attribute_attestation Category</a>
+      </h2>
+<p id="section-4-1">This document registers <code>attribute_attestation</code> as a Trust Method
+category in the IANA "Identity Assertion Issuer Trust Method
+Categories" registry established by <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span>.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<p id="section-4-2">Category definition:<a href="#section-4-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4-3">
+        <dt id="section-4-3.1"><code>attribute_attestation</code></dt>
+        <dd style="margin-left: 1.5em" id="section-4-3.2">
+          <p id="section-4-3.2.1">Has the Attribute Authority for an asserted attribute claim
+authorized the Assertion Issuer to attest that claim? An
+attestation from the Attribute Authority's published policy
+answers this question.<a href="#section-4-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<p id="section-4-4">Applicability:<a href="#section-4-4" class="pilcrow">¶</a></p>
+<p id="section-4-5">This category applies to a token request when the identity
+assertion carries one or more protected attribute claims. A protected
+attribute claim is any claim listed in the applicable Trust Policy's
+<code>attribute_attestation_claims</code> member, any claim identified by local
+Resource Authorization Server policy as requiring attribute-authority
+verification, or any claim accompanied by Attribute Authority metadata
+under one of the recognized claim shapes in <a href="#claim-shape" class="auto internal xref">Section 5</a>. The
+applicability of the category is per-attribute: the Resource
+Authorization Server evaluates the category once for each protected
+attribute claim.<a href="#section-4-5" class="pilcrow">¶</a></p>
+<p id="section-4-6">An assertion carrying no protected attribute claims does not trigger
 applicability of this category, even when the Trust Policy lists
-methods in this category.<a href="#section-3-6" class="pilcrow">¶</a></p>
-<p id="section-3-7">Evaluation subject:<a href="#section-3-7" class="pilcrow">¶</a></p>
-<p id="section-3-8">The Trust Method in this category evaluates the Assertion Issuer
+methods in this category. An assertion carrying a protected attribute
+claim without the authority metadata required by <a href="#claim-shape" class="auto internal xref">Section 5</a> <span class="bcp14">MUST</span> be
+rejected; the issuer cannot avoid evaluation by omitting authority
+metadata.<a href="#section-4-6" class="pilcrow">¶</a></p>
+<p id="section-4-7">Evaluation subject:<a href="#section-4-7" class="pilcrow">¶</a></p>
+<p id="section-4-8">The Trust Method in this category evaluates the Assertion Issuer
 (the <code>iss</code> claim of the identity assertion) against the policy
 published by the Attribute Authority of the asserted attribute
 claim. The same Assertion Issuer may be evaluated against multiple
 Attribute Authorities when the assertion carries multiple
-attribute claims; each evaluation is independent.<a href="#section-3-8" class="pilcrow">¶</a></p>
+attribute claims; each evaluation is independent.<a href="#section-4-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="claim-shape">
-<section id="section-4">
+<section id="section-5">
       <h2 id="name-attribute-claim-shape-and-a">
-<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-attribute-claim-shape-and-a" class="section-name selfRef">Attribute Claim Shape and Authority Determination</a>
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-attribute-claim-shape-and-a" class="section-name selfRef">Attribute Claim Shape and Authority Determination</a>
       </h2>
-<p id="section-4-1">For a Resource Authorization Server to evaluate
+<div id="attribute-type-identifiers">
+<section id="section-5.1">
+        <h3 id="name-attribute-type-identifiers">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-attribute-type-identifiers" class="section-name selfRef">Attribute Type Identifiers</a>
+        </h3>
+<p id="section-5.1-1">An Attribute Type Identifier names the attribute being attested for the
+purposes of AAAP matching.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">For the flat-triple shape, the Attribute Type Identifier is the
+top-level JWT claim name <code>&lt;attribute&gt;</code>. The name <span class="bcp14">MUST</span> be an ASCII string
+matching <code>^[A-Za-z][A-Za-z0-9_]*$</code>, <span class="bcp14">MUST NOT</span> end in <code>_authority</code> or
+<code>_authority_verified</code>, and <span class="bcp14">MUST NOT</span> be a member defined by this
+document, <span>[<a href="#RFC7519" class="cite xref">RFC7519</a>]</span>, or the applicable OAuth grant profile unless that
+profile explicitly marks the member as an attribute claim eligible for
+attribute-authority verification.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.1-3">For the OIDC4IDA shape, the Attribute Type Identifier is the immediate
+member name under <code>verified_claims.claims</code>. Nested claim objects are not
+matched by this document. A future specification <span class="bcp14">MAY</span> define JSON Pointer
+or profile-specific attribute identifiers for nested claims.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+<p id="section-5.1-4">For a Resource Authorization Server to evaluate
 <code>attribute_attestation</code>, the assertion <span class="bcp14">MUST</span> express both the
 attribute claim and the Attribute Authority backing it. This
 document defines two recognized claim shapes; future specifications
-<span class="bcp14">MAY</span> register additional shapes.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<span class="bcp14">MAY</span> register additional shapes.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
 <div id="claim-shape-flat">
-<section id="section-4.1">
+<section id="section-5.2">
         <h3 id="name-flat-triple-shape-default">
-<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-flat-triple-shape-default" class="section-name selfRef">Flat-Triple Shape (Default)</a>
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-flat-triple-shape-default" class="section-name selfRef">Flat-Triple Shape (Default)</a>
         </h3>
-<p id="section-4.1-1">The flat-triple shape mirrors the <code>email</code>/<code>email_verified</code>
-convention of <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span>:<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-1">The flat-triple shape mirrors the <code>email</code>/<code>email_verified</code>
+convention of <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span>:<a href="#section-5.2-1" class="pilcrow">¶</a></p>
 <table class="center" id="table-1">
           <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
 <thead>
@@ -1758,14 +1831,14 @@ convention of <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]
             </tr>
           </tbody>
         </table>
-<p id="section-4.1-3">The <code>&lt;attribute&gt;_authority_verified</code> claim indicates that the
+<p id="section-5.2-3">The <code>&lt;attribute&gt;_authority_verified</code> claim indicates that the
 Assertion Issuer has, by its own internal procedures, verified
 the binding between the Subject and the asserted attribute under
 the named authority. The Resource Authorization Server <span class="bcp14">MUST</span> reject
 an attribute claim whose corresponding <code>_verified</code> claim is missing
-or not <code>true</code>.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
-<p id="section-4.1-4">Example assertion using the flat-triple shape:<a href="#section-4.1-4" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-4.1-5">
+or not <code>true</code>.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+<p id="section-5.2-4">Example assertion using the flat-triple shape:<a href="#section-5.2-4" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-5.2-5">
 <pre>
 {
   "iss": "https://idp.degree-issuer.example",
@@ -1779,76 +1852,81 @@ or not <code>true</code>.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
   "degree_status_authority": "university.example",
   "degree_status_authority_verified": true
 }
-</pre><a href="#section-4.1-5" class="pilcrow">¶</a>
+</pre><a href="#section-5.2-5" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
 <div id="claim-shape-ida">
-<section id="section-4.2">
+<section id="section-5.3">
         <h3 id="name-oidc4ida-verified_claims-sh">
-<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-oidc4ida-verified_claims-sh" class="section-name selfRef">OIDC4IDA verified_claims Shape</a>
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-oidc4ida-verified_claims-sh" class="section-name selfRef">OIDC4IDA verified_claims Shape</a>
         </h3>
-<p id="section-4.2-1">OIDC4IDA (<span>[<a href="#OIDC4IDA" class="cite xref">OIDC4IDA</a>]</span>) deployments use a <code>verified_claims</code>
+<p id="section-5.3-1">OIDC4IDA (<span>[<a href="#OIDC4IDA" class="cite xref">OIDC4IDA</a>]</span>) deployments use a <code>verified_claims</code>
 wrapper carrying verification metadata alongside the claims
-payload:<a href="#section-4.2-1" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-4.2-2">
+payload:<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-5.3-2">
 <pre>
 {
   "verified_claims": {
     "verification": {
-      "trust_framework": "&lt;authority&gt;",
-      "evidence": [ ... ],
+      "trust_framework": "idp-assurance.example",
+      "evidence": [
+        {
+          "type": "document",
+          "method": "pipp"
+        }
+      ],
       "verification_process": "..."
     },
     "claims": {
-      "&lt;attribute&gt;": "&lt;value&gt;",
-      ...
+      "given_name": "Alice",
+      "birthdate": "1990-01-01"
     }
   }
 }
-</pre><a href="#section-4.2-2" class="pilcrow">¶</a>
+</pre><a href="#section-5.3-2" class="pilcrow">¶</a>
 </div>
-<p id="section-4.2-3">When an assertion carries a <code>verified_claims</code> member, the
+<p id="section-5.3-3">When an assertion carries a <code>verified_claims</code> member, the
 Resource Authorization Server evaluates each claim in
 <code>verified_claims.claims</code> as an attribute claim with the Attribute
 Authority taken from <code>verified_claims.verification.trust_framework</code>.
 The presence of a well-formed <code>verified_claims.verification</code>
 object substitutes for per-attribute <code>_verified</code> triples: the
 verification metadata in the OIDC4IDA payload IS the issuer's
-verification statement.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
-<p id="section-4.2-4">A single assertion <span class="bcp14">MAY</span> contain at most one <code>verified_claims</code>
+verification statement.<a href="#section-5.3-3" class="pilcrow">¶</a></p>
+<p id="section-5.3-4">A single assertion <span class="bcp14">MAY</span> contain at most one <code>verified_claims</code>
 member. If a future specification registers multiple-attestation
 OIDC4IDA structures, that specification <span class="bcp14">MUST</span> extend this
-processing rule.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
-<p id="section-4.2-5">When an assertion carries BOTH flat-triple claims and a
+processing rule.<a href="#section-5.3-4" class="pilcrow">¶</a></p>
+<p id="section-5.3-5">When an assertion carries BOTH flat-triple claims and a
 <code>verified_claims</code> member, the Resource Authorization Server
 evaluates each independently. The Trust Method is satisfied only
 when ALL attribute claims across both shapes are authorized by
-their respective Attribute Authorities.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
+their respective Attribute Authorities.<a href="#section-5.3-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="attribute-authority-determination">
-<section id="section-4.3">
+<section id="section-5.4">
         <h3 id="name-attribute-authority-determi">
-<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-attribute-authority-determi" class="section-name selfRef">Attribute Authority Determination</a>
+<a href="#section-5.4" class="section-number selfRef">5.4. </a><a href="#name-attribute-authority-determi" class="section-name selfRef">Attribute Authority Determination</a>
         </h3>
-<p id="section-4.3-1">The Attribute Authority for each attribute claim is determined
-from the assertion as follows:<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<p id="section-5.4-1">The Attribute Authority for each protected attribute claim is determined
+from the assertion as follows:<a href="#section-5.4-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.3-2.1">
-            <p id="section-4.3-2.1.1">For flat-triple claims, from the <code>&lt;attribute&gt;_authority</code> claim.<a href="#section-4.3-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-5.4-2.1">
+            <p id="section-5.4-2.1.1">For flat-triple claims, from the <code>&lt;attribute&gt;_authority</code> claim.<a href="#section-5.4-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-4.3-2.2">
-            <p id="section-4.3-2.2.1">For OIDC4IDA <code>verified_claims</code>, from the
-<code>verified_claims.verification.trust_framework</code> claim.<a href="#section-4.3-2.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-5.4-2.2">
+            <p id="section-5.4-2.2.1">For OIDC4IDA <code>verified_claims</code>, from the
+<code>verified_claims.verification.trust_framework</code> claim.<a href="#section-5.4-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-4.3-3">In both cases the value <span class="bcp14">MUST</span> be a DNS-named domain. The Subject
+<p id="section-5.4-3">In both cases the value <span class="bcp14">MUST</span> be a DNS-named domain. The Subject
 Authority comparison rules of <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span> §Subject Authority
 Determination apply unchanged: the domain is normalized to A-label
 form per <span>[<a href="#RFC5891" class="cite xref">RFC5891</a>]</span> and compared case-insensitively against the
-policy's <code>attribute_authority</code> member.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
-<p id="section-4.3-4">Unlike Subject Authority extraction, this document does not
+policy's <code>attribute_authority</code> member.<a href="#section-5.4-3" class="pilcrow">¶</a></p>
+<p id="section-5.4-4">Unlike Subject Authority extraction, this document does not
 normalize the authority value to the registrable domain. The
 Attribute Authority is identified by the exact domain the
 Assertion Issuer claims. A deployment that wants to authorize
@@ -1856,8 +1934,8 @@ subdomains independently registers the exact subdomain as the
 attribute authority; the registrable-domain default is not imposed
 here because attribute authorities (unlike email namespaces) often
 correspond to specific operational entities at specific subdomains
-(<code>alumni.university.example</code>, <code>hr.employer.example</code>).<a href="#section-4.3-4" class="pilcrow">¶</a></p>
-<p id="section-4.3-5">For OIDC4IDA trust frameworks identified by short names rather
+(<code>alumni.university.example</code>, <code>hr.employer.example</code>).<a href="#section-5.4-4" class="pilcrow">¶</a></p>
+<p id="section-5.4-5">For OIDC4IDA trust frameworks identified by short names rather
 than DNS domains (for example, <code>"eidas"</code>, <code>"nist_800_63A_ial_1"</code>),
 the deployment <span class="bcp14">MUST</span> establish a mapping between the trust-framework
 identifier and a DNS-named Attribute Authority. The mapping is
@@ -1865,110 +1943,133 @@ out of scope for this document; deployments <span class="bcp14">MAY</span> use b
 configuration, a community-maintained registry, or any other
 mechanism consistent with the deterministic source-selection
 requirement of <span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span> §Profile Mapping Matrix
-Requirements.<a href="#section-4.3-5" class="pilcrow">¶</a></p>
-<p id="section-4.3-6">Future specifications <span class="bcp14">MAY</span> register alternative attribute-authority
+Requirements.<a href="#section-5.4-5" class="pilcrow">¶</a></p>
+<p id="section-5.4-6">Future specifications <span class="bcp14">MAY</span> register alternative attribute-authority
 extractions for claim shapes not covered by the two shapes above
 (for example, attribute claims that embed VCs whose <code>iss</code> is the
-attribute authority directly).<a href="#section-4.3-6" class="pilcrow">¶</a></p>
+attribute authority directly).<a href="#section-5.4-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
 <div id="trust-method">
-<section id="section-5">
+<section id="section-6">
       <h2 id="name-the-attribute_authority_aut">
-<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-the-attribute_authority_aut" class="section-name selfRef">The attribute_authority_authorized_issuer Trust Method</a>
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-the-attribute_authority_aut" class="section-name selfRef">The attribute_authority_authorized_issuer Trust Method</a>
       </h2>
-<p id="section-5-1">This document registers <code>attribute_authority_authorized_issuer</code> as
-the initial Trust Method in the <code>attribute_attestation</code> category.<a href="#section-5-1" class="pilcrow">¶</a></p>
-<p id="section-5-2">The method indicates that the Assertion Issuer is acceptable for a
+<p id="section-6-1">This document registers <code>attribute_authority_authorized_issuer</code> as
+the initial Trust Method in the <code>attribute_attestation</code> category.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<p id="section-6-2">The method indicates that the Assertion Issuer is acceptable for a
 given attribute claim if the Attribute Authority named in the
 <code>&lt;attribute&gt;_authority</code> claim authorizes the Assertion Issuer to
 attest that attribute, as published in the Attribute Authority
-Authorization Policy (<a href="#aaap-document" class="auto internal xref">Section 6</a>).<a href="#section-5-2" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-5-3">
+Authorization Policy (<a href="#aaap-document" class="auto internal xref">Section 7</a>).<a href="#section-6-2" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-6-3">
 <pre>
 {
   "method": "attribute_authority_authorized_issuer"
 }
-</pre><a href="#section-5-3" class="pilcrow">¶</a>
+</pre><a href="#section-6-3" class="pilcrow">¶</a>
 </div>
-<p id="section-5-4">This Trust Method has no parameters.<a href="#section-5-4" class="pilcrow">¶</a></p>
+<p id="section-6-4">This Trust Method has no parameters.<a href="#section-6-4" class="pilcrow">¶</a></p>
 <div id="evaluation">
-<section id="section-5.1">
+<section id="section-6.1">
         <h3 id="name-evaluation">
-<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-evaluation" class="section-name selfRef">Evaluation</a>
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-evaluation" class="section-name selfRef">Evaluation</a>
         </h3>
-<p id="section-5.1-1">When the Resource Authorization Server evaluates this Trust Method
-against an attribute claim in the identity assertion:<a href="#section-5.1-1" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-5.1-2">
-<li id="section-5.1-2.1">
-            <p id="section-5.1-2.1.1">Determine the Attribute Authority <code>A</code> from the assertion's
-<code>&lt;attribute&gt;_authority</code> claim per <a href="#claim-shape" class="auto internal xref">Section 4</a>.<a href="#section-5.1-2.1.1" class="pilcrow">¶</a></p>
+<p id="section-6.1-1">When the Resource Authorization Server evaluates this Trust Method
+against a protected attribute claim in the identity assertion:<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-6.1-2">
+<li id="section-6.1-2.1">
+            <p id="section-6.1-2.1.1">Determine the Attribute Type Identifier <code>T</code> from the recognized claim
+shape in <a href="#attribute-type-identifiers" class="auto internal xref">Section 5.1</a>.<a href="#section-6.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-5.1-2.2">
-            <p id="section-5.1-2.2.1">If the corresponding <code>&lt;attribute&gt;_authority_verified</code> claim is
-absent or not <code>true</code>, the Trust Method is not satisfied; the
-Resource Authorization Server <span class="bcp14">MUST</span> reject the assertion.<a href="#section-5.1-2.2.1" class="pilcrow">¶</a></p>
+          <li id="section-6.1-2.2">
+            <p id="section-6.1-2.2.1">Determine the Attribute Authority <code>A</code> for <code>T</code> from the recognized
+claim shape:<a href="#section-6.1-2.2.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-6.1-2.2.2.1">
+                <p id="section-6.1-2.2.2.1.1">For the flat-triple shape, use the <code>&lt;attribute&gt;_authority</code> claim.
+If the corresponding <code>&lt;attribute&gt;_authority_verified</code> claim is
+absent or not <code>true</code>, the Trust Method is not satisfied and the
+Resource Authorization Server <span class="bcp14">MUST</span> reject the assertion.<a href="#section-6.1-2.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-5.1-2.3">
-            <p id="section-5.1-2.3.1">Retrieve the Attribute Authority Authorization Policy for <code>A</code>
-per the lookup procedure in <a href="#lookup" class="auto internal xref">Section 7.1</a>. Negative and
-Indeterminate outcomes (<a href="#failures" class="auto internal xref">Section 7.2</a>) <span class="bcp14">MUST</span> result in rejection.<a href="#section-5.1-2.3.1" class="pilcrow">¶</a></p>
+              <li class="normal" id="section-6.1-2.2.2.2">
+                <p id="section-6.1-2.2.2.2.1">For the OIDC4IDA shape, use
+<code>verified_claims.verification.trust_framework</code> after applying any
+deterministic trust-framework-to-domain mapping required by
+<a href="#attribute-authority-determination" class="auto internal xref">Section 5.4</a>. The presence of a
+well-formed <code>verified_claims.verification</code> object is the issuer's
+verification statement for claims in <code>verified_claims.claims</code>.<a href="#section-6.1-2.2.2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-5.1-2.4">
-            <p id="section-5.1-2.4.1">Find an entry in <code>authorized_issuers</code> whose <code>issuer</code> matches the
-assertion's <code>iss</code> claim using case-sensitive URL string
-equality, AND whose <code>attribute_types</code> list includes the
-attribute name being evaluated.<a href="#section-5.1-2.4.1" class="pilcrow">¶</a></p>
+            </ul>
 </li>
-          <li id="section-5.1-2.5">
-            <p id="section-5.1-2.5.1">If the entry contains a <code>tenant</code> member, verify the assertion's
-<code>tenant</code> claim matches per <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span> multi-tenant
-binding rules.<a href="#section-5.1-2.5.1" class="pilcrow">¶</a></p>
+          <li id="section-6.1-2.3">
+            <p id="section-6.1-2.3.1">Retrieve the Attribute Authority Authorization Policy for <code>A</code>
+per the lookup procedure in <a href="#lookup" class="auto internal xref">Section 8.1</a>. Negative and
+Indeterminate outcomes (<a href="#failures" class="auto internal xref">Section 8.2</a>) <span class="bcp14">MUST</span> result in rejection.<a href="#section-6.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-5.1-2.6">
-            <p id="section-5.1-2.6.1">If the entry contains <code>valid_from</code>/<code>valid_until</code>, verify the
-current time is within the validity window.<a href="#section-5.1-2.6.1" class="pilcrow">¶</a></p>
+          <li id="section-6.1-2.4">
+            <p id="section-6.1-2.4.1">Find an entry in <code>authorized_issuers</code> whose <code>issuer</code> matches the
+assertion's <code>iss</code> claim using case-sensitive URL string equality,
+AND whose <code>attribute_types</code> list includes <code>T</code>.<a href="#section-6.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-5.1-2.7">
-            <p id="section-5.1-2.7.1">If all checks succeed, the Trust Method is satisfied for this
-attribute. If the assertion carries multiple attribute claims,
-the Resource Authorization Server repeats steps 1-6 for each
-attribute claim independently.<a href="#section-5.1-2.7.1" class="pilcrow">¶</a></p>
+          <li id="section-6.1-2.5">
+            <p id="section-6.1-2.5.1">If the entry contains a <code>tenant</code> member, verify the assertion's
+<code>tenant</code> claim matches per <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span> multi-tenant binding
+rules.<a href="#section-6.1-2.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-6.1-2.6">
+            <p id="section-6.1-2.6.1">If the entry contains <code>subject_populations</code>, determine the
+assertion's primary Subject Identifier per the applicable grant
+profile, compute its Subject Authority using <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span>
+§Subject Authority Determination, and verify that the computed
+authority matches at least one value in <code>subject_populations</code>. If the
+primary Subject Identifier has no registered extraction procedure, or
+no listed value matches, the Trust Method is not satisfied.<a href="#section-6.1-2.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-6.1-2.7">
+            <p id="section-6.1-2.7.1">If the entry contains <code>valid_from</code>/<code>valid_until</code>, verify the
+current time is within the validity window.<a href="#section-6.1-2.7.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-6.1-2.8">
+            <p id="section-6.1-2.8.1">If all checks succeed, the Trust Method is satisfied for this
+attribute. If the assertion carries multiple protected attribute
+claims, the Resource Authorization Server repeats steps 1-7 for each
+protected attribute claim independently.<a href="#section-6.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
-<p id="section-5.1-3">On failure, the Resource Authorization Server <span class="bcp14">MUST</span> reject the
-assertion with an OAuth <code>invalid_grant</code> error.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+<p id="section-6.1-3">On failure, the Resource Authorization Server <span class="bcp14">MUST</span> reject the
+assertion with an OAuth <code>invalid_grant</code> error.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="scope-of-this-trust-method">
-<section id="section-5.2">
+<section id="section-6.2">
         <h3 id="name-scope-of-this-trust-method">
-<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-scope-of-this-trust-method" class="section-name selfRef">Scope of This Trust Method</a>
+<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-scope-of-this-trust-method" class="section-name selfRef">Scope of This Trust Method</a>
         </h3>
-<p id="section-5.2-1">This Trust Method authorizes the Assertion Issuer to attest the
-specific attribute claim; it does NOT:<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-6.2-1">This Trust Method authorizes the Assertion Issuer to attest the
+specific attribute claim; it does NOT:<a href="#section-6.2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-5.2-2.1">
-            <p id="section-5.2-2.1.1">Authorize the Assertion Issuer to attest other attribute claims
+<li class="normal" id="section-6.2-2.1">
+            <p id="section-6.2-2.1.1">Authorize the Assertion Issuer to attest other attribute claims
 not listed in the matched <code>authorized_issuers</code> entry's
-<code>attribute_types</code>.<a href="#section-5.2-2.1.1" class="pilcrow">¶</a></p>
+<code>attribute_types</code>.<a href="#section-6.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.2-2.2">
-            <p id="section-5.2-2.2.1">Establish that the Assertion Issuer is authoritative for the
+          <li class="normal" id="section-6.2-2.2">
+            <p id="section-6.2-2.2.1">Establish that the Assertion Issuer is authoritative for the
 Subject's namespace (that is a <code>subject_namespace_authorization</code>
-question).<a href="#section-5.2-2.2.1" class="pilcrow">¶</a></p>
+question).<a href="#section-6.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.2-2.3">
-            <p id="section-5.2-2.3.1">Authenticate the Assertion Issuer as a federation member (that
-is an <code>issuer_authentication</code> question).<a href="#section-5.2-2.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-6.2-2.3">
+            <p id="section-6.2-2.3.1">Authenticate the Assertion Issuer as a federation member (that
+is an <code>issuer_authentication</code> question).<a href="#section-6.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-5.2-2.4">
-            <p id="section-5.2-2.4.1">Validate the attribute value itself. The Attribute Authority
+          <li class="normal" id="section-6.2-2.4">
+            <p id="section-6.2-2.4.1">Validate the attribute value itself. The Attribute Authority
 authorizes the Assertion Issuer to make the attestation; it does
 NOT thereby vouch for the truth of any specific assertion's
-attribute value.<a href="#section-5.2-2.4.1" class="pilcrow">¶</a></p>
+attribute value.<a href="#section-6.2-2.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1976,18 +2077,18 @@ attribute value.<a href="#section-5.2-2.4.1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="aaap-document">
-<section id="section-6">
+<section id="section-7">
       <h2 id="name-attribute-authority-authori">
-<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-attribute-authority-authori" class="section-name selfRef">Attribute Authority Authorization Policy</a>
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-attribute-authority-authori" class="section-name selfRef">Attribute Authority Authorization Policy</a>
       </h2>
-<p id="section-6-1">The Attribute Authority Authorization Policy is a JSON document
+<p id="section-7-1">The Attribute Authority Authorization Policy is a JSON document
 served over HTTPS with media type <code>application/json</code>. The document
 <span class="bcp14">MUST</span> be a JSON object. Consumers <span class="bcp14">MUST</span> reject a policy document that
 is not syntactically valid JSON, whose top-level value is not an
 object, or whose required members are absent or have the wrong
-JSON type.<a href="#section-6-1" class="pilcrow">¶</a></p>
-<p id="section-6-2">Example:<a href="#section-6-2" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-6-3">
+JSON type.<a href="#section-7-1" class="pilcrow">¶</a></p>
+<p id="section-7-2">Example:<a href="#section-7-2" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-7-3">
 <pre>
 {
   "attribute_authority": "university.example",
@@ -2005,96 +2106,95 @@ JSON type.<a href="#section-6-1" class="pilcrow">¶</a></p>
   ],
   "last_updated": "2026-05-25T00:00:00Z"
 }
-</pre><a href="#section-6-3" class="pilcrow">¶</a>
+</pre><a href="#section-7-3" class="pilcrow">¶</a>
 </div>
 <div id="members">
-<section id="section-6.1">
+<section id="section-7.1">
         <h3 id="name-members">
-<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-members" class="section-name selfRef">Members</a>
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-members" class="section-name selfRef">Members</a>
         </h3>
-<span class="break"></span><dl class="dlParallel" id="section-6.1-1">
-          <dt id="section-6.1-1.1"><code>attribute_authority</code></dt>
-          <dd style="margin-left: 1.5em" id="section-6.1-1.2">
-            <p id="section-6.1-1.2.1"><span class="bcp14">REQUIRED</span>. String. The Attribute Authority identifier this policy
+<span class="break"></span><dl class="dlParallel" id="section-7.1-1">
+          <dt id="section-7.1-1.1"><code>attribute_authority</code></dt>
+          <dd style="margin-left: 1.5em" id="section-7.1-1.2">
+            <p id="section-7.1-1.2.1"><span class="bcp14">REQUIRED</span>. String. The Attribute Authority identifier this policy
 applies to. Consumers <span class="bcp14">MUST</span> verify this value matches the
 Attribute Authority computed from the assertion's
-<code>&lt;attribute&gt;_authority</code> claim per <a href="#claim-shape" class="auto internal xref">Section 4</a>.<a href="#section-6.1-1.2.1" class="pilcrow">¶</a></p>
+<code>&lt;attribute&gt;_authority</code> claim per <a href="#claim-shape" class="auto internal xref">Section 5</a>.<a href="#section-7.1-1.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-6.1-1.3"><code>authorized_issuers</code></dt>
-          <dd style="margin-left: 1.5em" id="section-6.1-1.4">
-            <p id="section-6.1-1.4.1"><span class="bcp14">REQUIRED</span>. Non-empty JSON array of authorized issuer objects.
-Each object has:<a href="#section-6.1-1.4.1" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-6.1-1.4.2">
-              <dt id="section-6.1-1.4.2.1"><code>issuer</code></dt>
-              <dd style="margin-left: 1.5em" id="section-6.1-1.4.2.2">
-                <p id="section-6.1-1.4.2.2.1"><span class="bcp14">REQUIRED</span>. String. The Assertion Issuer identifier (HTTPS URL,
-compared per <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span> comparison rules).<a href="#section-6.1-1.4.2.2.1" class="pilcrow">¶</a></p>
+<dt id="section-7.1-1.3"><code>authorized_issuers</code></dt>
+          <dd style="margin-left: 1.5em" id="section-7.1-1.4">
+            <p id="section-7.1-1.4.1"><span class="bcp14">REQUIRED</span>. Non-empty JSON array of authorized issuer objects.
+Each object has:<a href="#section-7.1-1.4.1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-7.1-1.4.2">
+              <dt id="section-7.1-1.4.2.1"><code>issuer</code></dt>
+              <dd style="margin-left: 1.5em" id="section-7.1-1.4.2.2">
+                <p id="section-7.1-1.4.2.2.1"><span class="bcp14">REQUIRED</span>. String. The Assertion Issuer identifier (HTTPS URL,
+compared per <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span> comparison rules).<a href="#section-7.1-1.4.2.2.1" class="pilcrow">¶</a></p>
 </dd>
               <dd class="break"></dd>
-<dt id="section-6.1-1.4.2.3"><code>attribute_types</code></dt>
-              <dd style="margin-left: 1.5em" id="section-6.1-1.4.2.4">
-                <p id="section-6.1-1.4.2.4.1"><span class="bcp14">REQUIRED</span>. Non-empty JSON array of strings, each a claim name
-this Assertion Issuer is authorized to attest under this
-Attribute Authority. Each string corresponds to the
-<code>&lt;attribute&gt;</code> portion of the claim triple defined in
-<a href="#claim-shape" class="auto internal xref">Section 4</a>.<a href="#section-6.1-1.4.2.4.1" class="pilcrow">¶</a></p>
+<dt id="section-7.1-1.4.2.3"><code>attribute_types</code></dt>
+              <dd style="margin-left: 1.5em" id="section-7.1-1.4.2.4">
+                <p id="section-7.1-1.4.2.4.1"><span class="bcp14">REQUIRED</span>. Non-empty JSON array of Attribute Type Identifiers
+(<a href="#attribute-type-identifiers" class="auto internal xref">Section 5.1</a>) this Assertion Issuer is authorized
+to attest under this Attribute Authority.<a href="#section-7.1-1.4.2.4.1" class="pilcrow">¶</a></p>
 </dd>
               <dd class="break"></dd>
-<dt id="section-6.1-1.4.2.5"><code>tenant</code></dt>
-              <dd style="margin-left: 1.5em" id="section-6.1-1.4.2.6">
-                <p id="section-6.1-1.4.2.6.1"><span class="bcp14">OPTIONAL</span>. String. Same semantics as the <code>tenant</code> member of
+<dt id="section-7.1-1.4.2.5"><code>tenant</code></dt>
+              <dd style="margin-left: 1.5em" id="section-7.1-1.4.2.6">
+                <p id="section-7.1-1.4.2.6.1"><span class="bcp14">OPTIONAL</span>. String. Same semantics as the <code>tenant</code> member of
 <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>'s <code>authorized_issuers</code> entries: binds the authorization
 to a specific tenant of a shared-issuer multi-tenant Identity
-Provider.<a href="#section-6.1-1.4.2.6.1" class="pilcrow">¶</a></p>
+Provider.<a href="#section-7.1-1.4.2.6.1" class="pilcrow">¶</a></p>
 </dd>
               <dd class="break"></dd>
-<dt id="section-6.1-1.4.2.7"><code>subject_populations</code></dt>
-              <dd style="margin-left: 1.5em" id="section-6.1-1.4.2.8">
-                <p id="section-6.1-1.4.2.8.1"><span class="bcp14">OPTIONAL</span>. JSON array of strings. When present, restricts the
+<dt id="section-7.1-1.4.2.7"><code>subject_populations</code></dt>
+              <dd style="margin-left: 1.5em" id="section-7.1-1.4.2.8">
+                <p id="section-7.1-1.4.2.8.1"><span class="bcp14">OPTIONAL</span>. JSON array of strings. When present, restricts the
 authorization to Subjects whose primary subject identifier
 (per the applicable grant profile) is within one of the listed
-namespaces. For example, an Attribute Authority might restrict
+Subject Authorities, compared using <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span> §Subject
+Authority Determination. For example, an Attribute Authority might restrict
 a degree-status attestor to attest only about Subjects in the
 university's own email namespace by setting
 <code>subject_populations: ["university.example"]</code>. When omitted,
-no subject-population constraint applies.<a href="#section-6.1-1.4.2.8.1" class="pilcrow">¶</a></p>
+no subject-population constraint applies.<a href="#section-7.1-1.4.2.8.1" class="pilcrow">¶</a></p>
 </dd>
               <dd class="break"></dd>
-<dt id="section-6.1-1.4.2.9"><code>valid_from</code></dt>
-              <dd style="margin-left: 1.5em" id="section-6.1-1.4.2.10">
-                <p id="section-6.1-1.4.2.10.1"><span class="bcp14">OPTIONAL</span>. RFC 3339 date-time. The delegation <span class="bcp14">MUST NOT</span> be
+<dt id="section-7.1-1.4.2.9"><code>valid_from</code></dt>
+              <dd style="margin-left: 1.5em" id="section-7.1-1.4.2.10">
+                <p id="section-7.1-1.4.2.10.1"><span class="bcp14">OPTIONAL</span>. RFC 3339 date-time. The delegation <span class="bcp14">MUST NOT</span> be
 treated as valid before this time. Same 5-minute skew
-tolerance as <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>.<a href="#section-6.1-1.4.2.10.1" class="pilcrow">¶</a></p>
+tolerance as <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>.<a href="#section-7.1-1.4.2.10.1" class="pilcrow">¶</a></p>
 </dd>
               <dd class="break"></dd>
-<dt id="section-6.1-1.4.2.11"><code>valid_until</code></dt>
-              <dd style="margin-left: 1.5em" id="section-6.1-1.4.2.12">
-                <p id="section-6.1-1.4.2.12.1"><span class="bcp14">OPTIONAL</span>. RFC 3339 date-time. The delegation <span class="bcp14">MUST NOT</span> be
-treated as valid at or after this time.<a href="#section-6.1-1.4.2.12.1" class="pilcrow">¶</a></p>
+<dt id="section-7.1-1.4.2.11"><code>valid_until</code></dt>
+              <dd style="margin-left: 1.5em" id="section-7.1-1.4.2.12">
+                <p id="section-7.1-1.4.2.12.1"><span class="bcp14">OPTIONAL</span>. RFC 3339 date-time. The delegation <span class="bcp14">MUST NOT</span> be
+treated as valid at or after this time.<a href="#section-7.1-1.4.2.12.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
 </dl>
 </dd>
           <dd class="break"></dd>
-<dt id="section-6.1-1.5"><code>last_updated</code></dt>
-          <dd style="margin-left: 1.5em" id="section-6.1-1.6">
-            <p id="section-6.1-1.6.1"><span class="bcp14">OPTIONAL</span>. RFC 3339 date-time at which the policy was last
-published.<a href="#section-6.1-1.6.1" class="pilcrow">¶</a></p>
+<dt id="section-7.1-1.5"><code>last_updated</code></dt>
+          <dd style="margin-left: 1.5em" id="section-7.1-1.6">
+            <p id="section-7.1-1.6.1"><span class="bcp14">OPTIONAL</span>. RFC 3339 date-time at which the policy was last
+published.<a href="#section-7.1-1.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-6.1-1.7"><code>crit</code></dt>
-          <dd style="margin-left: 1.5em" id="section-6.1-1.8">
-            <p id="section-6.1-1.8.1"><span class="bcp14">OPTIONAL</span>. JSON array of strings. Same semantics as
-<span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span> §Critical Extension Identifiers.<a href="#section-6.1-1.8.1" class="pilcrow">¶</a></p>
+<dt id="section-7.1-1.7"><code>crit</code></dt>
+          <dd style="margin-left: 1.5em" id="section-7.1-1.8">
+            <p id="section-7.1-1.8.1"><span class="bcp14">OPTIONAL</span>. JSON array of strings. Same semantics as
+<span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span> §Critical Extension Identifiers.<a href="#section-7.1-1.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-6.1-1.9"><code>signed_policy</code></dt>
-          <dd style="margin-left: 1.5em" id="section-6.1-1.10">
-            <p id="section-6.1-1.10.1"><span class="bcp14">OPTIONAL</span>. Signed JWT containing policy members as claims, per
+<dt id="section-7.1-1.9"><code>signed_policy</code></dt>
+          <dd style="margin-left: 1.5em" id="section-7.1-1.10">
+            <p id="section-7.1-1.10.1"><span class="bcp14">OPTIONAL</span>. Signed JWT containing policy members as claims, per
 <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span> §Signed Policy Metadata. The JWT's <code>iss</code> claim
 <span class="bcp14">MUST</span> identify a signing authority controlled by the Attribute
-Authority.<a href="#section-6.1-1.10.1" class="pilcrow">¶</a></p>
+Authority.<a href="#section-7.1-1.10.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -2103,129 +2203,207 @@ Authority.<a href="#section-6.1-1.10.1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="publication">
-<section id="section-7">
+<section id="section-8">
       <h2 id="name-publication">
-<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-publication" class="section-name selfRef">Publication</a>
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-publication" class="section-name selfRef">Publication</a>
       </h2>
-<p id="section-7-1">An Attribute Authority publishes its Authorization Policy at:<a href="#section-7-1" class="pilcrow">¶</a></p>
+<p id="section-8-1">An Attribute Authority publishes its Authorization Policy through an
+HTTPS JSON document, located either by DNS pointer or by default
+well-known URL:<a href="#section-8-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-7-2.1">
-          <p id="section-7-2.1.1"><strong>DNS form</strong>: a TXT record at
-<code>_oauth-attribute-authority-policy.{A}</code>, with format identical
-to <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>'s DNS record format (version directive
-<code>v=oauth-attribute-authority-policy1</code>, <code>authority=</code>, <code>uri=</code>,
-<code>issuer=</code>, <code>crit=</code> directives).<a href="#section-7-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-8-2.1">
+          <p id="section-8-2.1.1"><strong>DNS pointer form</strong>: a TXT record at
+<code>_oauth-attribute-authority-policy.{A}</code> containing
+<code>v=oauth-attribute-authority-policy1</code>, <code>authority=</code>, and <code>uri=</code>
+directives. The <code>uri=</code> value points to the HTTPS JSON document. The
+record <span class="bcp14">MAY</span> also contain <code>crit=</code> using <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span> §Critical
+Extension Identifiers.<a href="#section-8-2.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-7-2.2">
-          <p id="section-7-2.2.1"><strong>HTTPS form</strong>: a JSON document at
-<code>https://{A}/.well-known/oauth-attribute-authority-policy</code>.<a href="#section-7-2.2.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-8-2.2">
+          <p id="section-8-2.2.1"><strong>HTTPS well-known form</strong>: a JSON document at
+<code>https://{A}/.well-known/oauth-attribute-authority-policy</code>.<a href="#section-8-2.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-7-3">The inline DNS form (<code>issuer=</code> directives) is sufficient when the
-Attribute Authority authorizes one or more Assertion Issuers for
-ALL of its claim types. When the Authority authorizes different
-issuers for different claim types, OR uses any feature
-(<code>attribute_types</code> per-entry, <code>subject_populations</code>,
-<code>valid_from</code>/<code>valid_until</code>, <code>tenant</code>), the DNS pointer form
-(<code>uri=</code>) <span class="bcp14">MUST</span> be used and the richer policy carried in the JSON
-document.<a href="#section-7-3" class="pilcrow">¶</a></p>
-<p id="section-7-4">A Subject Authority using the DNS-inline form publishes a virtual
-policy whose every <code>authorized_issuers</code> entry has
-<code>attribute_types: ["*"]</code> (matching all attribute names). When this
-matches an attribute claim's name, the Trust Method is satisfied
-for that claim. The wildcard <code>*</code> <span class="bcp14">MUST NOT</span> appear in HTTPS-hosted
-policy <code>attribute_types</code> arrays; the wildcard is reserved for the
-DNS-inline virtual-policy construction.<a href="#section-7-4" class="pilcrow">¶</a></p>
-<p id="section-7-5">The three publication profiles of <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Publication Profiles
-apply unchanged with the corresponding owner name and well-known
-URL substitutions.<a href="#section-7-5" class="pilcrow">¶</a></p>
+<p id="section-8-3">The DNS pointer form follows the DNS authority-publication and
+third-party-hosting model of <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>, but this document deliberately
+does not define an inline <code>issuer=</code> form. Attribute authorization is
+claim-type scoped, and a DNS-inline issuer list would either need a new
+claim-type grammar or would authorize all current and future claim
+types. Consumers <span class="bcp14">MUST</span> treat any <code>issuer=</code> directive in an
+<code>_oauth-attribute-authority-policy</code> TXT record as <code>malformed</code>.<a href="#section-8-3" class="pilcrow">¶</a></p>
+<p id="section-8-4">The JSON document retrieved from either publication form is the AAAP
+defined in <a href="#aaap-document" class="auto internal xref">Section 7</a>. Consumers <span class="bcp14">MUST NOT</span> interpret any other
+JSON shape as an AAAP.<a href="#section-8-4" class="pilcrow">¶</a></p>
 <div id="lookup">
-<section id="section-7.1">
+<section id="section-8.1">
         <h3 id="name-lookup-procedure">
-<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-lookup-procedure" class="section-name selfRef">Lookup Procedure</a>
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-lookup-procedure" class="section-name selfRef">Lookup Procedure</a>
         </h3>
-<p id="section-7.1-1">The lookup procedure mirrors <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Lookup Procedure with the
-owner name and well-known URL substitutions noted above. The
-procedure produces an Affirmative / Negative / Indeterminate
-outcome per the Authority Delegation Pattern's Exception-Handling
-and Fallback Model (<span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span> §Exception-Handling
-and Fallback Model). Cache freshness rules also mirror <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>
-§Caching: maximum 24-hour ceiling, cumulative-Indeterminate cap of
-1 hour, Negative caching subject to the same lifetime.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<p id="section-8.1-1">To retrieve the AAAP for Attribute Authority <code>A</code>, a consumer performs
+the following steps:<a href="#section-8.1-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-8.1-2">
+<li id="section-8.1-2.1">
+            <p id="section-8.1-2.1.1">Query the DNS TXT resource record set at
+<code>_oauth-attribute-authority-policy.{A}</code>. Classify the response as:<a href="#section-8.1-2.1.1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-8.1-2.1.2">
+              <dt id="section-8.1-2.1.2.1"><code>negative-authoritative</code></dt>
+              <dd style="margin-left: 1.5em" id="section-8.1-2.1.2.2">
+                <p id="section-8.1-2.1.2.2.1">NXDOMAIN, or NOERROR with an empty answer section or with no
+recognized records after parsing.<a href="#section-8.1-2.1.2.2.1" class="pilcrow">¶</a></p>
+</dd>
+              <dd class="break"></dd>
+<dt id="section-8.1-2.1.2.3"><code>indeterminate</code></dt>
+              <dd style="margin-left: 1.5em" id="section-8.1-2.1.2.4">
+                <p id="section-8.1-2.1.2.4.1">SERVFAIL, REFUSED, timeout, truncation with no successful retry,
+or any other failure that prevents a definitive negative result.<a href="#section-8.1-2.1.2.4.1" class="pilcrow">¶</a></p>
+</dd>
+              <dd class="break"></dd>
+<dt id="section-8.1-2.1.2.5"><code>affirmative</code></dt>
+              <dd style="margin-left: 1.5em" id="section-8.1-2.1.2.6">
+                <p id="section-8.1-2.1.2.6.1">NOERROR with at least one recognized record after parsing.<a href="#section-8.1-2.1.2.6.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+</dl>
+</li>
+          <li id="section-8.1-2.2">
+            <p id="section-8.1-2.2.1">If the DNS response is <code>affirmative</code>:<a href="#section-8.1-2.2.1" class="pilcrow">¶</a></p>
+<p id="section-8.1-2.2.2">
+a. Discard recognized records whose <code>authority=</code> directive does not
+   match <code>A</code> under the comparison rules in <a href="#attribute-authority-determination" class="auto internal xref">Section 5.4</a>.
+   If any recognized record is missing an <code>authority=</code> directive,
+   treat the response as <code>malformed</code>. If all recognized records are
+   discarded because of <code>authority=</code> mismatch, treat the response as
+   <code>malformed</code>.<a href="#section-8.1-2.2.2" class="pilcrow">¶</a></p>
+<p id="section-8.1-2.2.3">
+b. Validate the remaining recognized records. Each remaining record
+   <span class="bcp14">MUST</span> contain exactly one <code>uri=</code> directive, <span class="bcp14">MUST NOT</span> contain an
+   <code>issuer=</code> directive, and <span class="bcp14">MUST</span> satisfy the <code>crit=</code> processing rules
+   of <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span> §Critical Extension Identifiers. More than one
+   distinct <code>uri=</code> value across the remaining records is <code>malformed</code>.<a href="#section-8.1-2.2.3" class="pilcrow">¶</a></p>
+<p id="section-8.1-2.2.4">
+c. Fetch the JSON policy from the single <code>uri=</code> target. The fetched
+   document is the AAAP.<a href="#section-8.1-2.2.4" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-8.1-2.3">
+            <p id="section-8.1-2.3.1">If the DNS response is <code>negative-authoritative</code>, fetch the AAAP from
+the default HTTPS well-known URL per <a href="#publication" class="auto internal xref">Section 8</a>.<a href="#section-8.1-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-8.1-2.4">
+            <p id="section-8.1-2.4.1">If the DNS response is <code>indeterminate</code>, discovery has failed.
+Consumers <span class="bcp14">MUST NOT</span> fall back to HTTPS.<a href="#section-8.1-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-8.1-3">The procedure produces an Affirmative / Negative / Indeterminate
+outcome per the Authority Delegation Pattern's Exception-Handling and
+Fallback Model (<span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span> §Exception-Handling and
+Fallback Model).<a href="#section-8.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="failures">
-<section id="section-7.2">
+<section id="section-8.2">
         <h3 id="name-failure-handling">
-<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-failure-handling" class="section-name selfRef">Failure Handling</a>
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-failure-handling" class="section-name selfRef">Failure Handling</a>
         </h3>
-<p id="section-7.2-1">Failure-state mapping is identical to <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Failure Handling
-with owner name substitutions. Negative and Indeterminate states
-<span class="bcp14">MUST</span> result in assertion rejection.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<p id="section-8.2-1">AAAP lookup outcomes map onto the following states:<a href="#section-8.2-1" class="pilcrow">¶</a></p>
+<table class="center" id="table-2">
+          <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">State</th>
+              <th class="text-left" rowspan="1" colspan="1">AAAP outcomes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Affirmative</td>
+              <td class="text-left" rowspan="1" colspan="1">A well-formed AAAP was retrieved through a DNS pointer or HTTPS well-known URL, its <code>attribute_authority</code> matches <code>A</code>, and structural validation succeeds. HTTPS responses are 200 OK with a media type compatible with <code>application/json</code>.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Negative</td>
+              <td class="text-left" rowspan="1" colspan="1">DNS <code>negative-authoritative</code> followed by HTTPS 404 or 410 at the well-known URL, or HTTPS 404 or 410 reached from a DNS <code>uri=</code> pointer. The Attribute Authority authoritatively publishes no delegation.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Indeterminate</td>
+              <td class="text-left" rowspan="1" colspan="1">Any other outcome, fail-closed by default.</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="section-8.2-3">The Indeterminate state covers DNS transport errors, HTTPS transport
+errors, non-200 HTTPS responses other than 404 and 410, unsupported
+media type, over-size body, malformed DNS directives, multiple distinct
+<code>uri=</code> values, inline <code>issuer=</code> directives, unknown critical
+extensions, syntactically invalid AAAP JSON, or an <code>attribute_authority</code>
+value that does not match <code>A</code>.<a href="#section-8.2-3" class="pilcrow">¶</a></p>
+<p id="section-8.2-4">Consumers <span class="bcp14">MUST</span> treat both Negative and Indeterminate as assertion
+rejection. A fresh cached Affirmative policy <span class="bcp14">MAY</span> be used during
+transient Indeterminate on the live channel, subject to a maximum
+24-hour positive cache lifetime and a cumulative-Indeterminate cap of
+1 hour. The cache lifetime <span class="bcp14">MUST NOT</span> be extended by repeated
+Indeterminate retrievals.<a href="#section-8.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
 <div id="combined-evaluation">
-<section id="section-8">
+<section id="section-9">
       <h2 id="name-combined-evaluation">
-<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-combined-evaluation" class="section-name selfRef">Combined Evaluation</a>
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-combined-evaluation" class="section-name selfRef">Combined Evaluation</a>
       </h2>
-<p id="section-8-1">When the <code>attribute_attestation</code> Trust Method category is present
+<p id="section-9-1">When the <code>attribute_attestation</code> Trust Method category is present
 in a Trust Policy alongside the categories of <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span>, the
-cross-category combination rule applies unchanged:<a href="#section-8-1" class="pilcrow">¶</a></p>
+cross-category combination rule applies unchanged:<a href="#section-9-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-8-2.1">
-          <p id="section-8-2.1.1">The Assertion Issuer <span class="bcp14">MUST</span> satisfy at least one
-<code>issuer_authentication</code> method (when present in the policy).<a href="#section-8-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9-2.1">
+          <p id="section-9-2.1.1">The Assertion Issuer <span class="bcp14">MUST</span> satisfy at least one
+<code>issuer_authentication</code> method (when present in the policy).<a href="#section-9-2.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-8-2.2">
-          <p id="section-8-2.2.1">The Assertion Issuer <span class="bcp14">MUST</span> satisfy at least one
+        <li class="normal" id="section-9-2.2">
+          <p id="section-9-2.2.1">The Assertion Issuer <span class="bcp14">MUST</span> satisfy at least one
 <code>subject_namespace_authorization</code> method (when the assertion
-carries a namespace-bound Subject Identifier).<a href="#section-8-2.2.1" class="pilcrow">¶</a></p>
+carries a namespace-bound Subject Identifier).<a href="#section-9-2.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-8-2.3">
-          <p id="section-8-2.3.1">For each attribute claim in the assertion, the Assertion Issuer
+        <li class="normal" id="section-9-2.3">
+          <p id="section-9-2.3.1">For each protected attribute claim in the assertion, the Assertion Issuer
 <span class="bcp14">MUST</span> satisfy at least one <code>attribute_attestation</code> method against
-the attribute's Authority.<a href="#section-8-2.3.1" class="pilcrow">¶</a></p>
+the attribute's Authority.<a href="#section-9-2.3.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-8-3">If the assertion carries N attribute claims under N distinct
+<p id="section-9-3">If the assertion carries N protected attribute claims under N distinct
 Attribute Authorities, the Resource Authorization Server performs
 N independent <code>attribute_attestation</code> evaluations, each potentially
 fetching a different Attribute Authority's policy. Each evaluation
-<span class="bcp14">MUST</span> succeed.<a href="#section-8-3" class="pilcrow">¶</a></p>
+<span class="bcp14">MUST</span> succeed.<a href="#section-9-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="worked-example-non-normative">
-<section id="section-9">
+<section id="section-10">
       <h2 id="name-worked-example-non-normativ">
-<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-worked-example-non-normativ" class="section-name selfRef">Worked Example (Non-Normative)</a>
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-worked-example-non-normativ" class="section-name selfRef">Worked Example (Non-Normative)</a>
       </h2>
-<p id="section-9-1">This appendix is non-normative.<a href="#section-9-1" class="pilcrow">¶</a></p>
-<p id="section-9-2">A university <code>university.example</code> confers degrees on its students.
+<p id="section-10-1">This appendix is non-normative.<a href="#section-10-1" class="pilcrow">¶</a></p>
+<p id="section-10-2">A university <code>university.example</code> confers degrees on its students.
 Alice graduated and now uses a third-party Identity Provider
 <code>https://idp.alumni-services.example</code> that the university has
 contracted to assert degree status for its alumni. Alice presents
 an assertion to a hiring platform at
-<code>https://api.hiring-platform.example</code>.<a href="#section-9-2" class="pilcrow">¶</a></p>
+<code>https://api.hiring-platform.example</code>.<a href="#section-10-2" class="pilcrow">¶</a></p>
 <div id="example-publication">
-<section id="section-9.1">
+<section id="section-10.1">
         <h3 id="name-publication-2">
-<a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-publication-2" class="section-name selfRef">Publication</a>
+<a href="#section-10.1" class="section-number selfRef">10.1. </a><a href="#name-publication-2" class="section-name selfRef">Publication</a>
         </h3>
-<p id="section-9.1-1">The university publishes a DNS record at
-<code>_oauth-attribute-authority-policy.university.example</code>:<a href="#section-9.1-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-9.1-2">
+<p id="section-10.1-1">The university publishes a DNS record at
+<code>_oauth-attribute-authority-policy.university.example</code>:<a href="#section-10.1-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-10.1-2">
 <pre>
 _oauth-attribute-authority-policy.university.example.  IN  TXT
   "v=oauth-attribute-authority-policy1;
    authority=university.example;
    uri=https://attestations.university.example/aaap.json"
-</pre><a href="#section-9.1-2" class="pilcrow">¶</a>
+</pre><a href="#section-10.1-2" class="pilcrow">¶</a>
 </div>
-<p id="section-9.1-3">The JSON policy at the pointed-at URL:<a href="#section-9.1-3" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-9.1-4">
+<p id="section-10.1-3">The JSON policy at the pointed-at URL:<a href="#section-10.1-3" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-10.1-4">
 <pre>
 {
   "attribute_authority": "university.example",
@@ -2238,17 +2416,17 @@ _oauth-attribute-authority-policy.university.example.  IN  TXT
   ],
   "last_updated": "2026-05-25T00:00:00Z"
 }
-</pre><a href="#section-9.1-4" class="pilcrow">¶</a>
+</pre><a href="#section-10.1-4" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
 <div id="example-assertion">
-<section id="section-9.2">
+<section id="section-10.2">
         <h3 id="name-assertion">
-<a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-assertion" class="section-name selfRef">Assertion</a>
+<a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-assertion" class="section-name selfRef">Assertion</a>
         </h3>
-<p id="section-9.2-1">Alice's IdP issues an ID-JAG carrying:<a href="#section-9.2-1" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-9.2-2">
+<p id="section-10.2-1">Alice's IdP issues an ID-JAG carrying:<a href="#section-10.2-1" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-10.2-2">
 <pre>
 {
   "iss": "https://idp.alumni-services.example",
@@ -2265,16 +2443,16 @@ _oauth-attribute-authority-policy.university.example.  IN  TXT
   "graduation_year_authority": "university.example",
   "graduation_year_authority_verified": true
 }
-</pre><a href="#section-9.2-2" class="pilcrow">¶</a>
+</pre><a href="#section-10.2-2" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
 <div id="example-trust-policy">
-<section id="section-9.3">
+<section id="section-10.3">
         <h3 id="name-hiring-platform-trust-polic">
-<a href="#section-9.3" class="section-number selfRef">9.3. </a><a href="#name-hiring-platform-trust-polic" class="section-name selfRef">Hiring Platform Trust Policy</a>
+<a href="#section-10.3" class="section-number selfRef">10.3. </a><a href="#name-hiring-platform-trust-polic" class="section-name selfRef">Hiring Platform Trust Policy</a>
         </h3>
-<div class="lang-json sourcecode" id="section-9.3-1">
+<div class="lang-json sourcecode" id="section-10.3-1">
 <pre>
 {
   "resource_authorization_server": "https://api.hiring-platform.example",
@@ -2282,6 +2460,10 @@ _oauth-attribute-authority-policy.university.example.  IN  TXT
     "urn:ietf:params:oauth:grant-profile:id-jag"
   ],
   "subject_identifier_formats_supported": ["email"],
+  "attribute_attestation_claims": [
+    "degree_status",
+    "graduation_year"
+  ],
   "issuer_trust_methods": [
     {
       "method": "openid_federation",
@@ -2295,53 +2477,53 @@ _oauth-attribute-authority-policy.university.example.  IN  TXT
     }
   ]
 }
-</pre><a href="#section-9.3-1" class="pilcrow">¶</a>
+</pre><a href="#section-10.3-1" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
 <div id="example-verification">
-<section id="section-9.4">
+<section id="section-10.4">
         <h3 id="name-verification">
-<a href="#section-9.4" class="section-number selfRef">9.4. </a><a href="#name-verification" class="section-name selfRef">Verification</a>
+<a href="#section-10.4" class="section-number selfRef">10.4. </a><a href="#name-verification" class="section-name selfRef">Verification</a>
         </h3>
-<p id="section-9.4-1">The hiring platform evaluates three Trust Methods:<a href="#section-9.4-1" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-9.4-2">
-<li id="section-9.4-2.1">
-            <p id="section-9.4-2.1.1"><strong><code>openid_federation</code></strong>: validates that
+<p id="section-10.4-1">The hiring platform evaluates three Trust Methods:<a href="#section-10.4-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-10.4-2">
+<li id="section-10.4-2.1">
+            <p id="section-10.4-2.1.1"><strong><code>openid_federation</code></strong>: validates that
 <code>https://idp.alumni-services.example</code> is a member of a
-federation rooted at <code>https://federation.example.org</code>.<a href="#section-9.4-2.1.1" class="pilcrow">¶</a></p>
+federation rooted at <code>https://federation.example.org</code>.<a href="#section-10.4-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-9.4-2.2">
-            <p id="section-9.4-2.2.1"><strong><code>domain_authorized_issuer</code></strong>: looks up the Issuer
+          <li id="section-10.4-2.2">
+            <p id="section-10.4-2.2.1"><strong><code>domain_authorized_issuer</code></strong>: looks up the Issuer
 Authorization Policy for <code>personal.example</code> (Alice's email
-namespace). The lookup succeeds; the IdP is listed.<a href="#section-9.4-2.2.1" class="pilcrow">¶</a></p>
+namespace). The lookup succeeds; the IdP is listed.<a href="#section-10.4-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-9.4-2.3">
-            <p id="section-9.4-2.3.1"><strong><code>attribute_authority_authorized_issuer</code></strong>: evaluates each
-attribute claim:<a href="#section-9.4-2.3.1" class="pilcrow">¶</a></p>
-<p id="section-9.4-2.3.2">
+          <li id="section-10.4-2.3">
+            <p id="section-10.4-2.3.1"><strong><code>attribute_authority_authorized_issuer</code></strong>: evaluates each
+attribute claim:<a href="#section-10.4-2.3.1" class="pilcrow">¶</a></p>
+<p id="section-10.4-2.3.2">
 a. For <code>degree_status</code>: looks up the AAAP at
 <code>_oauth-attribute-authority-policy.university.example</code>. The
-policy lists the IdP authorized for <code>degree_status</code>. Satisfied.<a href="#section-9.4-2.3.2" class="pilcrow">¶</a></p>
-<p id="section-9.4-2.3.3">
+policy lists the IdP authorized for <code>degree_status</code>. Satisfied.<a href="#section-10.4-2.3.2" class="pilcrow">¶</a></p>
+<p id="section-10.4-2.3.3">
 b. For <code>graduation_year</code>: the same AAAP lookup. The same entry
-covers <code>graduation_year</code>. Satisfied.<a href="#section-9.4-2.3.3" class="pilcrow">¶</a></p>
+covers <code>graduation_year</code>. Satisfied.<a href="#section-10.4-2.3.3" class="pilcrow">¶</a></p>
 </li>
         </ol>
-<p id="section-9.4-3">All three categories satisfied; the hiring platform accepts the
-assertion.<a href="#section-9.4-3" class="pilcrow">¶</a></p>
+<p id="section-10.4-3">All three categories satisfied; the hiring platform accepts the
+assertion.<a href="#section-10.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="threat-unauthorized-attribute-attestation">
-<section id="section-9.5">
+<section id="section-10.5">
         <h3 id="name-threat-unauthorized-attribu">
-<a href="#section-9.5" class="section-number selfRef">9.5. </a><a href="#name-threat-unauthorized-attribu" class="section-name selfRef">Threat: Unauthorized Attribute Attestation</a>
+<a href="#section-10.5" class="section-number selfRef">10.5. </a><a href="#name-threat-unauthorized-attribu" class="section-name selfRef">Threat: Unauthorized Attribute Attestation</a>
         </h3>
-<p id="section-9.5-1">Suppose a different Assertion Issuer
+<p id="section-10.5-1">Suppose a different Assertion Issuer
 <code>https://idp.diploma-mill.example</code> (not authorized by the
 university) attempts to attest a degree status for an unrelated
-Subject:<a href="#section-9.5-1" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-9.5-2">
+Subject:<a href="#section-10.5-1" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-10.5-2">
 <pre>
 {
   "iss": "https://idp.diploma-mill.example",
@@ -2351,30 +2533,30 @@ Subject:<a href="#section-9.5-1" class="pilcrow">¶</a></p>
   "degree_status_authority": "university.example",
   "degree_status_authority_verified": true
 }
-</pre><a href="#section-9.5-2" class="pilcrow">¶</a>
+</pre><a href="#section-10.5-2" class="pilcrow">¶</a>
 </div>
-<p id="section-9.5-3">The hiring platform evaluates <code>attribute_attestation</code> for the
+<p id="section-10.5-3">The hiring platform evaluates <code>attribute_attestation</code> for the
 degree_status claim with Authority <code>university.example</code>. The AAAP
 lookup retrieves the policy, but
 <code>https://idp.diploma-mill.example</code> is not listed in
 <code>authorized_issuers</code>. The Trust Method is not satisfied; the
-assertion is rejected.<a href="#section-9.5-3" class="pilcrow">¶</a></p>
-<p id="section-9.5-4">The diploma mill's assertion-signing authority and any federation
+assertion is rejected.<a href="#section-10.5-3" class="pilcrow">¶</a></p>
+<p id="section-10.5-4">The diploma mill's assertion-signing authority and any federation
 membership it may have are irrelevant. Only the university's
 published policy determines who can attest its degree-status
-claims.<a href="#section-9.5-4" class="pilcrow">¶</a></p>
+claims.<a href="#section-10.5-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="threat-cross-authority-attribute-substitution">
-<section id="section-9.6">
+<section id="section-10.6">
         <h3 id="name-threat-cross-authority-attr">
-<a href="#section-9.6" class="section-number selfRef">9.6. </a><a href="#name-threat-cross-authority-attr" class="section-name selfRef">Threat: Cross-Authority Attribute Substitution</a>
+<a href="#section-10.6" class="section-number selfRef">10.6. </a><a href="#name-threat-cross-authority-attr" class="section-name selfRef">Threat: Cross-Authority Attribute Substitution</a>
         </h3>
-<p id="section-9.6-1">Suppose an attacker controls an Authorized Issuer for
+<p id="section-10.6-1">Suppose an attacker controls an Authorized Issuer for
 <code>other-university.example</code> (issuing valid attestations for that
 university) and attempts to attest a degree from
-<code>university.example</code>:<a href="#section-9.6-1" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-9.6-2">
+<code>university.example</code>:<a href="#section-10.6-1" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-10.6-2">
 <pre>
 {
   "iss": "https://idp.other-issuer.example",
@@ -2384,29 +2566,29 @@ university) and attempts to attest a degree from
   "degree_status_authority": "university.example",
   "degree_status_authority_verified": true
 }
-</pre><a href="#section-9.6-2" class="pilcrow">¶</a>
+</pre><a href="#section-10.6-2" class="pilcrow">¶</a>
 </div>
-<p id="section-9.6-3">The hiring platform fetches <code>university.example</code>'s AAAP and finds
+<p id="section-10.6-3">The hiring platform fetches <code>university.example</code>'s AAAP and finds
 that <code>https://idp.other-issuer.example</code> is NOT authorized.
 Rejection. The attacker's authorization for a DIFFERENT Attribute
-Authority does not extend to claims under <code>university.example</code>.<a href="#section-9.6-3" class="pilcrow">¶</a></p>
-<p id="section-9.6-4">This is the same wire-format protection as DAI provides for
-namespace authorization, applied per-attribute-per-authority.<a href="#section-9.6-4" class="pilcrow">¶</a></p>
+Authority does not extend to claims under <code>university.example</code>.<a href="#section-10.6-3" class="pilcrow">¶</a></p>
+<p id="section-10.6-4">This is the same wire-format protection as DAI provides for
+namespace authorization, applied per-attribute-per-authority.<a href="#section-10.6-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="ekyc-ida-example">
-<section id="section-9.7">
+<section id="section-10.7">
         <h3 id="name-ekyc-ida-variant">
-<a href="#section-9.7" class="section-number selfRef">9.7. </a><a href="#name-ekyc-ida-variant" class="section-name selfRef">eKYC-IDA Variant</a>
+<a href="#section-10.7" class="section-number selfRef">10.7. </a><a href="#name-ekyc-ida-variant" class="section-name selfRef">eKYC-IDA Variant</a>
         </h3>
-<p id="section-9.7-1">The same hiring-platform scenario using an OIDC4IDA
-<code>verified_claims</code> payload rather than flat triples.<a href="#section-9.7-1" class="pilcrow">¶</a></p>
-<p id="section-9.7-2">The trust framework owner (a regulator or scheme administrator,
+<p id="section-10.7-1">The same hiring-platform scenario using an OIDC4IDA
+<code>verified_claims</code> payload rather than flat triples.<a href="#section-10.7-1" class="pilcrow">¶</a></p>
+<p id="section-10.7-2">The trust framework owner (a regulator or scheme administrator,
 identified for example as <code>idp-assurance.example</code>) publishes an
 AAAP at <code>_oauth-attribute-authority-policy.idp-assurance.example</code>
 listing IdPs authorized to issue verified claims under the
-framework:<a href="#section-9.7-2" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-9.7-3">
+framework:<a href="#section-10.7-2" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-10.7-3">
 <pre>
 {
   "attribute_authority": "idp-assurance.example",
@@ -2419,10 +2601,10 @@ framework:<a href="#section-9.7-2" class="pilcrow">¶</a></p>
   ],
   "last_updated": "2026-05-25T00:00:00Z"
 }
-</pre><a href="#section-9.7-3" class="pilcrow">¶</a>
+</pre><a href="#section-10.7-3" class="pilcrow">¶</a>
 </div>
-<p id="section-9.7-4">The IdP issues an OIDC4IDA-shaped assertion:<a href="#section-9.7-4" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-9.7-5">
+<p id="section-10.7-4">The IdP issues an OIDC4IDA-shaped assertion:<a href="#section-10.7-4" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-10.7-5">
 <pre>
 {
   "iss": "https://idp.alumni-services.example",
@@ -2450,378 +2632,427 @@ framework:<a href="#section-9.7-2" class="pilcrow">¶</a></p>
     }
   }
 }
-</pre><a href="#section-9.7-5" class="pilcrow">¶</a>
+</pre><a href="#section-10.7-5" class="pilcrow">¶</a>
 </div>
-<p id="section-9.7-6">The hiring platform evaluates this assertion exactly as in the
+<p id="section-10.7-6">The hiring platform evaluates this assertion exactly as in the
 flat-triple example, with one substitution: the Attribute
 Authority is read from
 <code>verified_claims.verification.trust_framework</code> rather than per-claim
 <code>_authority</code> triples. All three claims in <code>verified_claims.claims</code>
 (<code>given_name</code>, <code>birthdate</code>, <code>degree_status</code>) share the single
 trust-framework Authority and are evaluated against the same
-AAAP lookup.<a href="#section-9.7-6" class="pilcrow">¶</a></p>
-<p id="section-9.7-7">The trust evaluation outcome is identical to the flat-triple
+AAAP lookup.<a href="#section-10.7-6" class="pilcrow">¶</a></p>
+<p id="section-10.7-7">The trust evaluation outcome is identical to the flat-triple
 case: the IdP must be listed in the trust framework's AAAP for
 ALL claim names being attested. The OIDC4IDA payload's
 <code>verification.evidence</code> and <code>verification_process</code> are claim-layer
 metadata that the assertion grant profile and the Resource
 Authorization Server's local policy interpret; they are not
-evaluated by this Trust Method.<a href="#section-9.7-7" class="pilcrow">¶</a></p>
+evaluated by this Trust Method.<a href="#section-10.7-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
 <div id="security-considerations">
-<section id="section-10">
+<section id="section-11">
       <h2 id="name-security-considerations">
-<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
 <div id="independence-of-attribute-claims">
-<section id="section-10.1">
+<section id="section-11.1">
         <h3 id="name-independence-of-attribute-c">
-<a href="#section-10.1" class="section-number selfRef">10.1. </a><a href="#name-independence-of-attribute-c" class="section-name selfRef">Independence of Attribute Claims</a>
+<a href="#section-11.1" class="section-number selfRef">11.1. </a><a href="#name-independence-of-attribute-c" class="section-name selfRef">Independence of Attribute Claims</a>
         </h3>
-<p id="section-10.1-1">Each attribute claim is evaluated independently against its own
+<p id="section-11.1-1">Each attribute claim is evaluated independently against its own
 Attribute Authority. An assertion carrying multiple attribute
 claims under different authorities requires the asserting Issuer
 to be authorized by EVERY relevant authority. This is the
 load-bearing security property: an Issuer authorized by one
 attribute authority cannot synthesize claims under a different
-attribute authority.<a href="#section-10.1-1" class="pilcrow">¶</a></p>
+attribute authority.<a href="#section-11.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="attribute-authority-vs-subject-namespace">
-<section id="section-10.2">
+<section id="section-11.2">
         <h3 id="name-attribute-authority-vs-subj">
-<a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-attribute-authority-vs-subj" class="section-name selfRef">Attribute Authority vs Subject Namespace</a>
+<a href="#section-11.2" class="section-number selfRef">11.2. </a><a href="#name-attribute-authority-vs-subj" class="section-name selfRef">Attribute Authority vs Subject Namespace</a>
         </h3>
-<p id="section-10.2-1">The Attribute Authority is conceptually distinct from the
+<p id="section-11.2-1">The Attribute Authority is conceptually distinct from the
 Subject's namespace. Attribute claims travel with the Subject
 across namespaces (Alice's degree from <code>university.example</code> remains
 hers when she changes her email from <code>alice@school.edu</code> to
 <code>alice@personal.example</code>). Resource Authorization Servers <span class="bcp14">MUST NOT</span>
 infer that an Attribute Authority has authority over the
-corresponding Subject's namespace, or vice versa.<a href="#section-10.2-1" class="pilcrow">¶</a></p>
+corresponding Subject's namespace, or vice versa.<a href="#section-11.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="protected-attribute-omission">
+<section id="section-11.3">
+        <h3 id="name-protected-attribute-omissio">
+<a href="#section-11.3" class="section-number selfRef">11.3. </a><a href="#name-protected-attribute-omissio" class="section-name selfRef">Protected Attribute Omission</a>
+        </h3>
+<p id="section-11.3-1">An Assertion Issuer might try to avoid attribute-authority evaluation
+by omitting <code>&lt;attribute&gt;_authority</code>, <code>&lt;attribute&gt;_authority_verified</code>,
+or <code>verified_claims</code> metadata while still including a claim that the
+Resource Authorization Server treats as security-relevant. Resource
+Authorization Servers <span class="bcp14">MUST</span> maintain a deterministic set of protected
+attribute claims, either from <code>attribute_attestation_claims</code> or local
+policy, and <span class="bcp14">MUST</span> reject protected claims whose required authority
+metadata is absent or malformed.<a href="#section-11.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="attribute-verification-is-issuer-level">
-<section id="section-10.3">
+<section id="section-11.4">
         <h3 id="name-attribute-verification-is-i">
-<a href="#section-10.3" class="section-number selfRef">10.3. </a><a href="#name-attribute-verification-is-i" class="section-name selfRef">Attribute Verification Is Issuer-Level</a>
+<a href="#section-11.4" class="section-number selfRef">11.4. </a><a href="#name-attribute-verification-is-i" class="section-name selfRef">Attribute Verification Is Issuer-Level</a>
         </h3>
-<p id="section-10.3-1">The <code>&lt;attribute&gt;_authority_verified</code> claim is asserted by the
+<p id="section-11.4-1">The <code>&lt;attribute&gt;_authority_verified</code> claim is asserted by the
 Issuer, not by the Attribute Authority. The Authority's
 authorization establishes that the Issuer is permitted to attest
 the attribute; the Issuer's internal procedures (registration
 verification, periodic recheck, etc.) establish the truth of any
 specific assertion's value. This Trust Method does not provide
 defense against an authorized but malicious or compromised Issuer
-attesting false attribute values about Subjects.<a href="#section-10.3-1" class="pilcrow">¶</a></p>
-<p id="section-10.3-2">Attribute Authorities listing Assertion Issuers in their AAAP
+attesting false attribute values about Subjects.<a href="#section-11.4-1" class="pilcrow">¶</a></p>
+<p id="section-11.4-2">Attribute Authorities listing Assertion Issuers in their AAAP
 <span class="bcp14">SHOULD</span> apply the same diligence as Subject Authorities listing
 Assertion Issuers in DAI: contract review, audit reports,
-operational practices, and revocation readiness.<a href="#section-10.3-2" class="pilcrow">¶</a></p>
+operational practices, and revocation readiness.<a href="#section-11.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="subdomain-authority">
-<section id="section-10.4">
+<section id="section-11.5">
         <h3 id="name-subdomain-authority">
-<a href="#section-10.4" class="section-number selfRef">10.4. </a><a href="#name-subdomain-authority" class="section-name selfRef">Subdomain Authority</a>
+<a href="#section-11.5" class="section-number selfRef">11.5. </a><a href="#name-subdomain-authority" class="section-name selfRef">Subdomain Authority</a>
         </h3>
-<p id="section-10.4-1">Unlike <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>'s registrable-domain Subject Authority extraction,
+<p id="section-11.5-1">Unlike <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>'s registrable-domain Subject Authority extraction,
 this document treats the <code>&lt;attribute&gt;_authority</code> claim's value as
 the exact Attribute Authority identifier. This permits Attribute
 Authorities to be operationally distinct at the subdomain level
-(<code>alumni.university.example</code> separate from <code>university.example</code>).<a href="#section-10.4-1" class="pilcrow">¶</a></p>
-<p id="section-10.4-2">Consequences:<a href="#section-10.4-2" class="pilcrow">¶</a></p>
+(<code>alumni.university.example</code> separate from <code>university.example</code>).<a href="#section-11.5-1" class="pilcrow">¶</a></p>
+<p id="section-11.5-2">Consequences:<a href="#section-11.5-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-10.4-3.1">
-            <p id="section-10.4-3.1.1">The protection against subdomain takeover that the
+<li class="normal" id="section-11.5-3.1">
+            <p id="section-11.5-3.1.1">The protection against subdomain takeover that the
 registrable-domain default provides for namespace authorities is
 NOT present here. A subdomain-takeover attacker who controls
 <code>alumni.university.example</code>'s DNS can publish a competing AAAP at
-that subdomain.<a href="#section-10.4-3.1.1" class="pilcrow">¶</a></p>
+that subdomain.<a href="#section-11.5-3.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-10.4-3.2">
-            <p id="section-10.4-3.2.1">Resource Authorization Servers <span class="bcp14">SHOULD</span> log the exact
+          <li class="normal" id="section-11.5-3.2">
+            <p id="section-11.5-3.2.1">Resource Authorization Servers <span class="bcp14">SHOULD</span> log the exact
 <code>&lt;attribute&gt;_authority</code> value used and <span class="bcp14">SHOULD</span> treat unexpected
-subdomain attestations as suspicious.<a href="#section-10.4-3.2.1" class="pilcrow">¶</a></p>
+subdomain attestations as suspicious.<a href="#section-11.5-3.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-10.4-3.3">
-            <p id="section-10.4-3.3.1">Attribute Authorities deploying at subdomain granularity <span class="bcp14">SHOULD</span>
-apply registry-lock and DNSSEC at the relevant subdomain.<a href="#section-10.4-3.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-11.5-3.3">
+            <p id="section-11.5-3.3.1">Attribute Authorities deploying at subdomain granularity <span class="bcp14">SHOULD</span>
+apply registry-lock and DNSSEC at the relevant subdomain.<a href="#section-11.5-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
 </div>
 <div id="same-authority-attribute-confusion">
-<section id="section-10.5">
+<section id="section-11.6">
         <h3 id="name-same-authority-attribute-co">
-<a href="#section-10.5" class="section-number selfRef">10.5. </a><a href="#name-same-authority-attribute-co" class="section-name selfRef">Same-Authority Attribute Confusion</a>
+<a href="#section-11.6" class="section-number selfRef">11.6. </a><a href="#name-same-authority-attribute-co" class="section-name selfRef">Same-Authority Attribute Confusion</a>
         </h3>
-<p id="section-10.5-1">An Attribute Authority publishing one AAAP that authorizes
+<p id="section-11.6-1">An Attribute Authority publishing one AAAP that authorizes
 different issuers for different attribute types relies on the
 issuer-to-attribute-type binding in <code>authorized_issuers[].attribute_types</code>.
 A misconfiguration that authorizes too many attribute types for an
-issuer effectively expands the issuer's authority.<a href="#section-10.5-1" class="pilcrow">¶</a></p>
-<p id="section-10.5-2">Resource Authorization Servers <span class="bcp14">SHOULD</span> log the matched
+issuer effectively expands the issuer's authority.<a href="#section-11.6-1" class="pilcrow">¶</a></p>
+<p id="section-11.6-2">Resource Authorization Servers <span class="bcp14">SHOULD</span> log the matched
 <code>authorized_issuers</code> entry and the specific
 <code>attribute_types</code> element that satisfied the evaluation. Attribute
 Authorities <span class="bcp14">SHOULD</span> apply least-privilege when authoring AAAP
-entries.<a href="#section-10.5-2" class="pilcrow">¶</a></p>
+entries.<a href="#section-11.6-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="composition-with-subject-namespace-authorization">
-<section id="section-10.6">
+<section id="section-11.7">
         <h3 id="name-composition-with-subject-na">
-<a href="#section-10.6" class="section-number selfRef">10.6. </a><a href="#name-composition-with-subject-na" class="section-name selfRef">Composition with Subject Namespace Authorization</a>
+<a href="#section-11.7" class="section-number selfRef">11.7. </a><a href="#name-composition-with-subject-na" class="section-name selfRef">Composition with Subject Namespace Authorization</a>
         </h3>
-<p id="section-10.6-1">When an assertion is evaluated under BOTH
+<p id="section-11.7-1">When an assertion is evaluated under BOTH
 <code>subject_namespace_authorization</code> (for the Subject's namespace) AND
 <code>attribute_attestation</code> (for the attribute claims), the two
 evaluations are independent. The Assertion Issuer must be
 authorized in BOTH places. An attacker who is authorized in one but
-not the other cannot mint accepted assertions.<a href="#section-10.6-1" class="pilcrow">¶</a></p>
+not the other cannot mint accepted assertions.<a href="#section-11.7-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
 <div id="privacy-considerations">
-<section id="section-11">
+<section id="section-12">
       <h2 id="name-privacy-considerations">
-<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-privacy-considerations" class="section-name selfRef">Privacy Considerations</a>
+<a href="#section-12" class="section-number selfRef">12. </a><a href="#name-privacy-considerations" class="section-name selfRef">Privacy Considerations</a>
       </h2>
-<p id="section-11-1">The AAAP discloses which Assertion Issuers an Attribute Authority
+<p id="section-12-1">The AAAP discloses which Assertion Issuers an Attribute Authority
 trusts to attest its claims. For some Authorities (universities
 listing third-party degree-attestation services; employers listing
 contracted identity providers), this discloses operational
-relationships and may be commercially sensitive.<a href="#section-11-1" class="pilcrow">¶</a></p>
-<p id="section-11-2">Attribute Authorities <span class="bcp14">SHOULD</span> consider whether AAAP publication is
+relationships and may be commercially sensitive.<a href="#section-12-1" class="pilcrow">¶</a></p>
+<p id="section-12-2">Attribute Authorities <span class="bcp14">SHOULD</span> consider whether AAAP publication is
 appropriate for their deployment. Authorities with privacy
 concerns <span class="bcp14">MAY</span> use Profile 3 (signed-policy publication) of <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>
 applied to AAAPs, hosting the document at a third-party endpoint
-while preserving signature-based authority.<a href="#section-11-2" class="pilcrow">¶</a></p>
-<p id="section-11-3">Attribute attestations themselves typically expose claim values
+while preserving signature-based authority.<a href="#section-12-2" class="pilcrow">¶</a></p>
+<p id="section-12-3">Attribute attestations themselves typically expose claim values
 (degree status, employment status, KYC level) that are more
 sensitive than namespace assertions. The privacy properties of
 attribute attestations are governed by the assertion grant profile
 and the Resource Authorization Server's use of the claims, not by
-the trust-method evaluation defined here.<a href="#section-11-3" class="pilcrow">¶</a></p>
+the trust-method evaluation defined here.<a href="#section-12-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana-considerations">
-<section id="section-12">
+<section id="section-13">
       <h2 id="name-iana-considerations">
-<a href="#section-12" class="section-number selfRef">12. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+<a href="#section-13" class="section-number selfRef">13. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
 <div id="trust-method-category-registration">
-<section id="section-12.1">
+<section id="section-13.1">
         <h3 id="name-trust-method-category-regis">
-<a href="#section-12.1" class="section-number selfRef">12.1. </a><a href="#name-trust-method-category-regis" class="section-name selfRef">Trust Method Category Registration</a>
+<a href="#section-13.1" class="section-number selfRef">13.1. </a><a href="#name-trust-method-category-regis" class="section-name selfRef">Trust Method Category Registration</a>
         </h3>
-<p id="section-12.1-1">IANA is requested to add the following entry to the "Identity
+<p id="section-13.1-1">IANA is requested to add the following entry to the "Identity
 Assertion Issuer Trust Method Categories" registry established by
 <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span>. Registration policy: Specification Required
-<span>[<a href="#RFC8126" class="cite xref">RFC8126</a>]</span>.<a href="#section-12.1-1" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-12.1-2">
-          <dt id="section-12.1-2.1">Category Identifier:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.1-2.2">
-            <p id="section-12.1-2.2.1"><code>attribute_attestation</code><a href="#section-12.1-2.2.1" class="pilcrow">¶</a></p>
+<span>[<a href="#RFC8126" class="cite xref">RFC8126</a>]</span>.<a href="#section-13.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-13.1-2">
+          <dt id="section-13.1-2.1">Category Identifier:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.1-2.2">
+            <p id="section-13.1-2.2.1"><code>attribute_attestation</code><a href="#section-13.1-2.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.1-2.3">Description:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.1-2.4">
-            <p id="section-12.1-2.4.1">Has the Attribute Authority for an asserted attribute claim
-authorized the Assertion Issuer to attest that claim?<a href="#section-12.1-2.4.1" class="pilcrow">¶</a></p>
+<dt id="section-13.1-2.3">Description:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.1-2.4">
+            <p id="section-13.1-2.4.1">Has the Attribute Authority for an asserted attribute claim
+authorized the Assertion Issuer to attest that claim?<a href="#section-13.1-2.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.1-2.5">Applicability:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.1-2.6">
-            <p id="section-12.1-2.6.1">Applies per-attribute when the identity assertion carries an
-attribute claim and the corresponding <code>&lt;attribute&gt;_authority</code> and
-<code>&lt;attribute&gt;_authority_verified</code> claims.<a href="#section-12.1-2.6.1" class="pilcrow">¶</a></p>
+<dt id="section-13.1-2.5">Applicability:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.1-2.6">
+            <p id="section-13.1-2.6.1">Applies per-attribute when the identity assertion carries an
+attribute claim protected by <code>attribute_attestation_claims</code>, local
+Resource Authorization Server policy, or authority metadata in a
+recognized claim shape.<a href="#section-13.1-2.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.1-2.7">Evaluation Subject:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.1-2.8">
-            <p id="section-12.1-2.8.1">The Assertion Issuer (the <code>iss</code> claim of the identity assertion)
+<dt id="section-13.1-2.7">Evaluation Subject:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.1-2.8">
+            <p id="section-13.1-2.8.1">The Assertion Issuer (the <code>iss</code> claim of the identity assertion)
 evaluated against the policy of the Attribute Authority named by
-the <code>&lt;attribute&gt;_authority</code> claim.<a href="#section-12.1-2.8.1" class="pilcrow">¶</a></p>
+the <code>&lt;attribute&gt;_authority</code> claim.<a href="#section-13.1-2.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.1-2.9">Reference:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.1-2.10">
-            <p id="section-12.1-2.10.1">This document.<a href="#section-12.1-2.10.1" class="pilcrow">¶</a></p>
+<dt id="section-13.1-2.9">Reference:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.1-2.10">
+            <p id="section-13.1-2.10.1">This document.<a href="#section-13.1-2.10.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="trust-policy-member-registration">
+<section id="section-13.2">
+        <h3 id="name-trust-policy-member-registr">
+<a href="#section-13.2" class="section-number selfRef">13.2. </a><a href="#name-trust-policy-member-registr" class="section-name selfRef">Trust Policy Member Registration</a>
+        </h3>
+<p id="section-13.2-1">IANA is requested to add the following entry to the "Identity Assertion
+Issuer Trust Policy Members" registry established by <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span>:<a href="#section-13.2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-13.2-2">
+          <dt id="section-13.2-2.1">Member Name:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.2-2.2">
+            <p id="section-13.2-2.2.1"><code>attribute_attestation_claims</code><a href="#section-13.2-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-13.2-2.3">Member Description:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.2-2.4">
+            <p id="section-13.2-2.4.1">JSON array of Attribute Type Identifiers for claims that require
+<code>attribute_attestation</code> evaluation.<a href="#section-13.2-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-13.2-2.5">Change Controller:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.2-2.6">
+            <p id="section-13.2-2.6.1">IETF<a href="#section-13.2-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-13.2-2.7">Specification Document:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.2-2.8">
+            <p id="section-13.2-2.8.1">This document<a href="#section-13.2-2.8.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
 </section>
 </div>
 <div id="trust-method-registration">
-<section id="section-12.2">
+<section id="section-13.3">
         <h3 id="name-trust-method-registration">
-<a href="#section-12.2" class="section-number selfRef">12.2. </a><a href="#name-trust-method-registration" class="section-name selfRef">Trust Method Registration</a>
+<a href="#section-13.3" class="section-number selfRef">13.3. </a><a href="#name-trust-method-registration" class="section-name selfRef">Trust Method Registration</a>
         </h3>
-<p id="section-12.2-1">IANA is requested to add the following entry to the "Identity
+<p id="section-13.3-1">IANA is requested to add the following entry to the "Identity
 Assertion Issuer Trust Methods" registry established by
-<span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span>.<a href="#section-12.2-1" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-12.2-2">
-          <dt id="section-12.2-2.1">Identifier:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.2-2.2">
-            <p id="section-12.2-2.2.1"><code>attribute_authority_authorized_issuer</code><a href="#section-12.2-2.2.1" class="pilcrow">¶</a></p>
+<span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span>.<a href="#section-13.3-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-13.3-2">
+          <dt id="section-13.3-2.1">Identifier:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.3-2.2">
+            <p id="section-13.3-2.2.1"><code>attribute_authority_authorized_issuer</code><a href="#section-13.3-2.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.2-2.3">Categories:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.2-2.4">
-            <p id="section-12.2-2.4.1"><code>attribute_attestation</code><a href="#section-12.2-2.4.1" class="pilcrow">¶</a></p>
+<dt id="section-13.3-2.3">Categories:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.3-2.4">
+            <p id="section-13.3-2.4.1"><code>attribute_attestation</code><a href="#section-13.3-2.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.2-2.5">Parameters:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.2-2.6">
-            <p id="section-12.2-2.6.1">(none)<a href="#section-12.2-2.6.1" class="pilcrow">¶</a></p>
+<dt id="section-13.3-2.5">Parameters:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.3-2.6">
+            <p id="section-13.3-2.6.1">(none)<a href="#section-13.3-2.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.2-2.7">Reference:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.2-2.8">
-            <p id="section-12.2-2.8.1">This document.<a href="#section-12.2-2.8.1" class="pilcrow">¶</a></p>
+<dt id="section-13.3-2.7">Reference:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.3-2.8">
+            <p id="section-13.3-2.8.1">This document.<a href="#section-13.3-2.8.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
 </section>
 </div>
 <div id="well-known-uri">
-<section id="section-12.3">
+<section id="section-13.4">
         <h3 id="name-well-known-uri">
-<a href="#section-12.3" class="section-number selfRef">12.3. </a><a href="#name-well-known-uri" class="section-name selfRef">Well-Known URI</a>
+<a href="#section-13.4" class="section-number selfRef">13.4. </a><a href="#name-well-known-uri" class="section-name selfRef">Well-Known URI</a>
         </h3>
-<p id="section-12.3-1">Registers the following well-known URI in the IANA "Well-Known
-URIs" registry <span>[<a href="#RFC8615" class="cite xref">RFC8615</a>]</span>:<a href="#section-12.3-1" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-12.3-2">
-          <dt id="section-12.3-2.1">URI Suffix:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.3-2.2">
-            <p id="section-12.3-2.2.1"><code>oauth-attribute-authority-policy</code><a href="#section-12.3-2.2.1" class="pilcrow">¶</a></p>
+<p id="section-13.4-1">Registers the following well-known URI in the IANA "Well-Known
+URIs" registry <span>[<a href="#RFC8615" class="cite xref">RFC8615</a>]</span>:<a href="#section-13.4-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-13.4-2">
+          <dt id="section-13.4-2.1">URI Suffix:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.4-2.2">
+            <p id="section-13.4-2.2.1"><code>oauth-attribute-authority-policy</code><a href="#section-13.4-2.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.3-2.3">Change Controller:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.3-2.4">
-            <p id="section-12.3-2.4.1">IETF<a href="#section-12.3-2.4.1" class="pilcrow">¶</a></p>
+<dt id="section-13.4-2.3">Change Controller:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.4-2.4">
+            <p id="section-13.4-2.4.1">IETF<a href="#section-13.4-2.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.3-2.5">Specification Document:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.3-2.6">
-            <p id="section-12.3-2.6.1">This document, <a href="#publication" class="auto internal xref">Section 7</a><a href="#section-12.3-2.6.1" class="pilcrow">¶</a></p>
+<dt id="section-13.4-2.5">Specification Document:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.4-2.6">
+            <p id="section-13.4-2.6.1">This document, <a href="#publication" class="auto internal xref">Section 8</a><a href="#section-13.4-2.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.3-2.7">Status:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.3-2.8">
-            <p id="section-12.3-2.8.1">permanent<a href="#section-12.3-2.8.1" class="pilcrow">¶</a></p>
+<dt id="section-13.4-2.7">Status:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.4-2.8">
+            <p id="section-13.4-2.8.1">permanent<a href="#section-13.4-2.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.3-2.9">Related Information:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.3-2.10">
-            <p id="section-12.3-2.10.1">None<a href="#section-12.3-2.10.1" class="pilcrow">¶</a></p>
+<dt id="section-13.4-2.9">Related Information:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.4-2.10">
+            <p id="section-13.4-2.10.1">None<a href="#section-13.4-2.10.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
 </section>
 </div>
 <div id="underscored-dns-node-name">
-<section id="section-12.4">
+<section id="section-13.5">
         <h3 id="name-underscored-dns-node-name">
-<a href="#section-12.4" class="section-number selfRef">12.4. </a><a href="#name-underscored-dns-node-name" class="section-name selfRef">Underscored DNS Node Name</a>
+<a href="#section-13.5" class="section-number selfRef">13.5. </a><a href="#name-underscored-dns-node-name" class="section-name selfRef">Underscored DNS Node Name</a>
         </h3>
-<p id="section-12.4-1">Registers the following entry in the IANA "Underscored and
+<p id="section-13.5-1">Registers the following entry in the IANA "Underscored and
 Globally Scoped DNS Node Names" registry per <span>[<a href="#RFC8552" class="cite xref">RFC8552</a>]</span> and
-<span>[<a href="#RFC8553" class="cite xref">RFC8553</a>]</span>:<a href="#section-12.4-1" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-12.4-2">
-          <dt id="section-12.4-2.1">RR Type:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.4-2.2">
-            <p id="section-12.4-2.2.1">TXT<a href="#section-12.4-2.2.1" class="pilcrow">¶</a></p>
+<span>[<a href="#RFC8553" class="cite xref">RFC8553</a>]</span>:<a href="#section-13.5-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-13.5-2">
+          <dt id="section-13.5-2.1">RR Type:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.5-2.2">
+            <p id="section-13.5-2.2.1">TXT<a href="#section-13.5-2.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.4-2.3">Node Name:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.4-2.4">
-            <p id="section-12.4-2.4.1"><code>_oauth-attribute-authority-policy</code><a href="#section-12.4-2.4.1" class="pilcrow">¶</a></p>
+<dt id="section-13.5-2.3">Node Name:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.5-2.4">
+            <p id="section-13.5-2.4.1"><code>_oauth-attribute-authority-policy</code><a href="#section-13.5-2.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.4-2.5">Specification Document:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.4-2.6">
-            <p id="section-12.4-2.6.1">This document, <a href="#publication" class="auto internal xref">Section 7</a><a href="#section-12.4-2.6.1" class="pilcrow">¶</a></p>
+<dt id="section-13.5-2.5">Specification Document:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.5-2.6">
+            <p id="section-13.5-2.6.1">This document, <a href="#publication" class="auto internal xref">Section 8</a><a href="#section-13.5-2.6.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
 </section>
 </div>
 <div id="authority-delegation-profile-registration">
-<section id="section-12.5">
+<section id="section-13.6">
         <h3 id="name-authority-delegation-profil">
-<a href="#section-12.5" class="section-number selfRef">12.5. </a><a href="#name-authority-delegation-profil" class="section-name selfRef">Authority Delegation Profile Registration</a>
+<a href="#section-13.6" class="section-number selfRef">13.6. </a><a href="#name-authority-delegation-profil" class="section-name selfRef">Authority Delegation Profile Registration</a>
         </h3>
-<p id="section-12.5-1">This document registers an entry in the Authority Delegation
+<p id="section-13.6-1">This document registers an entry in the Authority Delegation
 Profile registry of <span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span> (§Authority Delegation
-Profile Registry):<a href="#section-12.5-1" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-12.5-2">
-          <dt id="section-12.5-2.1">Profile Identifier:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.5-2.2">
-            <p id="section-12.5-2.2.1"><code>urn:ietf:params:oauth:authority-delegation-profile:attribute-authority-trust</code><a href="#section-12.5-2.2.1" class="pilcrow">¶</a></p>
+Profile Registry):<a href="#section-13.6-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-13.6-2">
+          <dt id="section-13.6-2.1">Profile Identifier:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.6-2.2">
+            <p id="section-13.6-2.2.1"><code>urn:ietf:params:oauth:authority-delegation-profile:attribute-authority-trust</code><a href="#section-13.6-2.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.5-2.3">Authority Holder Form:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.5-2.4">
-            <p id="section-12.5-2.4.1">DNS domain (exact, not registrable; subdomain-level granularity
-permitted).<a href="#section-12.5-2.4.1" class="pilcrow">¶</a></p>
+<dt id="section-13.6-2.3">Authority Holder Form:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.6-2.4">
+            <p id="section-13.6-2.4.1">DNS domain (exact, not registrable; subdomain-level granularity
+permitted).<a href="#section-13.6-2.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.5-2.5">Delegate Form:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.5-2.6">
-            <p id="section-12.5-2.6.1">Assertion Issuer (OAuth authorization server identifier; HTTPS
-URL).<a href="#section-12.5-2.6.1" class="pilcrow">¶</a></p>
+<dt id="section-13.6-2.5">Delegate Form:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.6-2.6">
+            <p id="section-13.6-2.6.1">Assertion Issuer (OAuth authorization server identifier; HTTPS
+URL).<a href="#section-13.6-2.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.5-2.7">Publication Channel:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.5-2.8">
-            <p id="section-12.5-2.8.1">DNS TXT at <code>_oauth-attribute-authority-policy.{authority}</code> with
-optional HTTPS pointer; HTTPS fallback at the authority's
-well-known URL; signed-policy publication at arbitrary HTTPS
-origins via <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>'s Profile 3 mechanism applied to AAAPs.<a href="#section-12.5-2.8.1" class="pilcrow">¶</a></p>
+<dt id="section-13.6-2.7">Publication Channel:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.6-2.8">
+            <p id="section-13.6-2.8.1">DNS TXT at <code>_oauth-attribute-authority-policy.{authority}</code> carrying
+an HTTPS pointer; HTTPS fallback at the authority's well-known URL;
+signed-policy publication at arbitrary HTTPS origins via <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>'s
+Profile 3 mechanism applied to AAAPs. Inline DNS issuer lists are not
+defined by this profile.<a href="#section-13.6-2.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.5-2.9">Subdelegation:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.5-2.10">
-            <p id="section-12.5-2.10.1">Not permitted. <code>authorized_issuers</code> is a flat list; bounded
-depth-1.<a href="#section-12.5-2.10.1" class="pilcrow">¶</a></p>
+<dt id="section-13.6-2.9">Subdelegation:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.6-2.10">
+            <p id="section-13.6-2.10.1">Not permitted. <code>authorized_issuers</code> is a flat list; bounded
+depth-1.<a href="#section-13.6-2.10.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.5-2.11">Reference:</dt>
-          <dd style="margin-left: 1.5em" id="section-12.5-2.12">
-            <p id="section-12.5-2.12.1">This document.<a href="#section-12.5-2.12.1" class="pilcrow">¶</a></p>
+<dt id="section-13.6-2.11">Reference:</dt>
+          <dd style="margin-left: 1.5em" id="section-13.6-2.12">
+            <p id="section-13.6-2.12.1">This document.<a href="#section-13.6-2.12.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-12.5-3">Profile Mapping Matrix:<a href="#section-12.5-3" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-12.5-4">
-          <dt id="section-12.5-4.1"><code>source_selection</code></dt>
-          <dd style="margin-left: 1.5em" id="section-12.5-4.2">
-            <p id="section-12.5-4.2.1">The Attribute Authority is extracted from the assertion's
-<code>&lt;attribute&gt;_authority</code> claim for each attribute claim under
-evaluation. Selection uses one property per attribute (the
-attribute's <code>_authority</code> claim); selection is invariant under
-other claims. The function is per-attribute deterministic.<a href="#section-12.5-4.2.1" class="pilcrow">¶</a></p>
+<p id="section-13.6-3">Profile Mapping Matrix:<a href="#section-13.6-3" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-13.6-4">
+          <dt id="section-13.6-4.1"><code>source_selection</code></dt>
+          <dd style="margin-left: 1.5em" id="section-13.6-4.2">
+            <p id="section-13.6-4.2.1">The Attribute Authority is extracted from the assertion's
+recognized claim shape for each protected attribute claim under
+evaluation. Selection uses one authority value per attribute; selection
+is invariant under unrelated claims. The function is per-attribute
+deterministic.<a href="#section-13.6-4.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.5-4.3"><code>revocation_lifecycle</code></dt>
-          <dd style="margin-left: 1.5em" id="section-12.5-4.4">
-            <p id="section-12.5-4.4.1">Cache-bounded with no push mechanism, mirroring <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>'s cache
+<dt id="section-13.6-4.3"><code>revocation_lifecycle</code></dt>
+          <dd style="margin-left: 1.5em" id="section-13.6-4.4">
+            <p id="section-13.6-4.4.1">Cache-bounded with no push mechanism, mirroring <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>'s cache
 model. Positive cache lifetime is bounded by DNS TTL and HTTP
 <code>Cache-Control</code>, capped at the profile-specified maximum
 (recommended ≤24h ceiling). Cumulative-Indeterminate cap is
-1 hour. Negative caching subject to the same lifetime ceiling.<a href="#section-12.5-4.4.1" class="pilcrow">¶</a></p>
+1 hour. Negative caching subject to the same lifetime ceiling.<a href="#section-13.6-4.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-12.5-4.5"><code>transitivity_limit</code></dt>
-          <dd style="margin-left: 1.5em" id="section-12.5-4.6">
-            <p id="section-12.5-4.6.1">Depth-1. The Attribute Authority lists Assertion Issuers
-directly; no further delegation is permitted.<a href="#section-12.5-4.6.1" class="pilcrow">¶</a></p>
+<dt id="section-13.6-4.5"><code>transitivity_limit</code></dt>
+          <dd style="margin-left: 1.5em" id="section-13.6-4.6">
+            <p id="section-13.6-4.6.1">Depth-1. The Attribute Authority lists Assertion Issuers
+directly; no further delegation is permitted.<a href="#section-13.6-4.6.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -2830,16 +3061,24 @@ directly; no further delegation is permitted.<a href="#section-12.5-4.6.1" class
 </section>
 </div>
 <div id="sec-combined-references">
-<section id="section-13">
+<section id="section-14">
       <h2 id="name-references">
-<a href="#section-13" class="section-number selfRef">13. </a><a href="#name-references" class="section-name selfRef">References</a>
+<a href="#section-14" class="section-number selfRef">14. </a><a href="#name-references" class="section-name selfRef">References</a>
       </h2>
 <div id="sec-normative-references">
-<section id="section-13.1">
+<section id="section-14.1">
         <h3 id="name-normative-references">
-<a href="#section-13.1" class="section-number selfRef">13.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+<a href="#section-14.1" class="section-number selfRef">14.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
         </h3>
 <dl class="references">
+<dt id="AUTHORITY-DELEGATION">[AUTHORITY-DELEGATION]</dt>
+        <dd>
+<span class="refTitle">"OAuth Authority Delegation Framework"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-mcguinness-oauth-authority-delegation-framework/">https://datatracker.ietf.org/doc/draft-mcguinness-oauth-authority-delegation-framework/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="DAI">[DAI]</dt>
+        <dd>
+<span class="refTitle">"OAuth Domain-Authorized Issuer Discovery"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer-discovery/">https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer-discovery/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC1035">[RFC1035]</dt>
         <dd>
 <span class="refAuthor">Mockapetris, P.</span>, <span class="refTitle">"Domain names - implementation and specification"</span>, <span class="seriesInfo">STD 13</span>, <span class="seriesInfo">RFC 1035</span>, <span class="seriesInfo">DOI 10.17487/RFC1035</span>, <time datetime="1987-11" class="refDate">November 1987</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc1035">https://www.rfc-editor.org/rfc/rfc1035</a>&gt;</span>. </dd>
@@ -2855,6 +3094,10 @@ directly; no further delegation is permitted.<a href="#section-12.5-4.6.1" class
 <dt id="RFC5891">[RFC5891]</dt>
         <dd>
 <span class="refAuthor">Klensin, J.</span>, <span class="refTitle">"Internationalized Domain Names in Applications (IDNA): Protocol"</span>, <span class="seriesInfo">RFC 5891</span>, <span class="seriesInfo">DOI 10.17487/RFC5891</span>, <time datetime="2010-08" class="refDate">August 2010</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5891">https://www.rfc-editor.org/rfc/rfc5891</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6749">[RFC6749]</dt>
+        <dd>
+<span class="refAuthor">Hardt, D., Ed.</span>, <span class="refTitle">"The OAuth 2.0 Authorization Framework"</span>, <span class="seriesInfo">RFC 6749</span>, <span class="seriesInfo">DOI 10.17487/RFC6749</span>, <time datetime="2012-10" class="refDate">October 2012</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6749">https://www.rfc-editor.org/rfc/rfc6749</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC7519">[RFC7519]</dt>
         <dd>
@@ -2888,19 +3131,11 @@ directly; no further delegation is permitted.<a href="#section-12.5-4.6.1" class
 </section>
 </div>
 <div id="sec-informative-references">
-<section id="section-13.2">
+<section id="section-14.2">
         <h3 id="name-informative-references">
-<a href="#section-13.2" class="section-number selfRef">13.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+<a href="#section-14.2" class="section-number selfRef">14.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
-<dt id="AUTHORITY-DELEGATION">[AUTHORITY-DELEGATION]</dt>
-        <dd>
-<span class="refTitle">"OAuth Authority Delegation Framework"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-mcguinness-oauth-authority-delegation-framework/">https://datatracker.ietf.org/doc/draft-mcguinness-oauth-authority-delegation-framework/</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="DAI">[DAI]</dt>
-        <dd>
-<span class="refTitle">"OAuth Domain-Authorized Issuer Discovery"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer-discovery/">https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer-discovery/</a>&gt;</span>. </dd>
-<dd class="break"></dd>
 <dt id="ID-JAG">[ID-JAG]</dt>
         <dd>
 <span class="refTitle">"Identity Assertion JWT Authorization Grant"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/">https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/</a>&gt;</span>. </dd>

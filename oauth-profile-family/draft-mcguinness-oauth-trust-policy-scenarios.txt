@@ -1,0 +1,1031 @@
+
+
+
+
+Web Authorization Protocol                                 K. McGuinness
+Internet-Draft                                               Independent
+Intended status: Informational                               26 May 2026
+Expires: 27 November 2026
+
+
+   Deployment Scenarios for the OAuth Identity Assertion Trust Policy
+                                 Family
+          draft-mcguinness-oauth-trust-policy-scenarios-latest
+
+Abstract
+
+   This document is a non-normative companion to the OAuth Identity
+   Assertion Issuer Trust Policy family of specifications.  It presents
+   five end-to-end deployment scenarios that span the family's profiles:
+   Domain-Authorized Issuer Discovery, Client Instance Trust, and
+   Attribute Authority Trust.  For each scenario, the document
+   identifies the actors, what each actor publishes or configures, the
+   resulting token request flow, the Resource Authorization Server's
+   evaluation, and the spec sections that apply.
+
+   Implementers and deployers can use this document to identify which
+   specifications apply to their use case and to verify their deployment
+   shape against a worked example.
+
+Discussion Venues
+
+   This note is to be removed before publishing as an RFC.
+
+   Discussion of this document takes place on the Web Authorization
+   Protocol Working Group mailing list (oauth@ietf.org), which is
+   archived at https://mailarchive.ietf.org/arch/browse/oauth/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/mcguinness/draft-mcguinness-oauth-identity-
+   assertion-trust-policy.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 27 November 2026.
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction
+     1.1.  Reading Guide
+     1.2.  Conventions
+   2.  Scenario 1: Workforce SSO into Multi-Vendor SaaS
+     2.1.  Problem
+     2.2.  Actors
+     2.3.  What is Published
+     2.4.  Token Request
+     2.5.  Verification
+     2.6.  Specs Used
+     2.7.  What This Prevents
+   3.  Scenario 2: Shared-Issuer Multi-Tenant Identity Provider
+     3.1.  Problem
+     3.2.  Actors
+     3.3.  What is Published
+     3.4.  Token Request
+     3.5.  Verification
+     3.6.  What This Prevents
+     3.7.  Specs Used
+   4.  Scenario 3: AI Agent Platform Across Tool Boundaries
+     4.1.  Problem
+     4.2.  Actors
+     4.3.  What is Published
+     4.4.  Token Request
+     4.5.  Verification
+     4.6.  What This Prevents
+     4.7.  Specs Used
+   5.  Scenario 4: Workload Identity Binding with SPIFFE
+     5.1.  Problem
+     5.2.  Actors
+     5.3.  What is Published
+     5.4.  Token Request
+     5.5.  Verification
+     5.6.  What This Prevents
+     5.7.  Specs Used
+   6.  Scenario 5: Verified Identity Claims (eKYC-IDA Integration)
+     6.1.  Problem
+     6.2.  Actors
+     6.3.  What is Published
+     6.4.  Token Request
+     6.5.  Verification
+     6.6.  What This Prevents
+     6.7.  Specs Used
+   7.  Summary Comparison
+   8.  Mapping to Specifications
+   9.  Security Considerations
+   10. IANA Considerations
+   11. Informative References
+   Appendix A.  Document History
+   Author's Address
+
+1.  Introduction
+
+   The OAuth Identity Assertion Issuer Trust Policy family specifies how
+   a Resource Authorization Server publishes its trust criteria and how
+   Assertion Issuers prove that they meet those criteria.  The family
+   consists of:
+
+   *  [AUTHORITY-DELEGATION]: the abstract Authority Delegation Pattern.
+
+   *  [TRUST-POLICY]: the OAuth-side framework (Trust Policy document,
+      Trust Method machinery, Subject Authority Determination, grant-
+      profile bindings).
+
+   *  [DAI]: DNS+HTTPS Subject-Authority publication mechanism with two
+      Trust Methods (domain_authorized_issuer, https_authorized_issuer).
+
+   *  [CLIENT-INSTANCE-TRUST]: third Trust Method category
+      client_instance_authorization, applying the pattern to workload-
+      to-client binding.
+
+   *  [ATTRIBUTE-AUTHORITY-TRUST]: fourth Trust Method category
+      attribute_attestation, applying the pattern to claim-type
+      authorities (universities, employers, KYC providers, credentialing
+      bodies).
+
+   This document walks through five end-to-end deployment scenarios that
+   exercise these specifications.  Each scenario is presented in a
+   uniform format so readers can compare them and identify the shape
+   closest to their deployment.
+
+1.1.  Reading Guide
+
+   Each scenario in this document is structured as:
+
+   *  *Problem*: the deployment situation the scenario addresses.
+
+   *  *Actors*: the parties involved.
+
+   *  *What is Published*: configurations and policies each actor
+      publishes (DNS records, HTTPS documents, OAuth metadata).
+
+   *  *Token Request*: the wire-format exchange.
+
+   *  *Verification*: step-by-step trust evaluation at the Resource
+      Authorization Server.
+
+   *  *Specs Used*: the specific sections of the family that apply.
+
+   JSON and DNS examples are illustrative; deployments adapt them to
+   their own identifiers and certificate authorities.  URLs in examples
+   (*.example, *.example.com) are reserved per RFC 2606 and do not refer
+   to real services.
+
+1.2.  Conventions
+
+   This document is non-normative.  The five scenarios show how the
+   normative specifications of the family combine in concrete
+   deployments.  The normative specifications remain authoritative for
+   any disagreement.
+
+2.  Scenario 1: Workforce SSO into Multi-Vendor SaaS
+
+2.1.  Problem
+
+   An enterprise customer (acme.example) federates its workforce
+   Identity Provider into many SaaS vendors.  Each vendor needs to
+   verify that the IdP claiming to issue assertions about *@acme.example
+   users is in fact the IdP the customer authorizes for its email
+   namespace.  Without a wire-format check, each vendor configures the
+   trusted IdP bilaterally per customer: operationally expensive,
+   fragile at scale, and undetectable when misconfigured.
+
+2.2.  Actors
+
+   *  *Customer*, acme.example.  Owns the email domain.  Publishes DAI
+      records authorizing one IdP.
+
+   *  *Customer's IdP*, https://idp.workforce-vendor.example.  The IdP
+      service the customer has contracted with.
+
+   *  *SaaS Vendor*, https://api.saas.example.  The Resource
+      Authorization Server that publishes the Trust Policy and verifies
+      incoming assertions.
+
+   *  *End user*, Alice (alice@acme.example).
+
+   *  *Client*, a SaaS-side client application.
+
+2.3.  What is Published
+
+   The customer publishes a DAI record:
+
+   _oauth-issuer-policy.acme.example.  IN  TXT
+     "v=oauth-issuer-policy1;
+      authority=acme.example;
+      issuer=https://idp.workforce-vendor.example"
+
+   The SaaS vendor publishes a Trust Policy at
+   https://api.saas.example/.well-known/identity-assertion-trust-policy:
+
+   {
+     "resource_authorization_server": "https://api.saas.example",
+     "authorization_grant_profiles_supported": [
+       "urn:ietf:params:oauth:grant-profile:id-jag"
+     ],
+     "subject_identifier_formats_supported": ["email"],
+     "issuer_trust_methods": [
+       {
+         "method": "domain_authorized_issuer"
+       }
+     ]
+   }
+
+   This Trust Policy says: any Assertion Issuer is acceptable IF listed
+   in the Issuer Authorization Policy published by the asserted
+   subject's email domain.
+
+2.4.  Token Request
+
+   Alice authenticates to her IdP.  The IdP mints an ID-JAG and the
+   client presents it to the SaaS:
+
+   {
+     "iss": "https://idp.workforce-vendor.example",
+     "sub": "alice-1234",
+     "aud": "https://api.saas.example",
+     "exp": 1780166400,
+     "iat": 1780166100,
+     "email": "alice@acme.example",
+     "email_verified": true
+   }
+
+2.5.  Verification
+
+   The SaaS vendor evaluates the Trust Policy:
+
+   1.  Validate the ID-JAG per the grant profile (signature, audience,
+       expiration, replay).
+
+   2.  Verify the format email is in
+       subject_identifier_formats_supported.  Yes.
+
+   3.  Evaluate domain_authorized_issuer:
+
+       *  Extract Subject Authority: acme.example (registrable domain of
+          alice@acme.example).
+
+       *  Look up DAI at _oauth-issuer-policy.acme.example.
+
+       *  Inline form: issuer=https://idp.workforce-vendor.example is
+          listed.
+
+       *  The ID-JAG's iss matches.  Trust Method satisfied.
+
+   4.  Accept.
+
+2.6.  Specs Used
+
+   *  [TRUST-POLICY]: Trust Policy document, RAS Processing.
+
+   *  [DAI]: domain_authorized_issuer Trust Method, DNS-inline form,
+      Subject Authority extraction for email.
+
+   *  [ID-JAG]: grant profile and assertion format.
+
+2.7.  What This Prevents
+
+   A misconfigured or malicious vendor cannot accept an unrelated IdP's
+   claim about alice@acme.example without acme.example's explicit
+   authorization.  A different IdP attempting the same assertion fails:
+   the IdP's iss does not match the authorized_issuers entry.
+
+3.  Scenario 2: Shared-Issuer Multi-Tenant Identity Provider
+
+3.1.  Problem
+
+   The customer uses a shared-issuer multi-tenant IdP (for example,
+   Google Workspace at https://accounts.google.com, serving many tenants
+   under one iss value).  Without tenant binding, listing the shared
+   issuer in DAI would authorize EVERY tenant of the IdP to assert about
+   the customer's email namespace.  The deployment needs to bind
+   authorization to one specific tenant.
+
+3.2.  Actors
+
+   *  *Customer*, acme.example.  Publishes DAI with tenant binding.
+
+   *  *Shared-issuer IdP*, https://accounts.google.com.  Serves many
+      tenants under one issuer identifier.  Each assertion carries a
+      top-level tenant claim.
+
+   *  *SaaS Vendor*, same as Scenario 1.
+
+3.3.  What is Published
+
+   The customer publishes a DAI pointer record (the inline form cannot
+   carry tenant binding):
+
+   _oauth-issuer-policy.acme.example.  IN  TXT
+     "v=oauth-issuer-policy1;
+      authority=acme.example;
+      uri=https://acme.example/.well-known/oauth-issuer-policy"
+
+   The pointed-at JSON policy:
+
+   {
+     "subject_authority": "acme.example",
+     "authorized_issuers": [
+       {
+         "issuer": "https://accounts.google.com",
+         "tenant": "acme.example",
+         "subject_identifier_formats": ["email"]
+       }
+     ],
+     "last_updated": "2026-05-25T00:00:00Z"
+   }
+
+   The SaaS vendor's Trust Policy is the same as Scenario 1
+   (domain_authorized_issuer only).
+
+3.4.  Token Request
+
+   The customer's tenant of the shared IdP mints an ID-JAG:
+
+   {
+     "iss": "https://accounts.google.com",
+     "sub": "alice-google-1234",
+     "aud": "https://api.saas.example",
+     "exp": 1780166400,
+     "iat": 1780166100,
+     "tenant": "acme.example",
+     "email": "alice@acme.example",
+     "email_verified": true
+   }
+
+   The tenant claim is set to acme.example by Google's tenant isolation
+   (only acme.example's tenant can mint assertions with this tenant
+   value).
+
+3.5.  Verification
+
+   The SaaS vendor evaluates:
+
+   1.  Validate the ID-JAG per the grant profile.
+
+   2.  Format check passes.
+
+   3.  Evaluate domain_authorized_issuer:
+
+       *  Extract Subject Authority: acme.example.
+
+       *  Fetch the JSON policy via the DNS uri= pointer.
+
+       *  Find an entry where issuer matches AND tenant matches the
+          assertion's tenant claim.  Match.
+
+   4.  Accept.
+
+3.6.  What This Prevents
+
+   A different Google Workspace tenant (attacker-corp) attempting to
+   assert about alice@acme.example would mint:
+
+   {
+     "iss": "https://accounts.google.com",
+     "tenant": "attacker-corp",
+     "email": "alice@acme.example",
+     "email_verified": true,
+     ...
+   }
+
+   The iss matches the policy entry but the tenant value does not match
+   (acme.example is required).  Trust Method not satisfied.  Rejected.
+
+   This composition rests on Google's tenant-isolation enforcement (a
+   tenant cannot mint assertions claiming a different tenant's value).
+   The wire-format check surfaces the customer's CHOICE of authorized
+   tenant; tenant-isolation is the IdP's engineering responsibility per
+   [DAI] §Single-Issuer Multi-Tenant Identity Providers.
+
+3.7.  Specs Used
+
+   *  [TRUST-POLICY]: Trust Policy document, RAS Processing.
+
+   *  [DAI]: domain_authorized_issuer with tenant binding, DNS pointer
+      form, §Single-Issuer Multi-Tenant Identity Providers.
+
+   *  [ID-JAG]: top-level tenant claim.
+
+4.  Scenario 3: AI Agent Platform Across Tool Boundaries
+
+4.1.  Problem
+
+   An AI agent platform (https://agentprovider.example) authenticates
+   users via federated SSO from their primary IdP, then mints identity
+   assertions toward downstream tools on behalf of the user.  The
+   downstream tool's Resource Authorization Server needs to know that
+   the agent platform is authorized to assert about users in the
+   customer's namespace.  Without this check, the tool could accept
+   agent-platform assertions about any user regardless of namespace.
+
+4.2.  Actors
+
+   *  *Customer*, acme.example.  Authorizes the agent platform via DAI.
+
+   *  *Customer's primary IdP*, https://idp.workforce-vendor.example.
+      Used by the agent platform for federated user authentication.  Not
+      the Assertion Issuer at the tool.
+
+   *  *Agent Platform*, https://agentprovider.example.  The Assertion
+      Issuer at the downstream tool.  Federated member of an ecosystem.
+
+   *  *Tool Provider*, https://api.tool.example.  The Resource
+      Authorization Server.
+
+   *  *End user*, Alice (alice@acme.example).
+
+4.3.  What is Published
+
+   The customer publishes a DAI record listing the agent platform:
+
+   _oauth-issuer-policy.acme.example.  IN  TXT
+     "v=oauth-issuer-policy1;
+      authority=acme.example;
+      issuer=https://agentprovider.example"
+
+   The tool provider publishes a Trust Policy requiring BOTH issuer
+   authentication AND namespace authorization:
+
+   {
+     "resource_authorization_server": "https://api.tool.example",
+     "authorization_grant_profiles_supported": [
+       "urn:ietf:params:oauth:grant-profile:id-jag"
+     ],
+     "subject_identifier_formats_supported": ["email"],
+     "issuer_trust_methods": [
+       {
+         "method": "openid_federation",
+         "trust_anchors": ["https://federation.example.org"]
+       },
+       {
+         "method": "domain_authorized_issuer"
+       }
+     ]
+   }
+
+4.4.  Token Request
+
+   The agent platform authenticates Alice via federated SSO from her
+   primary IdP.  The agent platform then mints its own ID-JAG with
+   itself as iss and presents it to the tool:
+
+   {
+     "iss": "https://agentprovider.example",
+     "sub": "agent-platform-user-1234",
+     "aud": "https://api.tool.example",
+     "exp": 1780166400,
+     "iat": 1780166100,
+     "email": "alice@acme.example",
+     "email_verified": true
+   }
+
+4.5.  Verification
+
+   The tool evaluates the Trust Policy with the cross-category
+   combination rule (AND across categories):
+
+   1.  Validate the ID-JAG per the grant profile.
+
+   2.  Format check passes.
+
+   3.  Evaluate openid_federation:
+
+       *  Verify the agent platform's federation trust chain to
+          https://federation.example.org.
+
+       *  Validates.  Authenticity satisfied.
+
+   4.  Evaluate domain_authorized_issuer:
+
+       *  Extract Subject Authority: acme.example.
+
+       *  Look up DAI at _oauth-issuer-policy.acme.example.
+
+       *  https://agentprovider.example is listed.  Authorization
+          satisfied.
+
+   5.  Accept.
+
+   Both categories satisfied.  The agent platform is authentic (it's a
+   recognized federation member) AND authorized for the customer's email
+   namespace (the customer has listed it in DAI).
+
+4.6.  What This Prevents
+
+   A different agent platform that is ALSO a federation member but NOT
+   authorized by acme.example cannot impersonate Alice.  Its
+   openid_federation check passes (federation membership) but
+   domain_authorized_issuer fails (not in acme.example's DAI policy).
+   The cross-category combination rule requires both; rejection follows.
+
+   This is the load-bearing security property: federation membership
+   authenticates issuer identity but does NOT confer authority over any
+   particular subject namespace.
+
+4.7.  Specs Used
+
+   *  [TRUST-POLICY]: Trust Policy, Trust Method categories, cross-
+      category combination rule.
+
+   *  [DAI]: domain_authorized_issuer.
+
+   *  [OIDF-FEDERATION]: federation membership.
+
+5.  Scenario 4: Workload Identity Binding with SPIFFE
+
+5.1.  Problem
+
+   A SaaS application (https://app.tenant.example) runs many workload
+   instances across a deployment.  Each workload needs to authenticate
+   as the OAuth client to the platform's Resource Authorization Server.
+   Without workload identity binding, any party with the client
+   credentials could impersonate the app.  With SPIFFE/SPIRE, workloads
+   obtain short-lived SVIDs from a trust domain authority, and the OAuth
+   client owner authorizes that trust domain to issue Client Instance
+   Assertions.
+
+5.2.  Actors
+
+   *  *OAuth Client Owner* (publishes CIMD at
+      https://app.tenant.example/oauth/client-metadata.json).
+      Authorizes SPIFFE trust domains to issue Client Instance
+      Assertions.
+
+   *  *SPIRE Server*, identified by SPIFFE trust domain
+      spiffe://prod.tenant.example.  Issues SVIDs to workloads.
+
+   *  *Workload*, identified by SPIFFE ID
+      spiffe://prod.tenant.example/svc/api.  Runs as an instance of the
+      OAuth client.
+
+   *  *Resource Authorization Server*, https://auth.platform.example.
+
+   *  *End user*, Alice (alice@acme.example), authenticated elsewhere.
+
+5.3.  What is Published
+
+   The OAuth client's CIMD document at https://app.tenant.example/oauth/
+   client-metadata.json:
+
+   {
+     "client_id": "https://app.tenant.example/oauth/client-metadata.json",
+     "client_name": "Example App",
+     "instance_issuers": [
+       "spiffe://prod.tenant.example"
+     ]
+   }
+
+   The platform's Trust Policy requires client-instance authorization:
+
+   {
+     "resource_authorization_server": "https://auth.platform.example",
+     "authorization_grant_profiles_supported": [
+       "urn:ietf:params:oauth:grant-profile:id-jag"
+     ],
+     "subject_identifier_formats_supported": ["email"],
+     "issuer_trust_methods": [
+       {
+         "method": "domain_authorized_issuer"
+       },
+       {
+         "method": "client_authorized_instance_issuer"
+       }
+     ],
+     "client_instance_assertion_required": true,
+     "crit": ["client_instance_assertion_required"]
+   }
+
+   This policy says: every token request MUST carry a Client Instance
+   Assertion AND the Assertion Issuer must be DAI-authorized for the
+   subject's namespace.
+
+5.4.  Token Request
+
+   The workload obtains an SVID from SPIRE and constructs a Client
+   Instance Assertion per [CIA] signed using the SVID's key.  The
+   workload presents a Token Exchange request:
+
+   POST /token HTTP/1.1
+   Host: auth.platform.example
+   Content-Type: application/x-www-form-urlencoded
+
+   grant_type=urn:ietf:params:oauth:grant-type:token-exchange
+   &client_id=https%3A%2F%2Fapp.tenant.example%2Foauth%2Fclient-metadata.json
+   &subject_token=eyJ...(ID-JAG for Alice)
+   &subject_token_type=urn:ietf:params:oauth:token-type:id-jag
+   &actor_token=eyJ...(Client Instance Assertion)
+   &actor_token_type=urn:ietf:params:oauth:token-type:client-instance-jwt
+
+   The Client Instance Assertion (decoded) carries:
+
+   {
+     "iss": "spiffe://prod.tenant.example",
+     "sub": "spiffe://prod.tenant.example/svc/api",
+     "client_id": "https://app.tenant.example/oauth/client-metadata.json",
+     "aud": "https://auth.platform.example",
+     "exp": 1780166400,
+     "iat": 1780166100,
+     "cnf": { "jwk": {...} }
+   }
+
+5.5.  Verification
+
+   The platform's RAS evaluates:
+
+   1.  Validate the subject_token (ID-JAG) per the grant profile.
+
+   2.  Validate the actor_token (Client Instance Assertion) per [CIA].
+
+   3.  Format check passes.
+
+   4.  Evaluate domain_authorized_issuer for Alice's namespace: resolves
+       to acme.example's DAI policy and the ID-JAG's iss is listed.
+
+   5.  Evaluate client_authorized_instance_issuer:
+
+       *  Fetch the OAuth client's CIMD at the client_id URL.
+
+       *  Find spiffe://prod.tenant.example in instance_issuers.  Match.
+
+       *  Validate the Client Instance Assertion per [CIA] (signature,
+          descriptor match, cnf proof of possession).
+
+   6.  Accept.
+
+5.6.  What This Prevents
+
+   An attacker with a workload identity in a different SPIFFE trust
+   domain (spiffe://attacker.example) cannot impersonate the client's
+   workloads.  The CIMD does not list spiffe://attacker.example, so the
+   client_authorized_instance_issuer check fails.  Workload identity
+   authentication in the attacker's own trust domain is not
+   substitutable for the OAuth client owner's explicit listing.
+
+5.7.  Specs Used
+
+   *  [TRUST-POLICY]: Trust Policy with three Trust Method categories.
+
+   *  [DAI]: domain_authorized_issuer for the subject's namespace.
+
+   *  [CLIENT-INSTANCE-TRUST]: client_authorized_instance_issuer,
+      §Working with SPIFFE/SPIRE, §combined-evaluation.
+
+   *  [CIA]: Client Instance Assertion wire format and validation.
+
+   *  [CIMD]: client metadata document publication.
+
+   *  [SPIFFE]: workload identity framework.
+
+6.  Scenario 5: Verified Identity Claims (eKYC-IDA Integration)
+
+6.1.  Problem
+
+   A regulator or scheme administrator (https://idp-assurance.example)
+   operates a verified-identity trust framework.  IdPs in the framework
+   issue assertions carrying OIDC4IDA verified_claims with evidence
+   metadata.  A relying party needs to verify that an IdP claiming
+   compliance with the framework is in fact authorized by the
+   framework's owner.
+
+6.2.  Actors
+
+   *  *Trust Framework*, idp-assurance.example.  Publishes an Attribute
+      Authority Authorization Policy listing IdPs authorized to issue
+      under the framework.
+
+   *  *Verified-Identity IdP*, https://idp.verified-id.example.
+      Authenticates users via in-person identity proofing (passport,
+      driver's license) and issues assertions with OIDC4IDA
+      verified_claims.
+
+   *  *Relying Party*, https://api.bank.example.  Requires identity-
+      verified onboarding.
+
+   *  *End user*, Alice.
+
+6.3.  What is Published
+
+   The trust framework publishes its AAAP:
+
+   _oauth-attribute-authority-policy.idp-assurance.example.  IN  TXT
+     "v=oauth-attribute-authority-policy1;
+      authority=idp-assurance.example;
+      uri=https://attestations.idp-assurance.example/aaap.json"
+
+   The pointed-at policy:
+
+   {
+     "attribute_authority": "idp-assurance.example",
+     "authorized_issuers": [
+       {
+         "issuer": "https://idp.verified-id.example",
+         "attribute_types": ["given_name", "family_name", "birthdate"],
+         "valid_until": "2030-01-01T00:00:00Z"
+       }
+     ],
+     "last_updated": "2026-05-25T00:00:00Z"
+   }
+
+   The relying party's Trust Policy:
+
+   {
+     "resource_authorization_server": "https://api.bank.example",
+     "authorization_grant_profiles_supported": [
+       "urn:ietf:params:oauth:grant-profile:id-jag"
+     ],
+     "subject_identifier_formats_supported": ["email"],
+     "issuer_trust_methods": [
+       {
+         "method": "domain_authorized_issuer"
+       },
+       {
+         "method": "attribute_authority_authorized_issuer"
+       }
+     ]
+   }
+
+6.4.  Token Request
+
+   The IdP mints an ID-JAG with OIDC4IDA verified_claims:
+
+   {
+     "iss": "https://idp.verified-id.example",
+     "sub": "alice-verified-1234",
+     "aud": "https://api.bank.example",
+     "exp": 1780166400,
+     "iat": 1780166100,
+     "email": "alice@personal.example",
+     "email_verified": true,
+     "verified_claims": {
+       "verification": {
+         "trust_framework": "idp-assurance.example",
+         "evidence": [
+           {
+             "type": "document",
+             "method": "pipp",
+             "document_details": { "type": "passport" }
+           }
+         ]
+       },
+       "claims": {
+         "given_name": "Alice",
+         "family_name": "Anderson",
+         "birthdate": "1990-01-01"
+       }
+     }
+   }
+
+6.5.  Verification
+
+   The relying party evaluates:
+
+   1.  Validate the ID-JAG per the grant profile.
+
+   2.  Format check passes.
+
+   3.  Evaluate domain_authorized_issuer for Alice's email namespace:
+       the IdP must be DAI-authorized by personal.example (or whichever
+       Subject Authority Alice's email maps to).
+
+   4.  Evaluate attribute_authority_authorized_issuer for the
+       verified_claims payload:
+
+       *  Read the Attribute Authority from
+          verified_claims.verification.trust_framework: idp-
+          assurance.example.
+
+       *  Look up the AAAP at _oauth-attribute-authority-policy.idp-
+          assurance.example.
+
+       *  https://idp.verified-id.example is listed for given_name,
+          family_name, birthdate.  Match.
+
+       *  Each claim in verified_claims.claims is one of the authorized
+          attribute types.  Match.
+
+   5.  Accept.
+
+   The relying party now has cryptographic and trust-framework backing
+   for the verified attribute values.
+
+6.6.  What This Prevents
+
+   An unauthorized IdP attempting to issue verified claims under the
+   framework:
+
+   {
+     "iss": "https://idp.diploma-mill.example",
+     "verified_claims": {
+       "verification": {
+         "trust_framework": "idp-assurance.example",
+         ...
+       },
+       "claims": { "given_name": "Alice", ... }
+     }
+   }
+
+   The AAAP lookup at idp-assurance.example does not list the diploma-
+   mill IdP.  Trust Method not satisfied.  Rejected.
+
+6.7.  Specs Used
+
+   *  [TRUST-POLICY]: Trust Policy, cross-category combination rule.
+
+   *  [DAI]: domain_authorized_issuer for the email namespace.
+
+   *  [ATTRIBUTE-AUTHORITY-TRUST]:
+      attribute_authority_authorized_issuer, OIDC4IDA verified_claims
+      claim shape, §eKYC-IDA Variant worked example.
+
+   *  [OIDC4IDA]: OpenID Connect for Identity Assurance wire format.
+
+7.  Summary Comparison
+
+   The five scenarios in this document cover the four Trust Method
+   categories of the family.  The combination of categories in each
+   scenario depends on the trust questions the deployment needs to
+   answer.
+
+   +=========+=====================+===============================+=================================+=====================================+
+   |Scenario |issuer_authentication|subject_namespace_authorization|client_instance_authorization    |attribute_attestation                |
+   +=========+=====================+===============================+=================================+=====================================+
+   |1:       |                     |DAI inline                     |                                 |                                     |
+   |Workforce|                     |                               |                                 |                                     |
+   |SSO      |                     |                               |                                 |                                     |
+   +---------+---------------------+-------------------------------+---------------------------------+-------------------------------------+
+   |2: Multi-|                     |DAI pointer with tenant        |                                 |                                     |
+   |Tenant   |                     |                               |                                 |                                     |
+   |IdP      |                     |                               |                                 |                                     |
+   +---------+---------------------+-------------------------------+---------------------------------+-------------------------------------+
+   |3: Agent |openid_federation    |DAI inline                     |                                 |                                     |
+   |Platform |                     |                               |                                 |                                     |
+   +---------+---------------------+-------------------------------+---------------------------------+-------------------------------------+
+   |4:       |                     |DAI inline                     |client_authorized_instance_issuer|                                     |
+   |Workload |                     |                               |                                 |                                     |
+   |(SPIFFE) |                     |                               |                                 |                                     |
+   +---------+---------------------+-------------------------------+---------------------------------+-------------------------------------+
+   |5:       |                     |DAI inline                     |                                 |attribute_authority_authorized_issuer|
+   |Verified |                     |                               |                                 |                                     |
+   |Claims   |                     |                               |                                 |                                     |
+   +---------+---------------------+-------------------------------+---------------------------------+-------------------------------------+
+
+                                  Table 1
+
+   Common to all scenarios:
+
+   *  The Resource Authorization Server publishes a Trust Policy
+      declaring the Trust Methods it requires.
+
+   *  Authority Holders (Subject Authorities, OAuth client owners,
+      attribute authorities) publish their delegation artifacts through
+      the appropriate channel.
+
+   *  Verification at the RAS follows the cross-category combination
+      rule: AND across applicable categories, OR within a category.
+
+8.  Mapping to Specifications
+
+   Section pointers into the family for each functional area exercised
+   by the scenarios:
+
+   *  Trust Policy document format: [TRUST-POLICY] §Trust Policy
+      Document.
+
+   *  RAS verification procedure: [TRUST-POLICY] §Resource Authorization
+      Server Processing.
+
+   *  Subject Authority extraction: [TRUST-POLICY] §Subject Authority
+      Determination.
+
+   *  DAI DNS record format: [DAI] §DNS Record.
+
+   *  DAI HTTPS document format: [DAI] §Issuer Authorization Policy
+      Document.
+
+   *  DAI lookup procedure: [DAI] §Lookup Procedure.
+
+   *  DAI tenant binding: [DAI] §Single-Issuer Multi-Tenant Identity
+      Providers.
+
+   *  CIMD instance_issuers member: [CIA] and [CIMD].
+
+   *  SPIFFE integration with Client Instance Trust:
+      [CLIENT-INSTANCE-TRUST] §Working with SPIFFE/SPIRE.
+
+   *  OIDC4IDA verified_claims integration: [ATTRIBUTE-AUTHORITY-TRUST]
+      §Relationship to eKYC-IDA Verified Claims and §OIDC4IDA
+      verified_claims Shape.
+
+   *  AAAP DNS+HTTPS publication: [ATTRIBUTE-AUTHORITY-TRUST]
+      §Publication.
+
+9.  Security Considerations
+
+   This document is non-normative.  The scenarios it describes exercise
+   the normative security considerations of the family:
+
+   *  The cross-category combination rule prevents weaker-category
+      evidence from substituting for stronger-category evidence (see
+      [TRUST-POLICY] §Resource Authorization Server Processing).
+
+   *  Tenant binding in DAI is a wire-format expression of trust in the
+      IdP's tenant-isolation enforcement, not a cryptographic guarantee
+      (see [DAI] §Single-Issuer Multi-Tenant Identity Providers).
+
+   *  Workload identity authorities (SPIFFE trust domains, cloud IMDS,
+      hardware-rooted attestation) compose with Client Instance Trust
+      without specifying which mechanism is used; the OAuth client
+      owner's choice of which authority to authorize is the load-bearing
+      decision (see [CLIENT-INSTANCE-TRUST] §Working with SPIFFE/SPIRE).
+
+   *  Attribute authority authorization is per-attribute-per-authority;
+      an IdP authorized by one attribute authority cannot synthesize
+      claims under a different attribute authority (see
+      [ATTRIBUTE-AUTHORITY-TRUST] §Security Considerations).
+
+   For threat-model and adversary-class analysis, see
+   [AUTHORITY-DELEGATION] §Threat Model.
+
+   For alignment with OAuth Security BCP, see [TRUST-POLICY] §Alignment
+   with OAuth Security BCP and [RFC9700].
+
+10.  IANA Considerations
+
+   This document has no IANA actions.
+
+11.  Informative References
+
+   [ATTRIBUTE-AUTHORITY-TRUST]
+              "Attribute Authority Trust Method for OAuth Identity
+              Assertion Issuer Trust Policy",
+              <https://datatracker.ietf.org/doc/draft-mcguinness-oauth-
+              attribute-authority-trust/>.
+
+   [AUTHORITY-DELEGATION]
+              "OAuth Authority Delegation Framework",
+              <https://datatracker.ietf.org/doc/draft-mcguinness-oauth-
+              authority-delegation-framework/>.
+
+   [CIA]      "OAuth 2.0 Client Instance Assertions using Actor Tokens",
+              <https://datatracker.ietf.org/doc/draft-mcguinness-oauth-
+              client-instance-assertion/>.
+
+   [CIMD]     "OAuth Client Identifier Metadata Document",
+              <https://datatracker.ietf.org/doc/draft-parecki-oauth-
+              client-id-metadata-document/>.
+
+   [CLIENT-INSTANCE-TRUST]
+              "Client Instance Trust Method for OAuth Identity Assertion
+              Issuer Trust Policy", <https://datatracker.ietf.org/doc/
+              draft-mcguinness-oauth-client-instance-trust/>.
+
+   [DAI]      "OAuth Domain-Authorized Issuer Discovery",
+              <https://datatracker.ietf.org/doc/draft-mcguinness-oauth-
+              domain-authorized-issuer-discovery/>.
+
+   [ID-JAG]   "Identity Assertion JWT Authorization Grant",
+              <https://datatracker.ietf.org/doc/draft-ietf-oauth-
+              identity-assertion-authz-grant/>.
+
+   [OIDC4IDA] "OpenID Connect for Identity Assurance 1.0", n.d.,
+              <https://openid.net/specs/openid-connect-4-identity-
+              assurance-1_0.html>.
+
+   [OIDF-FEDERATION]
+              "OpenID Federation 1.0", n.d.,
+              <https://openid.net/specs/openid-federation-1_0.html>.
+
+   [RFC9700]  Lodderstedt, T., Bradley, J., Labunets, A., and D. Fett,
+              "Best Current Practice for OAuth 2.0 Security", BCP 240,
+              RFC 9700, DOI 10.17487/RFC9700, January 2025,
+              <https://www.rfc-editor.org/rfc/rfc9700>.
+
+   [SPIFFE]   "Secure Production Identity Framework for Everyone
+              (SPIFFE)", n.d., <https://spiffe.io/docs/latest/spiffe-
+              about/spiffe-concepts/>.
+
+   [TRUST-POLICY]
+              "OAuth Identity Assertion Issuer Trust Policy",
+              <https://datatracker.ietf.org/doc/draft-mcguinness-oauth-
+              identity-assertion-issuer-trust-policy/>.
+
+Appendix A.  Document History
+
+   This appendix is non-normative and will be removed before
+   publication.
+
+   -00
+
+   *  initial draft
+
+Author's Address
+
+   Karl McGuinness
+   Independent
+   Email: public@karlmcguinness.com

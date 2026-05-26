@@ -252,6 +252,10 @@ Table of Contents
    Policy's registry and registers against this document's Authority
    Delegation Profile registry (Section 10.1).
 
+   [TRUST-POLICY-SCENARIOS] is a non-normative companion document
+   presenting five end-to-end deployment scenarios spanning the family's
+   profiles.
+
    *  *[TRUST-POLICY]* is the OAuth-side framework layer.  It
       instantiates this document's pattern for OAuth identity assertions
       and defines the Trust Policy document, the Trust Method machinery
@@ -2262,6 +2266,11 @@ Table of Contents
               "OAuth Identity Assertion Issuer Trust Policy",
               <https://datatracker.ietf.org/doc/draft-mcguinness-oauth-
               identity-assertion-issuer-trust-policy/>.
+
+   [TRUST-POLICY-SCENARIOS]
+              "Deployment Scenarios for the OAuth Identity Assertion
+              Trust Policy Family", <https://datatracker.ietf.org/doc/
+              draft-mcguinness-oauth-trust-policy-scenarios/>.
 
 Appendix A.  Document History
 

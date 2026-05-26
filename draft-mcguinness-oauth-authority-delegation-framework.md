@@ -74,6 +74,10 @@ informative:
     title: "Attribute Authority Trust Method for OAuth Identity Assertion Issuer Trust Policy"
     target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-attribute-authority-trust/
     date: false
+  TRUST-POLICY-SCENARIOS:
+    title: "Deployment Scenarios for the OAuth Identity Assertion Trust Policy Family"
+    target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-trust-policy-scenarios/
+    date: false
   CIA:
     title: "OAuth 2.0 Client Instance Assertions using Actor Tokens"
     target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-client-instance-assertion/
@@ -218,6 +222,10 @@ identity-assertion trust evaluation. The family has two layers:
 Each leaf profile registers one or more Trust Methods in Trust
 Policy's registry and registers against this document's Authority
 Delegation Profile registry ({{iana-profile-registry}}).
+
+{{TRUST-POLICY-SCENARIOS}} is a non-normative companion document
+presenting five end-to-end deployment scenarios spanning the
+family's profiles.
 
 - **{{TRUST-POLICY}}** is the OAuth-side framework layer. It
   instantiates this document's pattern for OAuth identity

@@ -55,6 +55,9 @@ informative:
     title: "OAuth Domain-Authorized Issuer Discovery"
     target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer-discovery/
     date: false
+  SPIFFE:
+    title: "Secure Production Identity Framework for Everyone (SPIFFE)"
+    target: https://spiffe.io/docs/latest/spiffe-about/spiffe-concepts/
 
 ---
 
@@ -388,6 +391,79 @@ This separation prevents three classes of compromise:
   authority on its authorized Instance Issuers; the two trust
   decisions remain separate.
 
+# Working with SPIFFE / SPIRE {#spiffe}
+
+This section is non-normative. It explains how SPIFFE
+{{SPIFFE}} and SPIRE deployments map onto the
+`client_instance_authorization` category. The wire-format details
+of Client Instance Assertions remain {{CIA}}'s responsibility;
+this section establishes only the trust-policy and identity
+mappings.
+
+SPIFFE defines a trust domain (typically a DNS-like name such as
+`prod.example.com`) under which a SPIFFE Verifiable Identity
+Document (SVID) authority issues identity documents for workloads.
+SPIRE is the most common implementation of a SPIFFE trust domain
+authority. The relevant SPIFFE concepts map onto this document's
+vocabulary as follows:
+
+| SPIFFE concept | This document |
+|-|-|
+| SPIFFE trust domain (e.g., `spiffe://prod.example.com`) | Instance Issuer identifier |
+| SPIRE server or equivalent SVID-issuing authority | The party identified by Instance Issuer in CIMD |
+| SVID issued to a workload | The cryptographic basis on which the workload mints a Client Instance Assertion per {{CIA}} |
+| Workload's SPIFFE ID (e.g., `spiffe://prod.example.com/svc/api`) | The runtime identity bound to the OAuth `client_id` |
+| Workload's possession of SVID private key | Proof of identity required by {{CIA}} validation |
+
+A deployment integrating SPIFFE with an OAuth client follows the
+following pattern:
+
+1. The OAuth client owner authorizes the SPIFFE trust domain
+   authority by listing the trust domain identifier in the
+   client's `instance_issuers` metadata per {{CIA}} (e.g.,
+   `"instance_issuers": ["spiffe://prod.example.com"]` in the
+   client's CIMD document).
+
+2. A workload in the SPIFFE trust domain obtains its SVID from
+   the SPIRE deployment.
+
+3. The workload mints a Client Instance Assertion per {{CIA}},
+   signed using the SVID's key material, binding the workload's
+   SPIFFE ID to the OAuth `client_id`.
+
+4. The workload presents the Client Instance Assertion to the
+   Resource Authorization Server in a token request.
+
+5. The Resource Authorization Server evaluates the
+   `client_authorized_instance_issuer` Trust Method per
+   {{trust-method}}: resolves the OAuth client's CIMD, finds the
+   trust domain identifier in `instance_issuers`, and validates
+   the assertion per {{CIA}} (signature, descriptor match,
+   confirmation-key possession).
+
+The SPIFFE trust domain authority is the Authority Holder of the
+client-instance binding (per {{AUTHORITY-DELEGATION}}); the
+workload identified by its SPIFFE ID is the Delegate; the SVID
+plus the Client Instance Assertion are the wire-format evidence.
+A compromise of the SPIRE deployment substitutes the Instance
+Issuer's voice with the attacker's, with the same blast radius
+({{trust-source-differences}}) any Instance Issuer compromise has.
+
+A deployment supporting both SPIFFE-based and non-SPIFFE Instance
+Issuers lists both in the client's `instance_issuers`. The trust
+evaluation is per-Instance-Issuer; the Authority Delegation
+Pattern's OR-within-category rule
+({{AUTHORITY-DELEGATION}} §Cross-Category Combination Rule)
+applies.
+
+This document does not require SPIFFE for `client_instance_
+authorization`. Other workload-identity authorities (cloud
+provider IMDS-issued identity, Kubernetes ServiceAccount tokens
+mediated by an SVID-style issuer, custom hardware-rooted
+attestation) work the same way: list the authority's identifier
+in `instance_issuers` and rely on {{CIA}} for wire-format
+validation.
+
 # Worked Example (Non-Normative)
 
 This appendix is non-normative.
@@ -531,7 +607,7 @@ The trust framework's cross-category combination rule prevents each
 of these by requiring evidence from every applicable category
 independently.
 
-## Trust Source Differences
+## Trust Source Differences {#trust-source-differences}
 
 This Trust Method's authority source (the OAuth client's metadata)
 is fundamentally different from the authority sources of methods in
@@ -645,11 +721,8 @@ Reference:
 
 ## Trust Policy Member Registration
 
-IANA is requested to add the following entry to the Trust Policy
-member registry established by {{TRUST-POLICY}} (if such a
-registry exists at the time of publication; otherwise, IANA is
-requested to publish the registration alongside the trust policy
-member registrations of {{TRUST-POLICY}}).
+IANA is requested to add the following entry to the "Identity Assertion
+Issuer Trust Policy Members" registry established by {{TRUST-POLICY}}.
 
 Member Name:
 : `client_instance_assertion_required`

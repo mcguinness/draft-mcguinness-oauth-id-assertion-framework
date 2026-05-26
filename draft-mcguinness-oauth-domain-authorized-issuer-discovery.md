@@ -84,12 +84,15 @@ issuer also let a client discover which Assertion Issuer is
 authoritative for a subject identifier's namespace.
 
 DAI is a profile of the OAuth Identity Assertion Issuer Trust Policy
-({{TRUST-POLICY}}): it defines two `subject_namespace_authorization`
-Trust Methods (`domain_authorized_issuer` and
-`https_authorized_issuer`) and the wire format they consume. The
-parent trust policy specification owns the generic Trust Policy document,
-Trust Method category structure, cross-category combination rule,
-and Subject Authority Determination concept.
+({{TRUST-POLICY}}): it defines two Issuer Authorization Policy-based
+`subject_namespace_authorization` Trust Methods
+(`domain_authorized_issuer` and `https_authorized_issuer`) and the wire
+format they consume. It also registers the `email_verification_dns`
+compatibility method for deployments that already publish Email
+Verification Protocol records. The parent trust policy specification
+owns the generic Trust Policy document, Trust Method category structure,
+cross-category combination rule, and Subject Authority Determination
+concept.
 
 --- middle
 
@@ -157,12 +160,14 @@ defines the Issuer Authorization Policy document
 ({{publication-profiles}}), the lookup procedure ({{dii-lookup}}),
 the verification rules ({{dii-verification}}), and two Trust
 Methods (`domain_authorized_issuer`, `https_authorized_issuer`)
-that consume the above.
+that consume the above. It also registers `email_verification_dns`
+as a compatibility method for the Email Verification Protocol.
 
 DAI follows the same DNS authority-publication pattern as the
 Email Verification Protocol {{WICG-EMAIL-VERIF}} at a different
-owner name and record format; {{TRUST-POLICY}} defines a separate
-`email_verification_dns` Trust Method for that protocol.
+owner name and record format; this document defines a separate
+`email_verification_dns` Trust Method for deployments that already
+publish that protocol's records.
 
 ## Conventions
 
@@ -548,6 +553,15 @@ Resource Authorization Servers performing verification
 discovery ({{dii-hrd}}); both consult DNS first and fall back to the
 HTTPS well-known URL only on `negative-authoritative` outcomes.
 
+DNS at `_oauth-issuer-policy.{A}` and HTTPS at the default well-known
+URL are two publication channels of the same Subject Authority.
+Consulting HTTPS after DNS returns `negative-authoritative` is NOT an
+Authority Source fallback in the sense forbidden by
+{{AUTHORITY-DELEGATION}} §Exception-Handling and Fallback Model; the
+abstract Negative state is reached only when both channels return
+absence ({{dii-failures}}). The abstract no-fallback rule continues
+to forbid falling through to a DIFFERENT Subject Authority's policy.
+
 This is the canonical procedure used by the
 `domain_authorized_issuer` Trust Method. Other Trust Methods in the
 `subject_namespace_authorization` category MAY define alternative
@@ -634,9 +648,57 @@ concrete DAI outcomes onto those states.
 
 | State | DAI outcomes |
 |-|-|
-| Affirmative | A well-formed Issuer Authorization Policy retrieved (inline DNS, DNS pointer + HTTPS fetch, or HTTPS well-known URL) whose `subject_authority` matches `A` and whose structural validation succeeds. |
-| Negative | DNS `negative-authoritative` followed by HTTPS 404/410 at the well-known URL; or HTTPS 404/410 reached from a DNS `uri=` pointer. The Authority Holder authoritatively publishes no delegation. |
-| Indeterminate | DNS `indeterminate` (SERVFAIL, REFUSED, timeout, truncation); HTTPS transport failure (TLS error, connection failure); HTTPS 5xx; or `malformed` content at any layer (DNS record missing/mismatched `authority=`, neither `uri=` nor `issuer=`, multiple distinct `uri=` values, malformed directive, unrecognized `crit=` value; HTTPS body that is not a syntactically valid Issuer Authorization Policy; `subject_authority` that does not match `A`; unsupported media type; over-size body; non-HTTPS redirect; redirect loop). |
+| Affirmative | A well-formed Issuer Authorization Policy was retrieved (inline DNS, DNS pointer + HTTPS fetch, or HTTPS well-known URL), its `subject_authority` matches `A`, and its structural validation succeeds. HTTPS responses, when applicable, are 200 OK with a media type compatible with `application/json`. |
+| Negative | DNS `negative-authoritative` followed by HTTPS 404 or 410 at the well-known URL, or HTTPS 404 or 410 reached from a DNS `uri=` pointer. The Authority Holder authoritatively publishes no delegation. |
+| Indeterminate | Any other outcome, fail-closed by default. See enumeration below. |
+
+The Indeterminate state covers:
+
+- **DNS-side**: SERVFAIL, REFUSED, timeout, truncation with no
+  successful retry.
+- **HTTPS transport**: TLS error, connection failure, redirect loop,
+  non-HTTPS redirect target.
+- **HTTPS response**: 5xx; 4xx other than 404 and 410 (for example
+  401, 403, 405, 429, 451); 2xx other than 200; unsupported media
+  type; over-size body.
+- **DNS record validation**: missing or mismatched `authority=`;
+  neither `uri=` nor `issuer=`; multiple distinct `uri=` values;
+  malformed directive; unrecognized value in `crit=`.
+- **HTTPS document validation**: body that is not a syntactically
+  valid Issuer Authorization Policy; `subject_authority` that does
+  not match `A`.
+
+Any outcome not explicitly mapped to Affirmative or Negative above
+MUST be treated as Indeterminate.
+
+The following deterministic conflict rules apply:
+
+- Multiple recognized TXT records containing only `issuer=` directives
+  are merged into a single virtual policy. `issuer=` values across
+  records are deduplicated, with order preserved by first-seen
+  ({{dii-lookup}}, step 2c).
+
+- If any recognized record contains a `uri=` directive after
+  `authority=` filtering, the HTTPS document at the single `uri=`
+  target is authoritative and all `issuer=` directives across all
+  records are ignored ({{dii-lookup}}, step 2b). More than one distinct
+  `uri=` value is `malformed`.
+
+- If both DNS and the HTTPS well-known URL are populated with differing
+  content, DNS is authoritative when it returns an Affirmative response.
+  Consumers do not consult or reconcile the HTTPS well-known URL in
+  that case.
+
+- Multiple `authorized_issuers` entries for the same `issuer` value but
+  different `tenant` values are independent authorizations. Entries with
+  `tenant` do not shadow entries without `tenant` for the same `issuer`.
+
+- Only the Subject Authority computed by the extraction procedure for
+  the assertion's Subject Identifier applies. Another Subject Authority's
+  policy cannot grant authority over that subject.
+
+- If the assertion's claims conflict with the matched policy entry, the
+  assertion fails the Trust Method.
 
 Consumers MUST treat both Negative and Indeterminate as
 assertion rejection. A fresh cached Affirmative policy MAY be
@@ -822,14 +884,27 @@ absolute) regardless of HTTP caching headers or DNS TTLs, to bound
 exposure to a stale delegation. Consumers MAY use a fresh cached
 policy when live retrieval fails with an `indeterminate` outcome,
 but MUST NOT use a cached policy after its effective lifetime has
-expired. Consumers MUST NOT continue serving from cache for more
-than 1 hour of cumulative `indeterminate` retrieval failures since
-the most recent successful retrieval; beyond this window, the
-consumer MUST treat the policy as `indeterminate` and reject
-assertions that depend on it. This bound prevents an attacker who
-can sustain DNS or HTTPS denial of service against the policy
-endpoint from extending the effective cache lifetime indefinitely
-and delaying revocation.
+expired.
+
+Consumers MUST NOT continue serving from cache for more than 1 hour
+of cumulative `indeterminate` retrieval failures since the most
+recent successful retrieval; beyond this cumulative-indeterminate
+cap, the consumer MUST transition to reject for assertions that
+depend on the policy. This bound prevents an attacker who can
+sustain DNS or HTTPS denial of service against the policy endpoint
+from extending the effective cache lifetime indefinitely and
+delaying revocation.
+
+Negative results (the Negative lookup state of {{dii-failures}})
+MAY be cached subject to the same maximum cache lifetime as
+Affirmative results (recommended ceiling: 24 hours). Consumers
+SHOULD cap negative-cache lifetime at a shorter value (recommended:
+5 minutes) when the consumer's threat model includes brief
+publication-channel takeover: a Negative cached during a brief
+takeover otherwise persists past the takeover, hiding the
+legitimate Authority Holder's later publication for the cache's
+lifetime. Negative caches MUST be invalidated on the same triggers
+as Affirmative caches (live re-fetch when the cache expires).
 
 # Operational Considerations {#dii-operations}
 
@@ -875,7 +950,7 @@ Indeterminate retrieval streaks.
 
 # Trust Methods {#trust-methods}
 
-This document defines two Trust Methods in the
+This document defines three Trust Methods in the
 `subject_namespace_authorization` category of {{TRUST-POLICY}}.
 Each registers in the Identity Assertion Issuer Trust Methods
 registry ({{TRUST-POLICY}} §Identity Assertion Issuer Trust Methods Registry).
@@ -990,6 +1065,93 @@ instead when it accepts the DNS forms or the canonical DNS-first
 lookup. A Resource Authorization Server MAY list both
 `domain_authorized_issuer` and `https_authorized_issuer`; see
 {{combining-dai-methods}}.
+
+## email_verification_dns {#trust-method-email-verification-dns}
+
+The `email_verification_dns` method indicates that the Assertion
+Issuer is acceptable if the Subject Authority of the assertion's
+`email` Subject Identifier publishes a DNS TXT record per the Email
+Verification Protocol {{WICG-EMAIL-VERIF}} naming the Assertion
+Issuer. This Trust Method exists to interoperate with deployments
+that already publish a `_email-verification.{domain}` record; it
+lets a Resource Authorization Server honor those records without
+requiring the Subject Authority to also publish an
+`_oauth-issuer-policy` record.
+
+~~~ json
+{
+  "method": "email_verification_dns"
+}
+~~~
+
+This Trust Method has no parameters.
+
+When evaluated, the Resource Authorization Server MUST:
+
+1. Verify that the assertion's Subject Identifier format is `email`.
+   If not, the Trust Method is not satisfied by this assertion.
+
+2. Determine the Subject Authority `A` from the `email` Subject
+   Identifier per the `email` extraction procedure in
+   {{TRUST-POLICY}} §Subject Authority Determination (registrable
+   domain after `@`).
+
+3. Query the DNS TXT resource record set at `_email-verification.{A}`.
+   Classify the DNS response as follows:
+
+   `negative-authoritative`
+   : NXDOMAIN, or NOERROR with an empty answer section or with no
+   records parseable as Email Verification Protocol records after
+   parsing per {{WICG-EMAIL-VERIF}}.
+
+   `indeterminate`
+   : SERVFAIL, REFUSED, timeout, truncation with no successful retry,
+   or any other failure that prevents a definitive negative result.
+
+   `affirmative`
+   : NOERROR with at least one record parseable as an Email
+   Verification Protocol record after parsing per
+   {{WICG-EMAIL-VERIF}}.
+
+4. If `negative-authoritative`, the Trust Method is not satisfied.
+   If `indeterminate`, the Resource Authorization Server MUST reject
+   the assertion unless local policy permits use of a fresh cached
+   affirmative result within a bounded cache lifetime. The Resource
+   Authorization Server MUST NOT fall back to a different authority
+   source for the same Subject Authority.
+
+5. If `affirmative`, parse each record per {{WICG-EMAIL-VERIF}} and
+   collect the `iss=` values. The set of authorized issuer identifiers
+   is the union of those values.
+
+6. Compare the JWT `iss` claim to the parsed `iss=` values.
+   {{WICG-EMAIL-VERIF}} uses bare hostnames (for example,
+   `issuer.example`) while OAuth issuer identifiers are HTTPS URLs that
+   MAY carry a path. The Resource Authorization Server MUST parse the
+   JWT `iss` as an absolute HTTPS URL and treat the record's bare
+   hostname `H` as matching only when the JWT `iss` has scheme `https`,
+   host equal to `H` (case-insensitive ASCII after IDNA conversion per
+   {{RFC5891}}), default port (or no port component), and an empty path
+   (or the path `/`). Any other shape (non-default port, non-empty path
+   component, query string, or fragment) does not match. Consequently,
+   this Trust Method is interoperable only with Assertion Issuers whose
+   identifier is the bare-origin form `https://{H}` (or `https://{H}/`).
+   Deployments whose Assertion Issuer identifiers carry paths (for
+   example, `https://login.example/{tenant}`) cannot be authorized by
+   this Trust Method; they SHOULD use `domain_authorized_issuer`, which
+   expresses full-URL issuer identifiers in the
+   `authorized_issuers[].issuer` field.
+
+7. Apply the cross-category combination rule of
+   {{TRUST-POLICY}} §Resource Authorization Server Processing.
+
+A Subject Authority MAY publish both an `_email-verification` record
+and an `_oauth-issuer-policy` record. When a Resource Authorization
+Server's trust policy lists both `domain_authorized_issuer` and
+`email_verification_dns` as `subject_namespace_authorization` Trust
+Methods, the cross-category combination rule treats them as alternatives
+within the same category (OR-semantics): satisfying either is
+sufficient.
 
 ## Combining domain_authorized_issuer and https_authorized_issuer {#combining-dai-methods}
 
@@ -1323,7 +1485,7 @@ attacker with partial control of one publication channel cannot
 exploit interpretive ambiguity at the consumer.
 
 Common conflict scenarios and their deterministic dispositions are
-summarized in {{dii-operational-conflicts}}.
+specified in {{dii-failures}}.
 
 ## Document Authentication Limits
 
@@ -1484,6 +1646,7 @@ Assertion Issuer Trust Methods registry
 |-|-|-|-|
 | `domain_authorized_issuer` | `subject_namespace_authorization` | (none) | This document |
 | `https_authorized_issuer` | `subject_namespace_authorization` | (none) | This document |
+| `email_verification_dns` | `subject_namespace_authorization` | (none) | This document, {{WICG-EMAIL-VERIF}} |
 
 ## Authority Delegation Profile Registration
 
@@ -1614,58 +1777,6 @@ when the DNS query returns `negative-authoritative`. This preserves
 the DNS-authority pattern as the primary channel while
 accommodating deployment variations.
 
-
-# Policy Conflicts and Determinism {#dii-operational-conflicts}
-
-This appendix is non-normative.
-
-Disposition of common conflict scenarios:
-
-- **Multiple recognized TXT records, all `issuer=` only.** Merged into
-  a single virtual policy; `issuer=` values across records are
-  deduplicated, with order preserved by first-seen ({{dii-lookup}},
-  step 2c).
-
-- **Mix of `uri=` and `issuer=` records.** If any recognized record
-  (after `authority=` filtering) contains `uri=`, the HTTPS document
-  at the `uri=` target is authoritative; all `issuer=` directives
-  across all records are ignored ({{dii-lookup}}, step 2b). This rule
-  prevents an attacker who can add an extra TXT record, but not modify
-  existing ones, from injecting issuers when a `uri=` policy is in
-  effect.
-
-- **Multiple distinct `uri=` values.** Treated as `malformed`
-  ({{dii-failures}}). The framework does not attempt to choose; the
-  consumer cannot tell which is legitimate. A verifier rejects the
-  assertion; a discovery client reports an error.
-
-- **DNS and HTTPS well-known URL both populated with differing
-  content.** The lookup procedure consults DNS first; an `affirmative`
-  DNS response, inline or pointer, is authoritative, and the bare HTTPS
-  well-known URL is not consulted. A Subject Authority that publishes
-  both forms needs to keep them consistent; consumers do not reconcile
-  differences.
-
-- **Multiple `authorized_issuers` entries for the same `issuer` value
-  but different `tenant` values.** Each `(issuer, tenant)` pair is an
-  independent authorization. Verification matches the first entry whose
-  `(issuer, tenant)` matches the assertion ({{dii-verification}},
-  step 4); entries with `tenant` do not shadow entries without `tenant`
-  for the same `issuer`.
-
-- **Two Subject Authorities publishing for the same subject.** Only the
-  Subject Authority computed by the extraction procedure for the
-  assertion's Subject Identifier applies. An assertion carrying
-  `email=alice@example.com` is evaluated only against `example.com`'s
-  policy; no other namespace's policy can grant authority over
-  `alice@example.com`, regardless of what other Subject Authorities
-  publish.
-
-- **Conflict between the assertion's claims and the matched policy
-  entry.** Resolved by rejecting the assertion. A matched entry whose
-  `tenant` value differs from the assertion's `tenant` claim does not
-  authorize the assertion ({{dii-verification}}, step 4); the assertion
-  fails the Trust Method.
 
 # DNS-Based Domain-Authorized Issuer End-to-End Example
 

@@ -70,6 +70,10 @@ informative:
     title: "Client Instance Trust Method for OAuth Identity Assertion Issuer Trust Policy"
     target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-client-instance-trust/
     date: false
+  ATTRIBUTE-AUTHORITY-TRUST:
+    title: "Attribute Authority Trust Method for OAuth Identity Assertion Issuer Trust Policy"
+    target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-attribute-authority-trust/
+    date: false
   CIA:
     title: "OAuth 2.0 Client Instance Assertions using Actor Tokens"
     target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-client-instance-assertion/
@@ -164,18 +168,18 @@ A Validator evaluating an assertion answers two distinct questions:
 The first question is grant-profile and JWT-validation work. The
 second question is the subject of this document.
 
-The first question conflates with the second when the framework lets a
-signer's "authentic" status stand in for "authorized." A federated
-authorization server, validated by its federation membership, can mint
-identity assertions naming any user in any email domain unless the
-framework separately requires that the email-domain owner has
-delegated to it. Conflating signer authenticity with delegation
-authority lets any federation member impersonate users in namespaces
-they have no authority over.
+Implementations that treat the two questions as one let a signer's
+"authentic" status stand in for "authorized" status. A federated
+authorization server, validated by its federation membership, can
+then mint identity assertions naming any user in any email domain
+unless the framework separately requires that the email-domain owner
+has delegated to it. Conflating authenticity with delegation authority
+lets any federation member impersonate users in namespaces they have
+no authority over.
 
 This document defines the abstract pattern that prevents that
-conflation, and the profile requirements that make concrete
-realizations of the pattern interoperable.
+conflation and the profile requirements that make concrete
+realizations interoperable.
 
 ## Relationships to Existing Work {#relationships}
 
@@ -188,6 +192,32 @@ Full mappings of each mechanism appear in {{appendix-profiles}}.
 
 This document is the parent of an OAuth profile family for
 identity-assertion trust evaluation. The family has two layers:
+
+~~~
+            Authority Delegation Framework  (this document)
+                          |
+                          | profiled for OAuth identity assertions by
+                          v
+              Identity Assertion Issuer Trust Policy
+                  (Trust Policy document, Trust Method
+                   machinery, Subject Authority Determination,
+                   ID-JAG / Actor Profile bindings)
+                          |
+                          | extended with Trust Methods by
+                          v
+        +-----------------+-----------------+--------------------+
+        |                 |                 |                    |
+        v                 v                 v                    v
+  Domain-Authorized   Client Instance   Attribute Authority   (future
+  Issuer Discovery        Trust              Trust            profiles)
+  (DAI)
+  subject_namespace_  client_instance_  attribute_
+  authorization       authorization     attestation
+~~~
+
+Each leaf profile registers one or more Trust Methods in Trust
+Policy's registry and registers against this document's Authority
+Delegation Profile registry ({{iana-profile-registry}}).
 
 - **{{TRUST-POLICY}}** is the OAuth-side framework layer. It
   instantiates this document's pattern for OAuth identity
@@ -208,6 +238,10 @@ identity-assertion trust evaluation. The family has two layers:
     third Trust Method category, `client_instance_authorization`,
     applying the same pattern to client identity (the
     `client_authorized_instance_issuer` Trust Method).
+  - **{{ATTRIBUTE-AUTHORITY-TRUST}}** extends Trust Policy with a
+    fourth Trust Method category, `attribute_attestation`,
+    applying the same pattern to attribute authorities (the
+    `attribute_authority_authorized_issuer` Trust Method).
 
 ### Other OAuth-Ecosystem Specifications
 
@@ -543,13 +577,10 @@ A delegation has a lifecycle:
    claim types in scope, and optionally validity bounds.
 
 2. **Publication**: the Authority Holder publishes the Delegation
-   Artifact through a profile-defined channel. The publication
-   channel is itself an authority binding: control of the
-   publication channel is what makes the Authority Holder the
-   Authority Holder. Examples of publication channels include DNS
-   records under the Authority Holder's domain, HTTPS documents at
-   a well-known URL on the Authority Holder's host, signed
-   subordinate statements in a federation, and entries in
+   Artifact through a profile-defined channel. Example channels
+   include DNS records under the Authority Holder's domain, HTTPS
+   documents at a well-known URL on the Authority Holder's host,
+   signed subordinate statements in a federation, and entries in
    authoritative client metadata.
 
 3. **Use**: the Delegate produces Assertions within the delegated
@@ -560,6 +591,12 @@ A delegation has a lifecycle:
    Delegation Artifact, or the artifact's validity bound expires.
    Revocation latency is bounded by the profile's cache lifetime
    model; this document does not require a specific latency.
+
+The publication channel is itself the authority binding: control
+of the publication channel is what makes the Authority Holder the
+Authority Holder. A profile's choice of publication channel
+therefore determines who, in operational terms, IS the Authority
+Holder for the namespace, claim type, or scope being delegated.
 
 ## Independent Trust Evaluation Categories {#categories}
 
@@ -598,6 +635,30 @@ applicable category. Within a single category, OR-semantics apply:
 satisfying any one applicable evidence item is sufficient. The rule is
 AND across independent categories, OR within a category.
 
+Satisfying one category MUST NOT be treated as satisfying another.
+A signer authenticated by federation membership has not been
+delegated namespace authority by that fact; an Authority Holder's
+delegation to a signer does not authenticate the signer's identity
+beyond what the Delegation Artifact attests.
+
+OR-within-category applies when multiple evidence items from the
+same Authority Source's delegation satisfy the same category;
+selection of WHICH Authority Source applies to a given Assertion
+is deterministic ({{multiple-sources}}) and is not subject to
+OR-semantics. When a Validator implements multiple profiles in the
+same category from different Authority Sources, the resulting
+OR-within-category composition creates a downgrade risk that
+profile authors and deployers MUST analyze
+({{profile-composition-risks}}).
+
+Profiles MAY specify additional combination rules within their own
+scope. A profile MUST NOT treat evidence for one independent category
+as satisfying another independent category. A profile that combines
+authenticity and authority in a single cryptographic artifact MUST
+document why the artifact satisfies both questions.
+
+#### Category Applicability
+
 Category applicability is a property of the Validator's Published
 Trust Policy, not of the incoming Assertion. If the Validator's
 local policy declares that it implements a profile in a given
@@ -620,28 +681,6 @@ silently waiving the category: the Validator MAY maintain
 separate trust policies for distinct namespaces, audiences, or
 deployment phases, but within any one policy the applicable
 categories MUST be exhaustively enforced.
-
-Satisfying one category MUST NOT be treated as satisfying another.
-A signer authenticated by federation membership has not been
-delegated namespace authority by that fact; an Authority Holder's
-delegation to a signer does not authenticate the signer's identity
-beyond what the Delegation Artifact attests.
-
-OR-within-category applies when multiple evidence items from the
-same Authority Source's delegation satisfy the same category;
-selection of WHICH Authority Source applies to a given Assertion
-is deterministic ({{multiple-sources}}) and is not subject to
-OR-semantics. When a Validator implements multiple profiles in the
-same category from different Authority Sources, the resulting
-OR-within-category composition creates a downgrade risk that
-profile authors and deployers MUST analyze
-({{profile-composition-risks}}).
-
-Profiles MAY specify additional combination rules within their own
-scope. A profile MUST NOT treat evidence for one independent category
-as satisfying another independent category. A profile that combines
-authenticity and authority in a single cryptographic artifact MUST
-document why the artifact satisfies both questions.
 
 ### Multiple Authority Sources Within a Category {#multiple-sources}
 
@@ -1221,7 +1260,7 @@ A profile of this pattern MUST specify the following.
 
 `authority_holder_form`
 : How an Authority Holder is identified in the profile. Examples:
-  DNS domain (the parent trust framework); CIMD URL (the client
+  DNS domain (a domain-authorized issuer profile); CIMD URL (the client
   instance profile); federation entity identifier (the OIDF
   profile).
 
@@ -1383,6 +1422,120 @@ before publication.
 
 # Security Considerations
 
+## Threat Model {#threat-model}
+
+This section consolidates the threat model the Authority
+Delegation Pattern is designed against. Concrete profiles inherit
+this model and document profile-specific extensions in their own
+Security Considerations.
+
+### Assets
+
+Three classes of assets are protected:
+
+- **Authority binding**: the property that an entity claiming to be
+  an Authority Holder is in fact the Authority Holder for the
+  named scope. Compromise lets an attacker speak as a legitimate
+  Authority.
+
+- **Delegation integrity**: the property that a Delegate listed in
+  a Delegation Artifact was in fact listed by the Authority
+  Holder. Compromise lets an attacker insert unauthorized
+  Delegates.
+
+- **Assertion authenticity**: the property that an Assertion was
+  signed by a Delegate the Authority Holder has authorized.
+  Compromise lets an attacker mint assertions outside the
+  delegated scope.
+
+### Adversary Capabilities
+
+The pattern is designed to resist adversaries with the following
+capabilities:
+
+- **Publication-channel attacker**: can substitute, suppress, or
+  forge responses on the publication channel binding the
+  Authority Holder (DNS hijack, BGP redirect, registrar account
+  compromise, TLS misissuance against the authority host, CDN
+  tenant takeover, federation operator key compromise). Different
+  publication channels expose different surfaces; see
+  {{authority-source-compromise}}.
+
+- **Assertion-content attacker**: can craft arbitrary Assertion
+  payloads (any JWT claims, any combination of identifiers, any
+  presentation order) provided the assertion is signed by some
+  authentic key the attacker controls. This is the standard
+  adversary in the cryptographic literature; the Authority
+  Delegation Pattern's source-selection determinism and
+  category-applicability rules ({{combination-rule}},
+  {{unverified-claim}}, {{applicability-bypass}}) constrain what
+  this adversary can achieve.
+
+- **Authorized-but-malicious Delegate**: a Delegate authorized by
+  some Authority Holder that uses its authorization to attack
+  Subjects (synthesizing claims, asserting about Subjects without
+  the Subjects' awareness). The pattern bounds this adversary to
+  the scope the Authority Holder delegated; protection against
+  the Authorized Delegate's internal behavior is the Authority
+  Holder's responsibility (operational diligence,
+  contract/audit).
+
+- **Compromised intermediate (chained profiles)**: in chained
+  delegation profiles, a Subdelegate whose key or authority has
+  been compromised. Bounded-depth profiles ({{transitivity}})
+  contain this adversary by construction; chained profiles
+  require profile-specific countermeasures.
+
+- **Cross-profile composition attacker**: a Validator implementing
+  multiple profiles can be tricked into accepting evidence that
+  satisfies one profile's category through a different profile's
+  weaker check. See {{profile-composition-risks}}.
+
+### Trust Assumptions
+
+The pattern assumes:
+
+- The Authority Holder for any named scope is unambiguously
+  identified by control of the publication channel. Profiles MUST
+  document how channel control is established (typically: DNS
+  control, TLS server authentication, federation signing key).
+
+- The Validator's local policy (which profiles it implements,
+  which Authority Sources it accepts) is administered by a
+  trusted party. The pattern does not defend against an attacker
+  who controls the Validator's configuration.
+
+- Profile-defined extraction functions are deterministic
+  ({{single-binding-primitive}}). Two cooperating Validators
+  presented with the same Assertion select the same Authority
+  Source.
+
+- Cache lifetimes for retrieved Delegation Artifacts are bounded
+  ({{cache-freshness}}). The pattern does not provide
+  cryptographic recovery from a compromise after caches expire
+  the compromised content.
+
+### Out-of-Scope Threats
+
+This pattern does not address:
+
+- **Per-Assertion revocation**: once an Assertion is issued, the
+  pattern offers no mechanism to invalidate it within its `exp`
+  window. Use OAuth Token Revocation, Token Introspection, or
+  short token lifetimes.
+- **Subject-side compromise**: a compromised Subject (whose
+  credentials an attacker has obtained at the Authority Holder
+  or Delegate) is indistinguishable from a legitimate Subject at
+  the Validator. Mitigations are out-of-band (authentication
+  strength, fresh-authentication signals).
+- **Authority Holder operational failures**: a careless or
+  malicious Authority Holder publishing the wrong Delegates is
+  the Authority Holder's failure mode, not a pattern failure.
+- **Implementation defects in the Validator**: bugs in the
+  Validator's parsing or evaluation logic are out-of-scope; the
+  pattern specifies what the Validator MUST do, not how the
+  Validator implements it.
+
 ## Open-World Delegation Security Model
 
 This pattern targets open-world deployments. Profiles operating in
@@ -1497,7 +1650,7 @@ categories MUST be exhaustively enforced. Per-deployment-phase
 policy is a configuration boundary; Assertion-driven waiver is
 an attacker-controlled boundary.
 
-## Authority Source Compromise
+## Authority Source Compromise {#authority-source-compromise}
 
 The authority binding (publication channel) is the highest-value
 target. A compromise of the publication channel (DNS hijack, TLS

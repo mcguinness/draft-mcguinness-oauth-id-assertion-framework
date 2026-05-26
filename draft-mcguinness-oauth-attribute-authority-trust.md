@@ -29,6 +29,7 @@ normative:
   RFC1035:
   RFC5234:
   RFC5891:
+  RFC6749:
   RFC7519:
   RFC8126:
   RFC8552:
@@ -38,12 +39,6 @@ normative:
     title: "OAuth Identity Assertion Issuer Trust Policy"
     target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-identity-assertion-issuer-trust-policy/
     date: false
-
-informative:
-  RFC7515:
-  RFC7521:
-  RFC8659:
-  RFC9493:
   AUTHORITY-DELEGATION:
     title: "OAuth Authority Delegation Framework"
     target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-authority-delegation-framework/
@@ -52,6 +47,12 @@ informative:
     title: "OAuth Domain-Authorized Issuer Discovery"
     target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer-discovery/
     date: false
+
+informative:
+  RFC7515:
+  RFC7521:
+  RFC8659:
+  RFC9493:
   ID-JAG:
     title: "Identity Assertion JWT Authorization Grant"
     target: https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/
@@ -89,15 +90,17 @@ namespace owner: is the asserting issuer authorized by the relevant
 attribute authority to attest that claim?
 
 This document extends the Trust Policy framework to address this
-question. It registers a third Trust Method category,
+question. It registers an additional Trust Method category,
 `attribute_attestation`, and a Trust Method,
 `attribute_authority_authorized_issuer`, that lets an attribute
 authority (a university, an employer, a KYC provider, a
 credentialing body, or any other claim-type authority) publish the
 set of Assertion Issuers it authorizes to attest its claim types.
-The wire format follows the DNS-based publication pattern of
+The policy format uses a DNS+HTTPS publication pattern aligned with
 {{DAI}} at a different owner name, accommodating any attribute
-authority whose identity can be expressed as a DNS-named domain.
+authority whose identity can be expressed as a DNS-named domain. This
+document authorizes issuers to attest claim types; it does not prove
+that a specific Subject actually has a specific attribute value.
 
 --- middle
 
@@ -150,7 +153,7 @@ defines that mechanism.
 ## Relationship to the OAuth Profile Family
 
 This document extends the OAuth profile family of
-{{AUTHORITY-DELEGATION}} with a third Trust Method category. The
+{{AUTHORITY-DELEGATION}} with an additional Trust Method category. The
 family is:
 
 - **{{AUTHORITY-DELEGATION}}**: the abstract Authority Delegation
@@ -162,7 +165,7 @@ family is:
   (`issuer_authentication`, `subject_namespace_authorization`).
 - **{{DAI}}**: a `subject_namespace_authorization` profile defining
   DNS+HTTPS Subject Authority publication.
-- **This document**: registers a third category,
+- **This document**: registers an additional category,
   `attribute_attestation`, applying the same Authority Delegation
   Pattern to claim-type authority. The Authority Holder is the
   attribute authority (a university, employer, KYC provider, or
@@ -172,7 +175,7 @@ family is:
 
 This document depends normatively on {{TRUST-POLICY}} (Trust Method
 machinery, cross-category combination rule, IANA registries) and
-borrows the DNS+HTTPS publication pattern of {{DAI}}.
+on {{DAI}} for the DNS+HTTPS authority-publication pattern.
 
 ## Relationship to Verifiable Credentials
 
@@ -247,11 +250,14 @@ OIDC4IDA does NOT define:
 OIDC4IDA's trust model is implicit: the Verifier is assumed to know,
 out of band, which Issuers it trusts under which trust frameworks.
 
-This document closes that gap. The trust framework named in
-`verified_claims.verification.trust_framework` is the Attribute
-Authority of this document; the JWT's `iss` is the Assertion
-Issuer; the `verified_claims.claims` payload is the body of
-attestations the Authority authorizes the Issuer to make.
+This document closes that gap when the trust framework identifier can
+be mapped to a DNS-named Attribute Authority. The trust framework named
+in `verified_claims.verification.trust_framework` identifies the
+Attribute Authority of this document directly when it is already a
+DNS-named domain, or indirectly through the deterministic mapping
+described in {{attribute-authority-determination}}. The JWT's `iss` is
+the Assertion Issuer; the `verified_claims.claims` payload is the body
+of attestations the Authority authorizes the Issuer to make.
 
 When evaluating an OIDC4IDA payload, the Resource Authorization
 Server consults the trust framework's Attribute Authority
@@ -340,6 +346,27 @@ Attribute Authority Authorization Policy (AAAP):
   authorizes Assertion Issuers to attest its claim types. Defined
   in {{aaap-document}}.
 
+# Trust Policy Extension {#policy-extension}
+
+This document defines an optional Trust Policy member.
+
+`attribute_attestation_claims`
+: OPTIONAL. JSON array of Attribute Type Identifiers ({{attribute-type-identifiers}}).
+  Each value names an attribute claim that the Resource Authorization
+  Server treats as requiring `attribute_attestation` evaluation.
+
+When this member is present, every listed attribute that appears in an
+identity assertion MUST be evaluated under the `attribute_attestation`
+category. If a listed attribute appears without the authority metadata
+required by one of the recognized claim shapes in {{claim-shape}}, the
+Resource Authorization Server MUST reject the assertion with an OAuth
+`invalid_grant` error.
+
+When this member is absent, applicability is determined by local policy
+and by the presence of authority metadata in the assertion. A Resource
+Authorization Server MUST NOT accept a protected attribute claim merely
+because the issuer omitted authority metadata.
+
 # The attribute_attestation Category {#category}
 
 This document registers `attribute_attestation` as a Trust Method
@@ -357,15 +384,22 @@ Category definition:
 Applicability:
 
 This category applies to a token request when the identity
-assertion carries one or more attribute claims accompanied by an
-Attribute Authority designation. The applicability of the category
-is per-attribute: the Resource Authorization Server evaluates the
-category once for each attribute claim that is subject to attribute
-authority verification.
+assertion carries one or more protected attribute claims. A protected
+attribute claim is any claim listed in the applicable Trust Policy's
+`attribute_attestation_claims` member, any claim identified by local
+Resource Authorization Server policy as requiring attribute-authority
+verification, or any claim accompanied by Attribute Authority metadata
+under one of the recognized claim shapes in {{claim-shape}}. The
+applicability of the category is per-attribute: the Resource
+Authorization Server evaluates the category once for each protected
+attribute claim.
 
-An assertion carrying NO attribute claims does not trigger
+An assertion carrying no protected attribute claims does not trigger
 applicability of this category, even when the Trust Policy lists
-methods in this category.
+methods in this category. An assertion carrying a protected attribute
+claim without the authority metadata required by {{claim-shape}} MUST be
+rejected; the issuer cannot avoid evaluation by omitting authority
+metadata.
 
 Evaluation subject:
 
@@ -377,6 +411,24 @@ Attribute Authorities when the assertion carries multiple
 attribute claims; each evaluation is independent.
 
 # Attribute Claim Shape and Authority Determination {#claim-shape}
+
+## Attribute Type Identifiers {#attribute-type-identifiers}
+
+An Attribute Type Identifier names the attribute being attested for the
+purposes of AAAP matching.
+
+For the flat-triple shape, the Attribute Type Identifier is the
+top-level JWT claim name `<attribute>`. The name MUST be an ASCII string
+matching `^[A-Za-z][A-Za-z0-9_]*$`, MUST NOT end in `_authority` or
+`_authority_verified`, and MUST NOT be a member defined by this
+document, {{RFC7519}}, or the applicable OAuth grant profile unless that
+profile explicitly marks the member as an attribute claim eligible for
+attribute-authority verification.
+
+For the OIDC4IDA shape, the Attribute Type Identifier is the immediate
+member name under `verified_claims.claims`. Nested claim objects are not
+matched by this document. A future specification MAY define JSON Pointer
+or profile-specific attribute identifiers for nested claims.
 
 For a Resource Authorization Server to evaluate
 `attribute_attestation`, the assertion MUST express both the
@@ -429,13 +481,18 @@ payload:
 {
   "verified_claims": {
     "verification": {
-      "trust_framework": "<authority>",
-      "evidence": [ ... ],
+      "trust_framework": "idp-assurance.example",
+      "evidence": [
+        {
+          "type": "document",
+          "method": "pipp"
+        }
+      ],
       "verification_process": "..."
     },
     "claims": {
-      "<attribute>": "<value>",
-      ...
+      "given_name": "Alice",
+      "birthdate": "1990-01-01"
     }
   }
 }
@@ -461,9 +518,9 @@ evaluates each independently. The Trust Method is satisfied only
 when ALL attribute claims across both shapes are authorized by
 their respective Attribute Authorities.
 
-## Attribute Authority Determination
+## Attribute Authority Determination {#attribute-authority-determination}
 
-The Attribute Authority for each attribute claim is determined
+The Attribute Authority for each protected attribute claim is determined
 from the assertion as follows:
 
 - For flat-triple claims, from the `<attribute>_authority` claim.
@@ -523,35 +580,53 @@ This Trust Method has no parameters.
 ## Evaluation
 
 When the Resource Authorization Server evaluates this Trust Method
-against an attribute claim in the identity assertion:
+against a protected attribute claim in the identity assertion:
 
-1. Determine the Attribute Authority `A` from the assertion's
-   `<attribute>_authority` claim per {{claim-shape}}.
+1. Determine the Attribute Type Identifier `T` from the recognized claim
+   shape in {{attribute-type-identifiers}}.
 
-2. If the corresponding `<attribute>_authority_verified` claim is
-   absent or not `true`, the Trust Method is not satisfied; the
-   Resource Authorization Server MUST reject the assertion.
+2. Determine the Attribute Authority `A` for `T` from the recognized
+   claim shape:
+
+   - For the flat-triple shape, use the `<attribute>_authority` claim.
+     If the corresponding `<attribute>_authority_verified` claim is
+     absent or not `true`, the Trust Method is not satisfied and the
+     Resource Authorization Server MUST reject the assertion.
+
+   - For the OIDC4IDA shape, use
+     `verified_claims.verification.trust_framework` after applying any
+     deterministic trust-framework-to-domain mapping required by
+     {{attribute-authority-determination}}. The presence of a
+     well-formed `verified_claims.verification` object is the issuer's
+     verification statement for claims in `verified_claims.claims`.
 
 3. Retrieve the Attribute Authority Authorization Policy for `A`
    per the lookup procedure in {{lookup}}. Negative and
    Indeterminate outcomes ({{failures}}) MUST result in rejection.
 
 4. Find an entry in `authorized_issuers` whose `issuer` matches the
-   assertion's `iss` claim using case-sensitive URL string
-   equality, AND whose `attribute_types` list includes the
-   attribute name being evaluated.
+   assertion's `iss` claim using case-sensitive URL string equality,
+   AND whose `attribute_types` list includes `T`.
 
 5. If the entry contains a `tenant` member, verify the assertion's
-   `tenant` claim matches per {{TRUST-POLICY}} multi-tenant
-   binding rules.
+   `tenant` claim matches per {{TRUST-POLICY}} multi-tenant binding
+   rules.
 
-6. If the entry contains `valid_from`/`valid_until`, verify the
+6. If the entry contains `subject_populations`, determine the
+   assertion's primary Subject Identifier per the applicable grant
+   profile, compute its Subject Authority using {{TRUST-POLICY}}
+   §Subject Authority Determination, and verify that the computed
+   authority matches at least one value in `subject_populations`. If the
+   primary Subject Identifier has no registered extraction procedure, or
+   no listed value matches, the Trust Method is not satisfied.
+
+7. If the entry contains `valid_from`/`valid_until`, verify the
    current time is within the validity window.
 
-7. If all checks succeed, the Trust Method is satisfied for this
-   attribute. If the assertion carries multiple attribute claims,
-   the Resource Authorization Server repeats steps 1-6 for each
-   attribute claim independently.
+8. If all checks succeed, the Trust Method is satisfied for this
+   attribute. If the assertion carries multiple protected attribute
+   claims, the Resource Authorization Server repeats steps 1-7 for each
+   protected attribute claim independently.
 
 On failure, the Resource Authorization Server MUST reject the
 assertion with an OAuth `invalid_grant` error.
@@ -621,11 +696,9 @@ Each object has:
   compared per {{TRUST-POLICY}} comparison rules).
 
   `attribute_types`
-  : REQUIRED. Non-empty JSON array of strings, each a claim name
-  this Assertion Issuer is authorized to attest under this
-  Attribute Authority. Each string corresponds to the
-  `<attribute>` portion of the claim triple defined in
-  {{claim-shape}}.
+  : REQUIRED. Non-empty JSON array of Attribute Type Identifiers
+  ({{attribute-type-identifiers}}) this Assertion Issuer is authorized
+  to attest under this Attribute Authority.
 
   `tenant`
   : OPTIONAL. String. Same semantics as the `tenant` member of
@@ -637,7 +710,8 @@ Each object has:
   : OPTIONAL. JSON array of strings. When present, restricts the
   authorization to Subjects whose primary subject identifier
   (per the applicable grant profile) is within one of the listed
-  namespaces. For example, an Attribute Authority might restrict
+  Subject Authorities, compared using {{TRUST-POLICY}} §Subject
+  Authority Determination. For example, an Attribute Authority might restrict
   a degree-status attestor to attest only about Subjects in the
   university's own email namespace by setting
   `subject_populations: ["university.example"]`. When omitted,
@@ -668,54 +742,103 @@ Authority.
 
 # Publication {#publication}
 
-An Attribute Authority publishes its Authorization Policy at:
+An Attribute Authority publishes its Authorization Policy through an
+HTTPS JSON document, located either by DNS pointer or by default
+well-known URL:
 
-- **DNS form**: a TXT record at
-  `_oauth-attribute-authority-policy.{A}`, with format identical
-  to {{DAI}}'s DNS record format (version directive
-  `v=oauth-attribute-authority-policy1`, `authority=`, `uri=`,
-  `issuer=`, `crit=` directives).
+- **DNS pointer form**: a TXT record at
+  `_oauth-attribute-authority-policy.{A}` containing
+  `v=oauth-attribute-authority-policy1`, `authority=`, and `uri=`
+  directives. The `uri=` value points to the HTTPS JSON document. The
+  record MAY also contain `crit=` using {{TRUST-POLICY}} §Critical
+  Extension Identifiers.
 
-- **HTTPS form**: a JSON document at
+- **HTTPS well-known form**: a JSON document at
   `https://{A}/.well-known/oauth-attribute-authority-policy`.
 
-The inline DNS form (`issuer=` directives) is sufficient when the
-Attribute Authority authorizes one or more Assertion Issuers for
-ALL of its claim types. When the Authority authorizes different
-issuers for different claim types, OR uses any feature
-(`attribute_types` per-entry, `subject_populations`,
-`valid_from`/`valid_until`, `tenant`), the DNS pointer form
-(`uri=`) MUST be used and the richer policy carried in the JSON
-document.
+The DNS pointer form follows the DNS authority-publication and
+third-party-hosting model of {{DAI}}, but this document deliberately
+does not define an inline `issuer=` form. Attribute authorization is
+claim-type scoped, and a DNS-inline issuer list would either need a new
+claim-type grammar or would authorize all current and future claim
+types. Consumers MUST treat any `issuer=` directive in an
+`_oauth-attribute-authority-policy` TXT record as `malformed`.
 
-A Subject Authority using the DNS-inline form publishes a virtual
-policy whose every `authorized_issuers` entry has
-`attribute_types: ["*"]` (matching all attribute names). When this
-matches an attribute claim's name, the Trust Method is satisfied
-for that claim. The wildcard `*` MUST NOT appear in HTTPS-hosted
-policy `attribute_types` arrays; the wildcard is reserved for the
-DNS-inline virtual-policy construction.
-
-The three publication profiles of {{DAI}} §Publication Profiles
-apply unchanged with the corresponding owner name and well-known
-URL substitutions.
+The JSON document retrieved from either publication form is the AAAP
+defined in {{aaap-document}}. Consumers MUST NOT interpret any other
+JSON shape as an AAAP.
 
 ## Lookup Procedure {#lookup}
 
-The lookup procedure mirrors {{DAI}} §Lookup Procedure with the
-owner name and well-known URL substitutions noted above. The
-procedure produces an Affirmative / Negative / Indeterminate
-outcome per the Authority Delegation Pattern's Exception-Handling
-and Fallback Model ({{AUTHORITY-DELEGATION}} §Exception-Handling
-and Fallback Model). Cache freshness rules also mirror {{DAI}}
-§Caching: maximum 24-hour ceiling, cumulative-Indeterminate cap of
-1 hour, Negative caching subject to the same lifetime.
+To retrieve the AAAP for Attribute Authority `A`, a consumer performs
+the following steps:
+
+1. Query the DNS TXT resource record set at
+   `_oauth-attribute-authority-policy.{A}`. Classify the response as:
+
+   `negative-authoritative`
+   : NXDOMAIN, or NOERROR with an empty answer section or with no
+   recognized records after parsing.
+
+   `indeterminate`
+   : SERVFAIL, REFUSED, timeout, truncation with no successful retry,
+   or any other failure that prevents a definitive negative result.
+
+   `affirmative`
+   : NOERROR with at least one recognized record after parsing.
+
+2. If the DNS response is `affirmative`:
+
+   a. Discard recognized records whose `authority=` directive does not
+      match `A` under the comparison rules in {{attribute-authority-determination}}.
+      If any recognized record is missing an `authority=` directive,
+      treat the response as `malformed`. If all recognized records are
+      discarded because of `authority=` mismatch, treat the response as
+      `malformed`.
+
+   b. Validate the remaining recognized records. Each remaining record
+      MUST contain exactly one `uri=` directive, MUST NOT contain an
+      `issuer=` directive, and MUST satisfy the `crit=` processing rules
+      of {{TRUST-POLICY}} §Critical Extension Identifiers. More than one
+      distinct `uri=` value across the remaining records is `malformed`.
+
+   c. Fetch the JSON policy from the single `uri=` target. The fetched
+      document is the AAAP.
+
+3. If the DNS response is `negative-authoritative`, fetch the AAAP from
+   the default HTTPS well-known URL per {{publication}}.
+
+4. If the DNS response is `indeterminate`, discovery has failed.
+   Consumers MUST NOT fall back to HTTPS.
+
+The procedure produces an Affirmative / Negative / Indeterminate
+outcome per the Authority Delegation Pattern's Exception-Handling and
+Fallback Model ({{AUTHORITY-DELEGATION}} §Exception-Handling and
+Fallback Model).
 
 ## Failure Handling {#failures}
 
-Failure-state mapping is identical to {{DAI}} §Failure Handling
-with owner name substitutions. Negative and Indeterminate states
-MUST result in assertion rejection.
+AAAP lookup outcomes map onto the following states:
+
+| State | AAAP outcomes |
+|-|-|
+| Affirmative | A well-formed AAAP was retrieved through a DNS pointer or HTTPS well-known URL, its `attribute_authority` matches `A`, and structural validation succeeds. HTTPS responses are 200 OK with a media type compatible with `application/json`. |
+| Negative | DNS `negative-authoritative` followed by HTTPS 404 or 410 at the well-known URL, or HTTPS 404 or 410 reached from a DNS `uri=` pointer. The Attribute Authority authoritatively publishes no delegation. |
+| Indeterminate | Any other outcome, fail-closed by default. |
+
+The Indeterminate state covers DNS transport errors, HTTPS transport
+errors, non-200 HTTPS responses other than 404 and 410, unsupported
+media type, over-size body, malformed DNS directives, multiple distinct
+`uri=` values, inline `issuer=` directives, unknown critical
+extensions, syntactically invalid AAAP JSON, or an `attribute_authority`
+value that does not match `A`.
+
+Consumers MUST treat both Negative and Indeterminate as assertion
+rejection. A fresh cached Affirmative policy MAY be used during
+transient Indeterminate on the live channel, subject to a maximum
+24-hour positive cache lifetime and a cumulative-Indeterminate cap of
+1 hour. The cache lifetime MUST NOT be extended by repeated
+Indeterminate retrievals.
 
 # Combined Evaluation
 
@@ -728,11 +851,11 @@ cross-category combination rule applies unchanged:
 - The Assertion Issuer MUST satisfy at least one
   `subject_namespace_authorization` method (when the assertion
   carries a namespace-bound Subject Identifier).
-- For each attribute claim in the assertion, the Assertion Issuer
+- For each protected attribute claim in the assertion, the Assertion Issuer
   MUST satisfy at least one `attribute_attestation` method against
   the attribute's Authority.
 
-If the assertion carries N attribute claims under N distinct
+If the assertion carries N protected attribute claims under N distinct
 Attribute Authorities, the Resource Authorization Server performs
 N independent `attribute_attestation` evaluations, each potentially
 fetching a different Attribute Authority's policy. Each evaluation
@@ -808,6 +931,10 @@ Alice's IdP issues an ID-JAG carrying:
     "urn:ietf:params:oauth:grant-profile:id-jag"
   ],
   "subject_identifier_formats_supported": ["email"],
+  "attribute_attestation_claims": [
+    "degree_status",
+    "graduation_year"
+  ],
   "issuer_trust_methods": [
     {
       "method": "openid_federation",
@@ -999,6 +1126,17 @@ hers when she changes her email from `alice@school.edu` to
 infer that an Attribute Authority has authority over the
 corresponding Subject's namespace, or vice versa.
 
+## Protected Attribute Omission
+
+An Assertion Issuer might try to avoid attribute-authority evaluation
+by omitting `<attribute>_authority`, `<attribute>_authority_verified`,
+or `verified_claims` metadata while still including a claim that the
+Resource Authorization Server treats as security-relevant. Resource
+Authorization Servers MUST maintain a deterministic set of protected
+attribute claims, either from `attribute_attestation_claims` or local
+policy, and MUST reject protected claims whose required authority
+metadata is absent or malformed.
+
 ## Attribute Verification Is Issuer-Level
 
 The `<attribute>_authority_verified` claim is asserted by the
@@ -1100,8 +1238,9 @@ Description:
 
 Applicability:
 : Applies per-attribute when the identity assertion carries an
-  attribute claim and the corresponding `<attribute>_authority` and
-  `<attribute>_authority_verified` claims.
+  attribute claim protected by `attribute_attestation_claims`, local
+  Resource Authorization Server policy, or authority metadata in a
+  recognized claim shape.
 
 Evaluation Subject:
 : The Assertion Issuer (the `iss` claim of the identity assertion)
@@ -1110,6 +1249,24 @@ Evaluation Subject:
 
 Reference:
 : This document.
+
+## Trust Policy Member Registration
+
+IANA is requested to add the following entry to the "Identity Assertion
+Issuer Trust Policy Members" registry established by {{TRUST-POLICY}}:
+
+Member Name:
+: `attribute_attestation_claims`
+
+Member Description:
+: JSON array of Attribute Type Identifiers for claims that require
+  `attribute_attestation` evaluation.
+
+Change Controller:
+: IETF
+
+Specification Document:
+: This document
 
 ## Trust Method Registration
 
@@ -1182,10 +1339,11 @@ Delegate Form:
 URL).
 
 Publication Channel:
-: DNS TXT at `_oauth-attribute-authority-policy.{authority}` with
-optional HTTPS pointer; HTTPS fallback at the authority's
-well-known URL; signed-policy publication at arbitrary HTTPS
-origins via {{DAI}}'s Profile 3 mechanism applied to AAAPs.
+: DNS TXT at `_oauth-attribute-authority-policy.{authority}` carrying
+an HTTPS pointer; HTTPS fallback at the authority's well-known URL;
+signed-policy publication at arbitrary HTTPS origins via {{DAI}}'s
+Profile 3 mechanism applied to AAAPs. Inline DNS issuer lists are not
+defined by this profile.
 
 Subdelegation:
 : Not permitted. `authorized_issuers` is a flat list; bounded
@@ -1198,10 +1356,10 @@ Profile Mapping Matrix:
 
 `source_selection`
 : The Attribute Authority is extracted from the assertion's
-`<attribute>_authority` claim for each attribute claim under
-evaluation. Selection uses one property per attribute (the
-attribute's `_authority` claim); selection is invariant under
-other claims. The function is per-attribute deterministic.
+recognized claim shape for each protected attribute claim under
+evaluation. Selection uses one authority value per attribute; selection
+is invariant under unrelated claims. The function is per-attribute
+deterministic.
 
 `revocation_lifecycle`
 : Cache-bounded with no push mechanism, mirroring {{DAI}}'s cache

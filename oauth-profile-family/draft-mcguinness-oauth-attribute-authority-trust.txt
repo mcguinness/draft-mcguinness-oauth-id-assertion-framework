@@ -4,7 +4,7 @@
 
 Web Authorization Protocol                                 K. McGuinness
 Internet-Draft                                               Independent
-Intended status: Standards Track                             26 May 2026
+Intended status: Informational                               26 May 2026
 Expires: 27 November 2026
 
 
@@ -85,12 +85,14 @@ Copyright Notice
 Table of Contents
 
    1.  Introduction
-     1.1.  Relationship to the OAuth Profile Family
-     1.2.  Relationship to Verifiable Credentials
-     1.3.  Relationship to eKYC-IDA Verified Claims
-     1.4.  Relationship to OIDC Distributed Claims
-     1.5.  Scope and Non-Goals
-     1.6.  Conventions
+     1.1.  Document Status
+     1.2.  The Third Trust Question
+     1.3.  Relationship to the OAuth Profile Family
+     1.4.  Relationship to Verifiable Credentials
+     1.5.  Relationship to eKYC-IDA Verified Claims
+     1.6.  Relationship to OIDC Distributed Claims
+     1.7.  Scope and Non-Goals
+     1.8.  Conventions
    2.  Terminology
    3.  Trust Policy Extension
    4.  The attribute_attestation Category
@@ -140,6 +142,24 @@ Table of Contents
 
 1.  Introduction
 
+1.1.  Document Status
+
+   This document is Informational.  The Authority Delegation Pattern,
+   Trust Policy framework, and subject_namespace_authorization category
+   in [AUTHORITY-DELEGATION], [TRUST-POLICY], and [DAI] constitute the
+   Standards-Track core of the family and address the two primary trust
+   questions (issuer authentication and subject namespace
+   authorization).  The attribute_attestation category defined here
+   addresses a third trust question that arises in specific deployments
+   (verified-claims carriage, professional credentialing).  It is
+   published Informational pending validated deployment demand.  The
+   category, its wire format, and IANA registrations are stable enough
+   to deploy, but the document is not yet on a Standards-Track timeline.
+   Implementers MAY deploy this profile; deployments inform future
+   Standards-Track progression.
+
+1.2.  The Third Trust Question
+
    The OAuth Identity Assertion Issuer Trust Policy [TRUST-POLICY] keeps
    issuer authentication and subject namespace authorization as distinct
    trust questions.  Federation membership does not establish namespace
@@ -183,7 +203,7 @@ Table of Contents
    authority has authorized to attest its claim types.  This document
    defines that mechanism.
 
-1.1.  Relationship to the OAuth Profile Family
+1.3.  Relationship to the OAuth Profile Family
 
    This document extends the OAuth profile family of
    [AUTHORITY-DELEGATION] with an additional Trust Method category.  The
@@ -213,7 +233,7 @@ Table of Contents
    machinery, cross-category combination rule, IANA registries) and on
    [DAI] for the DNS+HTTPS authority-publication pattern.
 
-1.2.  Relationship to Verifiable Credentials
+1.4.  Relationship to Verifiable Credentials
 
    The W3C Verifiable Credentials Data Model [W3C-VC] defines a three-
    party trust triangle (Issuer, Holder, Verifier) for credential
@@ -235,78 +255,35 @@ Table of Contents
    issuer-trust question when such credentials are presented as OAuth
    identity assertions.
 
-1.3.  Relationship to eKYC-IDA Verified Claims
+1.5.  Relationship to eKYC-IDA Verified Claims
 
-   The OpenID Foundation's eKYC and Identity Assurance Working Group
-   publishes specifications [IDA-VERIFIED-CLAIMS] for carrying verified
-   identity claims with provenance metadata in OAuth and OpenID Connect.
-   OpenID Connect for Identity Assurance ([OIDC4IDA]) defines a
-   verified_claims payload that wraps an identity-assurance attestation:
+   The OpenID eKYC/IDA WG specifications [IDA-VERIFIED-CLAIMS] carry
+   verified identity claims with provenance metadata.  OIDC4IDA
+   [OIDC4IDA] defines the verified_claims payload (a verification object
+   naming a trust_framework plus a claims payload).
 
-   {
-     "verified_claims": {
-       "verification": {
-         "trust_framework": "eidas",
-         "evidence": [
-           {
-             "type": "document",
-             "method": "pipp",
-             "document_details": { "type": "passport" }
-           }
-         ],
-         "verification_process": "..."
-       },
-       "claims": {
-         "given_name": "Alice",
-         "birthdate": "1990-01-01"
-       }
-     }
-   }
+   OIDC4IDA owns the wire format, the evidence/verification-method
+   vocabulary, and the verification metadata schema.  It does NOT define
+   how a trust framework's owner (eIDAS, NIST, GLEIF, a national scheme)
+   publishes which Issuers it has authorized, nor an OAuth-side trust
+   evaluation for the Verifier to discover whether an Issuer claiming
+   "trust_framework": "eidas" is authorized under eIDAS.  OIDC4IDA's
+   trust model is implicit: the Verifier is assumed to know out of band.
 
-   OIDC4IDA owns:
+   This document closes that gap when the trust framework identifier
+   maps to a DNS-named Attribute Authority.  The
+   verified_claims.verification. trust_framework value identifies the
+   Attribute Authority (directly if already DNS-named, or via the
+   mapping in Section 5.4).  The JWT's iss is the Assertion Issuer; the
+   Resource Authorization Server consults the authority's AAAP per
+   Section 8.1 to evaluate whether iss is authorized.  A worked example
+   appears in Section 10.7.
 
-   *  The wire format for verified-claims payloads.
+   A deployment using OIDC4IDA typically uses it for the claim payload
+   and this document for OAuth-side issuer trust.  Section 5 defines
+   both recognized claim shapes (flat-triple and OIDC4IDA wrapper).
 
-   *  The standardized vocabulary for evidence types, verification
-      methods, and trust frameworks.
-
-   *  The verification metadata schema (verification object).
-
-   OIDC4IDA does NOT define:
-
-   *  A wire-format mechanism by which the trust framework's owner (for
-      example, eIDAS, NIST, GLEIF, a national identity scheme) publishes
-      which Assertion Issuers it has authorized to issue verified claims
-      under it.
-
-   *  An OAuth-side trust-evaluation framework for the Verifier to
-      discover whether the Issuer claiming "trust_framework": "eidas" is
-      in fact authorized under eIDAS.
-
-   OIDC4IDA's trust model is implicit: the Verifier is assumed to know,
-   out of band, which Issuers it trusts under which trust frameworks.
-
-   This document closes that gap when the trust framework identifier can
-   be mapped to a DNS-named Attribute Authority.  The trust framework
-   named in verified_claims.verification.trust_framework identifies the
-   Attribute Authority of this document directly when it is already a
-   DNS-named domain, or indirectly through the deterministic mapping
-   described in Section 5.4.  The JWT's iss is the Assertion Issuer; the
-   verified_claims.claims payload is the body of attestations the
-   Authority authorizes the Issuer to make.
-
-   When evaluating an OIDC4IDA payload, the Resource Authorization
-   Server consults the trust framework's Attribute Authority
-   Authorization Policy (per the lookup procedure in Section 8.1) to
-   discover whether the JWT's Issuer is listed as authorized under that
-   trust framework.  A worked example appears in Section 10.7.
-
-   A deployment using OIDC4IDA typically uses OIDC4IDA for the claim-
-   payload wire format and this document for the OAuth-side issuer-trust
-   evaluation.  Section 5 defines two recognized attribute-claim shapes:
-   the flat-triple convention and the OIDC4IDA verified_claims wrapper.
-
-1.4.  Relationship to OIDC Distributed Claims
+1.6.  Relationship to OIDC Distributed Claims
 
    OpenID Connect Core ([OIDC-CORE] §5.6.2) defines distributed claims:
    a mechanism by which a primary Issuer references claims held by a
@@ -323,7 +300,7 @@ Table of Contents
    provider Issuer, using the trust framework named in the distributed
    claim's metadata as the Attribute Authority.
 
-1.5.  Scope and Non-Goals
+1.7.  Scope and Non-Goals
 
    This document defines:
 
@@ -355,7 +332,7 @@ Table of Contents
    deployments require an additional Trust Method whose publication
    channel matches the authority form.
 
-1.6.  Conventions
+1.8.  Conventions
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and

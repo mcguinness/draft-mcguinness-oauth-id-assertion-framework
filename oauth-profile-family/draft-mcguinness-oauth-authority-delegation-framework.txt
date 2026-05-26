@@ -229,34 +229,46 @@ Table of Contents
    assertion trust evaluation.  The family is structured in two layers,
    with two companion documents:
 
-             Authority Delegation Framework  (this document)
-                           |
-                           | profiled for OAuth identity assertions by
-                           v
-               Identity Assertion Issuer Trust Policy
-                   (Trust Policy document, Trust Method
-                    machinery, Subject Authority Determination,
-                    ID-JAG / Actor Profile bindings)
-                           |
-                           | extended with Trust Methods by
-                           v
-         +-----------------+-----------------+--------------------+
-         |                 |                 |                    |
-         v                 v                 v                    v
-   Domain-Authorized   Client Instance   Attribute Authority   (future
-   Issuer Discovery        Trust              Trust            profiles)
-   (DAI)
-   subject_namespace_  client_instance_  attribute_
-   authorization       authorization     attestation
+               Authority Delegation Framework  (this document)
+                             |
+                             | profiled for OAuth identity assertions by
+                             v
+                 Identity Assertion Issuer Trust Policy
+                     (Trust Policy document, Trust Method
+                      machinery, Subject Authority Determination,
+                      ID-JAG / Actor Profile bindings)
+                             |
+                             | extended with Trust Methods by
+                             v
+           Standards-Track core profiles:
+           +-----------------+-----------------+
+           |                 |                 |
+           v                 v                 v
+     Domain-Authorized   Client Instance   (future
+     Issuer Discovery        Trust         Standards-Track
+     (DAI)                                 profiles)
+     subject_namespace_  client_instance_
+     authorization       authorization
 
- Companion documents (sibling to Trust Policy):
+           Informational extensions:
+           +-----------------+
+           |                 |
+           v                 v
+     Attribute Authority   (future Informational
+           Trust            profiles)
+     attribute_
+     attestation
 
-   Trust Policy Discovery (TPD)   -- DNS-based discovery of
-                                     Trust Policy; resource-side
-                                     dual of DAI.
+   Companion documents (sibling to Trust Policy):
 
-   Deployment Scenarios           -- Non-normative worked examples
-                                     spanning the family.
+     Trust Policy Discovery (TPD)   -- DNS-based discovery of
+                                       Trust Policy; resource-side
+                                       dual of DAI.
+
+     Deployment Scenarios           -- Non-normative worked examples
+                                       spanning the family.
+
+     Getting Started                -- Non-normative entry point.
 
    *Trust Policy* ([TRUST-POLICY]) is the OAuth-side framework layer.
    It defines the Trust Policy document, the Trust Method machinery
@@ -265,9 +277,9 @@ Table of Contents
    itself a leaf profile of this document; it is the framework other
    OAuth profiles register against.
 
-   *Leaf profiles* register Trust Methods in Trust Policy's registry and
-   register against this document's Authority Delegation Profile
-   registry (Section 10.1):
+   *Standards-Track leaf profiles* register Trust Methods in Trust
+   Policy's registry and register against this document's Authority
+   Delegation Profile registry (Section 10.1):
 
    *  [DAI]: DNS+HTTPS Subject-Authority publication
       (domain_authorized_issuer, https_authorized_issuer).
@@ -276,9 +288,13 @@ Table of Contents
       client_instance_authorization, for workload-to-client binding
       (client_authorized_instance_issuer).
 
+   *Informational extensions* register Trust Methods but are published
+   Informational pending validated deployment demand:
+
    *  [ATTRIBUTE-AUTHORITY-TRUST]: a fourth Trust Method category,
       attribute_attestation, for claim-type authorities
-      (attribute_authority_authorized_issuer).
+      (attribute_authority_authorized_issuer).  Addresses verified-
+      claims carriage (OIDC4IDA, eKYC-IDA) and credentialing bodies.
 
    *Companions* (not leaf profiles):
 
@@ -289,6 +305,9 @@ Table of Contents
 
    *  [TRUST-POLICY-SCENARIOS]: non-normative worked examples showing
       how the family composes in deployment.
+
+   *  [GETTING-STARTED]: non-normative entry-point guide.  The
+      recommended first read for a deployer encountering the family.
 
 1.2.2.  Other OAuth-Ecosystem Specifications
 
@@ -1518,90 +1537,64 @@ Table of Contents
 
 8.1.2.  Adversary Capabilities
 
-   The pattern is designed to resist adversaries with the following
-   capabilities:
+   The pattern is designed to resist:
 
-   *  *Publication-channel attacker*: can substitute, suppress, or forge
-      responses on the publication channel binding the Authority Holder
-      (DNS hijack, BGP redirect, registrar account compromise, TLS
-      misissuance against the authority host, CDN tenant takeover,
-      federation operator key compromise).  Different publication
-      channels expose different surfaces; see Section 8.6.
+   *  *Publication-channel attacker*: substitutes, suppresses, or forges
+      responses on the channel binding the Authority Holder (DNS hijack,
+      BGP redirect, registrar compromise, TLS misissuance, CDN takeover,
+      federation key compromise).  See Section 8.6.
 
-   *  *Assertion-content attacker*: can craft arbitrary Assertion
-      payloads (any JWT claims, any combination of identifiers, any
-      presentation order) provided the assertion is signed by some
-      authentic key the attacker controls.  This is the standard
-      adversary in the cryptographic literature; the Authority
-      Delegation Pattern's source-selection determinism and category-
-      applicability rules (Section 3.3.1, Section 8.4, Section 8.5)
-      constrain what this adversary can achieve.
+   *  *Assertion-content attacker*: crafts arbitrary Assertion payloads
+      signed by an attacker-controlled authentic key.  The combination
+      rule, source-selection determinism, and category applicability
+      (Section 3.3.1, Section 8.4, Section 8.5) constrain what this
+      adversary achieves.
 
-   *  *Authorized-but-malicious Delegate*: a Delegate authorized by some
-      Authority Holder that uses its authorization to attack Subjects
-      (synthesizing claims, asserting about Subjects without the
-      Subjects' awareness).  The pattern bounds this adversary to the
-      scope the Authority Holder delegated; protection against the
-      Authorized Delegate's internal behavior is the Authority Holder's
-      responsibility (operational diligence, contract/audit).
+   *  *Authorized-but-malicious Delegate*: a Delegate that abuses its
+      authorization to attack Subjects.  The pattern bounds this to the
+      scope the Authority Holder delegated; defending against the
+      Delegate's internal behavior is the Authority Holder's
+      responsibility.
 
-   *  *Compromised intermediate (chained profiles)*: in chained
-      delegation profiles, a Subdelegate whose key or authority has been
-      compromised.  Bounded-depth profiles (Section 3.5) contain this
-      adversary by construction; chained profiles require profile-
-      specific countermeasures.
+   *  *Compromised intermediate (chained profiles)*: a Subdelegate whose
+      key or authority is compromised.  Bounded-depth profiles
+      (Section 3.5) contain this by construction; chained profiles
+      require profile-specific countermeasures.
 
-   *  *Cross-profile composition attacker*: a Validator implementing
-      multiple profiles can be tricked into accepting evidence that
-      satisfies one profile's category through a different profile's
+   *  *Cross-profile composition attacker*: tricks a Validator into
+      satisfying one profile's category through a different profile's
       weaker check.  See Section 8.7.
 
 8.1.3.  Trust Assumptions
 
    The pattern assumes:
 
-   *  The Authority Holder for any named scope is unambiguously
-      identified by control of the publication channel.  Profiles MUST
-      document how channel control is established (typically: DNS
-      control, TLS server authentication, federation signing key).
+   *  The Authority Holder is unambiguously identified by control of the
+      publication channel (DNS, TLS, federation key).  Profiles MUST
+      document how channel control is established.
 
-   *  The Validator's local policy (which profiles it implements, which
-      Authority Sources it accepts) is administered by a trusted party.
-      The pattern does not defend against an attacker who controls the
-      Validator's configuration.
+   *  The Validator's local policy is administered by a trusted party.
+      The pattern does not defend against a configuration attacker.
 
-   *  Profile-defined extraction functions are deterministic
-      (Section 3.3.2.1).  Two cooperating Validators presented with the
-      same Assertion select the same Authority Source.
+   *  Extraction functions are deterministic (Section 3.3.2.1).
 
-   *  Cache lifetimes for retrieved Delegation Artifacts are bounded
-      (Section 5.4).  The pattern does not provide cryptographic
-      recovery from a compromise after caches expire the compromised
-      content.
+   *  Cache lifetimes are bounded (Section 5.4); the pattern does not
+      recover from compromise within the cache window.
 
 8.1.4.  Out-of-Scope Threats
 
    This pattern does not address:
 
-   *  *Per-Assertion revocation*: once an Assertion is issued, the
-      pattern offers no mechanism to invalidate it within its exp
-      window.  Use OAuth Token Revocation, Token Introspection, or short
-      token lifetimes.
+   *  *Per-Assertion revocation*: use Token Revocation, Introspection,
+      or short token lifetimes.
 
-   *  *Subject-side compromise*: a compromised Subject (whose
-      credentials an attacker has obtained at the Authority Holder or
-      Delegate) is indistinguishable from a legitimate Subject at the
-      Validator.  Mitigations are out-of-band (authentication strength,
-      fresh-authentication signals).
+   *  *Subject-side compromise*: indistinguishable from a legitimate
+      Subject at the Validator.  Out-of-band mitigations only.
 
-   *  *Authority Holder operational failures*: a careless or malicious
-      Authority Holder publishing the wrong Delegates is the Authority
-      Holder's failure mode, not a pattern failure.
+   *  *Authority Holder operational failures*: the Authority Holder's
+      failure mode, not a pattern failure.
 
-   *  *Implementation defects in the Validator*: bugs in the Validator's
-      parsing or evaluation logic are out-of-scope; the pattern
-      specifies what the Validator MUST do, not how the Validator
-      implements it.
+   *  *Validator implementation defects*: out of scope.
 
 8.2.  Open-World Delegation Security Model
 
@@ -2202,6 +2195,11 @@ Table of Contents
    [DAI]      "OAuth Domain-Authorized Issuer Discovery",
               <https://datatracker.ietf.org/doc/draft-mcguinness-oauth-
               domain-authorized-issuer-discovery/>.
+
+   [GETTING-STARTED]
+              "Getting Started with the OAuth Authority Delegation
+              Family", <https://datatracker.ietf.org/doc/draft-
+              mcguinness-oauth-trust-policy-getting-started/>.
 
    [I-D.ietf-oauth-identity-chaining]
               "OAuth Identity and Authorization Chaining Across

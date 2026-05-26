@@ -1606,8 +1606,8 @@ needing attribute attestation outside namespace-bound subject
 identity should look to W3C Verifiable Credentials, OpenID for
 Verifiable Credentials, and domain-specific frameworks. Where
 their attestations are conveyed as OAuth identity assertions whose
-subject is namespace-bound, this document's trust framework
-governs the issuer-trust layer regardless of the
+subject is namespace-bound, this document's Trust Policy
+framework governs the issuer-trust layer regardless of the
 attribute-attestation layer beneath it.<a href="#section-1.6-2" class="pilcrow">¶</a></p>
 <p id="section-1.6-3">Future extensions to additional Subject Identifier formats follow
 <a href="#extending" class="auto internal xref">Section 9</a> and require no changes to the trust evaluation
@@ -2405,7 +2405,7 @@ establish authority over a particular subject namespace.<a href="#section-4.2-2.
 business policy. Client authentication, sender-constraining, and
 client identifier resolution are governed by the applicable
 grant profile and OAuth client-authentication mechanisms; they
-are not specified by this trust framework.<a href="#section-4.2-2.6.1" class="pilcrow">¶</a></p>
+are not specified by this document.<a href="#section-4.2-2.6.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 <p id="section-4.2-3">Failure to satisfy issuer trust, subject identifier, or assertion
@@ -2588,7 +2588,7 @@ members including <code>act.iss</code>, <code>act.sub</code>, and (optionally)
 <code>act.sub_profile</code>. The actor profile establishes that the token
 issuer's authority to assert a specific <code>(act.iss, act.sub)</code> actor
 identifier pair is not automatic and must be evaluated against a
-trust framework, but defers the framework itself to local policy or
+trust policy, but defers that policy itself to local rules or
 bilateral agreement.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
 <p id="section-5.2-2">This section binds the Trust Method machinery of this document
 to that framework. The binding applies when a presented assertion or
@@ -3696,78 +3696,32 @@ trust-chain, metadata-publication, or policy-propagation mechanisms.<a href="#ap
       </h2>
 <p id="appendix-B-1">This appendix is non-normative.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
 <p id="appendix-B-2"><strong>Q: Do I need both OpenID Federation and DAI?</strong><a href="#appendix-B-2" class="pilcrow">¶</a></p>
-<p id="appendix-B-3">No. Each Trust Method category is independent. A Resource
-Authorization Server lists in its Trust Policy only the methods it
-requires. Common combinations:<a href="#appendix-B-3" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="appendix-B-4.1">
-          <p id="appendix-B-4.1.1">Federation-only: <code>openid_federation</code>. Acceptable when the
-deployment trusts federation membership without per-namespace
-authority binding.<a href="#appendix-B-4.1.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="appendix-B-4.2">
-          <p id="appendix-B-4.2.1">Namespace-only: <code>domain_authorized_issuer</code>. Acceptable when the
-deployment trusts directly-published namespace authority without
-ecosystem-membership signals.<a href="#appendix-B-4.2.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="appendix-B-4.3">
-          <p id="appendix-B-4.3.1">Both: requires evidence from each category. Strongest combined
-posture.<a href="#appendix-B-4.3.1" class="pilcrow">¶</a></p>
-</li>
-      </ul>
-<p id="appendix-B-5"><strong>Q: Can I use Trust Policy without DAI?</strong><a href="#appendix-B-5" class="pilcrow">¶</a></p>
-<p id="appendix-B-6">Yes. Trust Policy is the framework; DAI is one
-<code>subject_namespace_authorization</code> Trust Method. Other Trust Methods
-in that category <span class="bcp14">MAY</span> be defined by other specifications. A Resource
-Authorization Server using only <code>openid_federation</code> for
-issuer-authentication and a non-DAI namespace-authorization method
-remains within scope.<a href="#appendix-B-6" class="pilcrow">¶</a></p>
-<p id="appendix-B-7"><strong>Q: What if my Subject Authority has no DNS access?</strong><a href="#appendix-B-7" class="pilcrow">¶</a></p>
-<p id="appendix-B-8">The DAI HTTPS form (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span>) supports an HTTPS well-known URL
-fallback when the Subject Authority has DNS but not the inline
-record; the <code>https_authorized_issuer</code> Trust Method (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span>) skips
-DNS entirely. A Subject Authority with no DNS presence cannot
-participate in DAI but <span class="bcp14">MAY</span> be reachable via OpenID Federation if
-the federation accepts it as a leaf entity.<a href="#appendix-B-8" class="pilcrow">¶</a></p>
-<p id="appendix-B-9"><strong>Q: Does this work for path-bearing issuer identifiers (such as
-<code>https://login.example.com/{tenant}/v2.0</code>)?</strong><a href="#appendix-B-9" class="pilcrow">¶</a></p>
-<p id="appendix-B-10">Yes for <code>domain_authorized_issuer</code>, which uses case-sensitive URL
-string comparison and accepts path-bearing issuer identifiers
-directly in <code>authorized_issuers[].issuer</code>. Not for
-<code>email_verification_dns</code>, which is interoperable only with bare-
-origin issuer identifiers per <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span>.<a href="#appendix-B-10" class="pilcrow">¶</a></p>
-<p id="appendix-B-11"><strong>Q: How does this relate to OIDC4IDA / eKYC-IDA?</strong><a href="#appendix-B-11" class="pilcrow">¶</a></p>
-<p id="appendix-B-12">OIDC4IDA defines the wire format for verified identity claims with
-provenance metadata. This document defines the OAuth-side
-trust-evaluation framework. The two compose: the
-<code>verified_claims.verification.trust_framework</code> value identifies an
-Attribute Authority whose published policy this document's Trust
-Methods consult. See the Attribute Authority Trust draft for the
-explicit composition.<a href="#appendix-B-12" class="pilcrow">¶</a></p>
-<p id="appendix-B-13"><strong>Q: What's the difference between Trust Policy and DAI?</strong><a href="#appendix-B-13" class="pilcrow">¶</a></p>
-<p id="appendix-B-14">Trust Policy is the OAuth-side framework defining what an Assertion
-Issuer must satisfy. DAI is a wire-format mechanism by which a
-Subject Authority publishes which issuers it authorizes for its
-namespace. Trust Policy is published by the Resource Authorization
-Server; DAI is published by the Subject Authority. Both are
-required for the common deployment case; either can stand alone.<a href="#appendix-B-14" class="pilcrow">¶</a></p>
-<p id="appendix-B-15"><strong>Q: What happens during PSL changes?</strong><a href="#appendix-B-15" class="pilcrow">¶</a></p>
-<p id="appendix-B-16">Resource Authorization Servers <span class="bcp14">SHOULD</span> use a PSL snapshot no older
-than 30 days. PSL changes that affect a deployed Subject Authority
-require operational coordination across consumers. See
-<a href="#psl-versioning" class="auto internal xref">Section 3.4.1</a>.<a href="#appendix-B-16" class="pilcrow">¶</a></p>
-<p id="appendix-B-17"><strong>Q: How do I revoke a delegation in DAI?</strong><a href="#appendix-B-17" class="pilcrow">¶</a></p>
-<p id="appendix-B-18">Remove the affected entry (or set <code>valid_until</code> to the past) from
-the published Issuer Authorization Policy. Revocation latency is
-bounded by the cache lifetime of the most stale layer. See
-<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Operational Considerations.<a href="#appendix-B-18" class="pilcrow">¶</a></p>
-<p id="appendix-B-19"><strong>Q: Can a Resource Authorization Server require client-instance
-binding for some clients but not others?</strong><a href="#appendix-B-19" class="pilcrow">¶</a></p>
-<p id="appendix-B-20">Yes, via local policy. The Trust Policy's
-<code>client_instance_assertion_required</code> member is a policy-wide
-requirement; per-client requirements can be enforced at token
-request time using local policy and the diagnostic reason codes of
-<a href="#diagnostic-reasons" class="auto internal xref">Section 4.3</a>.<a href="#appendix-B-20" class="pilcrow">¶</a></p>
+<p id="appendix-B-3">No. Each Trust Method category is independent and a Trust Policy
+lists only the categories required. Federation-only, namespace-only,
+or both-categories deployments are all valid.<a href="#appendix-B-3" class="pilcrow">¶</a></p>
+<p id="appendix-B-4"><strong>Q: What's the difference between Trust Policy and DAI?</strong><a href="#appendix-B-4" class="pilcrow">¶</a></p>
+<p id="appendix-B-5">Trust Policy is the OAuth-side framework defining what an Assertion
+Issuer must satisfy. DAI is one wire-format Trust Method by which a
+Subject Authority publishes its authorized issuers. Trust Policy is
+RAS-published; DAI is Subject-Authority-published.<a href="#appendix-B-5" class="pilcrow">¶</a></p>
+<p id="appendix-B-6"><strong>Q: What if my Subject Authority has no DNS access?</strong><a href="#appendix-B-6" class="pilcrow">¶</a></p>
+<p id="appendix-B-7">DAI supports an HTTPS well-known URL fallback; the
+<code>https_authorized_issuer</code> Trust Method (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span>) skips DNS entirely.
+A Subject Authority with no DNS presence cannot participate in DAI.<a href="#appendix-B-7" class="pilcrow">¶</a></p>
+<p id="appendix-B-8"><strong>Q: Does this work for path-bearing issuer identifiers
+(<code>https://login.example.com/{tenant}/v2.0</code>)?</strong><a href="#appendix-B-8" class="pilcrow">¶</a></p>
+<p id="appendix-B-9">Yes for <code>domain_authorized_issuer</code> (case-sensitive URL string
+comparison). Not for <code>email_verification_dns</code> (bare-origin
+identifiers only, per <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span>).<a href="#appendix-B-9" class="pilcrow">¶</a></p>
+<p id="appendix-B-10"><strong>Q: How does this relate to OIDC4IDA / eKYC-IDA?</strong><a href="#appendix-B-10" class="pilcrow">¶</a></p>
+<p id="appendix-B-11">OIDC4IDA defines the wire format for verified claims with provenance
+metadata; this document defines the OAuth-side trust-evaluation
+framework. The two compose via
+<code>verified_claims.verification.trust_framework</code>; see the Attribute
+Authority Trust draft.<a href="#appendix-B-11" class="pilcrow">¶</a></p>
+<p id="appendix-B-12"><strong>Q: How do I revoke a delegation in DAI?</strong><a href="#appendix-B-12" class="pilcrow">¶</a></p>
+<p id="appendix-B-13">Remove the entry or set <code>valid_until</code> to the past. Revocation latency
+is bounded by cache lifetime; see <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Operational Considerations.<a href="#appendix-B-13" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="document-history">

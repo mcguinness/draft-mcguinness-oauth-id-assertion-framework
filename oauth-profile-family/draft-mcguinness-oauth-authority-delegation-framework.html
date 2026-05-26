@@ -31,7 +31,7 @@ deployments.
 <meta content="xml2rfc 3.33.0" name="generator">
 <meta content="OAuth" name="keyword">
 <meta content="authority delegation" name="keyword">
-<meta content="trust framework" name="keyword">
+<meta content="trust policy" name="keyword">
 <meta content="issuer trust" name="keyword">
 <meta content="identity assertion" name="keyword">
 <meta content="draft-mcguinness-oauth-authority-delegation-framework-latest" name="ietf.draft">
@@ -1541,14 +1541,24 @@ in two layers, with two companion documents:<a href="#section-1.2.1-1" class="pi
                           |
                           | extended with Trust Methods by
                           v
-        +-----------------+-----------------+--------------------+
-        |                 |                 |                    |
-        v                 v                 v                    v
-  Domain-Authorized   Client Instance   Attribute Authority   (future
-  Issuer Discovery        Trust              Trust            profiles)
-  (DAI)
-  subject_namespace_  client_instance_  attribute_
-  authorization       authorization     attestation
+        Standards-Track core profiles:
+        +-----------------+-----------------+
+        |                 |                 |
+        v                 v                 v
+  Domain-Authorized   Client Instance   (future
+  Issuer Discovery        Trust         Standards-Track
+  (DAI)                                 profiles)
+  subject_namespace_  client_instance_
+  authorization       authorization
+
+        Informational extensions:
+        +-----------------+
+        |                 |
+        v                 v
+  Attribute Authority   (future Informational
+        Trust            profiles)
+  attribute_
+  attestation
 
 Companion documents (sibling to Trust Policy):
 
@@ -1558,6 +1568,8 @@ Companion documents (sibling to Trust Policy):
 
   Deployment Scenarios           -- Non-normative worked examples
                                     spanning the family.
+
+  Getting Started                -- Non-normative entry point.
 </pre><a href="#section-1.2.1-2" class="pilcrow">¶</a>
 </div>
 <p id="section-1.2.1-3"><strong>Trust Policy</strong> (<span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span>) is the OAuth-side framework
@@ -1566,8 +1578,8 @@ machinery (categories, combination rule, registry), Subject
 Authority Determination, and grant-profile bindings. Trust Policy
 is not itself a leaf profile of this document; it is the
 framework other OAuth profiles register against.<a href="#section-1.2.1-3" class="pilcrow">¶</a></p>
-<p id="section-1.2.1-4"><strong>Leaf profiles</strong> register Trust Methods in Trust Policy's
-registry and register against this document's Authority
+<p id="section-1.2.1-4"><strong>Standards-Track leaf profiles</strong> register Trust Methods in Trust
+Policy's registry and register against this document's Authority
 Delegation Profile registry (<a href="#iana-profile-registry" class="auto internal xref">Section 10.1</a>):<a href="#section-1.2.1-4" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-1.2.1-5.1">
@@ -1579,23 +1591,33 @@ Delegation Profile registry (<a href="#iana-profile-registry" class="auto intern
 <code>client_instance_authorization</code>, for workload-to-client binding
 (<code>client_authorized_instance_issuer</code>).<a href="#section-1.2.1-5.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-1.2.1-5.3">
-              <p id="section-1.2.1-5.3.1"><span>[<a href="#ATTRIBUTE-AUTHORITY-TRUST" class="cite xref">ATTRIBUTE-AUTHORITY-TRUST</a>]</span>: a fourth Trust Method category,
-<code>attribute_attestation</code>, for claim-type authorities
-(<code>attribute_authority_authorized_issuer</code>).<a href="#section-1.2.1-5.3.1" class="pilcrow">¶</a></p>
-</li>
           </ul>
-<p id="section-1.2.1-6"><strong>Companions</strong> (not leaf profiles):<a href="#section-1.2.1-6" class="pilcrow">¶</a></p>
+<p id="section-1.2.1-6"><strong>Informational extensions</strong> register Trust Methods but are
+published Informational pending validated deployment demand:<a href="#section-1.2.1-6" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-1.2.1-7.1">
-              <p id="section-1.2.1-7.1.1"><span>[<a href="#TPD" class="cite xref">TPD</a>]</span>: a DNS-based discovery mechanism that lets a Resource
+              <p id="section-1.2.1-7.1.1"><span>[<a href="#ATTRIBUTE-AUTHORITY-TRUST" class="cite xref">ATTRIBUTE-AUTHORITY-TRUST</a>]</span>: a fourth Trust Method category,
+<code>attribute_attestation</code>, for claim-type authorities
+(<code>attribute_authority_authorized_issuer</code>). Addresses
+verified-claims carriage (OIDC4IDA, eKYC-IDA) and credentialing
+bodies.<a href="#section-1.2.1-7.1.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-1.2.1-8"><strong>Companions</strong> (not leaf profiles):<a href="#section-1.2.1-8" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1.2.1-9.1">
+              <p id="section-1.2.1-9.1.1"><span>[<a href="#TPD" class="cite xref">TPD</a>]</span>: a DNS-based discovery mechanism that lets a Resource
 Owner publish a pointer to its Trust Policy. Resource-side
 dual of <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>; closes the bilateral first-contact gap in
-open-world deployments.<a href="#section-1.2.1-7.1.1" class="pilcrow">¶</a></p>
+open-world deployments.<a href="#section-1.2.1-9.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-1.2.1-7.2">
-              <p id="section-1.2.1-7.2.1"><span>[<a href="#TRUST-POLICY-SCENARIOS" class="cite xref">TRUST-POLICY-SCENARIOS</a>]</span>: non-normative worked examples
-showing how the family composes in deployment.<a href="#section-1.2.1-7.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-1.2.1-9.2">
+              <p id="section-1.2.1-9.2.1"><span>[<a href="#TRUST-POLICY-SCENARIOS" class="cite xref">TRUST-POLICY-SCENARIOS</a>]</span>: non-normative worked examples
+showing how the family composes in deployment.<a href="#section-1.2.1-9.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-1.2.1-9.3">
+              <p id="section-1.2.1-9.3.1"><span>[<a href="#GETTING-STARTED" class="cite xref">GETTING-STARTED</a>]</span>: non-normative entry-point guide. The
+recommended first read for a deployer encountering the family.<a href="#section-1.2.1-9.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
@@ -3317,50 +3339,38 @@ delegated scope.<a href="#section-8.1.1-2.3.1" class="pilcrow">¶</a></p>
           <h4 id="name-adversary-capabilities">
 <a href="#section-8.1.2" class="section-number selfRef">8.1.2. </a><a href="#name-adversary-capabilities" class="section-name selfRef">Adversary Capabilities</a>
           </h4>
-<p id="section-8.1.2-1">The pattern is designed to resist adversaries with the following
-capabilities:<a href="#section-8.1.2-1" class="pilcrow">¶</a></p>
+<p id="section-8.1.2-1">The pattern is designed to resist:<a href="#section-8.1.2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.1.2-2.1">
-              <p id="section-8.1.2-2.1.1"><strong>Publication-channel attacker</strong>: can substitute, suppress, or
-forge responses on the publication channel binding the
-Authority Holder (DNS hijack, BGP redirect, registrar account
-compromise, TLS misissuance against the authority host, CDN
-tenant takeover, federation operator key compromise). Different
-publication channels expose different surfaces; see
+              <p id="section-8.1.2-2.1.1"><strong>Publication-channel attacker</strong>: substitutes, suppresses, or
+forges responses on the channel binding the Authority Holder (DNS
+hijack, BGP redirect, registrar compromise, TLS misissuance, CDN
+takeover, federation key compromise). See
 <a href="#authority-source-compromise" class="auto internal xref">Section 8.6</a>.<a href="#section-8.1.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.2-2.2">
-              <p id="section-8.1.2-2.2.1"><strong>Assertion-content attacker</strong>: can craft arbitrary Assertion
-payloads (any JWT claims, any combination of identifiers, any
-presentation order) provided the assertion is signed by some
-authentic key the attacker controls. This is the standard
-adversary in the cryptographic literature; the Authority
-Delegation Pattern's source-selection determinism and
-category-applicability rules (<a href="#combination-rule" class="auto internal xref">Section 3.3.1</a>,
-<a href="#unverified-claim" class="auto internal xref">Section 8.4</a>, <a href="#applicability-bypass" class="auto internal xref">Section 8.5</a>) constrain what
-this adversary can achieve.<a href="#section-8.1.2-2.2.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.2-2.2.1"><strong>Assertion-content attacker</strong>: crafts arbitrary Assertion
+payloads signed by an attacker-controlled authentic key. The
+combination rule, source-selection determinism, and category
+applicability (<a href="#combination-rule" class="auto internal xref">Section 3.3.1</a>, <a href="#unverified-claim" class="auto internal xref">Section 8.4</a>,
+<a href="#applicability-bypass" class="auto internal xref">Section 8.5</a>) constrain what this adversary achieves.<a href="#section-8.1.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.2-2.3">
-              <p id="section-8.1.2-2.3.1"><strong>Authorized-but-malicious Delegate</strong>: a Delegate authorized by
-some Authority Holder that uses its authorization to attack
-Subjects (synthesizing claims, asserting about Subjects without
-the Subjects' awareness). The pattern bounds this adversary to
-the scope the Authority Holder delegated; protection against
-the Authorized Delegate's internal behavior is the Authority
-Holder's responsibility (operational diligence,
-contract/audit).<a href="#section-8.1.2-2.3.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.2-2.3.1"><strong>Authorized-but-malicious Delegate</strong>: a Delegate that abuses its
+authorization to attack Subjects. The pattern bounds this to the
+scope the Authority Holder delegated; defending against the
+Delegate's internal behavior is the Authority Holder's
+responsibility.<a href="#section-8.1.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.2-2.4">
-              <p id="section-8.1.2-2.4.1"><strong>Compromised intermediate (chained profiles)</strong>: in chained
-delegation profiles, a Subdelegate whose key or authority has
-been compromised. Bounded-depth profiles (<a href="#transitivity" class="auto internal xref">Section 3.5</a>)
-contain this adversary by construction; chained profiles
+              <p id="section-8.1.2-2.4.1"><strong>Compromised intermediate (chained profiles)</strong>: a Subdelegate
+whose key or authority is compromised. Bounded-depth profiles
+(<a href="#transitivity" class="auto internal xref">Section 3.5</a>) contain this by construction; chained profiles
 require profile-specific countermeasures.<a href="#section-8.1.2-2.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.2-2.5">
-              <p id="section-8.1.2-2.5.1"><strong>Cross-profile composition attacker</strong>: a Validator implementing
-multiple profiles can be tricked into accepting evidence that
-satisfies one profile's category through a different profile's
+              <p id="section-8.1.2-2.5.1"><strong>Cross-profile composition attacker</strong>: tricks a Validator into
+satisfying one profile's category through a different profile's
 weaker check. See <a href="#profile-composition-risks" class="auto internal xref">Section 8.7</a>.<a href="#section-8.1.2-2.5.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
@@ -3374,28 +3384,21 @@ weaker check. See <a href="#profile-composition-risks" class="auto internal xref
 <p id="section-8.1.3-1">The pattern assumes:<a href="#section-8.1.3-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.1.3-2.1">
-              <p id="section-8.1.3-2.1.1">The Authority Holder for any named scope is unambiguously
-identified by control of the publication channel. Profiles <span class="bcp14">MUST</span>
-document how channel control is established (typically: DNS
-control, TLS server authentication, federation signing key).<a href="#section-8.1.3-2.1.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.3-2.1.1">The Authority Holder is unambiguously identified by control of
+the publication channel (DNS, TLS, federation key). Profiles <span class="bcp14">MUST</span>
+document how channel control is established.<a href="#section-8.1.3-2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.3-2.2">
-              <p id="section-8.1.3-2.2.1">The Validator's local policy (which profiles it implements,
-which Authority Sources it accepts) is administered by a
-trusted party. The pattern does not defend against an attacker
-who controls the Validator's configuration.<a href="#section-8.1.3-2.2.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.3-2.2.1">The Validator's local policy is administered by a trusted party.
+The pattern does not defend against a configuration attacker.<a href="#section-8.1.3-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.3-2.3">
-              <p id="section-8.1.3-2.3.1">Profile-defined extraction functions are deterministic
-(<a href="#single-binding-primitive" class="auto internal xref">Section 3.3.2.1</a>). Two cooperating Validators
-presented with the same Assertion select the same Authority
-Source.<a href="#section-8.1.3-2.3.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.3-2.3.1">Extraction functions are deterministic
+(<a href="#single-binding-primitive" class="auto internal xref">Section 3.3.2.1</a>).<a href="#section-8.1.3-2.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.3-2.4">
-              <p id="section-8.1.3-2.4.1">Cache lifetimes for retrieved Delegation Artifacts are bounded
-(<a href="#cache-freshness" class="auto internal xref">Section 5.4</a>). The pattern does not provide
-cryptographic recovery from a compromise after caches expire
-the compromised content.<a href="#section-8.1.3-2.4.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.3-2.4.1">Cache lifetimes are bounded (<a href="#cache-freshness" class="auto internal xref">Section 5.4</a>); the pattern
+does not recover from compromise within the cache window.<a href="#section-8.1.3-2.4.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
@@ -3408,28 +3411,19 @@ the compromised content.<a href="#section-8.1.3-2.4.1" class="pilcrow">¶</a></p
 <p id="section-8.1.4-1">This pattern does not address:<a href="#section-8.1.4-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.1.4-2.1">
-              <p id="section-8.1.4-2.1.1"><strong>Per-Assertion revocation</strong>: once an Assertion is issued, the
-pattern offers no mechanism to invalidate it within its <code>exp</code>
-window. Use OAuth Token Revocation, Token Introspection, or
-short token lifetimes.<a href="#section-8.1.4-2.1.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.4-2.1.1"><strong>Per-Assertion revocation</strong>: use Token Revocation, Introspection,
+or short token lifetimes.<a href="#section-8.1.4-2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.4-2.2">
-              <p id="section-8.1.4-2.2.1"><strong>Subject-side compromise</strong>: a compromised Subject (whose
-credentials an attacker has obtained at the Authority Holder
-or Delegate) is indistinguishable from a legitimate Subject at
-the Validator. Mitigations are out-of-band (authentication
-strength, fresh-authentication signals).<a href="#section-8.1.4-2.2.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.4-2.2.1"><strong>Subject-side compromise</strong>: indistinguishable from a legitimate
+Subject at the Validator. Out-of-band mitigations only.<a href="#section-8.1.4-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.4-2.3">
-              <p id="section-8.1.4-2.3.1"><strong>Authority Holder operational failures</strong>: a careless or
-malicious Authority Holder publishing the wrong Delegates is
-the Authority Holder's failure mode, not a pattern failure.<a href="#section-8.1.4-2.3.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.4-2.3.1"><strong>Authority Holder operational failures</strong>: the Authority Holder's
+failure mode, not a pattern failure.<a href="#section-8.1.4-2.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-8.1.4-2.4">
-              <p id="section-8.1.4-2.4.1"><strong>Implementation defects in the Validator</strong>: bugs in the
-Validator's parsing or evaluation logic are out-of-scope; the
-pattern specifies what the Validator <span class="bcp14">MUST</span> do, not how the
-Validator implements it.<a href="#section-8.1.4-2.4.1" class="pilcrow">¶</a></p>
+              <p id="section-8.1.4-2.4.1"><strong>Validator implementation defects</strong>: out of scope.<a href="#section-8.1.4-2.4.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
@@ -4243,6 +4237,10 @@ Delegation Artifact.<a href="#section-11-3" class="pilcrow">¶</a></p>
 <dt id="DAI">[DAI]</dt>
         <dd>
 <span class="refTitle">"OAuth Domain-Authorized Issuer Discovery"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer-discovery/">https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer-discovery/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="GETTING-STARTED">[GETTING-STARTED]</dt>
+        <dd>
+<span class="refTitle">"Getting Started with the OAuth Authority Delegation Family"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-mcguinness-oauth-trust-policy-getting-started/">https://datatracker.ietf.org/doc/draft-mcguinness-oauth-trust-policy-getting-started/</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.ietf-oauth-identity-chaining">[I-D.ietf-oauth-identity-chaining]</dt>
         <dd>

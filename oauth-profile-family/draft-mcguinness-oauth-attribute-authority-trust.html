@@ -1088,7 +1088,7 @@ svg {
 <time datetime="2026-05-26" class="published">26 May 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
-<dd class="intended-status">Standards Track</dd>
+<dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
 <dd class="expires"><time datetime="2026-11-27">27 November 2026</time></dd>
 <dt class="label-authors">Author:</dt>
@@ -1189,22 +1189,28 @@ that a specific Subject actually has a specific attribute value.<a href="#sectio
             <p id="section-toc.1-1.1.1"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1">
-                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-relationship-to-the-oauth-p" class="internal xref">Relationship to the OAuth Profile Family</a></p>
+                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-document-status" class="internal xref">Document Status</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.2">
-                <p id="section-toc.1-1.1.2.2.1" class="keepWithNext"><a href="#section-1.2" class="auto internal xref">1.2</a>.  <a href="#name-relationship-to-verifiable-" class="internal xref">Relationship to Verifiable Credentials</a></p>
+                <p id="section-toc.1-1.1.2.2.1" class="keepWithNext"><a href="#section-1.2" class="auto internal xref">1.2</a>.  <a href="#name-the-third-trust-question" class="internal xref">The Third Trust Question</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.3">
-                <p id="section-toc.1-1.1.2.3.1" class="keepWithNext"><a href="#section-1.3" class="auto internal xref">1.3</a>.  <a href="#name-relationship-to-ekyc-ida-ve" class="internal xref">Relationship to eKYC-IDA Verified Claims</a></p>
+                <p id="section-toc.1-1.1.2.3.1" class="keepWithNext"><a href="#section-1.3" class="auto internal xref">1.3</a>.  <a href="#name-relationship-to-the-oauth-p" class="internal xref">Relationship to the OAuth Profile Family</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.4">
-                <p id="section-toc.1-1.1.2.4.1"><a href="#section-1.4" class="auto internal xref">1.4</a>.  <a href="#name-relationship-to-oidc-distri" class="internal xref">Relationship to OIDC Distributed Claims</a></p>
+                <p id="section-toc.1-1.1.2.4.1"><a href="#section-1.4" class="auto internal xref">1.4</a>.  <a href="#name-relationship-to-verifiable-" class="internal xref">Relationship to Verifiable Credentials</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.5">
-                <p id="section-toc.1-1.1.2.5.1"><a href="#section-1.5" class="auto internal xref">1.5</a>.  <a href="#name-scope-and-non-goals" class="internal xref">Scope and Non-Goals</a></p>
+                <p id="section-toc.1-1.1.2.5.1"><a href="#section-1.5" class="auto internal xref">1.5</a>.  <a href="#name-relationship-to-ekyc-ida-ve" class="internal xref">Relationship to eKYC-IDA Verified Claims</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.6">
-                <p id="section-toc.1-1.1.2.6.1"><a href="#section-1.6" class="auto internal xref">1.6</a>.  <a href="#name-conventions" class="internal xref">Conventions</a></p>
+                <p id="section-toc.1-1.1.2.6.1"><a href="#section-1.6" class="auto internal xref">1.6</a>.  <a href="#name-relationship-to-oidc-distri" class="internal xref">Relationship to OIDC Distributed Claims</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.7">
+                <p id="section-toc.1-1.1.2.7.1"><a href="#section-1.7" class="auto internal xref">1.7</a>.  <a href="#name-scope-and-non-goals" class="internal xref">Scope and Non-Goals</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.8">
+                <p id="section-toc.1-1.1.2.8.1"><a href="#section-1.8" class="auto internal xref">1.8</a>.  <a href="#name-conventions" class="internal xref">Conventions</a></p>
 </li>
             </ul>
 </li>
@@ -1371,23 +1377,48 @@ that a specific Subject actually has a specific attribute value.<a href="#sectio
       <h2 id="name-introduction">
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
-<p id="section-1-1">The OAuth Identity Assertion Issuer Trust Policy <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span>
+<div id="document-status">
+<section id="section-1.1">
+        <h3 id="name-document-status">
+<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-document-status" class="section-name selfRef">Document Status</a>
+        </h3>
+<p id="section-1.1-1">This document is Informational. The Authority Delegation Pattern,
+Trust Policy framework, and <code>subject_namespace_authorization</code>
+category in <span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span>, <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span>, and <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>
+constitute the Standards-Track core of the family and address the
+two primary trust questions (issuer authentication and subject
+namespace authorization). The <code>attribute_attestation</code> category
+defined here addresses a third trust question that arises in
+specific deployments (verified-claims carriage, professional
+credentialing). It is published Informational pending validated
+deployment demand. The category, its wire format, and IANA
+registrations are stable enough to deploy, but the document is not
+yet on a Standards-Track timeline. Implementers <span class="bcp14">MAY</span> deploy this
+profile; deployments inform future Standards-Track progression.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="the-third-trust-question">
+<section id="section-1.2">
+        <h3 id="name-the-third-trust-question">
+<a href="#section-1.2" class="section-number selfRef">1.2. </a><a href="#name-the-third-trust-question" class="section-name selfRef">The Third Trust Question</a>
+        </h3>
+<p id="section-1.2-1">The OAuth Identity Assertion Issuer Trust Policy <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span>
 keeps issuer authentication and subject namespace authorization as
 distinct trust questions. Federation membership does not establish
 namespace authority; namespace authority does not establish
 federation membership. Each question is answered by evidence from
-its own category of Trust Method.<a href="#section-1-1" class="pilcrow">¶</a></p>
-<p id="section-1-2">Identity assertions in real deployments often carry more than
+its own category of Trust Method.<a href="#section-1.2-1" class="pilcrow">¶</a></p>
+<p id="section-1.2-2">Identity assertions in real deployments often carry more than
 identity. A university-affiliated assertion may carry a degree
 status. An employer-issued assertion may carry an employment-status
 claim. A KYC provider may attest verification level. Each of these
 attribute claims has its own AUTHORITY: the entity legitimately
 positioned to attest the claim. That authority is typically NOT the
-subject's namespace owner.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3">Consider three concrete cases:<a href="#section-1-3" class="pilcrow">¶</a></p>
+subject's namespace owner.<a href="#section-1.2-2" class="pilcrow">¶</a></p>
+<p id="section-1.2-3">Consider three concrete cases:<a href="#section-1.2-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1-4.1">
-          <p id="section-1-4.1.1">A university <code>university.example</code> confers a degree on Alice
+<li class="normal" id="section-1.2-4.1">
+            <p id="section-1.2-4.1.1">A university <code>university.example</code> confers a degree on Alice
 (<code>alice@personal.example</code>). Years later, Alice presents an
 identity assertion carrying <code>degree_status: graduated</code>. The
 Resource Authorization Server cannot verify this attribute by
@@ -1396,254 +1427,201 @@ degree status) nor by consulting the asserting issuer's federation
 membership (which says nothing about which authority backs the
 degree claim). The authority is <code>university.example</code>, which is
 distinct from both the subject's namespace and the asserting
-issuer's federation.<a href="#section-1-4.1.1" class="pilcrow">¶</a></p>
+issuer's federation.<a href="#section-1.2-4.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-1-4.2">
-          <p id="section-1-4.2.1">An employer <code>employer.example</code> employs Bob. Bob presents an
+          <li class="normal" id="section-1.2-4.2">
+            <p id="section-1.2-4.2.1">An employer <code>employer.example</code> employs Bob. Bob presents an
 assertion to a vendor's Resource Authorization Server carrying
 <code>employment_status: active</code> and <code>employer: employer.example</code>.
 Verification follows the same pattern: the employment claim's
-authority is <code>employer.example</code>, not Bob's email namespace.<a href="#section-1-4.2.1" class="pilcrow">¶</a></p>
+authority is <code>employer.example</code>, not Bob's email namespace.<a href="#section-1.2-4.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-1-4.3">
-          <p id="section-1-4.3.1">A KYC provider <code>kyc.example</code> attests Carol's identity verification
+          <li class="normal" id="section-1.2-4.3">
+            <p id="section-1.2-4.3.1">A KYC provider <code>kyc.example</code> attests Carol's identity verification
 level. The attestation can be carried in any assertion (regardless
 of namespace or federation context) but its authority is
-<code>kyc.example</code>.<a href="#section-1-4.3.1" class="pilcrow">¶</a></p>
+<code>kyc.example</code>.<a href="#section-1.2-4.3.1" class="pilcrow">¶</a></p>
 </li>
-      </ul>
-<p id="section-1-5">In each case the Resource Authorization Server needs a wire-format
+        </ul>
+<p id="section-1.2-5">In each case the Resource Authorization Server needs a wire-format
 mechanism to discover which Assertion Issuers a given attribute
 authority has authorized to attest its claim types. This document
-defines that mechanism.<a href="#section-1-5" class="pilcrow">¶</a></p>
+defines that mechanism.<a href="#section-1.2-5" class="pilcrow">¶</a></p>
+</section>
+</div>
 <div id="relationship-to-the-oauth-profile-family">
-<section id="section-1.1">
+<section id="section-1.3">
         <h3 id="name-relationship-to-the-oauth-p">
-<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-relationship-to-the-oauth-p" class="section-name selfRef">Relationship to the OAuth Profile Family</a>
+<a href="#section-1.3" class="section-number selfRef">1.3. </a><a href="#name-relationship-to-the-oauth-p" class="section-name selfRef">Relationship to the OAuth Profile Family</a>
         </h3>
-<p id="section-1.1-1">This document extends the OAuth profile family of
+<p id="section-1.3-1">This document extends the OAuth profile family of
 <span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span> with an additional Trust Method category. The
-family is:<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+family is:<a href="#section-1.3-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-2.1">
-            <p id="section-1.1-2.1.1"><strong><span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span></strong>: the abstract Authority Delegation
+<li class="normal" id="section-1.3-2.1">
+            <p id="section-1.3-2.1.1"><strong><span>[<a href="#AUTHORITY-DELEGATION" class="cite xref">AUTHORITY-DELEGATION</a>]</span></strong>: the abstract Authority Delegation
 Pattern (Authority Holder, Delegate, Delegation Artifact,
-Validator; cross-category combination rule; profile registry).<a href="#section-1.1-2.1.1" class="pilcrow">¶</a></p>
+Validator; cross-category combination rule; profile registry).<a href="#section-1.3-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-2.2">
-            <p id="section-1.1-2.2.1"><strong><span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span></strong>: the OAuth profile defining the Trust Policy
+          <li class="normal" id="section-1.3-2.2">
+            <p id="section-1.3-2.2.1"><strong><span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span></strong>: the OAuth profile defining the Trust Policy
 document, Trust Method machinery, Subject Authority
 Determination, and two initial categories
-(<code>issuer_authentication</code>, <code>subject_namespace_authorization</code>).<a href="#section-1.1-2.2.1" class="pilcrow">¶</a></p>
+(<code>issuer_authentication</code>, <code>subject_namespace_authorization</code>).<a href="#section-1.3-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-2.3">
-            <p id="section-1.1-2.3.1"><strong><span>[<a href="#DAI" class="cite xref">DAI</a>]</span></strong>: a <code>subject_namespace_authorization</code> profile defining
-DNS+HTTPS Subject Authority publication.<a href="#section-1.1-2.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-1.3-2.3">
+            <p id="section-1.3-2.3.1"><strong><span>[<a href="#DAI" class="cite xref">DAI</a>]</span></strong>: a <code>subject_namespace_authorization</code> profile defining
+DNS+HTTPS Subject Authority publication.<a href="#section-1.3-2.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-2.4">
-            <p id="section-1.1-2.4.1"><strong>This document</strong>: registers an additional category,
+          <li class="normal" id="section-1.3-2.4">
+            <p id="section-1.3-2.4.1"><strong>This document</strong>: registers an additional category,
 <code>attribute_attestation</code>, applying the same Authority Delegation
 Pattern to claim-type authority. The Authority Holder is the
 attribute authority (a university, employer, KYC provider, or
 credentialing body); the Delegate is the Assertion Issuer
 authorized to attest the claim type; the Delegation Artifact is
-the Attribute Authority Authorization Policy.<a href="#section-1.1-2.4.1" class="pilcrow">¶</a></p>
+the Attribute Authority Authorization Policy.<a href="#section-1.3-2.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-1.1-3">This document depends normatively on <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span> (Trust Method
+<p id="section-1.3-3">This document depends normatively on <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span> (Trust Method
 machinery, cross-category combination rule, IANA registries) and
-on <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> for the DNS+HTTPS authority-publication pattern.<a href="#section-1.1-3" class="pilcrow">¶</a></p>
+on <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> for the DNS+HTTPS authority-publication pattern.<a href="#section-1.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="relationship-to-verifiable-credentials">
-<section id="section-1.2">
+<section id="section-1.4">
         <h3 id="name-relationship-to-verifiable-">
-<a href="#section-1.2" class="section-number selfRef">1.2. </a><a href="#name-relationship-to-verifiable-" class="section-name selfRef">Relationship to Verifiable Credentials</a>
+<a href="#section-1.4" class="section-number selfRef">1.4. </a><a href="#name-relationship-to-verifiable-" class="section-name selfRef">Relationship to Verifiable Credentials</a>
         </h3>
-<p id="section-1.2-1">The W3C Verifiable Credentials Data Model <span>[<a href="#W3C-VC" class="cite xref">W3C-VC</a>]</span> defines a
+<p id="section-1.4-1">The W3C Verifiable Credentials Data Model <span>[<a href="#W3C-VC" class="cite xref">W3C-VC</a>]</span> defines a
 three-party trust triangle (Issuer, Holder, Verifier) for
 credential exchange. VCs and this document address related but
-distinct concerns:<a href="#section-1.2-1" class="pilcrow">¶</a></p>
+distinct concerns:<a href="#section-1.4-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.2-2.1">
-            <p id="section-1.2-2.1.1">VCs specify the wire format and signing model for credential
+<li class="normal" id="section-1.4-2.1">
+            <p id="section-1.4-2.1.1">VCs specify the wire format and signing model for credential
 payloads. They do NOT specify how a Verifier decides that the
 credential's Issuer is authorized to attest the credential's
-claims for a given Subject.<a href="#section-1.2-2.1.1" class="pilcrow">¶</a></p>
+claims for a given Subject.<a href="#section-1.4-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.2-2.2">
-            <p id="section-1.2-2.2.1">This document specifies the OAuth-side trust evaluation for that
+          <li class="normal" id="section-1.4-2.2">
+            <p id="section-1.4-2.2.1">This document specifies the OAuth-side trust evaluation for that
 authorization question, regardless of whether the underlying
 claim payload is a VC, an OAuth identity assertion, or some
-other JWT-borne attestation.<a href="#section-1.2-2.2.1" class="pilcrow">¶</a></p>
+other JWT-borne attestation.<a href="#section-1.4-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-1.2-3">A deployment using both typically uses VCs for the credential
+<p id="section-1.4-3">A deployment using both typically uses VCs for the credential
 issuance layer and Attribute Authority Trust for the OAuth-layer
 issuer-trust question when such credentials are presented as OAuth
-identity assertions.<a href="#section-1.2-3" class="pilcrow">¶</a></p>
+identity assertions.<a href="#section-1.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="ekyc-ida">
-<section id="section-1.3">
+<section id="section-1.5">
         <h3 id="name-relationship-to-ekyc-ida-ve">
-<a href="#section-1.3" class="section-number selfRef">1.3. </a><a href="#name-relationship-to-ekyc-ida-ve" class="section-name selfRef">Relationship to eKYC-IDA Verified Claims</a>
+<a href="#section-1.5" class="section-number selfRef">1.5. </a><a href="#name-relationship-to-ekyc-ida-ve" class="section-name selfRef">Relationship to eKYC-IDA Verified Claims</a>
         </h3>
-<p id="section-1.3-1">The OpenID Foundation's eKYC and Identity Assurance Working Group
-publishes specifications <span>[<a href="#IDA-VERIFIED-CLAIMS" class="cite xref">IDA-VERIFIED-CLAIMS</a>]</span> for carrying
-verified identity claims with provenance metadata in OAuth and
-OpenID Connect. OpenID Connect for Identity Assurance
-(<span>[<a href="#OIDC4IDA" class="cite xref">OIDC4IDA</a>]</span>) defines a <code>verified_claims</code> payload that wraps an
-identity-assurance attestation:<a href="#section-1.3-1" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-1.3-2">
-<pre>
-{
-  "verified_claims": {
-    "verification": {
-      "trust_framework": "eidas",
-      "evidence": [
-        {
-          "type": "document",
-          "method": "pipp",
-          "document_details": { "type": "passport" }
-        }
-      ],
-      "verification_process": "..."
-    },
-    "claims": {
-      "given_name": "Alice",
-      "birthdate": "1990-01-01"
-    }
-  }
-}
-</pre><a href="#section-1.3-2" class="pilcrow">¶</a>
-</div>
-<p id="section-1.3-3">OIDC4IDA owns:<a href="#section-1.3-3" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-1.3-4.1">
-            <p id="section-1.3-4.1.1">The wire format for verified-claims payloads.<a href="#section-1.3-4.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-1.3-4.2">
-            <p id="section-1.3-4.2.1">The standardized vocabulary for evidence types, verification
-methods, and trust frameworks.<a href="#section-1.3-4.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-1.3-4.3">
-            <p id="section-1.3-4.3.1">The verification metadata schema (<code>verification</code> object).<a href="#section-1.3-4.3.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-1.3-5">OIDC4IDA does NOT define:<a href="#section-1.3-5" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-1.3-6.1">
-            <p id="section-1.3-6.1.1">A wire-format mechanism by which the trust framework's owner
-(for example, eIDAS, NIST, GLEIF, a national identity scheme)
-publishes which Assertion Issuers it has authorized to issue
-verified claims under it.<a href="#section-1.3-6.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-1.3-6.2">
-            <p id="section-1.3-6.2.1">An OAuth-side trust-evaluation framework for the Verifier to
-discover whether the Issuer claiming
-<code>"trust_framework": "eidas"</code> is in fact authorized under eIDAS.<a href="#section-1.3-6.2.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-1.3-7">OIDC4IDA's trust model is implicit: the Verifier is assumed to know,
-out of band, which Issuers it trusts under which trust frameworks.<a href="#section-1.3-7" class="pilcrow">¶</a></p>
-<p id="section-1.3-8">This document closes that gap when the trust framework identifier can
-be mapped to a DNS-named Attribute Authority. The trust framework named
-in <code>verified_claims.verification.trust_framework</code> identifies the
-Attribute Authority of this document directly when it is already a
-DNS-named domain, or indirectly through the deterministic mapping
-described in <a href="#attribute-authority-determination" class="auto internal xref">Section 5.4</a>. The JWT's <code>iss</code> is
-the Assertion Issuer; the <code>verified_claims.claims</code> payload is the body
-of attestations the Authority authorizes the Issuer to make.<a href="#section-1.3-8" class="pilcrow">¶</a></p>
-<p id="section-1.3-9">When evaluating an OIDC4IDA payload, the Resource Authorization
-Server consults the trust framework's Attribute Authority
-Authorization Policy (per the lookup procedure in <a href="#lookup" class="auto internal xref">Section 8.1</a>) to
-discover whether the JWT's Issuer is listed as authorized under
-that trust framework. A worked example appears in
-<a href="#ekyc-ida-example" class="auto internal xref">Section 10.7</a>.<a href="#section-1.3-9" class="pilcrow">¶</a></p>
-<p id="section-1.3-10">A deployment using OIDC4IDA typically uses OIDC4IDA for the
-claim-payload wire format and this document for the OAuth-side
-issuer-trust evaluation. <a href="#claim-shape" class="auto internal xref">Section 5</a> defines two recognized
-attribute-claim shapes: the flat-triple convention and the
-OIDC4IDA <code>verified_claims</code> wrapper.<a href="#section-1.3-10" class="pilcrow">¶</a></p>
+<p id="section-1.5-1">The OpenID eKYC/IDA WG specifications <span>[<a href="#IDA-VERIFIED-CLAIMS" class="cite xref">IDA-VERIFIED-CLAIMS</a>]</span> carry
+verified identity claims with provenance metadata. OIDC4IDA
+<span>[<a href="#OIDC4IDA" class="cite xref">OIDC4IDA</a>]</span> defines the <code>verified_claims</code> payload (a <code>verification</code>
+object naming a <code>trust_framework</code> plus a <code>claims</code> payload).<a href="#section-1.5-1" class="pilcrow">¶</a></p>
+<p id="section-1.5-2">OIDC4IDA owns the wire format, the evidence/verification-method
+vocabulary, and the verification metadata schema. It does NOT define
+how a trust framework's owner (eIDAS, NIST, GLEIF, a national scheme)
+publishes which Issuers it has authorized, nor an OAuth-side trust
+evaluation for the Verifier to discover whether an Issuer claiming
+<code>"trust_framework": "eidas"</code> is authorized under eIDAS. OIDC4IDA's
+trust model is implicit: the Verifier is assumed to know out of band.<a href="#section-1.5-2" class="pilcrow">¶</a></p>
+<p id="section-1.5-3">This document closes that gap when the trust framework identifier maps
+to a DNS-named Attribute Authority. The <code>verified_claims.verification.
+trust_framework</code> value identifies the Attribute Authority (directly if
+already DNS-named, or via the mapping in
+<a href="#attribute-authority-determination" class="auto internal xref">Section 5.4</a>). The JWT's <code>iss</code> is the
+Assertion Issuer; the Resource Authorization Server consults the
+authority's AAAP per <a href="#lookup" class="auto internal xref">Section 8.1</a> to evaluate whether <code>iss</code> is
+authorized. A worked example appears in <a href="#ekyc-ida-example" class="auto internal xref">Section 10.7</a>.<a href="#section-1.5-3" class="pilcrow">¶</a></p>
+<p id="section-1.5-4">A deployment using OIDC4IDA typically uses it for the claim payload
+and this document for OAuth-side issuer trust. <a href="#claim-shape" class="auto internal xref">Section 5</a> defines
+both recognized claim shapes (flat-triple and OIDC4IDA wrapper).<a href="#section-1.5-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="relationship-to-oidc-distributed-claims">
-<section id="section-1.4">
+<section id="section-1.6">
         <h3 id="name-relationship-to-oidc-distri">
-<a href="#section-1.4" class="section-number selfRef">1.4. </a><a href="#name-relationship-to-oidc-distri" class="section-name selfRef">Relationship to OIDC Distributed Claims</a>
+<a href="#section-1.6" class="section-number selfRef">1.6. </a><a href="#name-relationship-to-oidc-distri" class="section-name selfRef">Relationship to OIDC Distributed Claims</a>
         </h3>
-<p id="section-1.4-1">OpenID Connect Core (<span>[<a href="#OIDC-CORE" class="cite xref">OIDC-CORE</a>]</span> §5.6.2) defines distributed
+<p id="section-1.6-1">OpenID Connect Core (<span>[<a href="#OIDC-CORE" class="cite xref">OIDC-CORE</a>]</span> §5.6.2) defines distributed
 claims: a mechanism by which a primary Issuer references claims
 held by a separate "claims provider," with the Verifier
 retrieving the referenced claims directly from the provider. The
 claims-provider Issuer is structurally analogous to the Assertion
 Issuer of this document, and its authority to attest the claims
-maps onto the <code>attribute_attestation</code> category.<a href="#section-1.4-1" class="pilcrow">¶</a></p>
-<p id="section-1.4-2">This document does not define a wire-format mechanism for the
+maps onto the <code>attribute_attestation</code> category.<a href="#section-1.6-1" class="pilcrow">¶</a></p>
+<p id="section-1.6-2">This document does not define a wire-format mechanism for the
 distributed-claims reference itself; that is OIDC Core's domain.
 A deployment using distributed claims to deliver verified
 attribute attestations applies this document's trust evaluation
 to the claims-provider Issuer, using the trust framework named
-in the distributed claim's metadata as the Attribute Authority.<a href="#section-1.4-2" class="pilcrow">¶</a></p>
+in the distributed claim's metadata as the Attribute Authority.<a href="#section-1.6-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="scope-and-non-goals">
-<section id="section-1.5">
+<section id="section-1.7">
         <h3 id="name-scope-and-non-goals">
-<a href="#section-1.5" class="section-number selfRef">1.5. </a><a href="#name-scope-and-non-goals" class="section-name selfRef">Scope and Non-Goals</a>
+<a href="#section-1.7" class="section-number selfRef">1.7. </a><a href="#name-scope-and-non-goals" class="section-name selfRef">Scope and Non-Goals</a>
         </h3>
-<p id="section-1.5-1">This document defines:<a href="#section-1.5-1" class="pilcrow">¶</a></p>
+<p id="section-1.7-1">This document defines:<a href="#section-1.7-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.5-2.1">
-            <p id="section-1.5-2.1.1">The <code>attribute_attestation</code> Trust Method category, as a
-registered extension to <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span>.<a href="#section-1.5-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-1.7-2.1">
+            <p id="section-1.7-2.1.1">The <code>attribute_attestation</code> Trust Method category, as a
+registered extension to <span>[<a href="#TRUST-POLICY" class="cite xref">TRUST-POLICY</a>]</span>.<a href="#section-1.7-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.5-2.2">
-            <p id="section-1.5-2.2.1">The <code>attribute_authority_authorized_issuer</code> Trust Method, in that
-category.<a href="#section-1.5-2.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-1.7-2.2">
+            <p id="section-1.7-2.2.1">The <code>attribute_authority_authorized_issuer</code> Trust Method, in that
+category.<a href="#section-1.7-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.5-2.3">
-            <p id="section-1.5-2.3.1">The Attribute Authority Authorization Policy document
-(<a href="#aaap-document" class="auto internal xref">Section 7</a>).<a href="#section-1.5-2.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-1.7-2.3">
+            <p id="section-1.7-2.3.1">The Attribute Authority Authorization Policy document
+(<a href="#aaap-document" class="auto internal xref">Section 7</a>).<a href="#section-1.7-2.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.5-2.4">
-            <p id="section-1.5-2.4.1">A DNS+HTTPS publication mechanism for that policy
-(<a href="#publication" class="auto internal xref">Section 8</a>).<a href="#section-1.5-2.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-1.7-2.4">
+            <p id="section-1.7-2.4.1">A DNS+HTTPS publication mechanism for that policy
+(<a href="#publication" class="auto internal xref">Section 8</a>).<a href="#section-1.7-2.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-1.5-3">This document does not define:<a href="#section-1.5-3" class="pilcrow">¶</a></p>
+<p id="section-1.7-3">This document does not define:<a href="#section-1.7-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.5-4.1">
-            <p id="section-1.5-4.1.1">New attribute claim names. Attribute claims (such as
+<li class="normal" id="section-1.7-4.1">
+            <p id="section-1.7-4.1.1">New attribute claim names. Attribute claims (such as
 <code>degree_status</code>, <code>employment_status</code>, <code>kyc_level</code>) are defined by
-other specifications or by deployment convention.<a href="#section-1.5-4.1.1" class="pilcrow">¶</a></p>
+other specifications or by deployment convention.<a href="#section-1.7-4.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.5-4.2">
-            <p id="section-1.5-4.2.1">The semantics of any particular attribute. This document
-specifies only the issuer-authorization layer.<a href="#section-1.5-4.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-1.7-4.2">
+            <p id="section-1.7-4.2.1">The semantics of any particular attribute. This document
+specifies only the issuer-authorization layer.<a href="#section-1.7-4.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.5-4.3">
-            <p id="section-1.5-4.3.1">The OAuth grant profile carrying the attribute claims. See
-<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> and related specifications.<a href="#section-1.5-4.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-1.7-4.3">
+            <p id="section-1.7-4.3.1">The OAuth grant profile carrying the attribute claims. See
+<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> and related specifications.<a href="#section-1.7-4.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-1.5-5">This document does not address attribute authorities whose
+<p id="section-1.7-5">This document does not address attribute authorities whose
 identity cannot be expressed as a DNS-named domain (for example, a
 purely registry-based credentialing body with no DNS presence).
 Such deployments require an additional Trust Method whose
-publication channel matches the authority form.<a href="#section-1.5-5" class="pilcrow">¶</a></p>
+publication channel matches the authority form.<a href="#section-1.7-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="conventions">
-<section id="section-1.6">
+<section id="section-1.8">
         <h3 id="name-conventions">
-<a href="#section-1.6" class="section-number selfRef">1.6. </a><a href="#name-conventions" class="section-name selfRef">Conventions</a>
+<a href="#section-1.8" class="section-number selfRef">1.8. </a><a href="#name-conventions" class="section-name selfRef">Conventions</a>
         </h3>
-<p id="section-1.6-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+<p id="section-1.8-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
 "<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
 described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
-appear in all capitals, as shown here.<a href="#section-1.6-1" class="pilcrow">¶</a></p>
+appear in all capitals, as shown here.<a href="#section-1.8-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>

@@ -19,7 +19,7 @@ when an OAuth client presents a Client Instance Assertion per
   binding a running workload to the client's identity, is the
 workload's Instance Issuer authorized by the OAuth client to attest
 that binding? 
-       This document extends the trust framework to address this question.
+       This document extends the Trust Policy framework to address this question.
 It registers a third Trust Method category,
  client_instance_authorization , and a Trust Method,
  client_authorized_instance_issuer , that defers all wire-format
@@ -1114,7 +1114,7 @@ when an OAuth client presents a Client Instance Assertion per
 <span>[<a href="#CIA" class="cite xref">CIA</a>]</span> binding a running workload to the client's identity, is the
 workload's Instance Issuer authorized by the OAuth client to attest
 that binding?<a href="#section-abstract-2" class="pilcrow">¶</a></p>
-<p id="section-abstract-3">This document extends the trust framework to address this question.
+<p id="section-abstract-3">This document extends the Trust Policy framework to address this question.
 It registers a third Trust Method category,
 <code>client_instance_authorization</code>, and a Trust Method,
 <code>client_authorized_instance_issuer</code>, that defers all wire-format
@@ -1332,7 +1332,7 @@ Assertions. Today an authorization server either implements <span>[<a href="#CIA
 or it does not; clients have no machine-readable way to discover
 which authorization servers expect the assertion or to know that the
 RAS will evaluate it against <span>[<a href="#CIA" class="cite xref">CIA</a>]</span>'s rules.<a href="#section-1-4" class="pilcrow">¶</a></p>
-<p id="section-1-5">This document fills that gap. It extends the trust framework's
+<p id="section-1-5">This document fills that gap. It extends the Trust Policy framework's
 category registry with <code>client_instance_authorization</code> and
 registers <code>client_authorized_instance_issuer</code> as a Trust Method in
 that category. The Trust Method defers all wire-format validation to
@@ -1982,7 +1982,7 @@ as authorized for any OAuth client.<a href="#section-9.1-3.2.1" class="pilcrow">
 Instance Issuers, or vice versa.<a href="#section-9.1-3.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-9.1-4">The trust framework's cross-category combination rule prevents each
+<p id="section-9.1-4">The Trust Policy framework's cross-category combination rule prevents each
 of these by requiring evidence from every applicable category
 independently.<a href="#section-9.1-4" class="pilcrow">¶</a></p>
 </section>

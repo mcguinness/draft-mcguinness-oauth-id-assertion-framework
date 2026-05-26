@@ -28,8 +28,8 @@ Abstract
    workload's Instance Issuer authorized by the OAuth client to attest
    that binding?
 
-   This document extends the trust framework to address this question.
-   It registers a third Trust Method category,
+   This document extends the Trust Policy framework to address this
+   question.  It registers a third Trust Method category,
    client_instance_authorization, and a Trust Method,
    client_authorized_instance_issuer, that defers all wire-format
    validation to [CIA].  A Resource Authorization Server lists this
@@ -148,11 +148,11 @@ Table of Contents
    authorization servers expect the assertion or to know that the RAS
    will evaluate it against [CIA]'s rules.
 
-   This document fills that gap.  It extends the trust framework's
-   category registry with client_instance_authorization and registers
-   client_authorized_instance_issuer as a Trust Method in that category.
-   The Trust Method defers all wire-format validation to [CIA]; this
-   document contributes only the trust-policy framing.
+   This document fills that gap.  It extends the Trust Policy
+   framework's category registry with client_instance_authorization and
+   registers client_authorized_instance_issuer as a Trust Method in that
+   category.  The Trust Method defers all wire-format validation to
+   [CIA]; this document contributes only the trust-policy framing.
 
    A Resource Authorization Server that accepts Client Instance
    Assertions lists client_authorized_instance_issuer in its Trust
@@ -656,8 +656,8 @@ Table of Contents
    *  An OAuth client to confer Assertion Issuer authority on its
       Instance Issuers, or vice versa.
 
-   The trust framework's cross-category combination rule prevents each
-   of these by requiring evidence from every applicable category
+   The Trust Policy framework's cross-category combination rule prevents
+   each of these by requiring evidence from every applicable category
    independently.
 
 9.2.  Trust Source Differences

@@ -74,6 +74,10 @@ informative:
     title: "Attribute Authority Trust Method for OAuth Identity Assertion Issuer Trust Policy"
     target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-attribute-authority-trust/
     date: false
+  TID:
+    title: "OAuth Trusted Issuer Discovery"
+    target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-trusted-issuer-discovery/
+    date: false
   TRUST-POLICY-SCENARIOS:
     title: "Deployment Scenarios for the OAuth Identity Assertion Trust Policy Family"
     target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-trust-policy-scenarios/
@@ -222,6 +226,11 @@ identity-assertion trust evaluation. The family has two layers:
 Each leaf profile registers one or more Trust Methods in Trust
 Policy's registry and registers against this document's Authority
 Delegation Profile registry ({{iana-profile-registry}}).
+
+{{TID}} is a discovery companion: it lets a Resource Owner
+publish its Trust Policy at a DNS-named authority, closing the
+bilateral first-contact gap in open-world deployments. TID is the
+resource-side dual of {{DAI}}.
 
 {{TRUST-POLICY-SCENARIOS}} is a non-normative companion document
 presenting five end-to-end deployment scenarios spanning the

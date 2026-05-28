@@ -1,0 +1,3349 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>OAuth Domain-Authorized Issuer Discovery</title>
+<meta content="Karl McGuinness" name="author">
+<meta content="
+       This document defines Domain-Authorized Issuer Discovery (DAI), a
+mechanism by which the owner of a subject namespace (typically a
+DNS domain) publishes a policy listing the OAuth authorization
+servers it authorizes to assert identities in that namespace. The
+mechanism uses the DNS-based authority-publication pattern operators
+already deploy for CAA, MTA-STS, SPF, and DKIM. A Resource
+Authorization Server uses the published policy to verify that an
+identity assertion's issuer is authorized for the asserted subject
+namespace. 
+       The &quot;discovery&quot; defined by this document is verifier-side discovery
+of the Subject Authority's issuer authorization policy. Client-side
+discovery of which Assertion Issuer to use before an assertion exists
+is a separate use case and is deferred to future work. 
+       DAI is a profile of the OAuth Identity Assertion Issuer Trust Policy
+( ): it defines the Issuer Authorization Policy
+wire format and the canonical  domain_authorized_issuer 
+         subject_namespace_authorization  Trust Method that consumes it.
+The parent trust policy specification owns the generic Trust Policy
+document, Trust Method category structure, cross-category
+combination rule, and Subject Authority Determination concept. 
+    " name="description">
+<meta content="xml2rfc 3.33.0" name="generator">
+<meta content="OAuth" name="keyword">
+<meta content="JWT authorization grants" name="keyword">
+<meta content="identity assertion" name="keyword">
+<meta content="issuer discovery" name="keyword">
+<meta content="DNS authority" name="keyword">
+<meta content="draft-mcguinness-oauth-domain-authorized-issuer-discovery-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.33.0
+    Python 3.12.13
+    ConfigArgParse 1.7
+    google-i18n-address 3.1.1
+    intervaltree 3.2.1
+    Jinja2 3.1.6
+    lxml 6.0.2
+    platformdirs 4.9.6
+    pycountry 24.6.1
+    PyYAML 6.0.3
+    requests 2.33.1
+    wcwidth 0.7.0
+-->
+<link href="draft-mcguinness-oauth-domain-authorized-issuer-discovery.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+}
+
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 680;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1 {
+  &#title {
+    font-size: 32px;
+    line-height: 40px;
+    clear: both;
+    margin: 1.5em 0 0.2em;
+  }
+  &#rfcnum {
+    margin: 1.5em 0 0.2em;
+    & + h1#title {
+      margin: 0.2em 0;
+    }
+  }
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+  & code, & samp, & tt {
+    font-size: 16px;
+    line-height: 0;
+  }
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    margin: 0;
+    float: right;
+    clear: both;
+  }
+  & > *:nth-child(2) {
+    clear: both;
+    display: block;
+    border: none;
+  }
+}
+svg {
+  display: block;
+  /* font-family isn't space-separated, but =~ will have to do */
+  &[font-family~="monospace" i], & [font-family~="monospace" i] {
+    font-family: var(--font-mono);
+  }
+}
+.alignCenter {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+       support flexbox yet.
+    */
+    display: table;
+    margin: 0 auto;
+  }
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+  & li {
+    margin-top: 0.5em;
+  }
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+      float: none;
+    }
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+
+  &:not(.dlNewline) > dt {
+    float: left;
+    margin-right: 2ch;
+    min-width: 8ch;
+  }
+  & > dd {
+    margin-bottom: .8em;
+    margin-left: var(--indent) !important; /* stupid element overrides */
+    min-height: 2ex;
+  }
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a {
+  text-decoration: none;
+  &[href] {
+    color: var(--link-color);
+    &:hover { text-decoration: underline; }
+    &.selfRef {
+      color: var(--text-color);
+      &:hover {
+        text-decoration: none;
+        background-color: var(--highlight-color);
+      }
+    }
+  }
+}
+.iref + a[href].internal {
+  color: var(--text-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+  & blockquote {
+    margin: 0.8em 0.4em 0.4em;
+  }
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+  caption-side: bottom;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) {
+    & p {
+      margin: -2px 0;
+      max-height: 0;
+      transition: max-height 2s ease, margin 0.5s ease 0.5s;
+      overflow: hidden;
+    }
+    &:hover p,
+    & h2:target ~ p {
+      margin: 0.5em 0;
+      max-height: 500px;
+      overflow: auto;
+    }
+  }
+  pre, svg {
+    display: inline-block;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+  border-left: 2px var(--pilcrow-strong) solid;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+  &.right { margin-left: auto; }
+  &.center { margin-left: auto; margin-right: auto; }
+  &.left { margin-right: auto; }
+  & .text-left { text-align: left; }
+  & .text-center { text-align: center; }
+  & .text-right { text-align: right; }
+  & caption {
+    margin: 0;
+    padding: 3px 0 3px 1em;
+  }
+  & p { margin: 0; }
+}
+
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
+  @media not print {
+    :hover > &, &:focus {
+      opacity: 1;
+    }
+    &[href]:hover {
+      color: var(--pilcrow-strong);
+      background-color: transparent;
+    }
+  }
+  @media print {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+  & .prepared {
+    float: right;
+  }
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
+}
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
+}
+
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses {
+    & > section {
+      column-count: 2;
+      column-gap: 20px;
+    }
+    & > section > h2 {
+      column-span: all;
+    }
+    /* hack for break-inside: avoid-column */
+    & address {
+      display: inline-block;
+      break-inside: avoid-column;
+    }
+  }
+}
+
+/* Comments */
+.rfcEditorRemove {
+  & p:first-of-type {
+    font-style: italic;
+  }
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+
+@media screen {
+  #toc {
+    & nav {
+      font-family: var(--font-title);
+      font-weight: 360;
+      & > ul { margin-bottom: 2em; }
+      & ul {
+        margin: 0 0 0 4px;
+        & :is(p, li) {
+          margin: 2px 0;
+        }
+      }
+    }
+    & a.toplink {
+      float: right;
+    }
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 1px 0 0 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+    & h2 {
+      margin: 0;
+      padding: 2px 0 2px 6px;
+      padding-right: 1em;
+      font-size: 18px;
+      line-height: 24px;
+      min-width: 190px;
+      text-align: right;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      &::before { /* css hamburger */
+        float: right;
+        position: relative;
+        width: 1em;
+        height: 1px;
+        left: -164px;
+        margin: 8px 0 0 0;
+        background: white none repeat scroll 0 0;
+        box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+        content: "";
+      }
+    }
+    & nav {
+      display: none;
+      background-color: var(--background-color);
+      padding: 0.5em 1em 1em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      height: calc(100vh - 48px);
+      border-left: 1px solid #ddd;
+    }
+    &.active {
+      opacity: 1;
+      & nav { display: block; }
+    }
+    /* Make the collapsed ToC header render white on gray also when it's a link */
+    & h2 a,
+    & h2 a:is(:link, :focus, :hover),
+    & a.toplink,
+    & a.toplink:hover {
+      color: white;
+      background-color: #444;
+      text-decoration: none;
+    }
+    & a.toplink {
+      margin: 2px 0.5em 0;
+    }
+  }
+}
+
+/* TOC layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+    & h2 {
+      margin: 0;
+      padding: 0.25em 1em 1em 0;
+    }
+    & nav {
+      display: block;
+      height: calc(90vh - 84px);
+      bottom: 0;
+      padding: 0.5em 0 2em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    & a.toplink {
+      margin: 8px 0.5em 0;
+    }
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc {
+    page-break-before: always;
+    border-top: none;
+    padding-top: 0;
+  }
+  #n-introduction {
+    page-break-before: always;
+  }
+  figure, pre, .vcard {
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  :is(h2, h3, h4, h5, h6)+*, dd {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg {
+  & :is([stroke="black"], [stroke^="#000"]) {
+    stroke: var(--text-color);
+  }
+  & :is([stroke="white"], [stroke^="#fff"]) {
+    stroke: var(--background-color);
+  }
+  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+    fill: var(--text-color);
+  }
+  & :is([fill="white"], [fill^="#fff"]) {
+    fill: var(--background-color);
+  }
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">Domain-Authorized Issuer Discovery</td>
+<td class="right">May 2026</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">McGuinness</td>
+<td class="center">Expires 29 November 2026</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Web Authorization Protocol</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-mcguinness-oauth-domain-authorized-issuer-discovery-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2026-05-28" class="published">28 May 2026</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Standards Track</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2026-11-29">29 November 2026</time></dd>
+<dt class="label-authors">Author:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">K. McGuinness</div>
+<div class="org">Independent</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">OAuth Domain-Authorized Issuer Discovery</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">This document defines Domain-Authorized Issuer Discovery (DAI), a
+mechanism by which the owner of a subject namespace (typically a
+DNS domain) publishes a policy listing the OAuth authorization
+servers it authorizes to assert identities in that namespace. The
+mechanism uses the DNS-based authority-publication pattern operators
+already deploy for CAA, MTA-STS, SPF, and DKIM. A Resource
+Authorization Server uses the published policy to verify that an
+identity assertion's issuer is authorized for the asserted subject
+namespace.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">The "discovery" defined by this document is verifier-side discovery
+of the Subject Authority's issuer authorization policy. Client-side
+discovery of which Assertion Issuer to use before an assertion exists
+is a separate use case and is deferred to future work.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+<p id="section-abstract-3">DAI is a profile of the OAuth Identity Assertion Issuer Trust Policy
+(<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>): it defines the Issuer Authorization Policy
+wire format and the canonical <code>domain_authorized_issuer</code>
+        <code>subject_namespace_authorization</code> Trust Method that consumes it.
+The parent trust policy specification owns the generic Trust Policy
+document, Trust Method category structure, cross-category
+combination rule, and Subject Authority Determination concept.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-discussion-venues">
+<a href="#name-discussion-venues" class="section-name selfRef">Discussion Venues</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">Discussion of this document takes place on the
+    Web Authorization Protocol Working Group mailing list (oauth@ietf.org),
+    which is archived at <span><a href="https://mailarchive.ietf.org/arch/browse/oauth/">https://mailarchive.ietf.org/arch/browse/oauth/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">Source for this draft and an issue tracker can be found at
+    <span><a href="https://github.com/mcguinness/draft-mcguinness-oauth-identity-assertion-trust-policy">https://github.com/mcguinness/draft-mcguinness-oauth-identity-assertion-trust-policy</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 29 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2026 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1">
+                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-relationships" class="internal xref">Relationships</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.2">
+                <p id="section-toc.1-1.1.2.2.1" class="keepWithNext"><a href="#section-1.2" class="auto internal xref">1.2</a>.  <a href="#name-conventions" class="internal xref">Conventions</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-terminology" class="internal xref">Terminology</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-issuer-authorization-policy" class="internal xref">Issuer Authorization Policy Document</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-publication" class="internal xref">Publication</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-publication-channels" class="internal xref">Publication Channels</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-default-https-well-known-ur" class="internal xref">Default HTTPS Well-Known URL</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-dns-record" class="internal xref">DNS Record</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-https-document-url" class="internal xref">HTTPS Document URL</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5">
+                <p id="section-toc.1-1.4.2.5.1"><a href="#section-4.5" class="auto internal xref">4.5</a>.  <a href="#name-https-policy-document-contr" class="internal xref">HTTPS Policy Document Contract</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-lookup-procedure" class="internal xref">Lookup Procedure</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-failure-handling" class="internal xref">Failure Handling</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-verification" class="internal xref">Verification</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-caching" class="internal xref">Caching</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-trust-methods" class="internal xref">Trust Methods</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-domain_authorized_issuer" class="internal xref">domain_authorized_issuer</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-https-only-deployment-varia" class="internal xref">HTTPS-Only Deployment Variant</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.3">
+                <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="auto internal xref">8.3</a>.  <a href="#name-choosing-the-lookup-mode" class="internal xref">Choosing the Lookup Mode</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1">
+                <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-namespace-authority-bootstr" class="internal xref">Namespace Authority Bootstrap</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2">
+                <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="auto internal xref">9.2</a>.  <a href="#name-transport-integrity" class="internal xref">Transport Integrity</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3">
+                <p id="section-toc.1-1.9.2.3.1"><a href="#section-9.3" class="auto internal xref">9.3</a>.  <a href="#name-https-only-authority-trust-" class="internal xref">HTTPS-Only Authority Trust Model</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.4">
+                <p id="section-toc.1-1.9.2.4.1"><a href="#section-9.4" class="auto internal xref">9.4</a>.  <a href="#name-dns-integrity-and-compromis" class="internal xref">DNS Integrity and Compromise</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.5">
+                <p id="section-toc.1-1.9.2.5.1"><a href="#section-9.5" class="auto internal xref">9.5</a>.  <a href="#name-policy-hosts" class="internal xref">Policy Hosts</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.6">
+                <p id="section-toc.1-1.9.2.6.1"><a href="#section-9.6" class="auto internal xref">9.6</a>.  <a href="#name-policy-conflicts-and-determ" class="internal xref">Policy Conflicts and Determinism</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.7">
+                <p id="section-toc.1-1.9.2.7.1"><a href="#section-9.7" class="auto internal xref">9.7</a>.  <a href="#name-mechanism-limits" class="internal xref">Mechanism Limits</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.8">
+                <p id="section-toc.1-1.9.2.8.1"><a href="#section-9.8" class="auto internal xref">9.8</a>.  <a href="#name-email-local-part-is-not-aut" class="internal xref">Email Local-Part Is Not Authenticated</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.9">
+                <p id="section-toc.1-1.9.2.9.1"><a href="#section-9.9" class="auto internal xref">9.9</a>.  <a href="#name-single-issuer-multi-tenant-" class="internal xref">Single-Issuer Multi-Tenant Identity Providers</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.10">
+                <p id="section-toc.1-1.9.2.10.1"><a href="#section-9.10" class="auto internal xref">9.10</a>. <a href="#name-enumeration-and-query-priva" class="internal xref">Enumeration and Query Privacy</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.1">
+                <p id="section-toc.1-1.10.2.1.1"><a href="#section-10.1" class="auto internal xref">10.1</a>.  <a href="#name-well-known-uri-for-issuer-a" class="internal xref">Well-Known URI for Issuer Authorization Policy</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2">
+                <p id="section-toc.1-1.10.2.2.1"><a href="#section-10.2" class="auto internal xref">10.2</a>.  <a href="#name-underscored-dns-node-name" class="internal xref">Underscored DNS Node Name</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.3">
+                <p id="section-toc.1-1.10.2.3.1"><a href="#section-10.3" class="auto internal xref">10.3</a>.  <a href="#name-trust-method-registrations" class="internal xref">Trust Method Registrations</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.1">
+                <p id="section-toc.1-1.11.2.1.1"><a href="#section-11.1" class="auto internal xref">11.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.2">
+                <p id="section-toc.1-1.11.2.2.1"><a href="#section-11.2" class="auto internal xref">11.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-design-rationale" class="internal xref">Design Rationale</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.1">
+                <p id="section-toc.1-1.12.2.1.1"><a href="#appendix-A.1" class="auto internal xref">A.1</a>.  <a href="#name-following-existing-dns-auth" class="internal xref">Following Existing DNS Authority Patterns</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.2">
+                <p id="section-toc.1-1.12.2.2.1"><a href="#appendix-A.2" class="auto internal xref">A.2</a>.  <a href="#name-why-first-class-tenant-bind" class="internal xref">Why First-Class Tenant Binding</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.3">
+                <p id="section-toc.1-1.12.2.3.1"><a href="#appendix-A.3" class="auto internal xref">A.3</a>.  <a href="#name-choosing-between-dns-publis" class="internal xref">Choosing Between DNS-Published and HTTPS-Only Authority</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.4">
+                <p id="section-toc.1-1.12.2.4.1"><a href="#appendix-A.4" class="auto internal xref">A.4</a>.  <a href="#name-why-https-fallback" class="internal xref">Why HTTPS Fallback</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
+            <p id="section-toc.1-1.13.1"><a href="#appendix-B" class="auto internal xref">Appendix B</a>.  <a href="#name-future-extensions" class="internal xref">Future Extensions</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.1">
+                <p id="section-toc.1-1.13.2.1.1"><a href="#appendix-B.1" class="auto internal xref">B.1</a>.  <a href="#name-email-verification-protocol" class="internal xref">Email Verification Protocol Bridge</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.2">
+                <p id="section-toc.1-1.13.2.2.1"><a href="#appendix-B.2" class="auto internal xref">B.2</a>.  <a href="#name-assertion-issuer-discovery-" class="internal xref">Assertion Issuer Discovery (Client-Side)</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14">
+            <p id="section-toc.1-1.14.1"><a href="#appendix-C" class="auto internal xref">Appendix C</a>.  <a href="#name-dns-based-domain-authorized" class="internal xref">DNS-Based Domain-Authorized Issuer End-to-End Example</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.1">
+                <p id="section-toc.1-1.14.2.1.1"><a href="#appendix-C.1" class="auto internal xref">C.1</a>.  <a href="#name-cast" class="internal xref">Cast</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.2">
+                <p id="section-toc.1-1.14.2.2.1"><a href="#appendix-C.2" class="auto internal xref">C.2</a>.  <a href="#name-publication-2" class="internal xref">Publication</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.3">
+                <p id="section-toc.1-1.14.2.3.1"><a href="#appendix-C.3" class="auto internal xref">C.3</a>.  <a href="#name-issuance-and-token-request" class="internal xref">Issuance and Token Request</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.4">
+                <p id="section-toc.1-1.14.2.4.1"><a href="#appendix-C.4" class="auto internal xref">C.4</a>.  <a href="#name-verification-resource-autho" class="internal xref">Verification (Resource Authorization Server Side)</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.5">
+                <p id="section-toc.1-1.14.2.5.1"><a href="#appendix-C.5" class="auto internal xref">C.5</a>.  <a href="#name-migration-variant-pointer-f" class="internal xref">Migration Variant: Pointer Form</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.6">
+                <p id="section-toc.1-1.14.2.6.1"><a href="#appendix-C.6" class="auto internal xref">C.6</a>.  <a href="#name-shared-issuer-variant-multi" class="internal xref">Shared Issuer Variant: Multi-Tenant Identity Provider</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.7">
+                <p id="section-toc.1-1.14.2.7.1"><a href="#appendix-C.7" class="auto internal xref">C.7</a>.  <a href="#name-failure-variants" class="internal xref">Failure Variants</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15">
+            <p id="section-toc.1-1.15.1"><a href="#appendix-D" class="auto internal xref">Appendix D</a>.  <a href="#name-document-history" class="internal xref">Document History</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16">
+            <p id="section-toc.1-1.16.1"><a href="#appendix-E" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">OAuth deployments using identity-assertion grants (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>)
+need to answer "is this Assertion Issuer authorized to assert about
+subjects in this namespace?". An issuer authenticated by federation
+membership is not, by that membership alone, entitled to assert
+about subjects in any particular namespace; the namespace owner is
+the only authoritative source of that delegation.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">Domain-Authorized Issuer Discovery (DAI) lets the owner of a
+DNS-namable subject namespace publish, in DNS, the set of Assertion
+Issuers it authorizes for its namespace. The DNS record can carry
+the authorized issuers inline (for simple deployments) or point at
+an HTTPS-hosted JSON document containing richer policy (validity
+windows, format restrictions, tenant binding, multiple ordered
+issuers). Authority is established by control of the publication
+channel: whoever can publish at <code>_oauth-issuer-policy.{domain}</code> IS
+the Subject Authority for <code>{domain}</code>. The pattern follows CAA
+<span>[<a href="#RFC8659" class="cite xref">RFC8659</a>]</span>, MTA-STS <span>[<a href="#RFC8461" class="cite xref">RFC8461</a>]</span>, SPF, and DKIM
+(<a href="#dns-authority-patterns" class="auto internal xref">Appendix A.1</a>).<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">DAI is consumed by Resource Authorization Servers at assertion
+verification time: given an identity assertion, the RAS uses the
+Subject Authority's published policy to decide whether the
+asserting issuer is authorized for the subject's namespace.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">DAI is non-transitive by design. The Issuer Authorization Policy is
+a flat list of Assertion Issuer identifiers; a Subject Authority
+that wants to authorize an Assertion Issuer publishes its identifier
+directly. The depth-1 bound and its security implications are
+covered in <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Open-World Delegation and Bounded
+Transitivity and §Transitive Authorization is Bounded.<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-5">DAI is also independent of OpenID Federation: a Subject Authority
+can publish DAI records and a Resource Authorization Server can
+evaluate them without any federation infrastructure.<a href="#section-1-5" class="pilcrow">¶</a></p>
+<div id="relationships">
+<section id="section-1.1">
+        <h3 id="name-relationships">
+<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-relationships" class="section-name selfRef">Relationships</a>
+        </h3>
+<p id="section-1.1-1">DAI is a concrete profile of <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> for OAuth
+identity assertions: the Subject Authority is the Authority
+Holder; the Issuer Authorization Policy is the Delegation
+Artifact; the DNS record (or DNS pointer plus HTTPS document) is
+one publication channel; the Assertion Issuer is the Delegate.
+Lookup state classification and fail-closed requirements follow
+<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Lookup States and Fail-Closed.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+<p id="section-1.1-2">DAI is consumed by <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>, which owns the Trust Policy
+document format, Trust Method machinery, Subject Authority
+Determination, and OAuth grant-profile bindings. This document
+defines the Issuer Authorization Policy document
+(<a href="#dii-document" class="auto internal xref">Section 3</a>), the DNS and HTTPS publication channels
+(<a href="#publication-profiles" class="auto internal xref">Section 4.1</a>), the lookup procedure (<a href="#dii-lookup" class="auto internal xref">Section 5</a>),
+the verification rules (<a href="#dii-verification" class="auto internal xref">Section 6</a>), the
+<code>domain_authorized_issuer</code> Trust Method, and an HTTPS-only
+deployment variant (<a href="#trust-method-https-authorized-issuer" class="auto internal xref">Section 8.2</a>).
+A bridge to the Email Verification Protocol's DNS records and a
+client-side discovery use case are sketched as future extensions
+in <a href="#future-extensions" class="auto internal xref">Appendix B</a>.<a href="#section-1.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="conventions">
+<section id="section-1.2">
+        <h3 id="name-conventions">
+<a href="#section-1.2" class="section-number selfRef">1.2. </a><a href="#name-conventions" class="section-name selfRef">Conventions</a>
+        </h3>
+<p id="section-1.2-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-1.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="terminology">
+<section id="section-2">
+      <h2 id="name-terminology">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-terminology" class="section-name selfRef">Terminology</a>
+      </h2>
+<p id="section-2-1">This document uses terminology from <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> (Resource
+Authorization Server, Assertion Issuer, Subject Authority, Trust
+Policy, Issuer Authorization Policy) and from <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>
+(Authority Holder, Delegate, Delegation Artifact, Validator).
+Subject Identifier formats follow <span>[<a href="#RFC9493" class="cite xref">RFC9493</a>]</span>.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">One term is specific to this document:<a href="#section-2-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2-3">
+        <dt id="section-2-3.1">Domain-Authorized Issuer Discovery (DAI):</dt>
+        <dd style="margin-left: 1.5em" id="section-2-3.2">
+          <p id="section-2-3.2.1">The mechanism defined by this document for a Subject Authority
+to publish, via DNS, the set of Assertion Issuers it authorizes
+for its namespace.<a href="#section-2-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="dii-document">
+<section id="section-3">
+      <h2 id="name-issuer-authorization-policy">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-issuer-authorization-policy" class="section-name selfRef">Issuer Authorization Policy Document</a>
+      </h2>
+<p id="section-3-1">The Issuer Authorization Policy is a delegation artifact: a Subject
+Authority (Authority Holder for a subject namespace) uses it to
+delegate the right to assert identities in its namespace to one or
+more named Assertion Issuers. Each <code>authorized_issuers</code> entry is a
+delegation; <code>valid_from</code> and <code>valid_until</code> bound the delegation in
+time; <code>tenant</code> constrains the delegation to a specific tenant of a
+shared issuer; <code>subject_identifier_formats</code> constrains the
+delegation to specific Subject Identifier formats. The verification
+procedure (<a href="#dii-verification" class="auto internal xref">Section 6</a>) validates whether a given identity
+assertion is covered by a current delegation; absent a matching
+delegation, the Assertion Issuer is not authorized for the asserted
+namespace regardless of any other property of the assertion.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-2">The Issuer Authorization Policy is a JSON object served over HTTPS
+with media type <code>application/json</code>. It has the following members:<a href="#section-3-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3-3">
+        <dt id="section-3-3.1"><code>subject_authority</code></dt>
+        <dd style="margin-left: 1.5em" id="section-3-3.2">
+          <p id="section-3-3.2.1"><span class="bcp14">REQUIRED</span>. String. The Subject Authority identifier this policy
+applies to. Consumers <span class="bcp14">MUST</span> verify this value matches the Subject
+Authority computed in <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Subject Authority Determination after applying the
+comparison rules for that Subject Authority form.<a href="#section-3-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-3.3"><code>authorized_issuers</code></dt>
+        <dd style="margin-left: 1.5em" id="section-3-3.4">
+          <p id="section-3-3.4.1"><span class="bcp14">REQUIRED</span>. Non-empty JSON array of authorized issuer objects. Each
+object has:<a href="#section-3-3.4.1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3-3.4.2">
+            <dt id="section-3-3.4.2.1"><code>issuer</code></dt>
+            <dd style="margin-left: 1.5em" id="section-3-3.4.2.2">
+              <p id="section-3-3.4.2.2.1"><span class="bcp14">REQUIRED</span>. String. The Assertion Issuer identifier. For OAuth
+authorization server issuer identifiers, this value <span class="bcp14">MUST</span> be an
+absolute HTTPS URL with no fragment component. The URL <span class="bcp14">MAY</span> contain a
+path component; if the path is empty it is equivalent only to an
+issuer identifier that uses the same string form according to the
+applicable profile's issuer comparison rules. Query components are
+<span class="bcp14">NOT RECOMMENDED</span> because many issuer metadata profiles do not use
+them. The value is compared to the JWT <code>iss</code> claim using the issuer
+identifier comparison rules of the applicable assertion grant
+profile. For JWT authorization grants that use OAuth authorization
+server issuer identifiers, this is case-sensitive string comparison,
+consistent with <span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span>.<a href="#section-3-3.4.2.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-3-3.4.2.3"><code>tenant</code></dt>
+            <dd style="margin-left: 1.5em" id="section-3-3.4.2.4">
+              <p id="section-3-3.4.2.4.1"><span class="bcp14">OPTIONAL</span>. String. The issuer-side tenant identifier authorized for
+this Subject Authority, corresponding to the top-level <code>tenant</code>
+claim defined in <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §6.1. When present, the assertion's
+top-level <code>tenant</code> claim <span class="bcp14">MUST</span> be present and <span class="bcp14">MUST</span> exactly match this
+value using case-sensitive string comparison; an assertion that lacks
+the <code>tenant</code> claim or carries a different value does NOT match this
+entry. When absent, no tenant constraint applies and the Assertion
+Issuer is authorized for this Subject Authority regardless of its
+<code>tenant</code> claim. Tenant values are issuer-specific: the string has
+meaning only for the Assertion Issuer named by the same entry and
+<span class="bcp14">MUST NOT</span> be compared across issuers. Subject Authorities authorizing
+a shared-issuer multi-tenant Identity Provider (an Assertion Issuer
+whose <code>iss</code> is shared across many tenants) <span class="bcp14">SHOULD</span> set <code>tenant</code> to the
+specific tenant they intend to authorize; see <a href="#dii-multi-tenant" class="auto internal xref">Section 9.9</a>
+for the rationale and trust assumptions. To authorize multiple
+tenants of the same shared issuer, publish one <code>authorized_issuers</code>
+entry per (issuer, tenant) pair.<a href="#section-3-3.4.2.4.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-3-3.4.2.5"><code>subject_identifier_formats</code></dt>
+            <dd style="margin-left: 1.5em" id="section-3-3.4.2.6">
+              <p id="section-3-3.4.2.6.1"><span class="bcp14">OPTIONAL</span>. JSON array of Subject Identifier format names
+(<span>[<a href="#RFC9493" class="cite xref">RFC9493</a>]</span>) this Assertion Issuer is authorized for. If omitted,
+the Assertion Issuer is authorized for any format that resolves to
+this Subject Authority.<a href="#section-3-3.4.2.6.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-3-3.4.2.7"><code>valid_from</code></dt>
+            <dd style="margin-left: 1.5em" id="section-3-3.4.2.8">
+              <p id="section-3-3.4.2.8.1"><span class="bcp14">OPTIONAL</span>. RFC 3339 date-time. The delegation <span class="bcp14">MUST NOT</span> be treated
+as valid before this time. A small clock-skew tolerance (≤5
+minutes) is consistent with JWT <code>nbf</code> conventions (<span>[<a href="#RFC7519" class="cite xref">RFC7519</a>]</span>
+Section 4.1.5).<a href="#section-3-3.4.2.8.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-3-3.4.2.9"><code>valid_until</code></dt>
+            <dd style="margin-left: 1.5em" id="section-3-3.4.2.10">
+              <p id="section-3-3.4.2.10.1"><span class="bcp14">OPTIONAL</span>. RFC 3339 date-time. The delegation <span class="bcp14">MUST NOT</span> be treated
+as valid at or after this time.<a href="#section-3-3.4.2.10.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-3.5"><code>last_updated</code></dt>
+        <dd style="margin-left: 1.5em" id="section-3-3.6">
+          <p id="section-3-3.6.1"><span class="bcp14">OPTIONAL</span>. RFC 3339 date-time at which the policy was last published.<a href="#section-3-3.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-3.7"><code>signed_policy</code></dt>
+        <dd style="margin-left: 1.5em" id="section-3-3.8">
+          <p id="section-3-3.8.1"><span class="bcp14">OPTIONAL</span>. Signed JWT containing policy members as claims, using the
+representation defined in <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Signed Policy Metadata. This member
+follows the signed metadata pattern used by <span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span> and
+<span>[<a href="#RFC9728" class="cite xref">RFC9728</a>]</span>.
+Its presence does not by itself require all consumers to support
+signed policy processing; consumers apply the requirements in
+<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Signed Policy Metadata and any local policy
+that requires object-level integrity.<a href="#section-3-3.8.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<p id="section-3-4">Consumers <span class="bcp14">MUST</span> ignore unrecognized members. Validation rules; a
+policy failing any is malformed:<a href="#section-3-4" class="pilcrow">¶</a></p>
+<table class="center" id="table-1">
+        <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
+<thead>
+          <tr>
+            <th class="text-left" rowspan="1" colspan="1">Member</th>
+            <th class="text-left" rowspan="1" colspan="1">Required type / structure</th>
+            <th class="text-left" rowspan="1" colspan="1">Additional rule</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>subject_authority</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">string, required</td>
+            <td class="text-left" rowspan="1" colspan="1">matches the computed Subject Authority</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>authorized_issuers</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">non-empty array of objects, required</td>
+            <td class="text-left" rowspan="1" colspan="1">each element has <code>issuer</code>
+</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>issuer</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">string, required</td>
+            <td class="text-left" rowspan="1" colspan="1">syntactically valid issuer identifier for the applicable grant profile</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>tenant</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">string, optional</td>
+            <td class="text-left" rowspan="1" colspan="1">non-empty</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>subject_identifier_formats</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">array of strings, optional</td>
+            <td class="text-left" rowspan="1" colspan="1"> </td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>valid_from</code>, <code>valid_until</code>, <code>last_updated</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">RFC 3339 date-time, optional</td>
+            <td class="text-left" rowspan="1" colspan="1"> </td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>signed_policy</code>
+</td>
+            <td class="text-left" rowspan="1" colspan="1">string, optional</td>
+            <td class="text-left" rowspan="1" colspan="1">signed JWT as defined in <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Signed Policy Metadata</td>
+          </tr>
+        </tbody>
+      </table>
+<p id="section-3-6">For OAuth authorization server issuer identifiers, a non-HTTPS URL,
+a relative URL, or a URL with a fragment component is a malformed
+<code>issuer</code> value.<a href="#section-3-6" class="pilcrow">¶</a></p>
+<p id="section-3-7">Example:<a href="#section-3-7" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-3-8">
+<pre>
+{
+  "subject_authority": "example.com",
+  "authorized_issuers": [
+    {
+      "issuer": "https://idp.example.com",
+      "subject_identifier_formats": ["email"],
+      "valid_until": "2027-01-01T00:00:00Z"
+    },
+    {
+      "issuer": "https://accounts.google.com",
+      "tenant": "example.com",
+      "subject_identifier_formats": ["email"]
+    }
+  ],
+  "last_updated": "2026-05-01T00:00:00Z"
+}
+</pre><a href="#section-3-8" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="publication">
+<section id="section-4">
+      <h2 id="name-publication">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-publication" class="section-name selfRef">Publication</a>
+      </h2>
+<p id="section-4-1">A Subject Authority publishes the Issuer Authorization Policy
+through one of the publication channels defined in
+<a href="#publication-profiles" class="auto internal xref">Section 4.1</a>. DNS publication uses the TXT record at
+<code>_oauth-issuer-policy.{A}</code>, following the pattern of CAA, MTA-STS,
+SPF, and DKIM (<a href="#dns-authority-patterns" class="auto internal xref">Appendix A.1</a>). HTTPS publication uses
+the default well-known URL on the Subject Authority's own host.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<div id="publication-profiles">
+<section id="section-4.1">
+        <h3 id="name-publication-channels">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-publication-channels" class="section-name selfRef">Publication Channels</a>
+        </h3>
+<p id="section-4.1-1">This document defines three publication channels. A Subject
+Authority chooses based on operational constraints; all produce
+semantically equivalent policy validated by the same lookup procedure
+(<a href="#dii-lookup" class="auto internal xref">Section 5</a>). The canonical lookup procedure consults DNS first
+and uses the HTTPS well-known channel only when DNS authoritatively
+indicates absence.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<table class="center" id="table-2">
+          <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Channel</th>
+              <th class="text-left" rowspan="1" colspan="1">DNS form</th>
+              <th class="text-left" rowspan="1" colspan="1">Document</th>
+              <th class="text-left" rowspan="1" colspan="1">Authority binding</th>
+              <th class="text-left" rowspan="1" colspan="1">When to use</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">1: DNS-Inline</td>
+              <td class="text-left" rowspan="1" colspan="1">TXT with <code>issuer=</code> (<a href="#dii-dns-record" class="auto internal xref">Section 4.3</a>)</td>
+              <td class="text-left" rowspan="1" colspan="1">None (carried in TXT)</td>
+              <td class="text-left" rowspan="1" colspan="1">DNS control of <code>{A}</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">Common case: authorize an issuer for a namespace with no rich policy</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">2: Authority-Hosted HTTPS</td>
+              <td class="text-left" rowspan="1" colspan="1">TXT with <code>uri=</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">HTTPS-hosted JSON under Subject Authority's operational control</td>
+              <td class="text-left" rowspan="1" colspan="1">DNS control of <code>{A}</code> AND TLS on the authority-operated host</td>
+              <td class="text-left" rowspan="1" colspan="1">Rich policy (validity windows, format restrictions, tenant binding) at a controlled origin</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">3: Default HTTPS Well-Known</td>
+              <td class="text-left" rowspan="1" colspan="1">No DNS record</td>
+              <td class="text-left" rowspan="1" colspan="1">HTTPS-hosted JSON at <code>https://{A}/.well-known/oauth-issuer-policy</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">TLS on <code>{A}</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">Subject Authority has well-known HTTPS infrastructure but no DAI DNS record</td>
+            </tr>
+          </tbody>
+        </table>
+</section>
+</div>
+<div id="default-https-well-known-url">
+<section id="section-4.2">
+        <h3 id="name-default-https-well-known-ur">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-default-https-well-known-ur" class="section-name selfRef">Default HTTPS Well-Known URL</a>
+        </h3>
+<p id="section-4.2-1">A Subject Authority <span class="bcp14">MAY</span> additionally publish a JSON document at
+the default HTTPS well-known URL on its own host
+(<a href="#dii-https-url" class="auto internal xref">Section 4.4</a>). The lookup procedure (<a href="#dii-lookup" class="auto internal xref">Section 5</a>)
+consults DNS first and uses the HTTPS well-known URL only as a
+fallback when the DNS response is <code>negative-authoritative</code>. This
+channel covers the case where a Subject Authority has no DAI DNS
+record but does have well-known HTTPS infrastructure.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.2-2">Operators are encouraged to publish the DNS record in all
+deployments because it matches the operational model of the
+prior-art mechanisms in <a href="#dns-authority-patterns" class="auto internal xref">Appendix A.1</a> and because
+consumer lookup behavior is DNS-first.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="dii-dns-record">
+<section id="section-4.3">
+        <h3 id="name-dns-record">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-dns-record" class="section-name selfRef">DNS Record</a>
+        </h3>
+<p id="section-4.3-1">The Subject Authority publishes one or more DNS TXT records at
+<code>_oauth-issuer-policy.{A}</code>, where <code>{A}</code> is the Subject
+Authority rendered as a DNS name. Internationalized names are converted
+to A-labels per <span>[<a href="#RFC5891" class="cite xref">RFC5891</a>]</span> before the prefix is prepended. DNS lookup
+names are formed without a trailing dot for comparison purposes; the
+wire-format root label is not part of the Subject Authority value.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.3-2">The string segments of a TXT record (<span>[<a href="#RFC1035" class="cite xref">RFC1035</a>]</span>) are concatenated
+without separator and interpreted as UTF-8 text.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
+<p id="section-4.3-3">A record is <em>recognized</em> if it begins with the version directive
+<code>v=oauth-issuer-policy1</code> (case-sensitive), optionally
+followed by trailing whitespace and a <code>;</code> separator. Records that do
+not begin with a supported version directive <span class="bcp14">MUST</span> be ignored.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.3-4">The remainder of a recognized record is a sequence of <code>name=value</code>
+directives separated by <code>;</code>. Parsing rules:<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.3-5.1">
+            <p id="section-4.3-5.1.1">Whitespace (space and horizontal tab) immediately before and after
+each directive is ignored. Whitespace inside a value is not.<a href="#section-4.3-5.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.3-5.2">
+            <p id="section-4.3-5.2.1">Directive names are case-insensitive ASCII. Values are
+case-sensitive and preserved as written.<a href="#section-4.3-5.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.3-5.3">
+            <p id="section-4.3-5.3.1">A directive splits into name and value at the first <code>=</code>. Subsequent
+<code>=</code> characters are part of the value.<a href="#section-4.3-5.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.3-5.4">
+            <p id="section-4.3-5.4.1">The value runs to the next <code>;</code> or end of record. The character <code>;</code>
+              <span class="bcp14">MUST NOT</span> appear in a value; URLs containing <code>;</code> <span class="bcp14">MUST</span> be
+percent-encoded.<a href="#section-4.3-5.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.3-5.5">
+            <p id="section-4.3-5.5.1">CR, LF, and NUL <span class="bcp14">MUST NOT</span> appear in a value.<a href="#section-4.3-5.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.3-5.6">
+            <p id="section-4.3-5.6.1">Unrecognized directives <span class="bcp14">MUST</span> be ignored.<a href="#section-4.3-5.6.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-4.3-6">The parsing rules above are summarized in the following ABNF
+<span>[<a href="#RFC5234" class="cite xref">RFC5234</a>]</span> for implementer convenience; the prose above is
+normative if any disagreement exists.<a href="#section-4.3-6" class="pilcrow">¶</a></p>
+<div class="lang-abnf sourcecode" id="section-4.3-7">
+<pre>
+record       = version *( ";" directive ) [ ";" ]
+version      = "v=oauth-issuer-policy1"
+directive    = OWS name "=" value OWS
+name         = 1*( ALPHA / DIGIT / "_" / "-" )
+value        = *vchar-no-semi
+vchar-no-semi = %x21-3A / %x3C-7E
+                  ; printable ASCII minus ";" and excluding
+                  ; CR, LF, NUL
+OWS          = *( SP / HTAB )
+</pre><a href="#section-4.3-7" class="pilcrow">¶</a>
+</div>
+<p id="section-4.3-8">The following directives are defined:<a href="#section-4.3-8" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.3-9">
+          <dt id="section-4.3-9.1"><code>authority=A</code></dt>
+          <dd style="margin-left: 1.5em" id="section-4.3-9.2">
+            <p id="section-4.3-9.2.1"><span class="bcp14">REQUIRED</span>. The Subject Authority identifier this record claims to
+bind. Consumers <span class="bcp14">MUST</span> normalize this value to A-label form per
+<span>[<a href="#RFC5891" class="cite xref">RFC5891</a>]</span>, then verify it matches the Subject Authority computed
+from the query name (which is already in A-label form) using the
+case-insensitive ASCII comparison rules in <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Subject Authority Determination.
+Records whose <code>authority=</code> value does not match <span class="bcp14">MUST</span> be ignored.
+The publisher's <code>authority=</code> value <span class="bcp14">MAY</span> be written in U-label or
+A-label form; consumers perform the conversion.<a href="#section-4.3-9.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.3-9.3"><code>uri=URL</code></dt>
+          <dd style="margin-left: 1.5em" id="section-4.3-9.4">
+            <p id="section-4.3-9.4.1"><span class="bcp14">OPTIONAL</span>. An HTTPS URL identifying an Issuer Authorization Policy
+document. The URL <span class="bcp14">MAY</span> be on a different host than <code>A</code>. <span class="bcp14">MUST</span> use the
+<code>https://</code> scheme and <span class="bcp14">MUST NOT</span> contain a fragment component.<a href="#section-4.3-9.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.3-9.5"><code>issuer=ISSUER_URL</code></dt>
+          <dd style="margin-left: 1.5em" id="section-4.3-9.6">
+            <p id="section-4.3-9.6.1"><span class="bcp14">OPTIONAL</span>. An Assertion Issuer identifier authorized by the Subject
+Authority for <code>A</code>. For OAuth authorization server issuer identifiers,
+the value <span class="bcp14">MUST</span> be an absolute HTTPS URL and <span class="bcp14">MUST NOT</span> contain a
+fragment component. <span class="bcp14">MAY</span> appear multiple times within a record and
+across records.<a href="#section-4.3-9.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-4.3-10">A recognized record <span class="bcp14">MUST</span> contain at least one <code>uri=</code> directive or at
+least one <code>issuer=</code> directive. Recognized records containing neither
+<span class="bcp14">MUST</span> be treated as malformed (see <a href="#dii-failures" class="auto internal xref">Section 5.1</a>).<a href="#section-4.3-10" class="pilcrow">¶</a></p>
+<p id="section-4.3-11">A Subject Authority <span class="bcp14">MUST</span> publish records for at most one version of
+this mechanism at a time. This document defines only
+<code>oauth-issuer-policy1</code>. Future versions that are not
+understood by a consumer are ignored by the recognition rule above.<a href="#section-4.3-11" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="dii-https-url">
+<section id="section-4.4">
+        <h3 id="name-https-document-url">
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-https-document-url" class="section-name selfRef">HTTPS Document URL</a>
+        </h3>
+<p id="section-4.4-1">The default Issuer Authorization Policy URL is:<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.4-2">
+<pre>
+https://{A}/.well-known/oauth-issuer-policy
+</pre><a href="#section-4.4-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.4-3">where <code>{A}</code> is the Subject Authority value rendered as a host (A-label
+form for internationalized names). Consumers fetch this URL using
+HTTPS with TLS server authentication and interpret the response body
+as the JSON document defined in <a href="#dii-document" class="auto internal xref">Section 3</a>.<a href="#section-4.4-3" class="pilcrow">¶</a></p>
+<p id="section-4.4-4">A URL obtained from a DNS <code>uri=</code> directive is fetched the same way;
+the host serving the URL is responsible for TLS server authentication
+of itself, not of <code>A</code>.<a href="#section-4.4-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="https-policy-document-contract">
+<section id="section-4.5">
+        <h3 id="name-https-policy-document-contr">
+<a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-https-policy-document-contr" class="section-name selfRef">HTTPS Policy Document Contract</a>
+        </h3>
+<p id="section-4.5-1">The document retrieved from either the default well-known URL or a
+DNS <code>uri=</code> pointer is the Issuer Authorization Policy defined in
+<a href="#dii-document" class="auto internal xref">Section 3</a>; consumers <span class="bcp14">MUST NOT</span> interpret any other JSON shape
+as an Issuer Authorization Policy. Consumers <span class="bcp14">MUST</span> validate the
+complete policy as a unit; a malformed entry makes the whole policy
+malformed, not just the offending entry.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
+<p id="section-4.5-2">The following JSON shape illustrates the policy contract; the prose
+in <a href="#dii-document" class="auto internal xref">Section 3</a> is normative.<a href="#section-4.5-2" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-4.5-3">
+<pre>
+{
+  "subject_authority": "example.com",
+  "authorized_issuers": [
+    {
+      "issuer": "https://idp.example.com",
+      "tenant": "example-tenant",
+      "subject_identifier_formats": ["email"],
+      "valid_from": "2026-01-01T00:00:00Z",
+      "valid_until": "2027-01-01T00:00:00Z"
+    }
+  ],
+  "last_updated": "2026-05-01T00:00:00Z"
+}
+</pre><a href="#section-4.5-3" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="dii-lookup">
+<section id="section-5">
+      <h2 id="name-lookup-procedure">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-lookup-procedure" class="section-name selfRef">Lookup Procedure</a>
+      </h2>
+<p id="section-5-1">To retrieve the Issuer Authorization Policy for a Subject Authority <code>A</code>,
+a Resource Authorization Server performs the following steps. The
+procedure consults DNS first and falls back to the HTTPS well-known
+URL only on <code>negative-authoritative</code> outcomes.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-2">DNS at <code>_oauth-issuer-policy.{A}</code> and HTTPS at the default well-known
+URL are two publication channels of the same Subject Authority.
+Consulting HTTPS after DNS returns <code>negative-authoritative</code> is NOT an
+Authority Source fallback in the sense forbidden by
+<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Lookup States and Fail-Closed; the
+abstract Negative state is reached only when both channels return
+absence (<a href="#dii-failures" class="auto internal xref">Section 5.1</a>). The abstract no-fallback rule continues
+to forbid falling through to a DIFFERENT Subject Authority's policy.<a href="#section-5-2" class="pilcrow">¶</a></p>
+<p id="section-5-3">This is the canonical procedure used by the
+<code>domain_authorized_issuer</code> Trust Method. The HTTPS-only lookup mode
+defined in <a href="#trust-method-https-authorized-issuer" class="auto internal xref">Section 8.2</a> skips DNS
+entirely and retrieves only from the HTTPS well-known URL.<a href="#section-5-3" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-5-4">
+<li id="section-5-4.1">
+          <p id="section-5-4.1.1">Query the DNS TXT resource record set at
+<code>_oauth-issuer-policy.{A}</code>. Classify the response as:<a href="#section-5-4.1.1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-5-4.1.2">
+            <dt id="section-5-4.1.2.1"><code>negative-authoritative</code></dt>
+            <dd style="margin-left: 1.5em" id="section-5-4.1.2.2">
+              <p id="section-5-4.1.2.2.1">NXDOMAIN, or NOERROR with an empty answer section or with no
+recognized records after parsing.<a href="#section-5-4.1.2.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-5-4.1.2.3"><code>indeterminate</code></dt>
+            <dd style="margin-left: 1.5em" id="section-5-4.1.2.4">
+              <p id="section-5-4.1.2.4.1">SERVFAIL, REFUSED, timeout, truncation with no successful retry,
+or any other failure that prevents a definitive negative result.<a href="#section-5-4.1.2.4.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-5-4.1.2.5"><code>affirmative</code></dt>
+            <dd style="margin-left: 1.5em" id="section-5-4.1.2.6">
+              <p id="section-5-4.1.2.6.1">NOERROR with at least one recognized record after parsing.<a href="#section-5-4.1.2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+</li>
+        <li id="section-5-4.2">
+          <p id="section-5-4.2.1">If the DNS response is <code>affirmative</code>:<a href="#section-5-4.2.1" class="pilcrow">¶</a></p>
+<p id="section-5-4.2.2">
+a. Discard recognized records whose <code>authority=</code> directive does
+   not match <code>A</code> under the Subject Authority comparison rules in
+   <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Subject Authority Determination. If any recognized record is missing an
+   <code>authority=</code> directive, treat the response as <code>malformed</code>. If
+   all recognized records are discarded because of <code>authority=</code>
+   mismatch, treat the response as <code>malformed</code>.<a href="#section-5-4.2.2" class="pilcrow">¶</a></p>
+<p id="section-5-4.2.3">
+Before continuing, validate the remaining recognized records
+   against the directive rules in <a href="#dii-dns-record" class="auto internal xref">Section 4.3</a>. This includes
+   rejecting malformed <code>uri=</code> or <code>issuer=</code> values, and records with
+   neither <code>uri=</code> nor <code>issuer=</code>. Any such condition is a <code>malformed</code>
+   outcome.<a href="#section-5-4.2.3" class="pilcrow">¶</a></p>
+<p id="section-5-4.2.4">
+b. If any remaining record contains a <code>uri=</code> directive:<a href="#section-5-4.2.4" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5-4.2.5.1">
+              <p id="section-5-4.2.5.1.1">If more than one distinct <code>uri=</code> value is present across the
+remaining records, treat as <code>malformed</code>.<a href="#section-5-4.2.5.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-5-4.2.5.2">
+              <p id="section-5-4.2.5.2.1">Otherwise fetch the JSON policy from that URL per
+<a href="#dii-https-url" class="auto internal xref">Section 4.4</a>. The fetched document is the Issuer
+Authorization Policy. All <code>issuer=</code> directives across all
+records are ignored.<a href="#section-5-4.2.5.2.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-5-4.2.6">
+c. Otherwise (no <code>uri=</code> present), construct a virtual Issuer
+   Authorization Policy with <code>subject_authority</code> set to <code>A</code> and
+   one entry in <code>authorized_issuers</code> for each distinct <code>issuer=</code>
+   value across the remaining records, in the order first seen.
+   Entries have no <code>subject_identifier_formats</code>, <code>valid_from</code>, or
+   <code>valid_until</code>. The virtual policy is processed identically to
+   one fetched over HTTPS, except that its cache lifetime is
+   derived from DNS TTLs as described in <a href="#dii-caching" class="auto internal xref">Section 7</a>.<a href="#section-5-4.2.6" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-5-4.3">
+          <p id="section-5-4.3.1">If the DNS response is <code>negative-authoritative</code>, fetch the policy
+from the default HTTPS well-known URL per <a href="#dii-https-url" class="auto internal xref">Section 4.4</a>.<a href="#section-5-4.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-5-4.4">
+          <p id="section-5-4.4.1">If the DNS response is <code>indeterminate</code>, lookup has failed.
+Consumers <span class="bcp14">MUST NOT</span> fall back to HTTPS, since an attacker who
+suppresses DNS responses could otherwise force the consumer onto a
+path the attacker has compromised separately.<a href="#section-5-4.4.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
+<p id="section-5-5">A Resource Authorization Server <span class="bcp14">MAY</span> skip the DNS query as a matter of
+local policy (for example, when deployed in an environment with an
+untrusted DNS resolution path), but <span class="bcp14">SHOULD NOT</span> do so in production
+deployments: a Subject Authority that publishes only inline DNS records
+(a common pattern given the operational simplicity of the inline form)
+will be unfindable by such a Resource Authorization Server. A Resource
+Authorization Server that cannot resolve DNS treats the lookup as
+<code>indeterminate</code> and rejects the assertion, fail-closed.<a href="#section-5-5" class="pilcrow">¶</a></p>
+<div id="dii-failures">
+<section id="section-5.1">
+        <h3 id="name-failure-handling">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-failure-handling" class="section-name selfRef">Failure Handling</a>
+        </h3>
+<p id="section-5.1-1">DAI lookup outcomes map onto the Affirmative / Negative /
+Indeterminate states of the Authority Delegation Pattern's
+Exception-Handling and Fallback Model
+(<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Lookup States and Fail-Closed). The normative
+requirements (fail closed on Negative and Indeterminate; no
+fallback to a different Authority Source; bounded cache reuse on
+transient Indeterminate) apply unchanged; this section maps the
+concrete DAI outcomes onto those states.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<table class="center" id="table-3">
+          <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">State</th>
+              <th class="text-left" rowspan="1" colspan="1">DAI outcomes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Affirmative</td>
+              <td class="text-left" rowspan="1" colspan="1">A well-formed Issuer Authorization Policy was retrieved (inline DNS, DNS pointer + HTTPS fetch, or HTTPS well-known URL), its <code>subject_authority</code> matches <code>A</code>, and its structural validation succeeds. HTTPS responses, when applicable, are 200 OK with a media type compatible with <code>application/json</code>.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Negative</td>
+              <td class="text-left" rowspan="1" colspan="1">DNS <code>negative-authoritative</code> followed by HTTPS 404 or 410 at the well-known URL, or HTTPS 404 or 410 reached from a DNS <code>uri=</code> pointer. The Authority Holder authoritatively publishes no delegation.</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Indeterminate</td>
+              <td class="text-left" rowspan="1" colspan="1">Any other outcome, fail-closed by default. See enumeration below.</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="section-5.1-3">The Indeterminate state covers:<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.1-4.1">
+            <p id="section-5.1-4.1.1"><strong>DNS-side</strong>: SERVFAIL, REFUSED, timeout, truncation with no
+successful retry.<a href="#section-5.1-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.1-4.2">
+            <p id="section-5.1-4.2.1"><strong>HTTPS transport</strong>: TLS error, connection failure, redirect loop,
+non-HTTPS redirect target.<a href="#section-5.1-4.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.1-4.3">
+            <p id="section-5.1-4.3.1"><strong>HTTPS response</strong>: 5xx; 4xx other than 404 and 410 (for example
+401, 403, 405, 429, 451); 2xx other than 200; unsupported media
+type; over-size body.<a href="#section-5.1-4.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.1-4.4">
+            <p id="section-5.1-4.4.1"><strong>DNS record validation</strong>: missing or mismatched <code>authority=</code>;
+neither <code>uri=</code> nor <code>issuer=</code>; multiple distinct <code>uri=</code> values;
+malformed directive.<a href="#section-5.1-4.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.1-4.5">
+            <p id="section-5.1-4.5.1"><strong>HTTPS document validation</strong>: body that is not a syntactically
+valid Issuer Authorization Policy; <code>subject_authority</code> that does
+not match <code>A</code>.<a href="#section-5.1-4.5.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-5.1-5">Any outcome not explicitly mapped to Affirmative or Negative above
+<span class="bcp14">MUST</span> be treated as Indeterminate.<a href="#section-5.1-5" class="pilcrow">¶</a></p>
+<p id="section-5.1-6">The following deterministic conflict rules apply:<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.1-7.1">
+            <p id="section-5.1-7.1.1">Multiple recognized TXT records containing only <code>issuer=</code> directives
+are merged into a single virtual policy. <code>issuer=</code> values across
+records are deduplicated, with order preserved by first-seen
+(<a href="#dii-lookup" class="auto internal xref">Section 5</a>, step 2c).<a href="#section-5.1-7.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.1-7.2">
+            <p id="section-5.1-7.2.1">If any recognized record contains a <code>uri=</code> directive after
+<code>authority=</code> filtering, the HTTPS document at the single <code>uri=</code>
+target is authoritative and all <code>issuer=</code> directives across all
+records are ignored (<a href="#dii-lookup" class="auto internal xref">Section 5</a>, step 2b). More than one distinct
+<code>uri=</code> value is <code>malformed</code>.<a href="#section-5.1-7.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.1-7.3">
+            <p id="section-5.1-7.3.1">If both DNS and the HTTPS well-known URL are populated with differing
+content, DNS is authoritative when it returns an Affirmative response.
+Consumers do not consult or reconcile the HTTPS well-known URL in
+that case.<a href="#section-5.1-7.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.1-7.4">
+            <p id="section-5.1-7.4.1">Multiple <code>authorized_issuers</code> entries for the same <code>issuer</code> value but
+different <code>tenant</code> values are independent authorizations. Entries with
+<code>tenant</code> do not shadow entries without <code>tenant</code> for the same <code>issuer</code>.<a href="#section-5.1-7.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.1-7.5">
+            <p id="section-5.1-7.5.1">Only the Subject Authority computed by the extraction procedure for
+the assertion's Subject Identifier applies. Another Subject Authority's
+policy cannot grant authority over that subject.<a href="#section-5.1-7.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.1-7.6">
+            <p id="section-5.1-7.6.1">If the assertion's claims conflict with the matched policy entry, the
+assertion fails the Trust Method.<a href="#section-5.1-7.6.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-5.1-8">Consumers <span class="bcp14">MUST</span> treat both Negative and Indeterminate as
+assertion rejection. A fresh cached Affirmative policy <span class="bcp14">MAY</span> be
+used during transient Indeterminate on the live channel, subject
+to <a href="#dii-caching" class="auto internal xref">Section 7</a>; the cache lifetime <span class="bcp14">MUST NOT</span> be extended by
+repeated Indeterminate retrievals.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
+<p id="section-5.1-9">Consumers <span class="bcp14">MAY</span> follow HTTPS redirects subject to a local redirect
+limit. Every redirect target <span class="bcp14">MUST</span> use the <code>https</code> scheme and <span class="bcp14">MUST NOT</span> contain a fragment component. The final response <span class="bcp14">MUST</span> have a
+successful HTTP status and a media type compatible with
+<code>application/json</code>.<a href="#section-5.1-9" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="dii-verification">
+<section id="section-6">
+      <h2 id="name-verification">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-verification" class="section-name selfRef">Verification</a>
+      </h2>
+<p id="section-6-1">When the <code>domain_authorized_issuer</code> Trust Method is evaluated, the
+Resource Authorization Server <span class="bcp14">MUST</span>:<a href="#section-6-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-6-2">
+<li id="section-6-2.1">
+          <p id="section-6-2.1.1">Determine the Subject Authority from the assertion's Subject
+Identifier per <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Subject Authority Determination. If the format is not registered
+in <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Subject Authority Extraction Procedures Registry, reject the assertion.<a href="#section-6-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-6-2.2">
+          <p id="section-6-2.2.1">Retrieve the Issuer Authorization Policy by applying the
+procedure in <a href="#dii-lookup" class="auto internal xref">Section 5</a>. Negative and Indeterminate
+outcomes (<a href="#dii-failures" class="auto internal xref">Section 5.1</a>) <span class="bcp14">MUST</span> result in rejection, except
+that a fresh cached policy <span class="bcp14">MAY</span> be used when the live retrieval
+is Indeterminate.<a href="#section-6-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-6-2.3">
+          <p id="section-6-2.3.1">Verify the policy's <code>subject_authority</code> matches the computed
+Subject Authority. (Virtual policies satisfy this by
+construction.)<a href="#section-6-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-6-2.4">
+          <p id="section-6-2.4.1">Find an entry in <code>authorized_issuers</code> whose <code>issuer</code> matches the
+JWT <code>iss</code> claim using case-sensitive URL string equality AND, if
+the entry contains a <code>tenant</code> member, whose <code>tenant</code> value
+exactly matches the assertion's top-level <code>tenant</code> claim
+(<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §6.1) using case-sensitive string comparison. An
+entry with <code>tenant</code> does NOT match an assertion that lacks the
+<code>tenant</code> claim; an entry without <code>tenant</code> matches regardless of
+the assertion's <code>tenant</code> claim. When multiple entries share the
+same <code>issuer</code> value, candidate entries are evaluated in array
+order until one matches; entries with <code>tenant</code> are independent
+matches per (issuer, tenant) pair.<a href="#section-6-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-6-2.5">
+          <p id="section-6-2.5.1">If the matched entry contains <code>subject_identifier_formats</code>,
+verify the Subject Identifier format of the assertion's subject
+is listed.<a href="#section-6-2.5.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-6-2.6">
+          <p id="section-6-2.6.1">If <code>valid_from</code> or <code>valid_until</code> are present, verify the current
+time is within the validity window.<a href="#section-6-2.6.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
+<p id="section-6-3">Steps 1 and 2 are prerequisites; their failure causes assertion
+rejection per <a href="#dii-failures" class="auto internal xref">Section 5.1</a> and is not classified as a Trust
+Method satisfaction outcome. The Trust Method is satisfied when
+steps 3 through 6 all succeed. On failure, the Resource
+Authorization Server <span class="bcp14">MUST</span> reject the assertion with an OAuth
+<code>invalid_grant</code> error when the cross-category combination rule of
+<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Resource Authorization Server Processing is not met.<a href="#section-6-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="dii-caching">
+<section id="section-7">
+      <h2 id="name-caching">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-caching" class="section-name selfRef">Caching</a>
+      </h2>
+<p id="section-7-1">Cache lifetimes for the Issuer Authorization Policy:<a href="#section-7-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-7-2.1">
+          <p id="section-7-2.1.1">Consumers <span class="bcp14">SHOULD</span> respect HTTP <code>Cache-Control</code> on HTTPS documents
+and DNS TTL on records. The DNS inline form's virtual-policy
+lifetime is the minimum TTL of the constructing records. For
+the DNS pointer form, the effective lifetime is the lesser of
+the pointer's DNS TTL and the fetched document's HTTP cache
+lifetime.<a href="#section-7-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-7-2.2">
+          <p id="section-7-2.2.1">Subject Authorities <span class="bcp14">SHOULD</span> publish records and HTTPS policies
+with a steady-state TTL of at most 1 hour, reducing further
+during an active revocation.<a href="#section-7-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-7-2.3">
+          <p id="section-7-2.3.1">Consumers <span class="bcp14">MUST</span> enforce an absolute local cache ceiling
+(recommended: 24 hours) regardless of TTL or <code>Cache-Control</code>.<a href="#section-7-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-7-2.4">
+          <p id="section-7-2.4.1">Consumers <span class="bcp14">MAY</span> serve a fresh cached Affirmative policy when the
+live retrieval is <code>indeterminate</code>, but <span class="bcp14">MUST NOT</span> extend the
+effective cache lifetime past the ceiling: cumulative
+<code>indeterminate</code> retrieval streaks exceeding 1 hour <span class="bcp14">MUST</span>
+transition to reject. This bound prevents an attacker who can
+sustain denial of service against the policy endpoint from
+extending revocation latency indefinitely.<a href="#section-7-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-7-2.5">
+          <p id="section-7-2.5.1">Negative results <span class="bcp14">MAY</span> be cached subject to the same ceiling.
+Consumers whose threat model includes brief publication-channel
+takeover <span class="bcp14">SHOULD</span> cap negative-cache lifetime at a shorter value
+(recommended: 5 minutes) so that a Negative cached during a
+takeover does not hide the legitimate Authority Holder's later
+publication.<a href="#section-7-2.5.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+</section>
+</div>
+<div id="trust-methods">
+<section id="section-8">
+      <h2 id="name-trust-methods">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-trust-methods" class="section-name selfRef">Trust Methods</a>
+      </h2>
+<p id="section-8-1">This document defines <code>domain_authorized_issuer</code> as the canonical
+<code>subject_namespace_authorization</code> Trust Method of <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>.
+DNS at <code>_oauth-issuer-policy.{authority}</code> is the primary publication
+channel, with the HTTPS well-known URL as fallback. The Trust Method
+registers in the Identity Assertion Issuer Trust Methods registry
+(<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Identity Assertion Issuer Trust Methods Registry).<a href="#section-8-1" class="pilcrow">¶</a></p>
+<div id="trust-method-domain-authorized-issuer">
+<section id="section-8.1">
+        <h3 id="name-domain_authorized_issuer">
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-domain_authorized_issuer" class="section-name selfRef">domain_authorized_issuer</a>
+        </h3>
+<p id="section-8.1-1">The <code>domain_authorized_issuer</code> method indicates that the Assertion
+Issuer is acceptable if the Subject Authority identified by the
+assertion's Subject Identifier authorizes the Assertion Issuer to
+assert identities in that namespace, as defined in this document.<a href="#section-8.1-1" class="pilcrow">¶</a></p>
+<p id="section-8.1-2">Domain-Authorized Issuer Discovery, defined in this document, is the
+mechanism by which a Subject Authority publishes its authorized
+Assertion Issuers. A Subject Authority publishes a DNS TXT record at
+<code>_oauth-issuer-policy.{authority}</code> (carrying authorized issuers
+inline, or pointing to a richer HTTPS-hosted document) or an HTTPS
+JSON document at <code>.well-known/oauth-issuer-policy</code> on the Subject
+Authority's host. The full mechanism (record syntax, lookup
+procedure, failure handling, and security considerations) is
+specified in this document.<a href="#section-8.1-2" class="pilcrow">¶</a></p>
+<p id="section-8.1-3">This Trust Method natively expresses authorization for either form of
+multi-tenant Assertion Issuer:<a href="#section-8.1-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.1-4.1">
+            <p id="section-8.1-4.1.1"><strong>Per-tenant issuer identifiers</strong> (for example,
+<code>https://login.microsoftonline.com/{tenant-id}/v2.0</code>): the
+<code>authorized_issuers[].issuer</code> field accepts any absolute HTTPS URL
+issuer identifier, and case-sensitive comparison against the JWT
+<code>iss</code> claim distinguishes tenants under the same host. Each
+authorized tenant is one <code>authorized_issuers</code> entry.<a href="#section-8.1-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.1-4.2">
+            <p id="section-8.1-4.2.1"><strong>Shared issuer with a tenant claim</strong> (for example,
+<code>https://accounts.google.com</code> serving every Google Workspace tenant
+via the top-level <code>tenant</code> claim of <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §6.1): the
+<code>authorized_issuers[].tenant</code> field binds the authorization to a
+specific tenant of the shared issuer, with the security properties
+described in <a href="#dii-multi-tenant" class="auto internal xref">Section 9.9</a>.<a href="#section-8.1-4.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<div class="lang-json sourcecode" id="section-8.1-5">
+<pre>
+{
+  "method": "domain_authorized_issuer"
+}
+</pre><a href="#section-8.1-5" class="pilcrow">¶</a>
+</div>
+<p id="section-8.1-6">With no additional members, the Resource Authorization Server
+retrieves the Issuer Authorization Policy by applying the canonical
+lookup procedure in <a href="#dii-lookup" class="auto internal xref">Section 5</a>: a DNS query at
+<code>_oauth-issuer-policy.{A}</code> with HTTPS well-known URL fallback when the
+DNS response is <code>negative-authoritative</code>. The optional <code>lookup</code>
+member is used only for the HTTPS-only deployment variant in
+<a href="#trust-method-https-authorized-issuer" class="auto internal xref">Section 8.2</a>.<a href="#section-8.1-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="trust-method-https-authorized-issuer">
+<section id="section-8.2">
+        <h3 id="name-https-only-deployment-varia">
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-https-only-deployment-varia" class="section-name selfRef">HTTPS-Only Deployment Variant</a>
+        </h3>
+<p id="section-8.2-1">Some deployments cannot or will not depend on DNS-published
+authority. Those deployments can use the same Issuer Authorization
+Policy document format with direct HTTPS retrieval from the Subject
+Authority's well-known URL. This is a deployment variant of the DAI
+mechanism, not a second Trust Method registered by this document.<a href="#section-8.2-1" class="pilcrow">¶</a></p>
+<p id="section-8.2-2">Under this variant, the Assertion Issuer is acceptable if the Subject
+Authority identified by the assertion's Subject Identifier publishes
+an HTTPS well-known Issuer Authorization Policy authorizing the
+Assertion Issuer.<a href="#section-8.2-2" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-8.2-3">
+<pre>
+{
+  "method": "domain_authorized_issuer",
+  "lookup": "https_only"
+}
+</pre><a href="#section-8.2-3" class="pilcrow">¶</a>
+</div>
+<p id="section-8.2-4">The <code>lookup</code> member is <span class="bcp14">OPTIONAL</span>. If present, its value <span class="bcp14">MUST</span> be
+<code>https_only</code>. This variant reuses the Issuer Authorization Policy
+document format (<a href="#dii-document" class="auto internal xref">Section 3</a>), Subject Authority determination
+rules (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Subject Authority Determination), HTTPS
+document URL (<a href="#dii-https-url" class="auto internal xref">Section 4.4</a>), verification rules
+(<a href="#dii-verification" class="auto internal xref">Section 6</a>), and caching rules (<a href="#dii-caching" class="auto internal xref">Section 7</a>), but it
+does not perform the DNS lookup defined in <a href="#dii-lookup" class="auto internal xref">Section 5</a>.<a href="#section-8.2-4" class="pilcrow">¶</a></p>
+<p id="section-8.2-5">When evaluated, the Resource Authorization Server <span class="bcp14">MUST</span>:<a href="#section-8.2-5" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-8.2-6">
+<li id="section-8.2-6.1">
+            <p id="section-8.2-6.1.1">Determine the Subject Authority <code>A</code> from the assertion's Subject
+Identifier per <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Subject Authority Determination. If the format is not registered in
+<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Subject Authority Extraction Procedures Registry, reject the assertion.<a href="#section-8.2-6.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-8.2-6.2">
+            <p id="section-8.2-6.2.1">Fetch the Issuer Authorization Policy directly from the default
+HTTPS well-known URL <code>https://{A}/.well-known/oauth-issuer-policy</code>
+per <a href="#dii-https-url" class="auto internal xref">Section 4.4</a>. The Resource Authorization Server <span class="bcp14">MUST NOT</span>
+query <code>_oauth-issuer-policy.{A}</code> as part of this Trust Method and
+<span class="bcp14">MUST NOT</span> use a DNS <code>uri=</code> pointer.<a href="#section-8.2-6.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-8.2-6.3">
+            <p id="section-8.2-6.3.1">Classify HTTPS retrieval and document validation outcomes per
+<a href="#dii-failures" class="auto internal xref">Section 5.1</a>. Negative and Indeterminate states <span class="bcp14">MUST</span> result
+in rejection, except that a fresh cached policy <span class="bcp14">MAY</span> be used
+when the live retrieval is Indeterminate.<a href="#section-8.2-6.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-8.2-6.4">
+            <p id="section-8.2-6.4.1">Verify the fetched policy and match the Assertion Issuer against
+<code>authorized_issuers</code> using steps 3 through 6 of
+<a href="#dii-verification" class="auto internal xref">Section 6</a>.<a href="#section-8.2-6.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-8.2-7">A Resource Authorization Server uses this variant when it requires
+authority publication via HTTPS only and explicitly does NOT accept
+DNS-published authority (inline or DNS pointer). Compared to
+canonical DNS-first lookup, this mode:<a href="#section-8.2-7" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.2-8.1">
+            <p id="section-8.2-8.1.1">Eliminates dependence on DNS resolution integrity for the
+authority lookup. The Subject Authority is determined per
+<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Subject Authority Determination, but the authorization itself is retrieved
+only over TLS-authenticated HTTPS.<a href="#section-8.2-8.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.2-8.2">
+            <p id="section-8.2-8.2.1">Rejects the inline DNS form (where the policy is carried in the
+TXT record itself) and the DNS pointer form (where DNS points
+at a different HTTPS host). Both require trusting DNS for the
+authoritative selection of either issuers or policy host.<a href="#section-8.2-8.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.2-8.3">
+            <p id="section-8.2-8.3.1">Forces the Subject Authority to control the apex web origin
+identified by the well-known URL.<a href="#section-8.2-8.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="combining-dai-methods">
+<section id="section-8.3">
+        <h3 id="name-choosing-the-lookup-mode">
+<a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-choosing-the-lookup-mode" class="section-name selfRef">Choosing the Lookup Mode</a>
+        </h3>
+<p id="section-8.3-1">Within <code>domain_authorized_issuer</code>, a Resource Authorization Server
+uses one lookup mode:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-8.3-2.1">
+            <p id="section-8.3-2.1.1"><strong>Canonical DNS-first lookup</strong> is the default. It accepts
+the DNS-first canonical lookup, which falls back to the HTTPS
+well-known URL on <code>negative-authoritative</code> DNS responses; the "no
+DNS record, only HTTPS document" Subject Authority case is
+therefore already covered without the HTTPS-only variant.<a href="#section-8.3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-8.3-2.2">
+            <p id="section-8.3-2.2.1"><strong>HTTPS-only lookup</strong> is an explicit deployment variant. Use it
+when local policy distrusts
+DNS-published authority entirely and requires authority retrieval
+over TLS-authenticated HTTPS only. Inline DNS records and DNS
+pointer forms are rejected.<a href="#section-8.3-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-8.3-3">Resource Authorization Servers <span class="bcp14">MUST NOT</span> evaluate both lookup modes
+as alternatives for the same assertion. Doing so creates an
+availability-driven fallback: an attacker who can drive the DNS
+lookup to <code>indeterminate</code> (resolver denial-of-service, BGP
+disruption) could force fallthrough to HTTPS-only evaluation,
+defeating the fail-closed property of the DNS-first lookup.<a href="#section-8.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="dii-security">
+<section id="section-9">
+      <h2 id="name-security-considerations">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-9-1">The Issuer Authorization Policy is a security-critical document. Its
+integrity determines which Assertion Issuers can assert identities in
+the Subject Authority's namespace.<a href="#section-9-1" class="pilcrow">¶</a></p>
+<div id="namespace-authority-bootstrap">
+<section id="section-9.1">
+        <h3 id="name-namespace-authority-bootstr">
+<a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-namespace-authority-bootstr" class="section-name selfRef">Namespace Authority Bootstrap</a>
+        </h3>
+<p id="section-9.1-1">DAI's authority binding is DNS control of the registrable domain
+(or corresponding HTTPS well-known URL), the bootstrap model used
+by CAA <span>[<a href="#RFC8659" class="cite xref">RFC8659</a>]</span> and MTA-STS <span>[<a href="#RFC8461" class="cite xref">RFC8461</a>]</span>. Pre-existing DNS
+realities (typosquatting, expired-domain takeover, registrar
+account compromise) apply unchanged and are not introduced by
+this document. The registrable-domain default contains
+subdomain-takeover impact (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Subject Authority
+Determination); identity binding beyond DNS control (legal-entity
+verification) requires out-of-band mechanisms.<a href="#section-9.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="transport-integrity">
+<section id="section-9.2">
+        <h3 id="name-transport-integrity">
+<a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-transport-integrity" class="section-name selfRef">Transport Integrity</a>
+        </h3>
+<p id="section-9.2-1">HTTPS retrieval integrity rests on TLS server authentication of
+the policy host; the inline DNS form rests on DNS resolution
+alone; the pointer form rests on both. Subject Authorities
+concerned about TLS misissuance are encouraged to publish CAA
+records <span>[<a href="#RFC8659" class="cite xref">RFC8659</a>]</span> for the policy-hosting domain and to monitor
+Certificate Transparency logs.<a href="#section-9.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="https-only-trust-model">
+<section id="section-9.3">
+        <h3 id="name-https-only-authority-trust-">
+<a href="#section-9.3" class="section-number selfRef">9.3. </a><a href="#name-https-only-authority-trust-" class="section-name selfRef">HTTPS-Only Authority Trust Model</a>
+        </h3>
+<p id="section-9.3-1">The HTTPS-only lookup mode
+(<a href="#trust-method-https-authorized-issuer" class="auto internal xref">Section 8.2</a>) substitutes TLS-server
+authentication for DNS-published authority. The threat surfaces
+differ from <code>domain_authorized_issuer</code>:<a href="#section-9.3-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-9.3-2.1">
+            <p id="section-9.3-2.1.1">DNS-record attacks (<a href="#dns-integrity-and-compromise" class="auto internal xref">Section 9.4</a>) do NOT
+affect authority retrieval; the TXT record is not fetched.<a href="#section-9.3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.3-2.2">
+            <p id="section-9.3-2.2.1">Apex-hostname resolution still uses DNS. A DNS-redirect of the
+apex combined with TLS misissuance substitutes the policy;
+CAA records and Certificate Transparency monitoring are the
+primary defenses (<a href="#transport-integrity" class="auto internal xref">Section 9.2</a>).<a href="#section-9.3-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.3-2.3">
+            <p id="section-9.3-2.3.1">The DNS pointer form's policy-host risk
+(<a href="#third-party-policy-hosts" class="auto internal xref">Section 9.5</a>) does not apply; the policy is
+served from the Subject Authority's own apex origin.<a href="#section-9.3-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.3-2.4">
+            <p id="section-9.3-2.4.1">Subject Authorities that cannot control the apex web origin
+(apex hosted on a marketing CDN with no path control) cannot
+participate via this mode.<a href="#section-9.3-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-9.3-3">The trade-off between the two methods is discussed in
+<a href="#rationale-https-only" class="auto internal xref">Appendix A.3</a>.<a href="#section-9.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="dns-integrity-and-compromise">
+<section id="section-9.4">
+        <h3 id="name-dns-integrity-and-compromis">
+<a href="#section-9.4" class="section-number selfRef">9.4. </a><a href="#name-dns-integrity-and-compromis" class="section-name selfRef">DNS Integrity and Compromise</a>
+        </h3>
+<p id="section-9.4-1">An adversary who can substitute a forged DNS response (off-path
+resolver spoofing, authoritative nameserver hijack, registrar
+account compromise, BGP hijack, recursive cache poisoning) can
+substitute the Subject Authority's policy: add an attacker-
+controlled Assertion Issuer to the inline form, redirect a <code>uri=</code>
+pointer, or force <code>indeterminate</code> outcomes to benefit a cached
+attacker-friendly policy. The pointer form additionally depends on
+TLS authentication of the pointed-at host: TLS does NOT mitigate
+the DNS compromise that selected that host.<a href="#section-9.4-1" class="pilcrow">¶</a></p>
+<p id="section-9.4-2">Required framework defenses:<a href="#section-9.4-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-9.4-3.1">
+            <p id="section-9.4-3.1.1">Consumers <span class="bcp14">MUST</span> discard records whose <code>authority=</code> does not match
+the queried Subject Authority. This is the wildcard mitigation:
+a permissive parent-zone wildcard cannot authorize subdomains
+because consumers reject records lacking the matching
+<code>authority=</code> directive.<a href="#section-9.4-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.4-3.2">
+            <p id="section-9.4-3.2.1">Consumers <span class="bcp14">MUST</span> verify TLS for any host named by <code>uri=</code>.<a href="#section-9.4-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.4-3.3">
+            <p id="section-9.4-3.3.1">Consumers <span class="bcp14">MUST</span> bound cache lifetimes (<a href="#dii-caching" class="auto internal xref">Section 7</a>;
+recommended absolute ceiling 24 hours).<a href="#section-9.4-3.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.4-3.4">
+            <p id="section-9.4-3.4.1">Consumers performing DNSSEC validation <span class="bcp14">SHOULD</span> treat validation
+failure as <code>indeterminate</code>, not <code>negative-authoritative</code>, to
+prevent signature-strip downgrade to HTTPS fallback.<a href="#section-9.4-3.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.4-3.5">
+            <p id="section-9.4-3.5.1">Subject Authorities <span class="bcp14">SHOULD</span> sign <code>_oauth-issuer-policy.{A}</code> with
+DNSSEC, and consumers without DNSSEC <span class="bcp14">SHOULD</span> use a trustworthy
+resolver path (DoH/DoT to a vetted resolver).<a href="#section-9.4-3.5.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-9.4-4">Operational defenses Subject Authorities are encouraged to apply:
+registrar account lock; monitoring of the record set and policy
+document for unexpected changes; cross-region/cross-resolver
+checks to detect localized substitution; avoiding wildcard TXT
+records in zones participating in this mechanism.<a href="#section-9.4-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="third-party-policy-hosts">
+<section id="section-9.5">
+        <h3 id="name-policy-hosts">
+<a href="#section-9.5" class="section-number selfRef">9.5. </a><a href="#name-policy-hosts" class="section-name selfRef">Policy Hosts</a>
+        </h3>
+<p id="section-9.5-1">The DNS pointer form lets the Subject Authority move rich policy
+from DNS into an HTTPS document. In this version, the pointed-to
+host is expected to be under the Subject Authority's operational
+control. General shared-infrastructure risks (multi-tenant CDNs,
+cache rules, dangling origins) are covered in <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>
+§Shared Infrastructure and Hosted Well-Known Paths. Three
+DAI-specific points:<a href="#section-9.5-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-9.5-2.1">
+            <p id="section-9.5-2.1.1">The pointer target is trusted fully for the policy contents and
+is appropriate only when the host is operated for, or otherwise
+controlled by, the Subject Authority.<a href="#section-9.5-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.5-2.2">
+            <p id="section-9.5-2.2.1">Both the DNS-side <code>authority=</code> directive and the JSON-side
+<code>subject_authority</code> member <span class="bcp14">MUST</span> match the queried Subject
+Authority. Each binding is published through a different control
+path; one missing check would let a compromise of either party
+claim arbitrary namespaces.<a href="#section-9.5-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.5-2.3">
+            <p id="section-9.5-2.3.1">The <code>uri=</code> pointer is a long-lived trust delegation. Subject
+Authorities <span class="bcp14">SHOULD</span> reduce DNS TTLs in advance of any planned
+change of policy host.<a href="#section-9.5-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="policy-conflicts">
+<section id="section-9.6">
+        <h3 id="name-policy-conflicts-and-determ">
+<a href="#section-9.6" class="section-number selfRef">9.6. </a><a href="#name-policy-conflicts-and-determ" class="section-name selfRef">Policy Conflicts and Determinism</a>
+        </h3>
+<p id="section-9.6-1">The lookup procedure (<a href="#dii-lookup" class="auto internal xref">Section 5</a>) is deterministic across the
+common conflict scenarios that arise when multiple records or
+sources coexist. Determinism is a security property: two verifiers
+receiving the same DNS and HTTPS responses <span class="bcp14">MUST</span> reach the same
+conclusion about what (if any) policy applies. An attacker with
+partial control of one publication channel cannot exploit
+interpretive ambiguity at the consumer.<a href="#section-9.6-1" class="pilcrow">¶</a></p>
+<p id="section-9.6-2">Common conflict scenarios and their deterministic dispositions are
+specified in <a href="#dii-failures" class="auto internal xref">Section 5.1</a>.<a href="#section-9.6-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="mechanism-limits">
+<section id="section-9.7">
+        <h3 id="name-mechanism-limits">
+<a href="#section-9.7" class="section-number selfRef">9.7. </a><a href="#name-mechanism-limits" class="section-name selfRef">Mechanism Limits</a>
+        </h3>
+<ul class="normal">
+<li class="normal" id="section-9.7-1.1">
+            <p id="section-9.7-1.1.1"><strong>Authentication.</strong> The inline DNS form has no signing mechanism;
+its authority binding is DNS control. The HTTPS document form
+relies on DNS selection plus TLS to the selected policy host.<a href="#section-9.7-1.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.7-1.2">
+            <p id="section-9.7-1.2.1"><strong>Scope.</strong> A Resource Authorization Server <span class="bcp14">MUST NOT</span> use a
+matched Issuer Authorization Policy to establish trust for
+subjects outside that Subject Authority's namespace.<a href="#section-9.7-1.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.7-1.3">
+            <p id="section-9.7-1.3.1"><strong>Inline-form features.</strong> The inline DNS form expresses only
+"issuer X is authorized for Subject Authority A." Deployments
+needing <code>tenant</code>, <code>subject_identifier_formats</code>, <code>valid_from</code>,
+or <code>valid_until</code> <span class="bcp14">MUST</span> use the HTTPS or DNS pointer form.<a href="#section-9.7-1.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="email-local-part">
+<section id="section-9.8">
+        <h3 id="name-email-local-part-is-not-aut">
+<a href="#section-9.8" class="section-number selfRef">9.8. </a><a href="#name-email-local-part-is-not-aut" class="section-name selfRef">Email Local-Part Is Not Authenticated</a>
+        </h3>
+<p id="section-9.8-1"><code>domain_authorized_issuer</code> evaluates only the email's registrable
+domain. The local-part is unauthenticated by this Trust Method: it
+attests that the Assertion Issuer may assert about emails in the
+namespace, not that any specific local-part is correct. Resource
+Authorization Servers that normalize local-parts (case folding,
+plus-address stripping, alias collapsing) inherit those assumptions
+from the Assertion Issuer; an attacker controlling an
+issuer-accepted alias can land on a different normalized user.
+Either disable local-part normalization or verify the local-part
+through a mechanism outside this document. See also
+<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Scope of Namespace Authorization.<a href="#section-9.8-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="dii-multi-tenant">
+<section id="section-9.9">
+        <h3 id="name-single-issuer-multi-tenant-">
+<a href="#section-9.9" class="section-number selfRef">9.9. </a><a href="#name-single-issuer-multi-tenant-" class="section-name selfRef">Single-Issuer Multi-Tenant Identity Providers</a>
+        </h3>
+<p id="section-9.9-1">The shared-issuer case and its <code>tenant</code> binding are demonstrated
+in the Shared Issuer Variant of the End-to-End Example. Two
+security points apply:<a href="#section-9.9-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-9.9-2.1">
+            <p id="section-9.9-2.1.1"><strong>Unconstrained-listing risk.</strong> A Subject Authority that lists
+a shared issuer with no <code>tenant</code> value authorizes EVERY tenant
+of that Identity Provider, almost never the intent. Subject
+Authorities listing a shared issuer <span class="bcp14">SHOULD</span> include <code>tenant</code>.
+Resource Authorization Servers <span class="bcp14">SHOULD</span> log a warning when
+accepting under an unconstrained entry and <span class="bcp14">SHOULD</span> consider
+rejecting as a matter of local policy.<a href="#section-9.9-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.9-2.2">
+            <p id="section-9.9-2.2.1"><strong>Tenant-isolation dependency.</strong> The <code>tenant</code> binding is a
+wire-format expression of trust, not a cryptographic guarantee.
+The Resource Authorization Server verifies match against the
+Subject Authority's chosen tenant value, but cannot verify the
+Identity Provider's tenant-isolation implementation. A
+tenant-isolation defect (cross-tenant minting bug,
+misconfigured admin operation) defeats the wire-format check.
+Subject Authorities <span class="bcp14">SHOULD</span> prefer per-tenant issuer identifiers
+where offered and treat shared-issuer listings as long-lived
+delegations requiring due diligence on the Identity Provider's
+tenant-isolation guarantees.<a href="#section-9.9-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="enumeration-and-query-privacy">
+<section id="section-9.10">
+        <h3 id="name-enumeration-and-query-priva">
+<a href="#section-9.10" class="section-number selfRef">9.10. </a><a href="#name-enumeration-and-query-priva" class="section-name selfRef">Enumeration and Query Privacy</a>
+        </h3>
+<p id="section-9.10-1">DNS-based lookup exposes the Subject Authority being queried to the
+resolver path. It does not expose the full subject identifier for
+formats such as <code>email</code>, but it can reveal organizational
+relationships and timing. Resource Authorization Servers <span class="bcp14">SHOULD</span> use
+privacy-preserving resolver configurations where available and
+<span class="bcp14">SHOULD</span> avoid performing lookup until it is needed for a concrete
+verification decision.<a href="#section-9.10-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="iana-considerations">
+<section id="section-10">
+      <h2 id="name-iana-considerations">
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<div id="well-known-uri-for-issuer-authorization-policy">
+<section id="section-10.1">
+        <h3 id="name-well-known-uri-for-issuer-a">
+<a href="#section-10.1" class="section-number selfRef">10.1. </a><a href="#name-well-known-uri-for-issuer-a" class="section-name selfRef">Well-Known URI for Issuer Authorization Policy</a>
+        </h3>
+<p id="section-10.1-1">Registers the following well-known URI in the IANA "Well-Known URIs"
+registry <span>[<a href="#RFC8615" class="cite xref">RFC8615</a>]</span>, for use by this document:<a href="#section-10.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-10.1-2">
+          <dt id="section-10.1-2.1">URI Suffix:</dt>
+          <dd style="margin-left: 1.5em" id="section-10.1-2.2">
+            <p id="section-10.1-2.2.1"><code>oauth-issuer-policy</code><a href="#section-10.1-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-10.1-2.3">Change Controller:</dt>
+          <dd style="margin-left: 1.5em" id="section-10.1-2.4">
+            <p id="section-10.1-2.4.1">IETF<a href="#section-10.1-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-10.1-2.5">Specification Document:</dt>
+          <dd style="margin-left: 1.5em" id="section-10.1-2.6">
+            <p id="section-10.1-2.6.1">This document<a href="#section-10.1-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-10.1-2.7">Status:</dt>
+          <dd style="margin-left: 1.5em" id="section-10.1-2.8">
+            <p id="section-10.1-2.8.1">permanent<a href="#section-10.1-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-10.1-2.9">Related Information:</dt>
+          <dd style="margin-left: 1.5em" id="section-10.1-2.10">
+            <p id="section-10.1-2.10.1">None<a href="#section-10.1-2.10.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="underscored-dns-node-name">
+<section id="section-10.2">
+        <h3 id="name-underscored-dns-node-name">
+<a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-underscored-dns-node-name" class="section-name selfRef">Underscored DNS Node Name</a>
+        </h3>
+<p id="section-10.2-1">Registers the following entry in the IANA "Underscored and Globally
+Scoped DNS Node Names" registry per <span>[<a href="#RFC8552" class="cite xref">RFC8552</a>]</span> and <span>[<a href="#RFC8553" class="cite xref">RFC8553</a>]</span>, for
+use by this document:<a href="#section-10.2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-10.2-2">
+          <dt id="section-10.2-2.1">RR Type:</dt>
+          <dd style="margin-left: 1.5em" id="section-10.2-2.2">
+            <p id="section-10.2-2.2.1">TXT<a href="#section-10.2-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-10.2-2.3">Node Name:</dt>
+          <dd style="margin-left: 1.5em" id="section-10.2-2.4">
+            <p id="section-10.2-2.4.1"><code>_oauth-issuer-policy</code><a href="#section-10.2-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-10.2-2.5">Specification Document:</dt>
+          <dd style="margin-left: 1.5em" id="section-10.2-2.6">
+            <p id="section-10.2-2.6.1">This document, <a href="#dii-dns-record" class="auto internal xref">Section 4.3</a><a href="#section-10.2-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="trust-method-registrations">
+<section id="section-10.3">
+        <h3 id="name-trust-method-registrations">
+<a href="#section-10.3" class="section-number selfRef">10.3. </a><a href="#name-trust-method-registrations" class="section-name selfRef">Trust Method Registrations</a>
+        </h3>
+<p id="section-10.3-1">This document registers the following entries in the Identity
+Assertion Issuer Trust Methods registry
+(<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Identity Assertion Issuer Trust Methods Registry):<a href="#section-10.3-1" class="pilcrow">¶</a></p>
+<table class="center" id="table-4">
+          <caption><a href="#table-4" class="selfRef">Table 4</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Identifier</th>
+              <th class="text-left" rowspan="1" colspan="1">Categories</th>
+              <th class="text-left" rowspan="1" colspan="1">Parameters</th>
+              <th class="text-left" rowspan="1" colspan="1">Reference</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>domain_authorized_issuer</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>subject_namespace_authorization</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>lookup</code> (string, <span class="bcp14">OPTIONAL</span>; value <code>https_only</code> selects the HTTPS-only lookup variant)</td>
+              <td class="text-left" rowspan="1" colspan="1">This document</td>
+            </tr>
+          </tbody>
+        </table>
+</section>
+</div>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-11">
+      <h2 id="name-references">
+<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<div id="sec-normative-references">
+<section id="section-11.1">
+        <h3 id="name-normative-references">
+<a href="#section-11.1" class="section-number selfRef">11.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="ID-JAG">[ID-JAG]</dt>
+        <dd>
+<span class="refTitle">"Identity Assertion JWT Authorization Grant"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/">https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC1035">[RFC1035]</dt>
+        <dd>
+<span class="refAuthor">Mockapetris, P.</span>, <span class="refTitle">"Domain names - implementation and specification"</span>, <span class="seriesInfo">STD 13</span>, <span class="seriesInfo">RFC 1035</span>, <span class="seriesInfo">DOI 10.17487/RFC1035</span>, <time datetime="1987-11" class="refDate">November 1987</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc1035">https://www.rfc-editor.org/rfc/rfc1035</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC5234">[RFC5234]</dt>
+        <dd>
+<span class="refAuthor">Crocker, D., Ed.</span> and <span class="refAuthor">P. Overell</span>, <span class="refTitle">"Augmented BNF for Syntax Specifications: ABNF"</span>, <span class="seriesInfo">STD 68</span>, <span class="seriesInfo">RFC 5234</span>, <span class="seriesInfo">DOI 10.17487/RFC5234</span>, <time datetime="2008-01" class="refDate">January 2008</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5234">https://www.rfc-editor.org/rfc/rfc5234</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC5891">[RFC5891]</dt>
+        <dd>
+<span class="refAuthor">Klensin, J.</span>, <span class="refTitle">"Internationalized Domain Names in Applications (IDNA): Protocol"</span>, <span class="seriesInfo">RFC 5891</span>, <span class="seriesInfo">DOI 10.17487/RFC5891</span>, <time datetime="2010-08" class="refDate">August 2010</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5891">https://www.rfc-editor.org/rfc/rfc5891</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7519">[RFC7519]</dt>
+        <dd>
+<span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Bradley, J.</span>, and <span class="refAuthor">N. Sakimura</span>, <span class="refTitle">"JSON Web Token (JWT)"</span>, <span class="seriesInfo">RFC 7519</span>, <span class="seriesInfo">DOI 10.17487/RFC7519</span>, <time datetime="2015-05" class="refDate">May 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7519">https://www.rfc-editor.org/rfc/rfc7519</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8126">[RFC8126]</dt>
+        <dd>
+<span class="refAuthor">Cotton, M.</span>, <span class="refAuthor">Leiba, B.</span>, and <span class="refAuthor">T. Narten</span>, <span class="refTitle">"Guidelines for Writing an IANA Considerations Section in RFCs"</span>, <span class="seriesInfo">BCP 26</span>, <span class="seriesInfo">RFC 8126</span>, <span class="seriesInfo">DOI 10.17487/RFC8126</span>, <time datetime="2017-06" class="refDate">June 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8126">https://www.rfc-editor.org/rfc/rfc8126</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+        <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8414">[RFC8414]</dt>
+        <dd>
+<span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Sakimura, N.</span>, and <span class="refAuthor">J. Bradley</span>, <span class="refTitle">"OAuth 2.0 Authorization Server Metadata"</span>, <span class="seriesInfo">RFC 8414</span>, <span class="seriesInfo">DOI 10.17487/RFC8414</span>, <time datetime="2018-06" class="refDate">June 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8414">https://www.rfc-editor.org/rfc/rfc8414</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8552">[RFC8552]</dt>
+        <dd>
+<span class="refAuthor">Crocker, D.</span>, <span class="refTitle">"Scoped Interpretation of DNS Resource Records through "Underscored" Naming of Attribute Leaves"</span>, <span class="seriesInfo">BCP 222</span>, <span class="seriesInfo">RFC 8552</span>, <span class="seriesInfo">DOI 10.17487/RFC8552</span>, <time datetime="2019-03" class="refDate">March 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8552">https://www.rfc-editor.org/rfc/rfc8552</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8553">[RFC8553]</dt>
+        <dd>
+<span class="refAuthor">Crocker, D.</span>, <span class="refTitle">"DNS Attrleaf Changes: Fixing Specifications That Use Underscored Node Names"</span>, <span class="seriesInfo">BCP 222</span>, <span class="seriesInfo">RFC 8553</span>, <span class="seriesInfo">DOI 10.17487/RFC8553</span>, <time datetime="2019-03" class="refDate">March 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8553">https://www.rfc-editor.org/rfc/rfc8553</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8615">[RFC8615]</dt>
+        <dd>
+<span class="refAuthor">Nottingham, M.</span>, <span class="refTitle">"Well-Known Uniform Resource Identifiers (URIs)"</span>, <span class="seriesInfo">RFC 8615</span>, <span class="seriesInfo">DOI 10.17487/RFC8615</span>, <time datetime="2019-05" class="refDate">May 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8615">https://www.rfc-editor.org/rfc/rfc8615</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9493">[RFC9493]</dt>
+        <dd>
+<span class="refAuthor">Backman, A., Ed.</span>, <span class="refAuthor">Scurtescu, M.</span>, and <span class="refAuthor">P. Jain</span>, <span class="refTitle">"Subject Identifiers for Security Event Tokens"</span>, <span class="seriesInfo">RFC 9493</span>, <span class="seriesInfo">DOI 10.17487/RFC9493</span>, <time datetime="2023-12" class="refDate">December 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9493">https://www.rfc-editor.org/rfc/rfc9493</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9728">[RFC9728]</dt>
+        <dd>
+<span class="refAuthor">Jones, M.B.</span>, <span class="refAuthor">Hunt, P.</span>, and <span class="refAuthor">A. Parecki</span>, <span class="refTitle">"OAuth 2.0 Protected Resource Metadata"</span>, <span class="seriesInfo">RFC 9728</span>, <span class="seriesInfo">DOI 10.17487/RFC9728</span>, <time datetime="2025-04" class="refDate">April 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9728">https://www.rfc-editor.org/rfc/rfc9728</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="TRUST-FRAMEWORK">[TRUST-FRAMEWORK]</dt>
+      <dd>
+<span class="refTitle">"OAuth Identity Assertion Trust Framework"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-mcguinness-oauth-identity-assertion-trust-framework/">https://datatracker.ietf.org/doc/draft-mcguinness-oauth-identity-assertion-trust-framework/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-11.2">
+        <h3 id="name-informative-references">
+<a href="#section-11.2" class="section-number selfRef">11.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="OIDC-DISCOVERY">[OIDC-DISCOVERY]</dt>
+        <dd>
+<span class="refTitle">"OpenID Connect Discovery 1.0"</span>, <span>n.d.</span>, <span>&lt;<a href="https://openid.net/specs/openid-connect-discovery-1_0.html">https://openid.net/specs/openid-connect-discovery-1_0.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="OIDF-FEDERATION">[OIDF-FEDERATION]</dt>
+        <dd>
+<span class="refTitle">"OpenID Federation 1.0"</span>, <span>n.d.</span>, <span>&lt;<a href="https://openid.net/specs/openid-federation-1_0.html">https://openid.net/specs/openid-federation-1_0.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="PSL">[PSL]</dt>
+        <dd>
+<span class="refTitle">"Public Suffix List"</span>, <span>n.d.</span>, <span>&lt;<a href="https://publicsuffix.org/">https://publicsuffix.org/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8461">[RFC8461]</dt>
+        <dd>
+<span class="refAuthor">Margolis, D.</span>, <span class="refAuthor">Risher, M.</span>, <span class="refAuthor">Ramakrishnan, B.</span>, <span class="refAuthor">Brotman, A.</span>, and <span class="refAuthor">J. Jones</span>, <span class="refTitle">"SMTP MTA Strict Transport Security (MTA-STS)"</span>, <span class="seriesInfo">RFC 8461</span>, <span class="seriesInfo">DOI 10.17487/RFC8461</span>, <time datetime="2018-09" class="refDate">September 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8461">https://www.rfc-editor.org/rfc/rfc8461</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8659">[RFC8659]</dt>
+        <dd>
+<span class="refAuthor">Hallam-Baker, P.</span>, <span class="refAuthor">Stradling, R.</span>, and <span class="refAuthor">J. Hoffman-Andrews</span>, <span class="refTitle">"DNS Certification Authority Authorization (CAA) Resource Record"</span>, <span class="seriesInfo">RFC 8659</span>, <span class="seriesInfo">DOI 10.17487/RFC8659</span>, <time datetime="2019-11" class="refDate">November 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8659">https://www.rfc-editor.org/rfc/rfc8659</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="WICG-EMAIL-VERIF">[WICG-EMAIL-VERIF]</dt>
+      <dd>
+<span class="refTitle">"Email Verification Protocol"</span>, <span>n.d.</span>, <span>&lt;<a href="https://wicg.github.io/email-verification-protocol/">https://wicg.github.io/email-verification-protocol/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="design-rationale">
+<section id="appendix-A">
+      <h2 id="name-design-rationale">
+<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-design-rationale" class="section-name selfRef">Design Rationale</a>
+      </h2>
+<p id="appendix-A-1">This appendix is non-normative.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<div id="dns-authority-patterns">
+<section id="appendix-A.1">
+        <h3 id="name-following-existing-dns-auth">
+<a href="#appendix-A.1" class="section-number selfRef">A.1. </a><a href="#name-following-existing-dns-auth" class="section-name selfRef">Following Existing DNS Authority Patterns</a>
+        </h3>
+<p id="appendix-A.1-1">Domain-Authorized Issuer Discovery applies the same
+authority-publication pattern that domain owners already use for
+CAA <span>[<a href="#RFC8659" class="cite xref">RFC8659</a>]</span>, MTA-STS <span>[<a href="#RFC8461" class="cite xref">RFC8461</a>]</span>, SPF, DKIM, and the Email
+Verification Protocol <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span>. <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>
+§Authority Delegation Model covers the abstract pattern; this
+document chooses DNS at <code>_oauth-issuer-policy.{domain}</code> as the
+authoritative publication channel.<a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-2">Unlike CAA (deployment-time), SPF/DKIM (spam-score signal), and
+MTA-STS (inbound mail), the <code>_oauth-issuer-policy</code> record is
+consumed during user sign-in. Misconfiguration or staleness
+directly blocks user sign-in to dependent applications, so
+Subject Authorities deploying this framework <span class="bcp14">SHOULD</span> treat records
+with sign-in-dependency operational rigor (change-management
+review, monitoring for unexpected changes, rapid rollback).<a href="#appendix-A.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="why-first-class-tenant-binding">
+<section id="appendix-A.2">
+        <h3 id="name-why-first-class-tenant-bind">
+<a href="#appendix-A.2" class="section-number selfRef">A.2. </a><a href="#name-why-first-class-tenant-bind" class="section-name selfRef">Why First-Class Tenant Binding</a>
+        </h3>
+<p id="appendix-A.2-1">Shared-issuer multi-tenant Identity Providers (Google Workspace,
+Auth0 in some configurations, Microsoft Entra B2B in some flows)
+serve many customer tenants under a single issuer URL. The
+deployment reality is that these Identity Providers are common;
+authorizing them without tenant binding effectively authorizes
+every tenant of the Identity Provider for the namespace, which is
+almost never the intent.<a href="#appendix-A.2-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.2-2">The <code>tenant</code> member on <code>authorized_issuers[]</code> entries binds
+authorization to the specific tenant identifier the Identity
+Provider populates in the top-level <code>tenant</code> claim defined in
+<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §6.1. The binding makes the Subject Authority's choice
+of authorized tenant observable on the wire and verifiable per
+assertion. It does not eliminate the trust assumption on the
+Identity Provider's tenant-isolation enforcement; it makes the
+assumption explicit and auditable. See <a href="#dii-multi-tenant" class="auto internal xref">Section 9.9</a>.<a href="#appendix-A.2-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.2-3">A generic claim-matching mechanism (matching arbitrary JWT claims
+against publisher-specified values) was considered as an
+alternative. First-class <code>tenant</code> was preferred because the claim
+name is standardized in <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>, the deployment intent is
+unambiguous, and the wire-format expression is simpler than a
+generic claim-matching object.<a href="#appendix-A.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="rationale-https-only">
+<section id="appendix-A.3">
+        <h3 id="name-choosing-between-dns-publis">
+<a href="#appendix-A.3" class="section-number selfRef">A.3. </a><a href="#name-choosing-between-dns-publis" class="section-name selfRef">Choosing Between DNS-Published and HTTPS-Only Authority</a>
+        </h3>
+<p id="appendix-A.3-1">Canonical DNS-first lookup and HTTPS-only lookup are not strictly
+ordered by security strength; they trade different risks.
+HTTPS-only lookup is resilient to TXT-record attacks but depends on
+apex-hostname resolution plus the public CA trust system; a DNS
+redirect combined with TLS misissuance defeats it.
+<code>domain_authorized_issuer</code> in the inline form is resilient to TLS
+misissuance against the apex because the authority artifact is the
+TXT record itself; an attacker needs DNS-write or DNSSEC-bypass
+capability. The DNS pointer form and HTTPS fallback inherit
+TLS-misissuance risk on the pointed-at host while also depending
+on DNS for selection.<a href="#appendix-A.3-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.3-2">A Subject Authority with strong DNSSEC and weak TLS-issuance
+controls favors the inline DNS form. A Subject Authority with
+strong CAA/CT monitoring and limited DNS control favors HTTPS-only.<a href="#appendix-A.3-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="why-https-fallback">
+<section id="appendix-A.4">
+        <h3 id="name-why-https-fallback">
+<a href="#appendix-A.4" class="section-number selfRef">A.4. </a><a href="#name-why-https-fallback" class="section-name selfRef">Why HTTPS Fallback</a>
+        </h3>
+<p id="appendix-A.4-1">The framework supports an HTTPS-hosted Issuer Authorization Policy
+at a well-known URL on the Subject Authority's host. This serves
+two purposes:<a href="#appendix-A.4-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-A.4-2.1">
+            <p id="appendix-A.4-2.1.1"><strong>Backward-compatibility runway.</strong> Subject Authorities that
+cannot or do not yet operate the DNS record can participate via
+HTTPS publication only. The lookup procedure consults the HTTPS
+well-known URL when the DNS query returns
+<code>negative-authoritative</code> (<a href="#dii-lookup" class="auto internal xref">Section 5</a>).<a href="#appendix-A.4-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.4-2.2">
+            <p id="appendix-A.4-2.2.1"><strong>Richer policy expression.</strong> The HTTPS form supports the full
+Issuer Authorization Policy JSON schema (validity windows, tenant
+binding, format restrictions) that the inline DNS form cannot
+express.<a href="#appendix-A.4-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="appendix-A.4-3">DNS remains the entry point; HTTPS is consulted only as fallback
+when the DNS query returns <code>negative-authoritative</code>. This preserves
+the DNS-authority pattern as the primary channel while
+accommodating deployment variations.<a href="#appendix-A.4-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="future-extensions">
+<section id="appendix-B">
+      <h2 id="name-future-extensions">
+<a href="#appendix-B" class="section-number selfRef">Appendix B. </a><a href="#name-future-extensions" class="section-name selfRef">Future Extensions</a>
+      </h2>
+<p id="appendix-B-1">This appendix is non-normative. It sketches features intentionally
+deferred from this document; future specifications may register them.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+<div id="email-verification-protocol-bridge">
+<section id="appendix-B.1">
+        <h3 id="name-email-verification-protocol">
+<a href="#appendix-B.1" class="section-number selfRef">B.1. </a><a href="#name-email-verification-protocol" class="section-name selfRef">Email Verification Protocol Bridge</a>
+        </h3>
+<p id="appendix-B.1-1">The WICG Email Verification Protocol <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span> defines a
+DNS TXT record at <code>_email-verification.{domain}</code> whose <code>iss=</code> values
+name authorized issuers for the namespace, using bare hostnames
+rather than full HTTPS issuer identifiers. A future Trust Method
+(provisionally <code>email_verification_dns</code>) could let a Resource
+Authorization Server honor those records without requiring the
+Subject Authority to also publish an <code>_oauth-issuer-policy</code> record.<a href="#appendix-B.1-1" class="pilcrow">¶</a></p>
+<p id="appendix-B.1-2">The bridge is deferred because it forces the reader to learn a
+second record format and a different issuer-identifier shape
+(bare-origin only, no path component), and because
+<span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span> is an external draft whose status is independent
+of this document. Deployments wanting the bridge can either publish
+both records (an <code>_oauth-issuer-policy</code> record satisfying
+<code>domain_authorized_issuer</code> plus their existing
+<code>_email-verification</code> record for other consumers) or wait for the
+future Trust Method specification.<a href="#appendix-B.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="assertion-issuer-discovery-client-side">
+<section id="appendix-B.2">
+        <h3 id="name-assertion-issuer-discovery-">
+<a href="#appendix-B.2" class="section-number selfRef">B.2. </a><a href="#name-assertion-issuer-discovery-" class="section-name selfRef">Assertion Issuer Discovery (Client-Side)</a>
+        </h3>
+<p id="appendix-B.2-1">The same DAI records that let a Resource Authorization Server
+verify an assertion can also let a client discover which Assertion
+Issuer is authoritative for a subject identifier's namespace
+before any assertion exists: given <code>alice@acme.example</code>, a client
+can query <code>_oauth-issuer-policy.acme.example</code>, retrieve the Issuer
+Authorization Policy, and resolve the first authorized issuer's
+authorization server metadata to find its token endpoint.<a href="#appendix-B.2-1" class="pilcrow">¶</a></p>
+<p id="appendix-B.2-2">This client-side use case is deferred from the first version of
+DAI because it adds a second mental model (back-channel discovery
+vs. verification at token exchange), introduces privacy concerns
+distinct from verification (the discovery query reveals the
+queried Subject Authority to DNS resolvers and to the policy
+host before any user interaction), and is not on the Resource
+Authorization Server implementer's critical path. A future
+specification can profile the discovery flow with appropriate
+privacy guidance and integration with OAuth Authorization Server
+Metadata <span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span> and OpenID Connect Discovery
+<span>[<a href="#OIDC-DISCOVERY" class="cite xref">OIDC-DISCOVERY</a>]</span>.<a href="#appendix-B.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="dns-based-domain-authorized-issuer-end-to-end-example">
+<section id="appendix-C">
+      <h2 id="name-dns-based-domain-authorized">
+<a href="#appendix-C" class="section-number selfRef">Appendix C. </a><a href="#name-dns-based-domain-authorized" class="section-name selfRef">DNS-Based Domain-Authorized Issuer End-to-End Example</a>
+      </h2>
+<p id="appendix-C-1">This appendix is non-normative.<a href="#appendix-C-1" class="pilcrow">¶</a></p>
+<p id="appendix-C-2">This example walks through an end-to-end verification flow: the
+Subject Authority publishes a DAI record, an Assertion Issuer issues
+an identity assertion, and the Resource Authorization Server uses
+the record to verify that the issuer is authorized for the asserted
+namespace.<a href="#appendix-C-2" class="pilcrow">¶</a></p>
+<div id="cast">
+<section id="appendix-C.1">
+        <h3 id="name-cast">
+<a href="#appendix-C.1" class="section-number selfRef">C.1. </a><a href="#name-cast" class="section-name selfRef">Cast</a>
+        </h3>
+<ul class="normal">
+<li class="normal" id="appendix-C.1-1.1">
+            <p id="appendix-C.1-1.1.1"><strong>Subject Authority</strong>, <code>acme.example</code>. A small organization that owns
+its DNS but does not operate an authorization server capable of
+issuing identity assertions.<a href="#appendix-C.1-1.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-C.1-1.2">
+            <p id="appendix-C.1-1.2.1"><strong>Assertion Issuer</strong>, <code>https://idp.example.net</code>. A managed
+authorization server service <code>acme.example</code> has contracted with.<a href="#appendix-C.1-1.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-C.1-1.3">
+            <p id="appendix-C.1-1.3.1"><strong>Resource Authorization Server</strong>, <code>https://api.resource.example</code>.<a href="#appendix-C.1-1.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-C.1-1.4">
+            <p id="appendix-C.1-1.4.1"><strong>Client</strong>, a backend SaaS integration.<a href="#appendix-C.1-1.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-C.1-1.5">
+            <p id="appendix-C.1-1.5.1"><strong>End user</strong>, Alice (<code>alice@acme.example</code>).<a href="#appendix-C.1-1.5.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="publication-1">
+<section id="appendix-C.2">
+        <h3 id="name-publication-2">
+<a href="#appendix-C.2" class="section-number selfRef">C.2. </a><a href="#name-publication-2" class="section-name selfRef">Publication</a>
+        </h3>
+<p id="appendix-C.2-1">The Subject Authority publishes a single DNS TXT record:<a href="#appendix-C.2-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="appendix-C.2-2">
+<pre>
+_oauth-issuer-policy.acme.example.  IN  TXT
+  "v=oauth-issuer-policy1;
+   authority=acme.example;
+   issuer=https://idp.example.net"
+</pre><a href="#appendix-C.2-2" class="pilcrow">¶</a>
+</div>
+<p id="appendix-C.2-3">No HTTPS endpoint is operated on <code>acme.example</code>.<a href="#appendix-C.2-3" class="pilcrow">¶</a></p>
+<p id="appendix-C.2-4">The Resource Authorization Server publishes a trust policy that accepts
+domain-authorized issuer delegations with DNS-based discovery:<a href="#appendix-C.2-4" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-C.2-5">
+<pre>
+{
+  "resource_authorization_server": "https://api.resource.example",
+  "authorization_grant_profiles_supported": [
+    "urn:ietf:params:oauth:grant-profile:id-jag"
+  ],
+  "subject_identifier_formats_supported": ["email"],
+  "issuer_trust_methods": [
+    {
+      "method": "domain_authorized_issuer"
+    }
+  ]
+}
+</pre><a href="#appendix-C.2-5" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="issuance-and-token-request">
+<section id="appendix-C.3">
+        <h3 id="name-issuance-and-token-request">
+<a href="#appendix-C.3" class="section-number selfRef">C.3. </a><a href="#name-issuance-and-token-request" class="section-name selfRef">Issuance and Token Request</a>
+        </h3>
+<ol start="1" type="1" class="normal type-1" id="appendix-C.3-1">
+<li id="appendix-C.3-1.1">
+            <p id="appendix-C.3-1.1.1">The Client is configured, by a deployment-specific mechanism
+outside DAI, to use <code>https://idp.example.net</code> for Acme users. It
+authenticates Alice at that issuer
+and requests an ID-JAG with audience
+<code>https://api.resource.example</code> carrying Alice's email:<a href="#appendix-C.3-1.1.1" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-C.3-1.1.2">
+<pre>
+{
+  "iss": "https://idp.example.net",
+  "aud": "https://api.resource.example",
+  "exp": 1780166400,
+  "iat": 1780166100,
+  "jti": "5a17...",
+  "sub": "user-9241ab",
+  "email": "alice@acme.example",
+  "email_verified": true
+}
+</pre><a href="#appendix-C.3-1.1.2" class="pilcrow">¶</a>
+</div>
+</li>
+          <li id="appendix-C.3-1.2">
+            <p id="appendix-C.3-1.2.1">The Client posts to the Resource Authorization Server's token
+endpoint with <code>private_key_jwt</code> client authentication:<a href="#appendix-C.3-1.2.1" class="pilcrow">¶</a></p>
+<div class="lang-http sourcecode" id="appendix-C.3-1.2.2">
+<pre>
+POST /token HTTP/1.1
+Host: api.resource.example
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
+&amp;assertion=eyJhbGciOiJSUzI1NiIs...
+&amp;client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer
+&amp;client_assertion=eyJhbGciOiJFUzI1NiIs...
+</pre><a href="#appendix-C.3-1.2.2" class="pilcrow">¶</a>
+</div>
+</li>
+        </ol>
+</section>
+</div>
+<div id="verification-resource-authorization-server-side">
+<section id="appendix-C.4">
+        <h3 id="name-verification-resource-autho">
+<a href="#appendix-C.4" class="section-number selfRef">C.4. </a><a href="#name-verification-resource-autho" class="section-name selfRef">Verification (Resource Authorization Server Side)</a>
+        </h3>
+<ol start="1" type="1" class="normal type-1" id="appendix-C.4-1">
+<li id="appendix-C.4-1.1">
+            <p id="appendix-C.4-1.1.1">The Resource Authorization Server validates the ID-JAG:
+signature (via
+<code>https://idp.example.net/.well-known/openid-configuration</code>
+JWKS), <code>aud</code>, <code>exp</code>, <code>iat</code>, replay protection.<a href="#appendix-C.4-1.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="appendix-C.4-1.2">
+            <p id="appendix-C.4-1.2.1">The Resource Authorization Server evaluates the
+<code>domain_authorized_issuer</code> Trust Method.<a href="#appendix-C.4-1.2.1" class="pilcrow">¶</a></p>
+<p id="appendix-C.4-1.2.2">
+a. It extracts the Subject Authority from the top-level <code>email</code>
+   claim (with <code>email_verified=true</code>): <code>acme.example</code>.<a href="#appendix-C.4-1.2.2" class="pilcrow">¶</a></p>
+<p id="appendix-C.4-1.2.3">
+b. Applying the canonical lookup procedure (<a href="#dii-lookup" class="auto internal xref">Section 5</a>), the
+   Resource Authorization Server queries DNS TXT at
+   <code>_oauth-issuer-policy.acme.example</code> and parses the record
+   published earlier in this example.<a href="#appendix-C.4-1.2.3" class="pilcrow">¶</a></p>
+<p id="appendix-C.4-1.2.4">
+c. The <code>authority=acme.example</code> directive matches. No <code>uri=</code> is
+   present. The Resource Authorization Server constructs a
+   virtual policy for <code>acme.example</code> with one
+   <code>authorized_issuers</code> entry for <code>https://idp.example.net</code>.<a href="#appendix-C.4-1.2.4" class="pilcrow">¶</a></p>
+<p id="appendix-C.4-1.2.5">
+d. The ID-JAG <code>iss</code> value <code>https://idp.example.net</code> matches
+   the single <code>authorized_issuers[0].issuer</code>. Verification
+   succeeds.<a href="#appendix-C.4-1.2.5" class="pilcrow">¶</a></p>
+</li>
+          <li id="appendix-C.4-1.3">
+            <p id="appendix-C.4-1.3.1">The Resource Authorization Server validates <code>private_key_jwt</code>,
+then issues an access token in the response body.<a href="#appendix-C.4-1.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+</section>
+</div>
+<div id="migration-variant-pointer-form">
+<section id="appendix-C.5">
+        <h3 id="name-migration-variant-pointer-f">
+<a href="#appendix-C.5" class="section-number selfRef">C.5. </a><a href="#name-migration-variant-pointer-f" class="section-name selfRef">Migration Variant: Pointer Form</a>
+        </h3>
+<p id="appendix-C.5-1">If <code>acme.example</code> later wants to express validity windows, format
+restrictions, or multiple issuers with ordering, it can switch to
+the pointer form without changing any consumer behavior:<a href="#appendix-C.5-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="appendix-C.5-2">
+<pre>
+_oauth-issuer-policy.acme.example.  IN  TXT
+  "v=oauth-issuer-policy1;
+   authority=acme.example;
+   uri=https://acme.example/.well-known/oauth-issuer-policy"
+</pre><a href="#appendix-C.5-2" class="pilcrow">¶</a>
+</div>
+<p id="appendix-C.5-3">and publish the richer JSON document at the pointed-at URL:<a href="#appendix-C.5-3" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-C.5-4">
+<pre>
+{
+  "subject_authority": "acme.example",
+  "authorized_issuers": [
+    {
+      "issuer": "https://idp.example.net",
+      "subject_identifier_formats": ["email"],
+      "valid_until": "2027-05-30T00:00:00Z"
+    },
+    {
+      "issuer": "https://idp-backup.example.net",
+      "subject_identifier_formats": ["email"]
+    }
+  ],
+  "last_updated": "2026-05-29T00:00:00Z"
+}
+</pre><a href="#appendix-C.5-4" class="pilcrow">¶</a>
+</div>
+<p id="appendix-C.5-5">Resource Authorization Servers transparently follow the <code>uri=</code>
+directive and consume the JSON document. No verifier software
+changes are required.<a href="#appendix-C.5-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="shared-issuer-variant-multi-tenant-identity-provider">
+<section id="appendix-C.6">
+        <h3 id="name-shared-issuer-variant-multi">
+<a href="#appendix-C.6" class="section-number selfRef">C.6. </a><a href="#name-shared-issuer-variant-multi" class="section-name selfRef">Shared Issuer Variant: Multi-Tenant Identity Provider</a>
+        </h3>
+<p id="appendix-C.6-1">The simple example above uses a per-tenant issuer identifier
+(<code>https://idp.example.net</code> is dedicated to Acme). Some Identity
+Providers serve every tenant under a single shared issuer (for
+example, <code>https://accounts.google.com</code>) and distinguish tenants via
+the ID-JAG top-level <code>tenant</code> claim (<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §6.1). For these,
+the <code>authorized_issuers[].tenant</code> member binds the authorization to
+a specific tenant of the shared issuer.<a href="#appendix-C.6-1" class="pilcrow">¶</a></p>
+<p id="appendix-C.6-2">Suppose Acme uses a multi-tenant Identity Provider with shared
+issuer <code>https://accounts.shared.example</code> and Acme's tenant
+identifier in that Identity Provider is <code>acme-corp</code>. Acme publishes
+the pointer form pointing at the richer JSON:<a href="#appendix-C.6-2" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-C.6-3">
+<pre>
+{
+  "subject_authority": "acme.example",
+  "authorized_issuers": [
+    {
+      "issuer": "https://accounts.shared.example",
+      "tenant": "acme-corp",
+      "subject_identifier_formats": ["email"]
+    }
+  ],
+  "last_updated": "2026-05-29T00:00:00Z"
+}
+</pre><a href="#appendix-C.6-3" class="pilcrow">¶</a>
+</div>
+<p id="appendix-C.6-4">Verification adds one check to the simple flow: in addition to
+matching <code>iss</code>, the Resource Authorization Server requires the
+ID-JAG's top-level <code>tenant</code> claim to equal <code>"acme-corp"</code>. An
+assertion from <code>https://accounts.shared.example</code> with a different
+<code>tenant</code> value (or no <code>tenant</code>) does not match this entry. The
+security properties and operational guidance for this case are in
+<a href="#dii-multi-tenant" class="auto internal xref">Section 9.9</a>.<a href="#appendix-C.6-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="failure-variants">
+<section id="appendix-C.7">
+        <h3 id="name-failure-variants">
+<a href="#appendix-C.7" class="section-number selfRef">C.7. </a><a href="#name-failure-variants" class="section-name selfRef">Failure Variants</a>
+        </h3>
+<ul class="normal">
+<li class="normal" id="appendix-C.7-1.1">
+            <p id="appendix-C.7-1.1.1">A DNS SERVFAIL at <code>_oauth-issuer-policy.acme.example</code> is
+classified as <code>indeterminate</code> (<a href="#dii-failures" class="auto internal xref">Section 5.1</a>). The Resource
+Authorization Server does not fall back to
+<code>https://acme.example/.well-known/oauth-issuer-policy</code>; it
+returns <code>invalid_grant</code>.<a href="#appendix-C.7-1.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-C.7-1.2">
+            <p id="appendix-C.7-1.2.1">A wildcard record at <code>*.example</code> covering <code>acme.example</code> would
+have to carry <code>authority=acme.example</code> to be accepted. A wildcard
+with a different <code>authority=</code> is discarded.<a href="#appendix-C.7-1.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-C.7-1.3">
+            <p id="appendix-C.7-1.3.1">If <code>acme.example</code> rotates its authorized Assertion Issuer and the
+Resource Authorization Server has a cached virtual policy, the
+Resource Authorization Server may continue accepting assertions
+from the old issuer until its cache expires. Subject Authorities
+are encouraged to use short DNS TTLs during rotation; consumers
+enforce a local cache ceiling per <a href="#dii-caching" class="auto internal xref">Section 7</a>.<a href="#appendix-C.7-1.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+</section>
+</div>
+<div id="document-history">
+<section id="appendix-D">
+      <h2 id="name-document-history">
+<a href="#appendix-D" class="section-number selfRef">Appendix D. </a><a href="#name-document-history" class="section-name selfRef">Document History</a>
+      </h2>
+<p id="appendix-D-1">This appendix is non-normative and will be removed before publication.<a href="#appendix-D-1" class="pilcrow">¶</a></p>
+<p id="appendix-D-2">-00<a href="#appendix-D-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-D-3.1">
+          <p id="appendix-D-3.1.1">initial draft, split from draft-mcguinness-oauth-identity-assertion-issuer-trust-policy<a href="#appendix-D-3.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-E">
+      <h2 id="name-authors-address">
+<a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Karl McGuinness</span></div>
+<div dir="auto" class="left"><span class="org">Independent</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:public@karlmcguinness.com" class="email">public@karlmcguinness.com</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>

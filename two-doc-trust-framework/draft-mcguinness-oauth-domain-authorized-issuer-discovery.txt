@@ -22,6 +22,11 @@ Abstract
    Server uses the published policy to verify that an identity
    assertion's issuer is authorized for the asserted subject namespace.
 
+   The "discovery" defined by this document is verifier-side discovery
+   of the Subject Authority's issuer authorization policy.  Client-side
+   discovery of which Assertion Issuer to use before an assertion exists
+   is a separate use case and is deferred to future work.
+
    DAI is a profile of the OAuth Identity Assertion Issuer Trust Policy
    ([TRUST-FRAMEWORK]): it defines the Issuer Authorization Policy wire
    format and the canonical domain_authorized_issuer
@@ -81,7 +86,7 @@ Table of Contents
    2.  Terminology
    3.  Issuer Authorization Policy Document
    4.  Publication
-     4.1.  Publication Profiles
+     4.1.  Publication Channels
      4.2.  Default HTTPS Well-Known URL
      4.3.  DNS Record
      4.4.  HTTPS Document URL
@@ -172,7 +177,7 @@ Table of Contents
    DAI is a concrete profile of [TRUST-FRAMEWORK] for OAuth identity
    assertions: the Subject Authority is the Authority Holder; the Issuer
    Authorization Policy is the Delegation Artifact; the DNS record (or
-   DNS pointer plus HTTPS document) is the publication channel; the
+   DNS pointer plus HTTPS document) is one publication channel; the
    Assertion Issuer is the Delegate.  Lookup state classification and
    fail-closed requirements follow [TRUST-FRAMEWORK] §Lookup States and
    Fail-Closed.
@@ -181,7 +186,7 @@ Table of Contents
    document format, Trust Method machinery, Subject Authority
    Determination, and OAuth grant-profile bindings.  This document
    defines the Issuer Authorization Policy document (Section 3), the DNS
-   + HTTPS publication formats (Section 4.1), the lookup procedure
+   and HTTPS publication channels (Section 4.1), the lookup procedure
    (Section 5), the verification rules (Section 6), the
    domain_authorized_issuer Trust Method, and an HTTPS-only deployment
    variant (Section 8.2).  A bridge to the Email Verification Protocol's
@@ -290,7 +295,11 @@ Table of Contents
    signed_policy  OPTIONAL.  Signed JWT containing policy members as
       claims, using the representation defined in [TRUST-FRAMEWORK]
       §Signed Policy Metadata.  This member follows the signed metadata
-      pattern used by [RFC8414] and [RFC9728].
+      pattern used by [RFC8414] and [RFC9728].  Its presence does not by
+      itself require all consumers to support signed policy processing;
+      consumers apply the requirements in [TRUST-FRAMEWORK] §Signed
+      Policy Metadata and any local policy that requires object-level
+      integrity.
 
    Consumers MUST ignore unrecognized members.  Validation rules; a
    policy failing any is malformed:
@@ -358,42 +367,51 @@ Table of Contents
 4.  Publication
 
    A Subject Authority publishes the Issuer Authorization Policy through
-   one of two publication profiles defined in Section 4.1.  The DNS
-   record at _oauth-issuer-policy.{A} is the entry point in both
-   profiles, following the pattern of CAA, MTA-STS, SPF, and DKIM
-   (Appendix A.1); the DNS record's mode determines which profile
-   applies.
+   one of the publication channels defined in Section 4.1.  DNS
+   publication uses the TXT record at _oauth-issuer-policy.{A},
+   following the pattern of CAA, MTA-STS, SPF, and DKIM (Appendix A.1).
+   HTTPS publication uses the default well-known URL on the Subject
+   Authority's own host.
 
-4.1.  Publication Profiles
+4.1.  Publication Channels
 
-   This document defines two publication profiles.  A Subject Authority
-   chooses one based on operational constraints; both produce
+   This document defines three publication channels.  A Subject
+   Authority chooses based on operational constraints; all produce
    semantically equivalent policy validated by the same lookup procedure
-   (Section 5).
+   (Section 5).  The canonical lookup procedure consults DNS first and
+   uses the HTTPS well-known channel only when DNS authoritatively
+   indicates absence.
 
-   +============+==========+=============+============+===============+
-   | Profile    | DNS form | Document    | Authority  | When to use   |
-   |            |          |             | binding    |               |
-   +============+==========+=============+============+===============+
-   | 1: DNS-    | TXT with | None        | DNS        | Common case:  |
-   | Inline     | issuer=  | (carried in | control of | authorize an  |
-   |            | (Section | TXT)        | {A}        | issuer for a  |
-   |            | 4.3)     |             |            | namespace     |
-   |            |          |             |            | with no rich  |
-   |            |          |             |            | policy        |
-   +------------+----------+-------------+------------+---------------+
-   | 2:         | TXT with | HTTPS-      | DNS        | Rich policy   |
-   | Authority- | uri=     | hosted JSON | control of | (validity     |
-   | Hosted     |          | under       | {A} AND    | windows,      |
-   | HTTPS      |          | Subject     | TLS on the | format        |
-   |            |          | Authority's | authority- | restrictions, |
-   |            |          | operational | operated   | tenant        |
-   |            |          | control     | host       | binding) at a |
-   |            |          |             |            | controlled    |
-   |            |          |             |            | origin        |
-   +------------+----------+-------------+------------+---------------+
+   +==========+========+====================+==========+===============+
+   |Channel   |DNS form| Document           |Authority |When to use    |
+   |          |        |                    |binding   |               |
+   +==========+========+====================+==========+===============+
+   |1: DNS-   |TXT with| None (carried in   |DNS       |Common case:   |
+   |Inline    |issuer= | TXT)               |control of|authorize an   |
+   |          |(Section|                    |{A}       |issuer for a   |
+   |          |4.3)    |                    |          |namespace with |
+   |          |        |                    |          |no rich policy |
+   +----------+--------+--------------------+----------+---------------+
+   |2:        |TXT with| HTTPS-hosted JSON  |DNS       |Rich policy    |
+   |Authority-|uri=    | under Subject      |control of|(validity      |
+   |Hosted    |        | Authority's        |{A} AND   |windows,       |
+   |HTTPS     |        | operational        |TLS on the|format         |
+   |          |        | control            |authority-|restrictions,  |
+   |          |        |                    |operated  |tenant         |
+   |          |        |                    |host      |binding) at a  |
+   |          |        |                    |          |controlled     |
+   |          |        |                    |          |origin         |
+   +----------+--------+--------------------+----------+---------------+
+   |3: Default|No DNS  | HTTPS-hosted JSON  |TLS on {A}|Subject        |
+   |HTTPS     |record  | at                 |          |Authority has  |
+   |Well-Known|        | https://{A}/.well- |          |well-known     |
+   |          |        | known/oauth-       |          |HTTPS          |
+   |          |        | issuer-policy      |          |infrastructure |
+   |          |        |                    |          |but no DAI DNS |
+   |          |        |                    |          |record         |
+   +----------+--------+--------------------+----------+---------------+
 
-                                 Table 2
+                                  Table 2
 
 4.2.  Default HTTPS Well-Known URL
 
@@ -401,9 +419,9 @@ Table of Contents
    default HTTPS well-known URL on its own host (Section 4.4).  The
    lookup procedure (Section 5) consults DNS first and uses the HTTPS
    well-known URL only as a fallback when the DNS response is negative-
-   authoritative.  This fallback is independent of the two publication
-   profiles above; it covers the case where a Subject Authority has no
-   DNS record but does have well-known HTTPS infrastructure.
+   authoritative.  This channel covers the case where a Subject
+   Authority has no DAI DNS record but does have well-known HTTPS
+   infrastructure.
 
    Operators are encouraged to publish the DNS record in all deployments
    because it matches the operational model of the prior-art mechanisms
@@ -1468,9 +1486,10 @@ C.2.  Publication
 
 C.3.  Issuance and Token Request
 
-   1.  The Client authenticates Alice at https://idp.example.net and
-       requests an ID-JAG with audience https://api.resource.example
-       carrying Alice's email:
+   1.  The Client is configured, by a deployment-specific mechanism
+       outside DAI, to use https://idp.example.net for Acme users.  It
+       authenticates Alice at that issuer and requests an ID-JAG with
+       audience https://api.resource.example carrying Alice's email:
 
       {
         "iss": "https://idp.example.net",
@@ -1602,9 +1621,10 @@ C.7.  Failure Variants
       different authority= is discarded.
 
    *  If acme.example rotates its authorized Assertion Issuer and the
-      Client has a cached virtual policy, the Client will still attempt
-      the old issuer until its cache expires.  Subject Authorities are
-      encouraged to use short DNS TTLs during rotation; consumers
+      Resource Authorization Server has a cached virtual policy, the
+      Resource Authorization Server may continue accepting assertions
+      from the old issuer until its cache expires.  Subject Authorities
+      are encouraged to use short DNS TTLs during rotation; consumers
       enforce a local cache ceiling per Section 7.
 
 Appendix D.  Document History

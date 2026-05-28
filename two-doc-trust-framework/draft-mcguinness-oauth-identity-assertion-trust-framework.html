@@ -2542,10 +2542,12 @@ subdomain.<a href="#section-4.4.2-1" class="pilcrow">¶</a></p>
 <a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-signed-policy-metadata" class="section-name selfRef">Signed Policy Metadata</a>
         </h3>
 <p id="section-4.5-1">The Trust Policy and Issuer Authorization Policy documents <span class="bcp14">MAY</span> include
-a <code>signed_policy</code> member that provides object-level cryptographic
-integrity for the policy document. This member follows the signed
-metadata pattern defined for authorization server metadata in
-<span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span> and protected resource metadata in <span>[<a href="#RFC9728" class="cite xref">RFC9728</a>]</span>.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
+a <code>signed_policy</code> member that provides cryptographic integrity for
+signed policy claims. When the signed JWT contains all recognized
+decision-affecting policy members, <code>signed_policy</code> can provide
+object-level integrity for the policy document. This member follows
+the signed metadata pattern defined for authorization server metadata
+in <span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span> and protected resource metadata in <span>[<a href="#RFC9728" class="cite xref">RFC9728</a>]</span>.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
 <p id="section-4.5-2">The <code>signed_policy</code> value is a JWT <span>[<a href="#RFC7519" class="cite xref">RFC7519</a>]</span> containing policy
 members as claims. The JWT <span class="bcp14">MUST</span> be digitally signed using JWS
 <span>[<a href="#RFC7515" class="cite xref">RFC7515</a>]</span> with an asymmetric algorithm and <span class="bcp14">MUST</span> contain an <code>iss</code>
@@ -2594,11 +2596,21 @@ values are not byte-identical after JSON canonicalization. Consumers
 can modify the outer document but not the signed JWT otherwise has a
 lever to inject visible-but-ignored members that may mislead operators
 or downstream tooling.<a href="#section-4.5-7" class="pilcrow">¶</a></p>
-<p id="section-4.5-8">If a consumer requires object-level integrity by local policy, the
-consumer <span class="bcp14">MUST</span> verify the signed JWT before acting on the policy. If
-signature verification fails, if the verification key is unacceptable,
-if the JWT is malformed, or if the required issuer binding above is not
-satisfied, the consumer <span class="bcp14">MUST</span> reject the policy as malformed.<a href="#section-4.5-8" class="pilcrow">¶</a></p>
+<p id="section-4.5-8">This specification does not define a criticality mechanism that lets
+a publisher require <code>signed_policy</code> processing by all consumers. The
+presence of <code>signed_policy</code> therefore provides integrity only for
+consumers that support and verify it, or for deployments where local
+policy requires signed policy processing.<a href="#section-4.5-8" class="pilcrow">¶</a></p>
+<p id="section-4.5-9">If a consumer requires object-level integrity by local policy, the
+consumer <span class="bcp14">MUST</span> verify the signed JWT before acting on the policy, and
+the JWT payload <span class="bcp14">MUST</span> contain every recognized decision-affecting
+member used by that consumer. The consumer <span class="bcp14">MUST NOT</span> use unsigned
+recognized decision-affecting members that are absent from the JWT
+payload. If signature verification fails, if the verification key is
+unacceptable, if the JWT is malformed, if the required issuer binding
+above is not satisfied, or if the JWT omits a recognized
+decision-affecting member required for evaluation, the consumer <span class="bcp14">MUST</span>
+reject the policy as malformed.<a href="#section-4.5-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>

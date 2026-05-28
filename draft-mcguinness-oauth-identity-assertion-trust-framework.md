@@ -394,7 +394,7 @@ The Authority Holder publishes the Delegation Artifact through a
 profile-defined channel: a DNS record under its domain, an HTTPS
 document at a well-known URL on its host, a signed subordinate
 statement in a federation, or another profile-defined form.
-Control of that publication channel IS the authority binding —
+Control of that publication channel IS the authority binding:
 whoever can publish at the channel is the Authority Holder for
 the namespace, claim type, or scope. The Validator validates the
 Delegation Artifact (which says "Authority Holder authorized
@@ -469,9 +469,9 @@ attack this prevents.
 ### Multiple Authority Sources Within a Category {#multiple-sources}
 
 A Validator MAY accept Delegation Artifacts from multiple
-Authority Sources within the same category — multiple Subject
+Authority Sources within the same category (multiple Subject
 Authorities for different namespaces, multiple federation trust
-anchors. Selection of WHICH Authority Source applies to a given
+anchors). Selection of WHICH Authority Source applies to a given
 Assertion happens BEFORE the Assertion is authenticated against
 any delegation, so a profile MUST define deterministic source
 selection: a binding function from Assertion + request context to
@@ -903,7 +903,7 @@ If the IdP were federation-authenticated but Acme had not listed
 it in its DAI record, step 2 would succeed and step 3 would fail;
 the Resource Authorization Server rejects with `invalid_grant`.
 Federation membership alone does NOT establish namespace
-authority — the combination rule is what enforces this. A deeper
+authority; the combination rule is what enforces this. A deeper
 walkthrough including federation trust-chain validation and Trust
 Mark satisfaction is in {{example-federation-walkthrough}}.
 
@@ -963,7 +963,7 @@ Subject Identifier format's extraction procedure.
 
 The PSL {{PSL}} is updated continuously and snapshots taken at
 different times can yield different registrable domains for the
-same email — a deterministic-source-selection hazard
+same email, a deterministic-source-selection hazard
 ({{multiple-sources}}). Consumers SHOULD use a snapshot from
 `publicsuffix.org` no older than 30 days. Subject Authorities
 SHOULD monitor PSL changes affecting their namespace; cross-consumer
@@ -1271,8 +1271,8 @@ define that function explicitly and the function MUST:
 - Use explicitly defined inputs (a single named claim, header,
   request parameter, or fixed tuple).
 - Produce exactly one Authority Source for any valid input, or
-  fail deterministically — no preference ordering, no fallback
-  across candidates.
+  fail deterministically (no preference ordering, no fallback
+  across candidates).
 - Be invariant under attacker-controlled inputs outside the
   binding function: the presence, absence, or value of any other
   claim MUST NOT alter the selected Authority Source.
@@ -1470,7 +1470,7 @@ are encouraged to log, for each processed assertion, at minimum the
 Assertion Issuer identifier, the trust policy URI and its
 `last_updated`, the Trust Methods that succeeded, the matched trust
 anchor or Issuer Authorization Policy origin, the Subject Identifier
-format, and the accept/reject outcome — and to support correlation
+format, and the accept/reject outcome, and to support correlation
 across the issuance and verification halves of an identity-chain
 transaction.
 
@@ -1686,7 +1686,7 @@ Issuer directly, with no provision for "and whoever issuer X
 federates further." This is deliberate:
 
 - A Validator never has to compute a multi-hop authorization
-  chain to evaluate a namespace claim — a single customer-published
+  chain to evaluate a namespace claim; a single customer-published
   policy names the Assertion Issuer.
 - Revocation latency is bounded by the Subject Authority's own
   cache lifetime, not by the depth of a delegation chain.
@@ -1695,7 +1695,7 @@ federates further." This is deliberate:
   any issuer the Subject Authority did not list directly.
 
 Federation chains for issuer authentication remain in scope under
-the `issuer_authentication` category — only the
+the `issuer_authentication` category; only the
 namespace-authorization graph is bounded.
 
 # Future Extensions {#future-extensions}
@@ -1764,8 +1764,8 @@ This document specifies how a Resource Authorization Server
 publishes its Trust Policy (via authorization server metadata or
 protected resource metadata) but assumes a client or peer that
 already knows the Resource Authorization Server's identity. In
-open-world deployments — agent runtimes, AI tools, cross-organization
-integrations — a peer may need to discover a Resource Owner's
+open-world deployments (agent runtimes, AI tools, cross-organization
+integrations), a peer may need to discover a Resource Owner's
 Trust Policy before any prior bilateral relationship exists.
 
 A future Trust Policy Discovery extension can let a Resource
@@ -1888,7 +1888,7 @@ self-asserted. The tool provider extracts Subject Authority
 `example.com`, looks up the customer's policy, and finds that
 `https://attacker.example` is NOT in `authorized_issuers`. The
 Trust Method fails; the tool provider rejects with `invalid_grant`.
-The attacker's `email_verified: true` self-claim has no force —
+The attacker's `email_verified: true` self-claim has no force;
 trust derives from the `iss`-vs-policy check, not from the
 assertion's own statements. `attacker.example` has no path to
 impersonate users in `example.com` unless the customer publishes

@@ -861,8 +861,8 @@ the Subject Authority's namespace.
 DAI's authority binding is DNS control of the registrable domain
 (or corresponding HTTPS well-known URL), the bootstrap model used
 by CAA {{RFC8659}} and MTA-STS {{RFC8461}}. Pre-existing DNS
-realities — typosquatting, expired-domain takeover, registrar
-account compromise — apply unchanged and are not introduced by
+realities (typosquatting, expired-domain takeover, registrar
+account compromise) apply unchanged and are not introduced by
 this document. The registrable-domain default contains
 subdomain-takeover impact ({{TRUST-FRAMEWORK}} §Subject Authority
 Determination); identity binding beyond DNS control (legal-entity
@@ -1005,7 +1005,7 @@ security points apply:
 
 - **Unconstrained-listing risk.** A Subject Authority that lists
   a shared issuer with no `tenant` value authorizes EVERY tenant
-  of that Identity Provider — almost never the intent. Subject
+  of that Identity Provider, almost never the intent. Subject
   Authorities listing a shared issuer SHOULD include `tenant`.
   Resource Authorization Servers SHOULD log a warning when
   accepting under an unconstrained entry and SHOULD consider
@@ -1183,8 +1183,8 @@ deferred from this document; future specifications may register them.
 The WICG Email Verification Protocol {{WICG-EMAIL-VERIF}} defines a
 DNS TXT record at `_email-verification.{domain}` whose `iss=` values
 name authorized issuers for the namespace, using bare hostnames
-rather than full HTTPS issuer identifiers. A future Trust Method —
-provisionally `email_verification_dns` — could let a Resource
+rather than full HTTPS issuer identifiers. A future Trust Method
+(provisionally `email_verification_dns`) could let a Resource
 Authorization Server honor those records without requiring the
 Subject Authority to also publish an `_oauth-issuer-policy` record.
 

@@ -1409,6 +1409,9 @@ framework.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.1">
                 <p id="section-toc.1-1.11.2.1.1"><a href="#appendix-A.1" class="auto internal xref">A.1</a>.  <a href="#name-relationship-to-openid-fede" class="internal xref">Relationship to OpenID Federation</a></p>
 </li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.2">
+                <p id="section-toc.1-1.11.2.2.1"><a href="#appendix-A.2" class="auto internal xref">A.2</a>.  <a href="#name-why-bounded-depth-1-namespa" class="internal xref">Why Bounded-Depth-1 Namespace Authorization</a></p>
+</li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
@@ -1432,10 +1435,16 @@ framework.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
             <p id="section-toc.1-1.13.1"><a href="#appendix-C" class="auto internal xref">Appendix C</a>.  <a href="#name-frequently-asked-questions" class="internal xref">Frequently Asked Questions</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14">
-            <p id="section-toc.1-1.14.1"><a href="#appendix-D" class="auto internal xref">Appendix D</a>.  <a href="#name-document-history" class="internal xref">Document History</a></p>
+            <p id="section-toc.1-1.14.1"><a href="#appendix-D" class="auto internal xref">Appendix D</a>.  <a href="#name-agent-platform-idp-walkthro" class="internal xref">Agent Platform IdP Walkthrough</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15">
-            <p id="section-toc.1-1.15.1"><a href="#appendix-E" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+            <p id="section-toc.1-1.15.1"><a href="#appendix-E" class="auto internal xref">Appendix E</a>.  <a href="#name-openid-federation-walkthrou" class="internal xref">OpenID Federation Walkthrough</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16">
+            <p id="section-toc.1-1.16.1"><a href="#appendix-F" class="auto internal xref">Appendix F</a>.  <a href="#name-document-history" class="internal xref">Document History</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.17">
+            <p id="section-toc.1-1.17.1"><a href="#appendix-G" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
 </li>
         </ul>
 </nav>
@@ -1544,11 +1553,11 @@ issuer configuration; no wire-format check that the configured
 IdP is the one the customer authorizes), AI agent platforms
 acting across tool boundaries (the tool needs to know the
 platform is entitled to assert about users in the customer's
-namespace), B2B integrations carrying end-user identity (today
-either accept any authenticated IdP or maintain manual
-allowlists), and shared-issuer multi-tenant Identity Providers
-(customer's choice of authorized tenant becomes observable on the
-wire via <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Single-Issuer Multi-Tenant Identity Providers
+namespace; see <a href="#example-agent-platform" class="auto internal xref">Appendix D</a>), B2B integrations
+carrying end-user identity (today either accept any authenticated
+IdP or maintain manual allowlists), and shared-issuer multi-tenant
+Identity Providers (customer's choice of authorized tenant becomes
+observable on the wire via <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Single-Issuer Multi-Tenant Identity Providers
 rather than implicit). Today's alternatives are bilateral OAuth
 configuration, federation membership treated incorrectly as a
 proxy for namespace authority, or implicit trust in tenant-domain
@@ -1826,8 +1835,13 @@ something about Subject"). Both validations are required.<a href="#section-3.1-3
 <p id="section-3.1-4">A delegation has a lifecycle: the Authority Holder establishes
 the artifact, publishes it, the Delegate uses it to mint
 Assertions, and revocation occurs by removing or expiring the
-artifact. Revocation latency is bounded by the profile's cache
-lifetime model.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
+artifact. The framework provides no remote cache-invalidation
+mechanism; revocation latency is bounded by the profile's cache
+lifetime. Subject Authorities that need fast revocation operate
+with short steady-state cache lifetimes. Planned transfers
+(provider migrations, acquisitions) and unplanned revocations
+(security incidents) follow the same publication path: update the
+artifact, accept latency bounded by the cache window.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="categories">
@@ -2434,7 +2448,9 @@ issuance.<a href="#section-4.3.5-6.4.1" class="pilcrow">¶</a></p>
 it in its DAI record, step 2 would succeed and step 3 would fail;
 the Resource Authorization Server rejects with <code>invalid_grant</code>.
 Federation membership alone does NOT establish namespace
-authority — the combination rule is what enforces this.<a href="#section-4.3.5-7" class="pilcrow">¶</a></p>
+authority — the combination rule is what enforces this. A deeper
+walkthrough including federation trust-chain validation and Trust
+Mark satisfaction is in <a href="#example-federation-walkthrough" class="auto internal xref">Appendix E</a>.<a href="#section-4.3.5-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2488,6 +2504,10 @@ public suffix (no registrable domain exists).<a href="#section-4.4-3.2.2" class=
 be evaluated under this Trust Method; the Resource Authorization
 Server <span class="bcp14">MUST</span> reject the assertion with an OAuth <code>invalid_grant</code>
 error.<a href="#section-4.4-4" class="pilcrow">¶</a></p>
+<p id="section-4.4-5">Subject Authority extraction <span class="bcp14">MUST</span> be exact-match: wildcard, suffix,
+regular-expression, and substring matching against Subject Authority
+values are forbidden unless explicitly specified by the relevant
+Subject Identifier format's extraction procedure.<a href="#section-4.4-5" class="pilcrow">¶</a></p>
 <div id="psl-versioning">
 <section id="section-4.4.1">
           <h4 id="name-public-suffix-list-versioni">
@@ -3616,6 +3636,36 @@ not duplicate or replace federation mechanisms; it composes with
 them.<a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
+<div id="why-bounded-depth-1-namespace-authorization">
+<section id="appendix-A.2">
+        <h3 id="name-why-bounded-depth-1-namespa">
+<a href="#appendix-A.2" class="section-number selfRef">A.2. </a><a href="#name-why-bounded-depth-1-namespa" class="section-name selfRef">Why Bounded-Depth-1 Namespace Authorization</a>
+        </h3>
+<p id="appendix-A.2-1">The <code>subject_namespace_authorization</code> category is bounded at
+depth one: the Subject Authority lists each authorized Assertion
+Issuer directly, with no provision for "and whoever issuer X
+federates further." This is deliberate:<a href="#appendix-A.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-A.2-2.1">
+            <p id="appendix-A.2-2.1.1">A Validator never has to compute a multi-hop authorization
+chain to evaluate a namespace claim — a single customer-published
+policy names the Assertion Issuer.<a href="#appendix-A.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-2.2">
+            <p id="appendix-A.2-2.2.1">Revocation latency is bounded by the Subject Authority's own
+cache lifetime, not by the depth of a delegation chain.<a href="#appendix-A.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-A.2-2.3">
+            <p id="appendix-A.2-2.3.1">Compromise at any intermediate party (a federation operator, a
+delegated issuer) cannot expand the namespace authorization of
+any issuer the Subject Authority did not list directly.<a href="#appendix-A.2-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="appendix-A.2-3">Federation chains for issuer authentication remain in scope under
+the <code>issuer_authentication</code> category — only the
+namespace-authorization graph is bounded.<a href="#appendix-A.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="future-extensions">
@@ -3763,22 +3813,213 @@ including paths.<a href="#appendix-C-11" class="pilcrow">¶</a></p>
 lifetime; see <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Caching.<a href="#appendix-C-13" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="document-history">
+<div id="example-agent-platform">
 <section id="appendix-D">
-      <h2 id="name-document-history">
-<a href="#appendix-D" class="section-number selfRef">Appendix D. </a><a href="#name-document-history" class="section-name selfRef">Document History</a>
+      <h2 id="name-agent-platform-idp-walkthro">
+<a href="#appendix-D" class="section-number selfRef">Appendix D. </a><a href="#name-agent-platform-idp-walkthro" class="section-name selfRef">Agent Platform IdP Walkthrough</a>
       </h2>
-<p id="appendix-D-1">This appendix is non-normative and will be removed before publication.<a href="#appendix-D-1" class="pilcrow">¶</a></p>
-<p id="appendix-D-2">-00<a href="#appendix-D-2" class="pilcrow">¶</a></p>
+<p id="appendix-D-1">This appendix is non-normative. It walks through how the framework
+prevents an unauthorized provider from impersonating users in a
+customer's email namespace. Protection rests on a single deliberate
+choice by the customer: publishing an Issuer Authorization Policy
+that lists the specific agent platforms permitted to assert
+identities about its users.<a href="#appendix-D-1" class="pilcrow">¶</a></p>
+<p id="appendix-D-2"><strong>Cast:</strong> customer <code>example.com</code> (owns the email domain); agent
+platform <code>https://agentprovider.example</code> (mints ID-JAGs after
+federated SSO from the customer's primary IdP); tool provider
+<code>https://toolprovider.example</code> (the Resource Authorization Server);
+end user <code>alice@example.com</code>.<a href="#appendix-D-2" class="pilcrow">¶</a></p>
+<p id="appendix-D-3"><strong>Publication.</strong> The customer publishes:<a href="#appendix-D-3" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="appendix-D-4">
+<pre>
+_oauth-issuer-policy.example.com.  IN  TXT
+  "v=oauth-issuer-policy1;
+   authority=example.com;
+   issuer=https://agentprovider.example"
+</pre><a href="#appendix-D-4" class="pilcrow">¶</a>
+</div>
+<p id="appendix-D-5">The tool provider publishes a Trust Policy listing
+<code>domain_authorized_issuer</code>. After Alice signs in to the agent
+platform (the user-side SSO is out of scope), the agent platform
+mints an ID-JAG:<a href="#appendix-D-5" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-D-6">
+<pre>
+{
+  "iss": "https://agentprovider.example",
+  "aud": "https://toolprovider.example",
+  "exp": 1780166400, "iat": 1780166100, "jti": "b9c1...",
+  "sub": "user-3f81a2",
+  "email": "alice@example.com", "email_verified": true
+}
+</pre><a href="#appendix-D-6" class="pilcrow">¶</a>
+</div>
+<p id="appendix-D-7"><strong>Verification.</strong> The tool provider validates the ID-JAG per
+<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>, extracts the Subject Authority <code>example.com</code> from the
+email claim, queries <code>_oauth-issuer-policy.example.com</code>, confirms
+the <code>iss</code> value matches an <code>authorized_issuers</code> entry, and proceeds
+with <code>private_key_jwt</code> client authentication and token issuance.<a href="#appendix-D-7" class="pilcrow">¶</a></p>
+<p id="appendix-D-8"><strong>What this protects against.</strong> Suppose <code>attacker.example</code> mints
+its own assertion claiming <code>email: alice@example.com,
+email_verified: true</code>. The signature validates against the
+attacker's own JWKS; the audience is correct; the email claim is
+self-asserted. The tool provider extracts Subject Authority
+<code>example.com</code>, looks up the customer's policy, and finds that
+<code>https://attacker.example</code> is NOT in <code>authorized_issuers</code>. The
+Trust Method fails; the tool provider rejects with <code>invalid_grant</code>.
+The attacker's <code>email_verified: true</code> self-claim has no force —
+trust derives from the <code>iss</code>-vs-policy check, not from the
+assertion's own statements. <code>attacker.example</code> has no path to
+impersonate users in <code>example.com</code> unless the customer publishes
+them in DAI.<a href="#appendix-D-8" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="example-federation-walkthrough">
+<section id="appendix-E">
+      <h2 id="name-openid-federation-walkthrou">
+<a href="#appendix-E" class="section-number selfRef">Appendix E. </a><a href="#name-openid-federation-walkthrou" class="section-name selfRef">OpenID Federation Walkthrough</a>
+      </h2>
+<p id="appendix-E-1">This appendix is non-normative. It expands the high-level
+<a href="#example-federation-dai" class="auto internal xref">Section 4.3.5</a> into a concrete walkthrough including
+trust-chain validation, Trust Mark satisfaction, and
+federation-bound JWKS resolution.<a href="#appendix-E-1" class="pilcrow">¶</a></p>
+<p id="appendix-E-2"><strong>Cast:</strong> Resource Authorization Server
+<code>https://api.resource.example</code>; Federation Trust Anchor
+<code>https://federation.example.org</code>; Federation Intermediate
+<code>https://sector.example.org</code> (chained under the Trust Anchor);
+Assertion Issuer <code>https://idp.partner.example</code> (federation leaf
+holding a Level-of-Assurance-3 Trust Mark); end user
+<code>alice@partner.example</code>; Subject Authority <code>partner.example</code>.<a href="#appendix-E-2" class="pilcrow">¶</a></p>
+<p id="appendix-E-3"><strong>Publication.</strong> The Resource Authorization Server's Trust Policy:<a href="#appendix-E-3" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-E-4">
+<pre>
+{
+  "resource_authorization_server": "https://api.resource.example",
+  "authorization_grant_profiles_supported": [
+    "urn:ietf:params:oauth:grant-profile:id-jag"
+  ],
+  "subject_identifier_formats_supported": ["email"],
+  "issuer_trust_methods": [
+    {
+      "method": "openid_federation",
+      "trust_anchors": ["https://federation.example.org"],
+      "trust_marks": [
+        {
+          "id": "https://federation.example.org/marks/loa3",
+          "issuer": "https://federation.example.org"
+        }
+      ]
+    },
+    { "method": "domain_authorized_issuer" }
+  ]
+}
+</pre><a href="#appendix-E-4" class="pilcrow">¶</a>
+</div>
+<p id="appendix-E-5">The Assertion Issuer's federation Entity Configuration (decoded,
+illustrative) declares its authority hint and its Trust Mark:<a href="#appendix-E-5" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-E-6">
+<pre>
+{
+  "iss": "https://idp.partner.example",
+  "sub": "https://idp.partner.example",
+  "authority_hints": ["https://sector.example.org"],
+  "metadata": {
+    "openid_provider": {
+      "issuer": "https://idp.partner.example",
+      "jwks_uri": "https://idp.partner.example/jwks"
+    }
+  },
+  "trust_marks": [
+    {
+      "id": "https://federation.example.org/marks/loa3",
+      "trust_mark": "eyJ...(JWT signed by federation.example.org)"
+    }
+  ]
+}
+</pre><a href="#appendix-E-6" class="pilcrow">¶</a>
+</div>
+<p id="appendix-E-7">The Federation Intermediate's Subordinate Statement about the leaf
+constrains <code>issuer</code> and required auth methods via <code>metadata_policy</code>
+(<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §6):<a href="#appendix-E-7" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-E-8">
+<pre>
+{
+  "iss": "https://sector.example.org",
+  "sub": "https://idp.partner.example",
+  "metadata_policy": {
+    "openid_provider": {
+      "issuer": { "value": "https://idp.partner.example" },
+      "jwks_uri": { "essential": true }
+    }
+  }
+}
+</pre><a href="#appendix-E-8" class="pilcrow">¶</a>
+</div>
+<p id="appendix-E-9">The Subject Authority publishes a DAI record:<a href="#appendix-E-9" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="appendix-E-10">
+<pre>
+_oauth-issuer-policy.partner.example.  IN  TXT
+  "v=oauth-issuer-policy1;
+   authority=partner.example;
+   issuer=https://idp.partner.example"
+</pre><a href="#appendix-E-10" class="pilcrow">¶</a>
+</div>
+<p id="appendix-E-11"><strong>Verification.</strong> When an ID-JAG arrives with
+<code>iss: https://idp.partner.example</code>, <code>email: alice@partner.example</code>,
+the Resource Authorization Server:<a href="#appendix-E-11" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="appendix-E-12">
+<li id="appendix-E-12.1">
+          <p id="appendix-E-12.1.1"><strong><code>issuer_authentication</code> (openid_federation).</strong> Walks the
+federation chain per <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span>: fetches the leaf
+Entity Configuration, the Intermediate's Subordinate Statement
+about the leaf, and the Trust Anchor's Subordinate Statement
+about the Intermediate. Validates all signatures, applies
+<code>metadata_policy</code>, and verifies the Trust Mark signature.<a href="#appendix-E-12.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="appendix-E-12.2">
+          <p id="appendix-E-12.2.1"><strong>Framework-specific checks (<a href="#trust-method-openid-federation" class="auto internal xref">Section 4.3.3.1</a>).</strong>
+The terminal trust anchor matches <code>trust_anchors</code>; the
+policy-applied metadata declares entity type <code>openid_provider</code>;
+the <code>loa3</code> Trust Mark satisfies the requirement; the ID-JAG
+signing key is taken ONLY from the federation-resolved JWKS,
+not from the assertion <code>iss</code> URL's <code>.well-known/oauth-authorization-server</code>.<a href="#appendix-E-12.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="appendix-E-12.3">
+          <p id="appendix-E-12.3.1"><strong><code>subject_namespace_authorization</code> (domain_authorized_issuer).</strong>
+Extracts <code>partner.example</code> from the email claim, queries
+<code>_oauth-issuer-policy.partner.example</code>, confirms
+<code>https://idp.partner.example</code> is an authorized issuer.<a href="#appendix-E-12.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="appendix-E-12.4">
+          <p id="appendix-E-12.4.1"><strong>Cross-category combination rule.</strong> Both categories succeed;
+the Resource Authorization Server issues an access token.<a href="#appendix-E-12.4.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
+<p id="appendix-E-13"><strong>Selected failure variants.</strong> A chain not terminating at the
+listed trust anchor → <code>invalid_grant</code>. A leaf without the required
+Trust Mark → <code>invalid_grant</code>. A federation-resolved JWKS that
+doesn't match the ID-JAG signing key → <code>invalid_grant</code> (a separate
+JWKS at <code>.well-known/oauth-authorization-server</code> is NOT consulted,
+preventing AS-metadata downgrade). <code>partner.example</code> not listing
+the Assertion Issuer in DAI → <code>invalid_grant</code> even though
+federation membership is valid.<a href="#appendix-E-13" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="document-history">
+<section id="appendix-F">
+      <h2 id="name-document-history">
+<a href="#appendix-F" class="section-number selfRef">Appendix F. </a><a href="#name-document-history" class="section-name selfRef">Document History</a>
+      </h2>
+<p id="appendix-F-1">This appendix is non-normative and will be removed before publication.<a href="#appendix-F-1" class="pilcrow">¶</a></p>
+<p id="appendix-F-2">-00<a href="#appendix-F-2" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-D-3.1">
-          <p id="appendix-D-3.1.1">initial draft<a href="#appendix-D-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="appendix-F-3.1">
+          <p id="appendix-F-3.1.1">initial draft<a href="#appendix-F-3.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
 </div>
 <div id="authors-addresses">
-<section id="appendix-E">
+<section id="appendix-G">
       <h2 id="name-authors-address">
 <a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
       </h2>

@@ -77,6 +77,11 @@ Authorization Server uses the published policy to verify that an
 identity assertion's issuer is authorized for the asserted subject
 namespace.
 
+The "discovery" defined by this document is verifier-side discovery
+of the Subject Authority's issuer authorization policy. Client-side
+discovery of which Assertion Issuer to use before an assertion exists
+is a separate use case and is deferred to future work.
+
 DAI is a profile of the OAuth Identity Assertion Issuer Trust Policy
 ({{TRUST-FRAMEWORK}}): it defines the Issuer Authorization Policy
 wire format and the canonical `domain_authorized_issuer`
@@ -130,7 +135,7 @@ DAI is a concrete profile of {{TRUST-FRAMEWORK}} for OAuth
 identity assertions: the Subject Authority is the Authority
 Holder; the Issuer Authorization Policy is the Delegation
 Artifact; the DNS record (or DNS pointer plus HTTPS document) is
-the publication channel; the Assertion Issuer is the Delegate.
+one publication channel; the Assertion Issuer is the Delegate.
 Lookup state classification and fail-closed requirements follow
 {{TRUST-FRAMEWORK}} §Lookup States and Fail-Closed.
 
@@ -138,7 +143,7 @@ DAI is consumed by {{TRUST-FRAMEWORK}}, which owns the Trust Policy
 document format, Trust Method machinery, Subject Authority
 Determination, and OAuth grant-profile bindings. This document
 defines the Issuer Authorization Policy document
-({{dii-document}}), the DNS + HTTPS publication formats
+({{dii-document}}), the DNS and HTTPS publication channels
 ({{publication-profiles}}), the lookup procedure ({{dii-lookup}}),
 the verification rules ({{dii-verification}}), the
 `domain_authorized_issuer` Trust Method, and an HTTPS-only
@@ -251,6 +256,10 @@ object has:
   representation defined in {{TRUST-FRAMEWORK}} §Signed Policy Metadata. This member
   follows the signed metadata pattern used by {{RFC8414}} and
   {{RFC9728}}.
+  Its presence does not by itself require all consumers to support
+  signed policy processing; consumers apply the requirements in
+  {{TRUST-FRAMEWORK}} §Signed Policy Metadata and any local policy
+  that requires object-level integrity.
 
 Consumers MUST ignore unrecognized members. Validation rules; a
 policy failing any is malformed:
@@ -293,24 +302,26 @@ Example:
 # Publication
 
 A Subject Authority publishes the Issuer Authorization Policy
-through one of two publication profiles defined in
-{{publication-profiles}}. The DNS record at
-`_oauth-issuer-policy.{A}` is the entry point in both
-profiles, following the pattern of CAA, MTA-STS, SPF, and DKIM
-({{dns-authority-patterns}}); the DNS record's mode determines
-which profile applies.
+through one of the publication channels defined in
+{{publication-profiles}}. DNS publication uses the TXT record at
+`_oauth-issuer-policy.{A}`, following the pattern of CAA, MTA-STS,
+SPF, and DKIM ({{dns-authority-patterns}}). HTTPS publication uses
+the default well-known URL on the Subject Authority's own host.
 
-## Publication Profiles {#publication-profiles}
+## Publication Channels {#publication-profiles}
 
-This document defines two publication profiles. A Subject
-Authority chooses one based on operational constraints; both
-produce semantically equivalent policy validated by the same
-lookup procedure ({{dii-lookup}}).
+This document defines three publication channels. A Subject
+Authority chooses based on operational constraints; all produce
+semantically equivalent policy validated by the same lookup procedure
+({{dii-lookup}}). The canonical lookup procedure consults DNS first
+and uses the HTTPS well-known channel only when DNS authoritatively
+indicates absence.
 
-| Profile | DNS form | Document | Authority binding | When to use |
+| Channel | DNS form | Document | Authority binding | When to use |
 |-|-|-|-|-|
 | 1: DNS-Inline | TXT with `issuer=` ({{dii-dns-record}}) | None (carried in TXT) | DNS control of `{A}` | Common case: authorize an issuer for a namespace with no rich policy |
 | 2: Authority-Hosted HTTPS | TXT with `uri=` | HTTPS-hosted JSON under Subject Authority's operational control | DNS control of `{A}` AND TLS on the authority-operated host | Rich policy (validity windows, format restrictions, tenant binding) at a controlled origin |
+| 3: Default HTTPS Well-Known | No DNS record | HTTPS-hosted JSON at `https://{A}/.well-known/oauth-issuer-policy` | TLS on `{A}` | Subject Authority has well-known HTTPS infrastructure but no DAI DNS record |
 
 ## Default HTTPS Well-Known URL
 
@@ -319,9 +330,8 @@ the default HTTPS well-known URL on its own host
 ({{dii-https-url}}). The lookup procedure ({{dii-lookup}})
 consults DNS first and uses the HTTPS well-known URL only as a
 fallback when the DNS response is `negative-authoritative`. This
-fallback is independent of the two publication profiles above;
-it covers the case where a Subject Authority has no DNS record
-but does have well-known HTTPS infrastructure.
+channel covers the case where a Subject Authority has no DAI DNS
+record but does have well-known HTTPS infrastructure.
 
 Operators are encouraged to publish the DNS record in all
 deployments because it matches the operational model of the
@@ -1265,7 +1275,9 @@ domain-authorized issuer delegations with DNS-based discovery:
 
 ## Issuance and Token Request
 
-1. The Client authenticates Alice at `https://idp.example.net`
+1. The Client is configured, by a deployment-specific mechanism
+   outside DAI, to use `https://idp.example.net` for Acme users. It
+   authenticates Alice at that issuer
    and requests an ID-JAG with audience
    `https://api.resource.example` carrying Alice's email:
 
@@ -1413,9 +1425,10 @@ security properties and operational guidance for this case are in
   with a different `authority=` is discarded.
 
 - If `acme.example` rotates its authorized Assertion Issuer and the
-  Client has a cached virtual policy, the Client will still attempt
-  the old issuer until its cache expires. Subject Authorities are
-  encouraged to use short DNS TTLs during rotation; consumers
+  Resource Authorization Server has a cached virtual policy, the
+  Resource Authorization Server may continue accepting assertions
+  from the old issuer until its cache expires. Subject Authorities
+  are encouraged to use short DNS TTLs during rotation; consumers
   enforce a local cache ceiling per {{dii-caching}}.
 
 # Document History

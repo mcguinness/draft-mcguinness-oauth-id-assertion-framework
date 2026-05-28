@@ -980,10 +980,12 @@ subdomain.
 ## Signed Policy Metadata {#signed-policy-metadata}
 
 The Trust Policy and Issuer Authorization Policy documents MAY include
-a `signed_policy` member that provides object-level cryptographic
-integrity for the policy document. This member follows the signed
-metadata pattern defined for authorization server metadata in
-{{RFC8414}} and protected resource metadata in {{RFC9728}}.
+a `signed_policy` member that provides cryptographic integrity for
+signed policy claims. When the signed JWT contains all recognized
+decision-affecting policy members, `signed_policy` can provide
+object-level integrity for the policy document. This member follows
+the signed metadata pattern defined for authorization server metadata
+in {{RFC8414}} and protected resource metadata in {{RFC9728}}.
 
 The `signed_policy` value is a JWT {{RFC7519}} containing policy
 members as claims. The JWT MUST be digitally signed using JWS
@@ -1034,11 +1036,22 @@ can modify the outer document but not the signed JWT otherwise has a
 lever to inject visible-but-ignored members that may mislead operators
 or downstream tooling.
 
+This specification does not define a criticality mechanism that lets
+a publisher require `signed_policy` processing by all consumers. The
+presence of `signed_policy` therefore provides integrity only for
+consumers that support and verify it, or for deployments where local
+policy requires signed policy processing.
+
 If a consumer requires object-level integrity by local policy, the
-consumer MUST verify the signed JWT before acting on the policy. If
-signature verification fails, if the verification key is unacceptable,
-if the JWT is malformed, or if the required issuer binding above is not
-satisfied, the consumer MUST reject the policy as malformed.
+consumer MUST verify the signed JWT before acting on the policy, and
+the JWT payload MUST contain every recognized decision-affecting
+member used by that consumer. The consumer MUST NOT use unsigned
+recognized decision-affecting members that are absent from the JWT
+payload. If signature verification fails, if the verification key is
+unacceptable, if the JWT is malformed, if the required issuer binding
+above is not satisfied, or if the JWT omits a recognized
+decision-affecting member required for evaluation, the consumer MUST
+reject the policy as malformed.
 
 
 # Trust Policy Processing

@@ -194,11 +194,11 @@ issuer configuration; no wire-format check that the configured
 IdP is the one the customer authorizes), AI agent platforms
 acting across tool boundaries (the tool needs to know the
 platform is entitled to assert about users in the customer's
-namespace), B2B integrations carrying end-user identity (today
-either accept any authenticated IdP or maintain manual
-allowlists), and shared-issuer multi-tenant Identity Providers
-(customer's choice of authorized tenant becomes observable on the
-wire via {{DAI}} §Single-Issuer Multi-Tenant Identity Providers
+namespace; see {{example-agent-platform}}), B2B integrations
+carrying end-user identity (today either accept any authenticated
+IdP or maintain manual allowlists), and shared-issuer multi-tenant
+Identity Providers (customer's choice of authorized tenant becomes
+observable on the wire via {{DAI}} §Single-Issuer Multi-Tenant Identity Providers
 rather than implicit). Today's alternatives are bilateral OAuth
 configuration, federation membership treated incorrectly as a
 proxy for namespace authority, or implicit trust in tenant-domain
@@ -903,7 +903,9 @@ If the IdP were federation-authenticated but Acme had not listed
 it in its DAI record, step 2 would succeed and step 3 would fail;
 the Resource Authorization Server rejects with `invalid_grant`.
 Federation membership alone does NOT establish namespace
-authority — the combination rule is what enforces this.
+authority — the combination rule is what enforces this. A deeper
+walkthrough including federation trust-chain validation and Trust
+Mark satisfaction is in {{example-federation-walkthrough}}.
 
 
 ## Subject Authority Determination {#subject-authority-determination}

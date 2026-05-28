@@ -404,8 +404,13 @@ something about Subject"). Both validations are required.
 A delegation has a lifecycle: the Authority Holder establishes
 the artifact, publishes it, the Delegate uses it to mint
 Assertions, and revocation occurs by removing or expiring the
-artifact. Revocation latency is bounded by the profile's cache
-lifetime model.
+artifact. The framework provides no remote cache-invalidation
+mechanism; revocation latency is bounded by the profile's cache
+lifetime. Subject Authorities that need fast revocation operate
+with short steady-state cache lifetimes. Planned transfers
+(provider migrations, acquisitions) and unplanned revocations
+(security incidents) follow the same publication path: update the
+artifact, accept latency bounded by the cache window.
 
 ## Independent Trust Evaluation Categories {#categories}
 
@@ -946,6 +951,11 @@ Subject Identifier formats not registered for this purpose MUST NOT
 be evaluated under this Trust Method; the Resource Authorization
 Server MUST reject the assertion with an OAuth `invalid_grant`
 error.
+
+Subject Authority extraction MUST be exact-match: wildcard, suffix,
+regular-expression, and substring matching against Subject Authority
+values are forbidden unless explicitly specified by the relevant
+Subject Identifier format's extraction procedure.
 
 ### Public Suffix List Versioning {#psl-versioning}
 
@@ -1653,6 +1663,26 @@ authority comes from the orthogonal
 not duplicate or replace federation mechanisms; it composes with
 them.
 
+## Why Bounded-Depth-1 Namespace Authorization
+
+The `subject_namespace_authorization` category is bounded at
+depth one: the Subject Authority lists each authorized Assertion
+Issuer directly, with no provision for "and whoever issuer X
+federates further." This is deliberate:
+
+- A Validator never has to compute a multi-hop authorization
+  chain to evaluate a namespace claim — a single customer-published
+  policy names the Assertion Issuer.
+- Revocation latency is bounded by the Subject Authority's own
+  cache lifetime, not by the depth of a delegation chain.
+- Compromise at any intermediate party (a federation operator, a
+  delegated issuer) cannot expand the namespace authorization of
+  any issuer the Subject Authority did not list directly.
+
+Federation chains for issuer authentication remain in scope under
+the `issuer_authentication` category — only the
+namespace-authorization graph is bounded.
+
 # Future Extensions {#future-extensions}
 
 This appendix is non-normative. It sketches directions intentionally
@@ -1789,6 +1819,189 @@ including paths.
 Remove the entry from the Issuer Authorization Policy or set
 `valid_until` to the past. Revocation latency is bounded by cache
 lifetime; see {{DAI}} §Caching.
+
+# Agent Platform IdP Walkthrough {#example-agent-platform}
+
+This appendix is non-normative. It walks through how the framework
+prevents an unauthorized provider from impersonating users in a
+customer's email namespace. Protection rests on a single deliberate
+choice by the customer: publishing an Issuer Authorization Policy
+that lists the specific agent platforms permitted to assert
+identities about its users.
+
+**Cast:** customer `example.com` (owns the email domain); agent
+platform `https://agentprovider.example` (mints ID-JAGs after
+federated SSO from the customer's primary IdP); tool provider
+`https://toolprovider.example` (the Resource Authorization Server);
+end user `alice@example.com`.
+
+**Publication.** The customer publishes:
+
+~~~
+_oauth-issuer-policy.example.com.  IN  TXT
+  "v=oauth-issuer-policy1;
+   authority=example.com;
+   issuer=https://agentprovider.example"
+~~~
+
+The tool provider publishes a Trust Policy listing
+`domain_authorized_issuer`. After Alice signs in to the agent
+platform (the user-side SSO is out of scope), the agent platform
+mints an ID-JAG:
+
+~~~ json
+{
+  "iss": "https://agentprovider.example",
+  "aud": "https://toolprovider.example",
+  "exp": 1780166400, "iat": 1780166100, "jti": "b9c1...",
+  "sub": "user-3f81a2",
+  "email": "alice@example.com", "email_verified": true
+}
+~~~
+
+**Verification.** The tool provider validates the ID-JAG per
+{{ID-JAG}}, extracts the Subject Authority `example.com` from the
+email claim, queries `_oauth-issuer-policy.example.com`, confirms
+the `iss` value matches an `authorized_issuers` entry, and proceeds
+with `private_key_jwt` client authentication and token issuance.
+
+**What this protects against.** Suppose `attacker.example` mints
+its own assertion claiming `email: alice@example.com,
+email_verified: true`. The signature validates against the
+attacker's own JWKS; the audience is correct; the email claim is
+self-asserted. The tool provider extracts Subject Authority
+`example.com`, looks up the customer's policy, and finds that
+`https://attacker.example` is NOT in `authorized_issuers`. The
+Trust Method fails; the tool provider rejects with `invalid_grant`.
+The attacker's `email_verified: true` self-claim has no force —
+trust derives from the `iss`-vs-policy check, not from the
+assertion's own statements. `attacker.example` has no path to
+impersonate users in `example.com` unless the customer publishes
+them in DAI.
+
+# OpenID Federation Walkthrough {#example-federation-walkthrough}
+
+This appendix is non-normative. It expands the high-level
+{{example-federation-dai}} into a concrete walkthrough including
+trust-chain validation, Trust Mark satisfaction, and
+federation-bound JWKS resolution.
+
+**Cast:** Resource Authorization Server
+`https://api.resource.example`; Federation Trust Anchor
+`https://federation.example.org`; Federation Intermediate
+`https://sector.example.org` (chained under the Trust Anchor);
+Assertion Issuer `https://idp.partner.example` (federation leaf
+holding a Level-of-Assurance-3 Trust Mark); end user
+`alice@partner.example`; Subject Authority `partner.example`.
+
+**Publication.** The Resource Authorization Server's Trust Policy:
+
+~~~ json
+{
+  "resource_authorization_server": "https://api.resource.example",
+  "authorization_grant_profiles_supported": [
+    "urn:ietf:params:oauth:grant-profile:id-jag"
+  ],
+  "subject_identifier_formats_supported": ["email"],
+  "issuer_trust_methods": [
+    {
+      "method": "openid_federation",
+      "trust_anchors": ["https://federation.example.org"],
+      "trust_marks": [
+        {
+          "id": "https://federation.example.org/marks/loa3",
+          "issuer": "https://federation.example.org"
+        }
+      ]
+    },
+    { "method": "domain_authorized_issuer" }
+  ]
+}
+~~~
+
+The Assertion Issuer's federation Entity Configuration (decoded,
+illustrative) declares its authority hint and its Trust Mark:
+
+~~~ json
+{
+  "iss": "https://idp.partner.example",
+  "sub": "https://idp.partner.example",
+  "authority_hints": ["https://sector.example.org"],
+  "metadata": {
+    "openid_provider": {
+      "issuer": "https://idp.partner.example",
+      "jwks_uri": "https://idp.partner.example/jwks"
+    }
+  },
+  "trust_marks": [
+    {
+      "id": "https://federation.example.org/marks/loa3",
+      "trust_mark": "eyJ...(JWT signed by federation.example.org)"
+    }
+  ]
+}
+~~~
+
+The Federation Intermediate's Subordinate Statement about the leaf
+constrains `issuer` and required auth methods via `metadata_policy`
+({{OIDF-FEDERATION}} §6):
+
+~~~ json
+{
+  "iss": "https://sector.example.org",
+  "sub": "https://idp.partner.example",
+  "metadata_policy": {
+    "openid_provider": {
+      "issuer": { "value": "https://idp.partner.example" },
+      "jwks_uri": { "essential": true }
+    }
+  }
+}
+~~~
+
+The Subject Authority publishes a DAI record:
+
+~~~
+_oauth-issuer-policy.partner.example.  IN  TXT
+  "v=oauth-issuer-policy1;
+   authority=partner.example;
+   issuer=https://idp.partner.example"
+~~~
+
+**Verification.** When an ID-JAG arrives with
+`iss: https://idp.partner.example`, `email: alice@partner.example`,
+the Resource Authorization Server:
+
+1. **`issuer_authentication` (openid_federation).** Walks the
+   federation chain per {{OIDF-FEDERATION}}: fetches the leaf
+   Entity Configuration, the Intermediate's Subordinate Statement
+   about the leaf, and the Trust Anchor's Subordinate Statement
+   about the Intermediate. Validates all signatures, applies
+   `metadata_policy`, and verifies the Trust Mark signature.
+
+2. **Framework-specific checks ({{trust-method-openid-federation}}).**
+   The terminal trust anchor matches `trust_anchors`; the
+   policy-applied metadata declares entity type `openid_provider`;
+   the `loa3` Trust Mark satisfies the requirement; the ID-JAG
+   signing key is taken ONLY from the federation-resolved JWKS,
+   not from the assertion `iss` URL's `.well-known/oauth-authorization-server`.
+
+3. **`subject_namespace_authorization` (domain_authorized_issuer).**
+   Extracts `partner.example` from the email claim, queries
+   `_oauth-issuer-policy.partner.example`, confirms
+   `https://idp.partner.example` is an authorized issuer.
+
+4. **Cross-category combination rule.** Both categories succeed;
+   the Resource Authorization Server issues an access token.
+
+**Selected failure variants.** A chain not terminating at the
+listed trust anchor → `invalid_grant`. A leaf without the required
+Trust Mark → `invalid_grant`. A federation-resolved JWKS that
+doesn't match the ID-JAG signing key → `invalid_grant` (a separate
+JWKS at `.well-known/oauth-authorization-server` is NOT consulted,
+preventing AS-metadata downgrade). `partner.example` not listing
+the Assertion Issuer in DAI → `invalid_grant` even though
+federation membership is valid.
 
 # Document History
 

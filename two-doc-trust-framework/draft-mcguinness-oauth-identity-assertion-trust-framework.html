@@ -1826,7 +1826,7 @@ Validator
 profile-defined channel: a DNS record under its domain, an HTTPS
 document at a well-known URL on its host, a signed subordinate
 statement in a federation, or another profile-defined form.
-Control of that publication channel IS the authority binding —
+Control of that publication channel IS the authority binding:
 whoever can publish at the channel is the Authority Holder for
 the namespace, claim type, or scope. The Validator validates the
 Delegation Artifact (which says "Authority Holder authorized
@@ -1915,9 +1915,9 @@ attack this prevents.<a href="#section-3.2.1.1-1" class="pilcrow">¶</a></p>
 <a href="#section-3.2.2" class="section-number selfRef">3.2.2. </a><a href="#name-multiple-authority-sources-" class="section-name selfRef">Multiple Authority Sources Within a Category</a>
           </h4>
 <p id="section-3.2.2-1">A Validator <span class="bcp14">MAY</span> accept Delegation Artifacts from multiple
-Authority Sources within the same category — multiple Subject
+Authority Sources within the same category (multiple Subject
 Authorities for different namespaces, multiple federation trust
-anchors. Selection of WHICH Authority Source applies to a given
+anchors). Selection of WHICH Authority Source applies to a given
 Assertion happens BEFORE the Assertion is authenticated against
 any delegation, so a profile <span class="bcp14">MUST</span> define deterministic source
 selection: a binding function from Assertion + request context to
@@ -2448,7 +2448,7 @@ issuance.<a href="#section-4.3.5-6.4.1" class="pilcrow">¶</a></p>
 it in its DAI record, step 2 would succeed and step 3 would fail;
 the Resource Authorization Server rejects with <code>invalid_grant</code>.
 Federation membership alone does NOT establish namespace
-authority — the combination rule is what enforces this. A deeper
+authority; the combination rule is what enforces this. A deeper
 walkthrough including federation trust-chain validation and Trust
 Mark satisfaction is in <a href="#example-federation-walkthrough" class="auto internal xref">Appendix E</a>.<a href="#section-4.3.5-7" class="pilcrow">¶</a></p>
 </section>
@@ -2515,7 +2515,7 @@ Subject Identifier format's extraction procedure.<a href="#section-4.4-5" class=
           </h4>
 <p id="section-4.4.1-1">The PSL <span>[<a href="#PSL" class="cite xref">PSL</a>]</span> is updated continuously and snapshots taken at
 different times can yield different registrable domains for the
-same email — a deterministic-source-selection hazard
+same email, a deterministic-source-selection hazard
 (<a href="#multiple-sources" class="auto internal xref">Section 3.2.2</a>). Consumers <span class="bcp14">SHOULD</span> use a snapshot from
 <code>publicsuffix.org</code> no older than 30 days. Subject Authorities
 <span class="bcp14">SHOULD</span> monitor PSL changes affecting their namespace; cross-consumer
@@ -2877,8 +2877,8 @@ request parameter, or fixed tuple).<a href="#section-7.2-5.1.1" class="pilcrow">
 </li>
           <li class="normal" id="section-7.2-5.2">
             <p id="section-7.2-5.2.1">Produce exactly one Authority Source for any valid input, or
-fail deterministically — no preference ordering, no fallback
-across candidates.<a href="#section-7.2-5.2.1" class="pilcrow">¶</a></p>
+fail deterministically (no preference ordering, no fallback
+across candidates).<a href="#section-7.2-5.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-7.2-5.3">
             <p id="section-7.2-5.3.1">Be invariant under attacker-controlled inputs outside the
@@ -3125,7 +3125,7 @@ are encouraged to log, for each processed assertion, at minimum the
 Assertion Issuer identifier, the trust policy URI and its
 <code>last_updated</code>, the Trust Methods that succeeded, the matched trust
 anchor or Issuer Authorization Policy origin, the Subject Identifier
-format, and the accept/reject outcome — and to support correlation
+format, and the accept/reject outcome, and to support correlation
 across the issuance and verification halves of an identity-chain
 transaction.<a href="#section-7.12-1" class="pilcrow">¶</a></p>
 </section>
@@ -3660,7 +3660,7 @@ federates further." This is deliberate:<a href="#appendix-A.2-1" class="pilcrow"
 <ul class="normal">
 <li class="normal" id="appendix-A.2-2.1">
             <p id="appendix-A.2-2.1.1">A Validator never has to compute a multi-hop authorization
-chain to evaluate a namespace claim — a single customer-published
+chain to evaluate a namespace claim; a single customer-published
 policy names the Assertion Issuer.<a href="#appendix-A.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-A.2-2.2">
@@ -3674,7 +3674,7 @@ any issuer the Subject Authority did not list directly.<a href="#appendix-A.2-2.
 </li>
         </ul>
 <p id="appendix-A.2-3">Federation chains for issuer authentication remain in scope under
-the <code>issuer_authentication</code> category — only the
+the <code>issuer_authentication</code> category; only the
 namespace-authorization graph is bounded.<a href="#appendix-A.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -3761,8 +3761,8 @@ at the Resource Authorization Server.<a href="#appendix-B.3-1" class="pilcrow">�
 publishes its Trust Policy (via authorization server metadata or
 protected resource metadata) but assumes a client or peer that
 already knows the Resource Authorization Server's identity. In
-open-world deployments — agent runtimes, AI tools, cross-organization
-integrations — a peer may need to discover a Resource Owner's
+open-world deployments (agent runtimes, AI tools, cross-organization
+integrations), a peer may need to discover a Resource Owner's
 Trust Policy before any prior bilateral relationship exists.<a href="#appendix-B.4-1" class="pilcrow">¶</a></p>
 <p id="appendix-B.4-2">A future Trust Policy Discovery extension can let a Resource
 Owner publish a DNS-named pointer at
@@ -3878,7 +3878,7 @@ self-asserted. The tool provider extracts Subject Authority
 <code>example.com</code>, looks up the customer's policy, and finds that
 <code>https://attacker.example</code> is NOT in <code>authorized_issuers</code>. The
 Trust Method fails; the tool provider rejects with <code>invalid_grant</code>.
-The attacker's <code>email_verified: true</code> self-claim has no force —
+The attacker's <code>email_verified: true</code> self-claim has no force;
 trust derives from the <code>iss</code>-vs-policy check, not from the
 assertion's own statements. <code>attacker.example</code> has no path to
 impersonate users in <code>example.com</code> unless the customer publishes

@@ -2414,8 +2414,8 @@ the Subject Authority's namespace.<a href="#section-9-1" class="pilcrow">¶</a><
 <p id="section-9.1-1">DAI's authority binding is DNS control of the registrable domain
 (or corresponding HTTPS well-known URL), the bootstrap model used
 by CAA <span>[<a href="#RFC8659" class="cite xref">RFC8659</a>]</span> and MTA-STS <span>[<a href="#RFC8461" class="cite xref">RFC8461</a>]</span>. Pre-existing DNS
-realities — typosquatting, expired-domain takeover, registrar
-account compromise — apply unchanged and are not introduced by
+realities (typosquatting, expired-domain takeover, registrar
+account compromise) apply unchanged and are not introduced by
 this document. The registrable-domain default contains
 subdomain-takeover impact (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Subject Authority
 Determination); identity binding beyond DNS control (legal-entity
@@ -2622,7 +2622,7 @@ security points apply:<a href="#section-9.9-1" class="pilcrow">¶</a></p>
 <li class="normal" id="section-9.9-2.1">
             <p id="section-9.9-2.1.1"><strong>Unconstrained-listing risk.</strong> A Subject Authority that lists
 a shared issuer with no <code>tenant</code> value authorizes EVERY tenant
-of that Identity Provider — almost never the intent. Subject
+of that Identity Provider, almost never the intent. Subject
 Authorities listing a shared issuer <span class="bcp14">SHOULD</span> include <code>tenant</code>.
 Resource Authorization Servers <span class="bcp14">SHOULD</span> log a warning when
 accepting under an unconstrained entry and <span class="bcp14">SHOULD</span> consider
@@ -2995,8 +2995,8 @@ deferred from this document; future specifications may register them.<a href="#a
 <p id="appendix-B.1-1">The WICG Email Verification Protocol <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span> defines a
 DNS TXT record at <code>_email-verification.{domain}</code> whose <code>iss=</code> values
 name authorized issuers for the namespace, using bare hostnames
-rather than full HTTPS issuer identifiers. A future Trust Method —
-provisionally <code>email_verification_dns</code> — could let a Resource
+rather than full HTTPS issuer identifiers. A future Trust Method
+(provisionally <code>email_verification_dns</code>) could let a Resource
 Authorization Server honor those records without requiring the
 Subject Authority to also publish an <code>_oauth-issuer-policy</code> record.<a href="#appendix-B.1-1" class="pilcrow">¶</a></p>
 <p id="appendix-B.1-2">The bridge is deferred because it forces the reader to learn a

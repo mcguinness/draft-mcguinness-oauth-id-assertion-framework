@@ -191,15 +191,16 @@ Deployments where the gap between issuer authentication and
 namespace authorization has practical consequences include
 workforce SSO into multi-vendor SaaS (per-customer bilateral
 issuer configuration; no wire-format check that the configured
-IdP is the one the customer authorizes), AI agent platforms
-acting across tool boundaries (the tool needs to know the
-platform is entitled to assert about users in the customer's
+Assertion Issuer is the one the customer authorizes), AI agent
+platforms acting across tool boundaries (the tool needs to know
+the platform is entitled to assert about users in the customer's
 namespace; see {{example-agent-platform}}), B2B integrations
 carrying end-user identity (today either accept any authenticated
-IdP or maintain manual allowlists), and shared-issuer multi-tenant
-Identity Providers (customer's choice of authorized tenant becomes
-observable on the wire via {{DAI}} §Single-Issuer Multi-Tenant Identity Providers
-rather than implicit). Today's alternatives are bilateral OAuth
+Assertion Issuer or maintain manual allowlists), and
+shared-issuer multi-tenant Identity Providers (customer's choice
+of authorized tenant becomes observable on the wire via
+{{DAI}} §Single-Issuer Multi-Tenant Identity Providers rather than
+implicit). Today's alternatives are bilateral OAuth
 configuration, federation membership treated incorrectly as a
 proxy for namespace authority, or implicit trust in tenant-domain
 bindings; this document provides a wire-format alternative.
@@ -272,6 +273,14 @@ attribute-attestation layer beneath it.
 Future extensions to additional Subject Identifier formats follow
 {{future-extensions}} and require no changes to the trust evaluation
 model.
+
+The `email` Subject Identifier extraction registered in this
+document is user-identity-oriented. The Authority Delegation Model
+({{delegation-model}}) supports any Subject Identifier format with
+a registered extraction procedure; identity chaining for workload
+identities, agent identities, or other non-user subjects can be
+supported by registering additional extractions
+({{future-extensions}}).
 
 ## Conventions
 
@@ -843,8 +852,9 @@ deployments that do not accept DNS-published authority.
 This non-normative example shows the two trust-evaluation
 categories used together. A SaaS Resource Authorization Server
 (`api.saas.example`) accepts identity assertions from federation
-member IdPs about users in any customer namespace; the customer
-authorizes which specific IdP serves its users.
+member Assertion Issuers about users in any customer namespace;
+the customer authorizes which specific Assertion Issuer serves
+its users.
 
 The Resource Authorization Server publishes:
 
@@ -869,7 +879,7 @@ The Resource Authorization Server publishes:
 
 Customer `acme.example` publishes a DAI record naming
 `https://idp.example.net` as its authorized Assertion Issuer.
-That IdP is also a federation member of
+That Assertion Issuer is also a federation member of
 `https://federation.example.org`.
 
 A token-request flow with an ID-JAG carrying
@@ -881,9 +891,9 @@ A token-request flow with an ID-JAG carrying
 2. **Authenticity** (`issuer_authentication` category): the
    Resource Authorization Server validates the OpenID Federation
    trust chain from `https://idp.example.net` to
-   `https://federation.example.org`. This proves the IdP is an
-   authentic federation member but says nothing about its
-   authority over `acme.example`.
+   `https://federation.example.org`. This proves the Assertion
+   Issuer is an authentic federation member but says nothing
+   about its authority over `acme.example`.
 
 3. **Delegation authority** (`subject_namespace_authorization`
    category): the Resource Authorization Server extracts
@@ -891,7 +901,7 @@ A token-request flow with an ID-JAG carrying
    at `_oauth-issuer-policy.acme.example`, and confirms
    `https://idp.example.net` appears in `authorized_issuers`. This
    proves Acme delegated naming authority over its namespace to
-   this specific IdP.
+   this specific Assertion Issuer.
 
 4. The cross-category combination rule ({{combination-rule}}) is
    satisfied: one Trust Method succeeded in each applicable
@@ -899,9 +909,10 @@ A token-request flow with an ID-JAG carrying
    `private_key_jwt` client authentication and access-token
    issuance.
 
-If the IdP were federation-authenticated but Acme had not listed
-it in its DAI record, step 2 would succeed and step 3 would fail;
-the Resource Authorization Server rejects with `invalid_grant`.
+If the Assertion Issuer were federation-authenticated but Acme
+had not listed it in its DAI record, step 2 would succeed and
+step 3 would fail; the Resource Authorization Server rejects with
+`invalid_grant`.
 Federation membership alone does NOT establish namespace
 authority; the combination rule is what enforces this. A deeper
 walkthrough including federation trust-chain validation and Trust
@@ -1389,11 +1400,11 @@ the Subject Authority.
 
 This framework decides whether an Assertion Issuer is authorized;
 it does not revoke individual assertions. JWT bearer tokens are
-stateless and remain valid until `exp` regardless of user logout,
-credential revocation at the Identity Provider, or Subject
-Authority withdrawal of the issuer's authorization via DAI (which
-prevents NEW assertions but does not invalidate already-issued
-ones). Deployments requiring synchronous revocation MUST use OAuth
+stateless and remain valid until `exp` regardless of session
+termination, credential revocation at the Assertion Issuer, or
+Subject Authority withdrawal of the issuer's authorization via
+DAI (which prevents NEW assertions but does not invalidate
+already-issued ones). Deployments requiring synchronous revocation MUST use OAuth
 2.0 Token Revocation {{RFC7009}}, Token Introspection {{RFC7662}},
 or short assertion lifetimes at the grant-profile layer.
 

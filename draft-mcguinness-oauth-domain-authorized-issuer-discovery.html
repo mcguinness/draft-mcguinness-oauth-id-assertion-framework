@@ -1737,15 +1737,16 @@ indicates absence.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
         <h3 id="name-default-https-well-known-ur">
 <a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-default-https-well-known-ur" class="section-name selfRef">Default HTTPS Well-Known URL</a>
         </h3>
-<p id="section-4.2-1">A Subject Authority <span class="bcp14">MAY</span> additionally publish a JSON document at
-the default HTTPS well-known URL on its own host
-(<a href="#dii-https-url" class="auto internal xref">Section 4.4</a>). The lookup procedure (<a href="#dii-lookup" class="auto internal xref">Section 5</a>)
-consults DNS first and uses the HTTPS well-known URL only as a
-fallback when the DNS response is <code>negative-authoritative</code>. This
-channel covers the case where a Subject Authority has no DAI DNS
-record but does have well-known HTTPS infrastructure.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
-<p id="section-4.2-2">Operators are encouraged to publish the DNS record in all
-deployments because it matches the operational model of the
+<p id="section-4.2-1">A Subject Authority <span class="bcp14">MAY</span> publish a JSON document at the default
+HTTPS well-known URL on its own host (<a href="#dii-https-url" class="auto internal xref">Section 4.4</a>), either
+as the sole publication (Channel 3) or alongside a DNS record.
+The lookup procedure (<a href="#dii-lookup" class="auto internal xref">Section 5</a>) consults DNS first and uses
+the HTTPS well-known URL only when the DNS response is
+<code>negative-authoritative</code>. A Subject Authority with no DAI DNS
+record relies on the natural <code>negative-authoritative</code> DNS response
+to bring consumers to the well-known URL.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.2-2">Operators are encouraged to publish the DNS record where
+practical because it matches the operational model of the
 prior-art mechanisms in <a href="#dns-authority-patterns" class="auto internal xref">Appendix A.1</a> and because
 consumer lookup behavior is DNS-first.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
 </section>

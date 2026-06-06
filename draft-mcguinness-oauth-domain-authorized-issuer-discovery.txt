@@ -415,15 +415,16 @@ Table of Contents
 
 4.2.  Default HTTPS Well-Known URL
 
-   A Subject Authority MAY additionally publish a JSON document at the
-   default HTTPS well-known URL on its own host (Section 4.4).  The
-   lookup procedure (Section 5) consults DNS first and uses the HTTPS
-   well-known URL only as a fallback when the DNS response is negative-
-   authoritative.  This channel covers the case where a Subject
-   Authority has no DAI DNS record but does have well-known HTTPS
-   infrastructure.
+   A Subject Authority MAY publish a JSON document at the default HTTPS
+   well-known URL on its own host (Section 4.4), either as the sole
+   publication (Channel 3) or alongside a DNS record.  The lookup
+   procedure (Section 5) consults DNS first and uses the HTTPS well-
+   known URL only when the DNS response is negative-authoritative.  A
+   Subject Authority with no DAI DNS record relies on the natural
+   negative-authoritative DNS response to bring consumers to the well-
+   known URL.
 
-   Operators are encouraged to publish the DNS record in all deployments
+   Operators are encouraged to publish the DNS record where practical
    because it matches the operational model of the prior-art mechanisms
    in Appendix A.1 and because consumer lookup behavior is DNS-first.
 

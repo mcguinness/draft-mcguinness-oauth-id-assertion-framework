@@ -74,6 +74,10 @@ informative:
   PSL:
     title: "Public Suffix List"
     target: https://publicsuffix.org/
+  I-D.ietf-oauth-identity-chaining:
+    title: "OAuth Identity and Authorization Chaining Across Domains"
+    target: https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-chaining/
+    date: false
   RFC9334:
 
 ---
@@ -112,10 +116,14 @@ framework.
 OAuth assertion-based authorization grants {{RFC7521}} {{RFC7523}} allow
 identity-bearing assertions issued by one authorization server to be
 presented to another. The Identity Assertion JWT Authorization Grant
-(ID-JAG) {{ID-JAG}} is one such profile. Identity chaining and related
-deployments share a discovery problem: the Resource Authorization Server
-needs to decide whether the issuer of an identity assertion is
-acceptable for subject resolution, account linking, or delegated access.
+(ID-JAG) {{ID-JAG}} is one such profile, and the cross-domain delivery
+of such assertions is specified in {{I-D.ietf-oauth-identity-chaining}}.
+Those documents define how an assertion is constructed, presented, and
+consumed; they do not define whether the Resource Authorization Server
+should accept the issuer in the first place. The Resource Authorization
+Server needs to decide whether the issuer of an identity assertion is
+acceptable for subject resolution, account linking, or delegated access,
+and base specs leave that decision to local policy.
 
 In many deployments the set of acceptable Assertion Issuers cannot be
 enumerated in advance. It may be large, dynamic, or governed by external
@@ -146,6 +154,15 @@ This document defines the Authority Delegation Model
 assertions. It is consumed by {{DAI}}, which defines one
 Subject-Authority publication mechanism. The two documents together
 are described in {{family}}.
+
+This framework operates at a layer {{ID-JAG}} and
+{{I-D.ietf-oauth-identity-chaining}} do not address: those
+specifications define how a Resource Authorization Server *consumes*
+an identity assertion presented in a token request, but neither
+answers whether the issuing authorization server is *entitled* to
+assert about the subject's namespace. This document adds the
+issuer-trust evaluation layer; the assertion-bearer grant and
+chaining mechanics remain unchanged.
 
 ## Minimal Deployment
 

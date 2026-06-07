@@ -1458,10 +1458,14 @@ framework.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
 <p id="section-1-1">OAuth assertion-based authorization grants <span>[<a href="#RFC7521" class="cite xref">RFC7521</a>]</span> <span>[<a href="#RFC7523" class="cite xref">RFC7523</a>]</span> allow
 identity-bearing assertions issued by one authorization server to be
 presented to another. The Identity Assertion JWT Authorization Grant
-(ID-JAG) <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> is one such profile. Identity chaining and related
-deployments share a discovery problem: the Resource Authorization Server
-needs to decide whether the issuer of an identity assertion is
-acceptable for subject resolution, account linking, or delegated access.<a href="#section-1-1" class="pilcrow">¶</a></p>
+(ID-JAG) <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> is one such profile, and the cross-domain delivery
+of such assertions is specified in <span>[<a href="#I-D.ietf-oauth-identity-chaining" class="cite xref">I-D.ietf-oauth-identity-chaining</a>]</span>.
+Those documents define how an assertion is constructed, presented, and
+consumed; they do not define whether the Resource Authorization Server
+should accept the issuer in the first place. The Resource Authorization
+Server needs to decide whether the issuer of an identity assertion is
+acceptable for subject resolution, account linking, or delegated access,
+and base specs leave that decision to local policy.<a href="#section-1-1" class="pilcrow">¶</a></p>
 <p id="section-1-2">In many deployments the set of acceptable Assertion Issuers cannot be
 enumerated in advance. It may be large, dynamic, or governed by external
 trust frameworks. A static issuer allowlist also cannot express the
@@ -1488,6 +1492,14 @@ domain-authorized issuer record) when an assertion is presented.<a href="#sectio
 assertions. It is consumed by <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>, which defines one
 Subject-Authority publication mechanism. The two documents together
 are described in <a href="#family" class="auto internal xref">Section 1.6</a>.<a href="#section-1-5" class="pilcrow">¶</a></p>
+<p id="section-1-6">This framework operates at a layer <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> and
+<span>[<a href="#I-D.ietf-oauth-identity-chaining" class="cite xref">I-D.ietf-oauth-identity-chaining</a>]</span> do not address: those
+specifications define how a Resource Authorization Server <em>consumes</em>
+an identity assertion presented in a token request, but neither
+answers whether the issuing authorization server is <em>entitled</em> to
+assert about the subject's namespace. This document adds the
+issuer-trust evaluation layer; the assertion-bearer grant and
+chaining mechanics remain unchanged.<a href="#section-1-6" class="pilcrow">¶</a></p>
 <div id="minimal-deployment">
 <section id="section-1.1">
         <h3 id="name-minimal-deployment">
@@ -3571,6 +3583,10 @@ have a well-defined namespace authority.<a href="#section-9.2-5" class="pilcrow"
 <a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
+<dt id="I-D.ietf-oauth-identity-chaining">[I-D.ietf-oauth-identity-chaining]</dt>
+        <dd>
+<span class="refTitle">"OAuth Identity and Authorization Chaining Across Domains"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-chaining/">https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-chaining/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="PSL">[PSL]</dt>
         <dd>
 <span class="refTitle">"Public Suffix List"</span>, <span>n.d.</span>, <span>&lt;<a href="https://publicsuffix.org/">https://publicsuffix.org/</a>&gt;</span>. </dd>

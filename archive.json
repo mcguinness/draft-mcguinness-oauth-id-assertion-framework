@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-06-04T04:25:48.022672+00:00",
+  "timestamp": "2026-06-07T04:19:07.319436+00:00",
   "repo": "mcguinness/draft-mcguinness-oauth-identity-assertion-trust-policy",
   "labels": [
     {
@@ -63,7 +63,7 @@
       "labels": [],
       "body": "## Summary\n- Replaces the monolithic Identity Assertion Trust Framework draft with two cleanly-layered documents: the OAuth Identity Assertion Trust Framework (Authority Delegation Model + Trust Policy machinery + ID-JAG binding) and the OAuth Domain-Authorized Issuer Discovery (DAI) draft.\n- Tightens normative content by delegating to base specs where applicable (RFC 7521/7523, RFC 8725, OpenID Federation), compressing security considerations, and demoting non-MVP material to Future Extensions appendices.\n- Restores cognitive scaffolding (Agent Platform IdP and OpenID Federation walkthroughs) that the initial split had cut too aggressively.\n\n## Final shape\n- Merged doc: 2027 lines\n- DAI: 1440 lines\n- README: 64 lines (rewritten for the two-doc set)\n- vs main: -702 lines net; structure preserved; no normative interop requirements lost.\n\n## Out of scope (intentionally deferred)\n- Critical Extension Identifiers (forward-compat machinery)\n- Actor Identity Trust Evaluation\n- Trust Policy Discovery (DNS-named resource-side dual of DAI)\n- Email Verification Protocol bridge (DAI)\n- Client-Side Assertion Issuer Discovery (DAI)\n- Diagnostic Reason vocabulary (operational logging, not a protocol concern)\n\nAll deferred items are sketched in \u00a7Future Extensions appendices with rationale.\n\n## Test plan\n- [x] Anchor coverage verified: every `{{ref}}` resolves to a `{#anchor}` definition.\n- [x] Cross-doc section names verified against actual headings.\n- [x] Worked examples and walkthroughs use distinct casts so no scenario collisions.\n- [x] YAML date set to 2026-05-28 on both docs.\n- [ ] Local `make` build (recommended before submission).\n- [ ] Acknowledgments section and Document History entries before datatracker submission.",
       "createdAt": "2026-05-28T21:50:00Z",
-      "updatedAt": "2026-05-28T21:50:28Z",
+      "updatedAt": "2026-06-04T04:34:03Z",
       "baseRepository": "mcguinness/draft-mcguinness-oauth-identity-assertion-trust-policy",
       "baseRefName": "main",
       "baseRefOid": "cbd78123a029de2044ea2e89f33879adeabfac75",

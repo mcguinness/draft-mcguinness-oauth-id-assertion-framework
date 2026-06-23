@@ -31,7 +31,6 @@ normative:
   RFC5234:
   RFC5891:
   RFC7519:
-  RFC8126:
   RFC8414:
   RFC8552:
   RFC8553:
@@ -53,15 +52,9 @@ informative:
   OIDC-DISCOVERY:
     title: "OpenID Connect Discovery 1.0"
     target: https://openid.net/specs/openid-connect-discovery-1_0.html
-  OIDF-FEDERATION:
-    title: "OpenID Federation 1.0"
-    target: https://openid.net/specs/openid-federation-1_0.html
   WICG-EMAIL-VERIF:
     title: "Email Verification Protocol"
     target: https://wicg.github.io/email-verification-protocol/
-  PSL:
-    title: "Public Suffix List"
-    target: https://publicsuffix.org/
 
 ---
 
@@ -82,13 +75,13 @@ of the Subject Authority's issuer authorization policy. Client-side
 discovery of which Assertion Issuer to use before an assertion exists
 is a separate use case and is deferred to future work.
 
-DAI is a profile of the OAuth Identity Assertion Issuer Trust Policy
-({{TRUST-FRAMEWORK}}): it defines the Issuer Authorization Policy
-wire format and the canonical `domain_authorized_issuer`
-`subject_namespace_authorization` Trust Method that consumes it.
-The parent trust policy specification owns the generic Trust Policy
-document, Trust Method category structure, cross-category
-combination rule, and Subject Authority Determination concept.
+DAI is a profile of the OAuth Identity Assertion Trust Framework:
+it defines the Issuer Authorization Policy wire format and the
+canonical `domain_authorized_issuer` `subject_namespace_authorization`
+Trust Method that consumes it. The parent trust framework
+specification owns the generic Trust Policy document, Trust Method
+category structure, cross-category combination rule, and Subject
+Authority Determination concept.
 
 --- middle
 
@@ -1333,8 +1326,7 @@ domain-authorized issuer delegations with DNS-based discovery:
       `authorized_issuers` entry for `https://idp.example.net`.
 
    d. The ID-JAG `iss` value `https://idp.example.net` matches
-      the single `authorized_issuers[0].issuer`. Verification
-      succeeds.
+      the single entry's `issuer` value. Verification succeeds.
 
 5. The Resource Authorization Server validates `private_key_jwt`,
    then issues an access token in the response body.

@@ -37,11 +37,8 @@ normative:
   RFC8615:
   RFC9493:
   RFC9728:
-  RFC1035:
   RFC5891:
   RFC8126:
-  RFC8552:
-  RFC8553:
   OIDF-FEDERATION:
     title: "OpenID Federation 1.0"
     target: https://openid.net/specs/openid-federation-1_0.html
@@ -58,22 +55,16 @@ normative:
     date: false
 
 informative:
-  RFC5234:
   RFC7009:
   RFC7662:
-  RFC8461:
-  RFC8555:
-  RFC8659:
-  RFC8705:
   RFC8725:
-  RFC9449:
   RFC9700:
-  WICG-EMAIL-VERIF:
-    title: "Email Verification Protocol"
-    target: https://wicg.github.io/email-verification-protocol/
   PSL:
     title: "Public Suffix List"
     target: https://publicsuffix.org/
+  WICG-EMAIL-VERIF:
+    title: "Email Verification Protocol"
+    target: https://wicg.github.io/email-verification-protocol/
   I-D.ietf-oauth-identity-chaining:
     title: "OAuth Identity and Authorization Chaining Across Domains"
     target: https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-chaining/
@@ -105,9 +96,8 @@ issuer-authentication methods (such as OpenID Federation) and
 subject-namespace authorization methods defined by separate
 profiles.
 
-Domain-Authorized Issuer Discovery is defined separately by {{DAI}}
-as one subject-namespace authorization profile usable by this
-framework.
+Domain-Authorized Issuer Discovery is defined separately as one
+subject-namespace authorization profile usable by this framework.
 
 --- middle
 
@@ -1282,13 +1272,13 @@ Source's policy. The Assertion is evaluated against a Delegation
 Artifact that the legitimate Authority Holder for the target
 namespace never authorized.
 
-Worked example: an Assertion carries `sub: alice@victim.com` AND
+Worked example: an Assertion carries `sub: alice@victim.example` AND
 `tenant_context: attacker-tenant.example`. A loosely written
 profile selects the Authority Source by tenant context when
 present, falling back to subject domain. The Validator selects
 attacker-tenant.example, fetches that Authority Holder's
 Delegation Artifact (which the attacker controls), validates the
-Assertion against it, and accepts a claim about a victim.com
+Assertion against it, and accepts a claim about a victim.example
 subject.
 
 The mitigation is **deterministic source selection**

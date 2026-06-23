@@ -2,7 +2,7 @@
 title: "OAuth Domain-Authorized Issuer Discovery"
 abbrev: "Domain-Authorized Issuer Discovery"
 docname: draft-mcguinness-oauth-domain-authorized-issuer-discovery-latest
-date: 2026-05-28
+date: 2026-06-23
 category: std
 submissiontype: IETF
 v: 3

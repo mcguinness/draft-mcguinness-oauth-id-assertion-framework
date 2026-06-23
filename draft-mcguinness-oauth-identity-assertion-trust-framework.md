@@ -2,7 +2,7 @@
 title: "OAuth Identity Assertion Trust Framework"
 abbrev: "Identity Assertion Trust Framework"
 docname: draft-mcguinness-oauth-identity-assertion-trust-framework-latest
-date: 2026-05-28
+date: 2026-06-23
 category: std
 submissiontype: IETF
 v: 3

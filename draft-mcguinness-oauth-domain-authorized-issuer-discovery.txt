@@ -27,13 +27,13 @@ Abstract
    discovery of which Assertion Issuer to use before an assertion exists
    is a separate use case and is deferred to future work.
 
-   DAI is a profile of the OAuth Identity Assertion Issuer Trust Policy
-   ([TRUST-FRAMEWORK]): it defines the Issuer Authorization Policy wire
-   format and the canonical domain_authorized_issuer
-   subject_namespace_authorization Trust Method that consumes it.  The
-   parent trust policy specification owns the generic Trust Policy
-   document, Trust Method category structure, cross-category combination
-   rule, and Subject Authority Determination concept.
+   DAI is a profile of the OAuth Identity Assertion Trust Framework: it
+   defines the Issuer Authorization Policy wire format and the canonical
+   domain_authorized_issuer subject_namespace_authorization Trust Method
+   that consumes it.  The parent trust framework specification owns the
+   generic Trust Policy document, Trust Method category structure,
+   cross-category combination rule, and Subject Authority Determination
+   concept.
 
 Discussion Venues
 
@@ -1231,11 +1231,6 @@ Table of Contents
               (JWT)", RFC 7519, DOI 10.17487/RFC7519, May 2015,
               <https://www.rfc-editor.org/rfc/rfc7519>.
 
-   [RFC8126]  Cotton, M., Leiba, B., and T. Narten, "Guidelines for
-              Writing an IANA Considerations Section in RFCs", BCP 26,
-              RFC 8126, DOI 10.17487/RFC8126, June 2017,
-              <https://www.rfc-editor.org/rfc/rfc8126>.
-
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
@@ -1280,12 +1275,6 @@ Table of Contents
               "OpenID Connect Discovery 1.0", n.d.,
               <https://openid.net/specs/openid-connect-discovery-
               1_0.html>.
-
-   [OIDF-FEDERATION]
-              "OpenID Federation 1.0", n.d.,
-              <https://openid.net/specs/openid-federation-1_0.html>.
-
-   [PSL]      "Public Suffix List", n.d., <https://publicsuffix.org/>.
 
    [RFC8461]  Margolis, D., Risher, M., Ramakrishnan, B., Brotman, A.,
               and J. Jones, "SMTP MTA Strict Transport Security (MTA-
@@ -1538,7 +1527,7 @@ C.4.  Verification (Resource Authorization Server Side)
        https://idp.example.net.
 
        d.  The ID-JAG iss value https://idp.example.net matches the
-       single authorized_issuers[0].issuer.  Verification succeeds.
+       single entry's issuer value.  Verification succeeds.
 
    3.  The Resource Authorization Server validates private_key_jwt, then
        issues an access token in the response body.

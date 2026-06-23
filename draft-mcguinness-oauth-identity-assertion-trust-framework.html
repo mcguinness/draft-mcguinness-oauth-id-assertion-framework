@@ -26,9 +26,8 @@ methods it requires of an Assertion Issuer, including
 issuer-authentication methods (such as OpenID Federation) and
 subject-namespace authorization methods defined by separate
 profiles. 
-       Domain-Authorized Issuer Discovery is defined separately by  
-as one subject-namespace authorization profile usable by this
-framework. 
+       Domain-Authorized Issuer Discovery is defined separately as one
+subject-namespace authorization profile usable by this framework. 
     " name="description">
 <meta content="xml2rfc 3.34.0" name="generator">
 <meta content="OAuth" name="keyword">
@@ -1124,9 +1123,8 @@ methods it requires of an Assertion Issuer, including
 issuer-authentication methods (such as OpenID Federation) and
 subject-namespace authorization methods defined by separate
 profiles.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
-<p id="section-abstract-3">Domain-Authorized Issuer Discovery is defined separately by <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>
-as one subject-namespace authorization profile usable by this
-framework.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
+<p id="section-abstract-3">Domain-Authorized Issuer Discovery is defined separately as one
+subject-namespace authorization profile usable by this framework.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-discussion-venues">
@@ -2881,13 +2879,13 @@ algorithm picks the weakest (or most attacker-favorable) Authority
 Source's policy. The Assertion is evaluated against a Delegation
 Artifact that the legitimate Authority Holder for the target
 namespace never authorized.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
-<p id="section-7.2-3">Worked example: an Assertion carries <code>sub: alice@victim.com</code> AND
+<p id="section-7.2-3">Worked example: an Assertion carries <code>sub: alice@victim.example</code> AND
 <code>tenant_context: attacker-tenant.example</code>. A loosely written
 profile selects the Authority Source by tenant context when
 present, falling back to subject domain. The Validator selects
 attacker-tenant.example, fetches that Authority Holder's
 Delegation Artifact (which the attacker controls), validates the
-Assertion against it, and accepts a claim about a victim.com
+Assertion against it, and accepts a claim about a victim.example
 subject.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
 <p id="section-7.2-4">The mitigation is <strong>deterministic source selection</strong>
 (<a href="#multiple-sources" class="auto internal xref">Section 3.2.2</a>): a binding function from Assertion +
@@ -3511,10 +3509,6 @@ have a well-defined namespace authority.<a href="#section-9.2-5" class="pilcrow"
         <dd>
 <span class="refTitle">"OpenID Federation 1.0"</span>, <span>n.d.</span>, <span>&lt;<a href="https://openid.net/specs/openid-federation-1_0.html">https://openid.net/specs/openid-federation-1_0.html</a>&gt;</span>. </dd>
 <dd class="break"></dd>
-<dt id="RFC1035">[RFC1035]</dt>
-        <dd>
-<span class="refAuthor">Mockapetris, P.</span>, <span class="refTitle">"Domain names - implementation and specification"</span>, <span class="seriesInfo">STD 13</span>, <span class="seriesInfo">RFC 1035</span>, <span class="seriesInfo">DOI 10.17487/RFC1035</span>, <time datetime="1987-11" class="refDate">November 1987</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc1035">https://www.rfc-editor.org/rfc/rfc1035</a>&gt;</span>. </dd>
-<dd class="break"></dd>
 <dt id="RFC2119">[RFC2119]</dt>
         <dd>
 <span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
@@ -3555,14 +3549,6 @@ have a well-defined namespace authority.<a href="#section-9.2-5" class="pilcrow"
         <dd>
 <span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Sakimura, N.</span>, and <span class="refAuthor">J. Bradley</span>, <span class="refTitle">"OAuth 2.0 Authorization Server Metadata"</span>, <span class="seriesInfo">RFC 8414</span>, <span class="seriesInfo">DOI 10.17487/RFC8414</span>, <time datetime="2018-06" class="refDate">June 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8414">https://www.rfc-editor.org/rfc/rfc8414</a>&gt;</span>. </dd>
 <dd class="break"></dd>
-<dt id="RFC8552">[RFC8552]</dt>
-        <dd>
-<span class="refAuthor">Crocker, D.</span>, <span class="refTitle">"Scoped Interpretation of DNS Resource Records through "Underscored" Naming of Attribute Leaves"</span>, <span class="seriesInfo">BCP 222</span>, <span class="seriesInfo">RFC 8552</span>, <span class="seriesInfo">DOI 10.17487/RFC8552</span>, <time datetime="2019-03" class="refDate">March 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8552">https://www.rfc-editor.org/rfc/rfc8552</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="RFC8553">[RFC8553]</dt>
-        <dd>
-<span class="refAuthor">Crocker, D.</span>, <span class="refTitle">"DNS Attrleaf Changes: Fixing Specifications That Use Underscored Node Names"</span>, <span class="seriesInfo">BCP 222</span>, <span class="seriesInfo">RFC 8553</span>, <span class="seriesInfo">DOI 10.17487/RFC8553</span>, <time datetime="2019-03" class="refDate">March 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8553">https://www.rfc-editor.org/rfc/rfc8553</a>&gt;</span>. </dd>
-<dd class="break"></dd>
 <dt id="RFC8615">[RFC8615]</dt>
         <dd>
 <span class="refAuthor">Nottingham, M.</span>, <span class="refTitle">"Well-Known Uniform Resource Identifiers (URIs)"</span>, <span class="seriesInfo">RFC 8615</span>, <span class="seriesInfo">DOI 10.17487/RFC8615</span>, <time datetime="2019-05" class="refDate">May 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8615">https://www.rfc-editor.org/rfc/rfc8615</a>&gt;</span>. </dd>
@@ -3592,10 +3578,6 @@ have a well-defined namespace authority.<a href="#section-9.2-5" class="pilcrow"
         <dd>
 <span class="refTitle">"Public Suffix List"</span>, <span>n.d.</span>, <span>&lt;<a href="https://publicsuffix.org/">https://publicsuffix.org/</a>&gt;</span>. </dd>
 <dd class="break"></dd>
-<dt id="RFC5234">[RFC5234]</dt>
-        <dd>
-<span class="refAuthor">Crocker, D., Ed.</span> and <span class="refAuthor">P. Overell</span>, <span class="refTitle">"Augmented BNF for Syntax Specifications: ABNF"</span>, <span class="seriesInfo">STD 68</span>, <span class="seriesInfo">RFC 5234</span>, <span class="seriesInfo">DOI 10.17487/RFC5234</span>, <time datetime="2008-01" class="refDate">January 2008</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5234">https://www.rfc-editor.org/rfc/rfc5234</a>&gt;</span>. </dd>
-<dd class="break"></dd>
 <dt id="RFC7009">[RFC7009]</dt>
         <dd>
 <span class="refAuthor">Lodderstedt, T., Ed.</span>, <span class="refAuthor">Dronia, S.</span>, and <span class="refAuthor">M. Scurtescu</span>, <span class="refTitle">"OAuth 2.0 Token Revocation"</span>, <span class="seriesInfo">RFC 7009</span>, <span class="seriesInfo">DOI 10.17487/RFC7009</span>, <time datetime="2013-08" class="refDate">August 2013</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7009">https://www.rfc-editor.org/rfc/rfc7009</a>&gt;</span>. </dd>
@@ -3603,22 +3585,6 @@ have a well-defined namespace authority.<a href="#section-9.2-5" class="pilcrow"
 <dt id="RFC7662">[RFC7662]</dt>
         <dd>
 <span class="refAuthor">Richer, J., Ed.</span>, <span class="refTitle">"OAuth 2.0 Token Introspection"</span>, <span class="seriesInfo">RFC 7662</span>, <span class="seriesInfo">DOI 10.17487/RFC7662</span>, <time datetime="2015-10" class="refDate">October 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7662">https://www.rfc-editor.org/rfc/rfc7662</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="RFC8461">[RFC8461]</dt>
-        <dd>
-<span class="refAuthor">Margolis, D.</span>, <span class="refAuthor">Risher, M.</span>, <span class="refAuthor">Ramakrishnan, B.</span>, <span class="refAuthor">Brotman, A.</span>, and <span class="refAuthor">J. Jones</span>, <span class="refTitle">"SMTP MTA Strict Transport Security (MTA-STS)"</span>, <span class="seriesInfo">RFC 8461</span>, <span class="seriesInfo">DOI 10.17487/RFC8461</span>, <time datetime="2018-09" class="refDate">September 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8461">https://www.rfc-editor.org/rfc/rfc8461</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="RFC8555">[RFC8555]</dt>
-        <dd>
-<span class="refAuthor">Barnes, R.</span>, <span class="refAuthor">Hoffman-Andrews, J.</span>, <span class="refAuthor">McCarney, D.</span>, and <span class="refAuthor">J. Kasten</span>, <span class="refTitle">"Automatic Certificate Management Environment (ACME)"</span>, <span class="seriesInfo">RFC 8555</span>, <span class="seriesInfo">DOI 10.17487/RFC8555</span>, <time datetime="2019-03" class="refDate">March 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8555">https://www.rfc-editor.org/rfc/rfc8555</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="RFC8659">[RFC8659]</dt>
-        <dd>
-<span class="refAuthor">Hallam-Baker, P.</span>, <span class="refAuthor">Stradling, R.</span>, and <span class="refAuthor">J. Hoffman-Andrews</span>, <span class="refTitle">"DNS Certification Authority Authorization (CAA) Resource Record"</span>, <span class="seriesInfo">RFC 8659</span>, <span class="seriesInfo">DOI 10.17487/RFC8659</span>, <time datetime="2019-11" class="refDate">November 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8659">https://www.rfc-editor.org/rfc/rfc8659</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="RFC8705">[RFC8705]</dt>
-        <dd>
-<span class="refAuthor">Campbell, B.</span>, <span class="refAuthor">Bradley, J.</span>, <span class="refAuthor">Sakimura, N.</span>, and <span class="refAuthor">T. Lodderstedt</span>, <span class="refTitle">"OAuth 2.0 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens"</span>, <span class="seriesInfo">RFC 8705</span>, <span class="seriesInfo">DOI 10.17487/RFC8705</span>, <time datetime="2020-02" class="refDate">February 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8705">https://www.rfc-editor.org/rfc/rfc8705</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8725">[RFC8725]</dt>
         <dd>
@@ -3631,10 +3597,6 @@ have a well-defined namespace authority.<a href="#section-9.2-5" class="pilcrow"
 <dt id="RFC9334">[RFC9334]</dt>
         <dd>
 <span class="refAuthor">Birkholz, H.</span>, <span class="refAuthor">Thaler, D.</span>, <span class="refAuthor">Richardson, M.</span>, <span class="refAuthor">Smith, N.</span>, and <span class="refAuthor">W. Pan</span>, <span class="refTitle">"Remote ATtestation procedureS (RATS) Architecture"</span>, <span class="seriesInfo">RFC 9334</span>, <span class="seriesInfo">DOI 10.17487/RFC9334</span>, <time datetime="2023-01" class="refDate">January 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9334">https://www.rfc-editor.org/rfc/rfc9334</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="RFC9449">[RFC9449]</dt>
-        <dd>
-<span class="refAuthor">Fett, D.</span>, <span class="refAuthor">Campbell, B.</span>, <span class="refAuthor">Bradley, J.</span>, <span class="refAuthor">Lodderstedt, T.</span>, <span class="refAuthor">Jones, M.</span>, and <span class="refAuthor">D. Waite</span>, <span class="refTitle">"OAuth 2.0 Demonstrating Proof of Possession (DPoP)"</span>, <span class="seriesInfo">RFC 9449</span>, <span class="seriesInfo">DOI 10.17487/RFC9449</span>, <time datetime="2023-09" class="refDate">September 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9449">https://www.rfc-editor.org/rfc/rfc9449</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC9700">[RFC9700]</dt>
         <dd>

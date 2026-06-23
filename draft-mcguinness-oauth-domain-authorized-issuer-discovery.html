@@ -20,13 +20,13 @@ namespace.
 of the Subject Authority's issuer authorization policy. Client-side
 discovery of which Assertion Issuer to use before an assertion exists
 is a separate use case and is deferred to future work. 
-       DAI is a profile of the OAuth Identity Assertion Issuer Trust Policy
-( ): it defines the Issuer Authorization Policy
-wire format and the canonical  domain_authorized_issuer 
-         subject_namespace_authorization  Trust Method that consumes it.
-The parent trust policy specification owns the generic Trust Policy
-document, Trust Method category structure, cross-category
-combination rule, and Subject Authority Determination concept. 
+       DAI is a profile of the OAuth Identity Assertion Trust Framework:
+it defines the Issuer Authorization Policy wire format and the
+canonical  domain_authorized_issuer   subject_namespace_authorization 
+Trust Method that consumes it. The parent trust framework
+specification owns the generic Trust Policy document, Trust Method
+category structure, cross-category combination rule, and Subject
+Authority Determination concept. 
     " name="description">
 <meta content="xml2rfc 3.34.0" name="generator">
 <meta content="OAuth" name="keyword">
@@ -1115,13 +1115,13 @@ namespace.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 of the Subject Authority's issuer authorization policy. Client-side
 discovery of which Assertion Issuer to use before an assertion exists
 is a separate use case and is deferred to future work.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
-<p id="section-abstract-3">DAI is a profile of the OAuth Identity Assertion Issuer Trust Policy
-(<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>): it defines the Issuer Authorization Policy
-wire format and the canonical <code>domain_authorized_issuer</code>
-        <code>subject_namespace_authorization</code> Trust Method that consumes it.
-The parent trust policy specification owns the generic Trust Policy
-document, Trust Method category structure, cross-category
-combination rule, and Subject Authority Determination concept.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
+<p id="section-abstract-3">DAI is a profile of the OAuth Identity Assertion Trust Framework:
+it defines the Issuer Authorization Policy wire format and the
+canonical <code>domain_authorized_issuer</code> <code>subject_namespace_authorization</code>
+Trust Method that consumes it. The parent trust framework
+specification owns the generic Trust Policy document, Trust Method
+category structure, cross-category combination rule, and Subject
+Authority Determination concept.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-discussion-venues">
@@ -2801,10 +2801,6 @@ Assertion Issuer Trust Methods registry
         <dd>
 <span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Bradley, J.</span>, and <span class="refAuthor">N. Sakimura</span>, <span class="refTitle">"JSON Web Token (JWT)"</span>, <span class="seriesInfo">RFC 7519</span>, <span class="seriesInfo">DOI 10.17487/RFC7519</span>, <time datetime="2015-05" class="refDate">May 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7519">https://www.rfc-editor.org/rfc/rfc7519</a>&gt;</span>. </dd>
 <dd class="break"></dd>
-<dt id="RFC8126">[RFC8126]</dt>
-        <dd>
-<span class="refAuthor">Cotton, M.</span>, <span class="refAuthor">Leiba, B.</span>, and <span class="refAuthor">T. Narten</span>, <span class="refTitle">"Guidelines for Writing an IANA Considerations Section in RFCs"</span>, <span class="seriesInfo">BCP 26</span>, <span class="seriesInfo">RFC 8126</span>, <span class="seriesInfo">DOI 10.17487/RFC8126</span>, <time datetime="2017-06" class="refDate">June 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8126">https://www.rfc-editor.org/rfc/rfc8126</a>&gt;</span>. </dd>
-<dd class="break"></dd>
 <dt id="RFC8174">[RFC8174]</dt>
         <dd>
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
@@ -2849,14 +2845,6 @@ Assertion Issuer Trust Methods registry
 <dt id="OIDC-DISCOVERY">[OIDC-DISCOVERY]</dt>
         <dd>
 <span class="refTitle">"OpenID Connect Discovery 1.0"</span>, <span>n.d.</span>, <span>&lt;<a href="https://openid.net/specs/openid-connect-discovery-1_0.html">https://openid.net/specs/openid-connect-discovery-1_0.html</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="OIDF-FEDERATION">[OIDF-FEDERATION]</dt>
-        <dd>
-<span class="refTitle">"OpenID Federation 1.0"</span>, <span>n.d.</span>, <span>&lt;<a href="https://openid.net/specs/openid-federation-1_0.html">https://openid.net/specs/openid-federation-1_0.html</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="PSL">[PSL]</dt>
-        <dd>
-<span class="refTitle">"Public Suffix List"</span>, <span>n.d.</span>, <span>&lt;<a href="https://publicsuffix.org/">https://publicsuffix.org/</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8461">[RFC8461]</dt>
         <dd>
@@ -3188,8 +3176,7 @@ c. The <code>authority=acme.example</code> directive matches. No <code>uri=</cod
    <code>authorized_issuers</code> entry for <code>https://idp.example.net</code>.<a href="#appendix-C.4-1.2.4" class="pilcrow">¶</a></p>
 <p id="appendix-C.4-1.2.5">
 d. The ID-JAG <code>iss</code> value <code>https://idp.example.net</code> matches
-   the single <code>authorized_issuers[0].issuer</code>. Verification
-   succeeds.<a href="#appendix-C.4-1.2.5" class="pilcrow">¶</a></p>
+   the single entry's <code>issuer</code> value. Verification succeeds.<a href="#appendix-C.4-1.2.5" class="pilcrow">¶</a></p>
 </li>
           <li id="appendix-C.4-1.3">
             <p id="appendix-C.4-1.3.1">The Resource Authorization Server validates <code>private_key_jwt</code>,

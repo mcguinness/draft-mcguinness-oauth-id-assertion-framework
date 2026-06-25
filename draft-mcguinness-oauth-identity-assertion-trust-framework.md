@@ -62,9 +62,6 @@ informative:
   PSL:
     title: "Public Suffix List"
     target: https://publicsuffix.org/
-  WICG-EMAIL-VERIF:
-    title: "Email Verification Protocol"
-    target: https://wicg.github.io/email-verification-protocol/
   I-D.ietf-oauth-identity-chaining:
     title: "OAuth Identity and Authorization Chaining Across Domains"
     target: https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-chaining/
@@ -959,13 +956,11 @@ Initial extractions:
   email's domain that is not itself a public suffix. The result is
   converted to A-label form per {{RFC5891}} and compared using
   case-insensitive ASCII comparison. Normalization to the
-  registrable domain is consistent with the email-domain handling
-  in the Email Verification Protocol {{WICG-EMAIL-VERIF}} and
-  prevents an attacker who controls a subdomain (for example, via
-  subdomain takeover) from publishing a Subject Authority record
-  that would override the legitimate record at the registrable
-  domain. Consumers MUST reject an email whose domain is itself a
-  public suffix (no registrable domain exists).
+  registrable domain prevents an attacker who controls a subdomain
+  (for example, via subdomain takeover) from publishing a Subject
+  Authority record that would override the legitimate record at
+  the registrable domain. Consumers MUST reject an email whose
+  domain is itself a public suffix (no registrable domain exists).
 
 Subject Identifier formats not registered for this purpose MUST NOT
 be evaluated under this Trust Method; the Resource Authorization

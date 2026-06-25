@@ -968,13 +968,11 @@ Table of Contents
       domain that is not itself a public suffix.  The result is
       converted to A-label form per [RFC5891] and compared using case-
       insensitive ASCII comparison.  Normalization to the registrable
-      domain is consistent with the email-domain handling in the Email
-      Verification Protocol [WICG-EMAIL-VERIF] and prevents an attacker
-      who controls a subdomain (for example, via subdomain takeover)
-      from publishing a Subject Authority record that would override the
-      legitimate record at the registrable domain.  Consumers MUST
-      reject an email whose domain is itself a public suffix (no
-      registrable domain exists).
+      domain prevents an attacker who controls a subdomain (for example,
+      via subdomain takeover) from publishing a Subject Authority record
+      that would override the legitimate record at the registrable
+      domain.  Consumers MUST reject an email whose domain is itself a
+      public suffix (no registrable domain exists).
 
    Subject Identifier formats not registered for this purpose MUST NOT
    be evaluated under this Trust Method; the Resource Authorization
@@ -1808,10 +1806,6 @@ Table of Contents
               "Best Current Practice for OAuth 2.0 Security", BCP 240,
               RFC 9700, DOI 10.17487/RFC9700, January 2025,
               <https://www.rfc-editor.org/rfc/rfc9700>.
-
-   [WICG-EMAIL-VERIF]
-              "Email Verification Protocol", n.d.,
-              <https://wicg.github.io/email-verification-protocol/>.
 
 Appendix A.  Design Rationale
 

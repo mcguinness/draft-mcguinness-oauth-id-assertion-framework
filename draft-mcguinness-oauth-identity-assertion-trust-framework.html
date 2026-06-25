@@ -2511,13 +2511,11 @@ registrable domain ("eTLD+1") using a current Public Suffix List
 email's domain that is not itself a public suffix. The result is
 converted to A-label form per <span>[<a href="#RFC5891" class="cite xref">RFC5891</a>]</span> and compared using
 case-insensitive ASCII comparison. Normalization to the
-registrable domain is consistent with the email-domain handling
-in the Email Verification Protocol <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span> and
-prevents an attacker who controls a subdomain (for example, via
-subdomain takeover) from publishing a Subject Authority record
-that would override the legitimate record at the registrable
-domain. Consumers <span class="bcp14">MUST</span> reject an email whose domain is itself a
-public suffix (no registrable domain exists).<a href="#section-4.4-3.2.2" class="pilcrow">¶</a></p>
+registrable domain prevents an attacker who controls a subdomain
+(for example, via subdomain takeover) from publishing a Subject
+Authority record that would override the legitimate record at
+the registrable domain. Consumers <span class="bcp14">MUST</span> reject an email whose
+domain is itself a public suffix (no registrable domain exists).<a href="#section-4.4-3.2.2" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -3599,12 +3597,8 @@ have a well-defined namespace authority.<a href="#section-9.2-5" class="pilcrow"
 <span class="refAuthor">Birkholz, H.</span>, <span class="refAuthor">Thaler, D.</span>, <span class="refAuthor">Richardson, M.</span>, <span class="refAuthor">Smith, N.</span>, and <span class="refAuthor">W. Pan</span>, <span class="refTitle">"Remote ATtestation procedureS (RATS) Architecture"</span>, <span class="seriesInfo">RFC 9334</span>, <span class="seriesInfo">DOI 10.17487/RFC9334</span>, <time datetime="2023-01" class="refDate">January 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9334">https://www.rfc-editor.org/rfc/rfc9334</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC9700">[RFC9700]</dt>
-        <dd>
-<span class="refAuthor">Lodderstedt, T.</span>, <span class="refAuthor">Bradley, J.</span>, <span class="refAuthor">Labunets, A.</span>, and <span class="refAuthor">D. Fett</span>, <span class="refTitle">"Best Current Practice for OAuth 2.0 Security"</span>, <span class="seriesInfo">BCP 240</span>, <span class="seriesInfo">RFC 9700</span>, <span class="seriesInfo">DOI 10.17487/RFC9700</span>, <time datetime="2025-01" class="refDate">January 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9700">https://www.rfc-editor.org/rfc/rfc9700</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="WICG-EMAIL-VERIF">[WICG-EMAIL-VERIF]</dt>
       <dd>
-<span class="refTitle">"Email Verification Protocol"</span>, <span>n.d.</span>, <span>&lt;<a href="https://wicg.github.io/email-verification-protocol/">https://wicg.github.io/email-verification-protocol/</a>&gt;</span>. </dd>
+<span class="refAuthor">Lodderstedt, T.</span>, <span class="refAuthor">Bradley, J.</span>, <span class="refAuthor">Labunets, A.</span>, and <span class="refAuthor">D. Fett</span>, <span class="refTitle">"Best Current Practice for OAuth 2.0 Security"</span>, <span class="seriesInfo">BCP 240</span>, <span class="seriesInfo">RFC 9700</span>, <span class="seriesInfo">DOI 10.17487/RFC9700</span>, <time datetime="2025-01" class="refDate">January 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9700">https://www.rfc-editor.org/rfc/rfc9700</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>

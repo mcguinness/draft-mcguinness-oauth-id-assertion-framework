@@ -1271,6 +1271,11 @@ Table of Contents
 
 11.2.  Informative References
 
+   [I-D.hardt-email-verification]
+              "Email Verification Protocol",
+              <https://datatracker.ietf.org/doc/draft-hardt-email-
+              verification/>.
+
    [OIDC-DISCOVERY]
               "OpenID Connect Discovery 1.0", n.d.,
               <https://openid.net/specs/openid-connect-discovery-
@@ -1286,10 +1291,6 @@ Table of Contents
               Record", RFC 8659, DOI 10.17487/RFC8659, November 2019,
               <https://www.rfc-editor.org/rfc/rfc8659>.
 
-   [WICG-EMAIL-VERIF]
-              "Email Verification Protocol", n.d.,
-              <https://wicg.github.io/email-verification-protocol/>.
-
 Appendix A.  Design Rationale
 
    This appendix is non-normative.
@@ -1299,9 +1300,10 @@ A.1.  Following Existing DNS Authority Patterns
    Domain-Authorized Issuer Discovery applies the same authority-
    publication pattern that domain owners already use for CAA [RFC8659],
    MTA-STS [RFC8461], SPF, DKIM, and the Email Verification Protocol
-   [WICG-EMAIL-VERIF].  [TRUST-FRAMEWORK] §Authority Delegation Model
-   covers the abstract pattern; this document chooses DNS at _oauth-
-   issuer-policy.{domain} as the authoritative publication channel.
+   [I-D.hardt-email-verification].  [TRUST-FRAMEWORK] §Authority
+   Delegation Model covers the abstract pattern; this document chooses
+   DNS at _oauth-issuer-policy.{domain} as the authoritative publication
+   channel.
 
    Unlike CAA (deployment-time), SPF/DKIM (spam-score signal), and MTA-
    STS (inbound mail), the _oauth-issuer-policy record is consumed
@@ -1383,22 +1385,26 @@ Appendix B.  Future Extensions
 
 B.1.  Email Verification Protocol Bridge
 
-   The WICG Email Verification Protocol [WICG-EMAIL-VERIF] defines a DNS
-   TXT record at _email-verification.{domain} whose iss= values name
-   authorized issuers for the namespace, using bare hostnames rather
-   than full HTTPS issuer identifiers.  A future Trust Method
-   (provisionally email_verification_dns) could let a Resource
+   The Email Verification Protocol [I-D.hardt-email-verification]
+   defines a DNS TXT record at _email-verification.{domain} whose iss=
+   value names an authorized issuer for the namespace, using a bare
+   hostname rather than a full HTTPS issuer identifier.  A future Trust
+   Method (provisionally email_verification_dns) could let a Resource
    Authorization Server honor those records without requiring the
    Subject Authority to also publish an _oauth-issuer-policy record.
 
    The bridge is deferred because it forces the reader to learn a second
-   record format and a different issuer-identifier shape (bare-origin
-   only, no path component), and because [WICG-EMAIL-VERIF] is an
-   external draft whose status is independent of this document.
-   Deployments wanting the bridge can either publish both records (an
-   _oauth-issuer-policy record satisfying domain_authorized_issuer plus
-   their existing _email-verification record for other consumers) or
-   wait for the future Trust Method specification.
+   record format, a different issuer-identifier shape (bare-origin only,
+   no path component), and a different email-domain semantics (the Email
+   Verification Protocol parses the email's raw domain part, whereas
+   this document normalizes to the registrable domain via the Public
+   Suffix List).  It is also deferred because
+   [I-D.hardt-email-verification] is progressing on its own timeline
+   independent of this document.  Deployments wanting the bridge can
+   either publish both records (an _oauth-issuer-policy record
+   satisfying domain_authorized_issuer plus their existing _email-
+   verification record for other consumers) or wait for the future Trust
+   Method specification.
 
 B.2.  Assertion Issuer Discovery (Client-Side)
 

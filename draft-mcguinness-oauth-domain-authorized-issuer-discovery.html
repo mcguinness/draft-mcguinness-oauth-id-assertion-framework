@@ -2842,6 +2842,10 @@ Assertion Issuer Trust Methods registry
 <a href="#section-11.2" class="section-number selfRef">11.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
+<dt id="I-D.hardt-email-verification">[I-D.hardt-email-verification]</dt>
+        <dd>
+<span class="refTitle">"Email Verification Protocol"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-hardt-email-verification/">https://datatracker.ietf.org/doc/draft-hardt-email-verification/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="OIDC-DISCOVERY">[OIDC-DISCOVERY]</dt>
         <dd>
 <span class="refTitle">"OpenID Connect Discovery 1.0"</span>, <span>n.d.</span>, <span>&lt;<a href="https://openid.net/specs/openid-connect-discovery-1_0.html">https://openid.net/specs/openid-connect-discovery-1_0.html</a>&gt;</span>. </dd>
@@ -2851,12 +2855,8 @@ Assertion Issuer Trust Methods registry
 <span class="refAuthor">Margolis, D.</span>, <span class="refAuthor">Risher, M.</span>, <span class="refAuthor">Ramakrishnan, B.</span>, <span class="refAuthor">Brotman, A.</span>, and <span class="refAuthor">J. Jones</span>, <span class="refTitle">"SMTP MTA Strict Transport Security (MTA-STS)"</span>, <span class="seriesInfo">RFC 8461</span>, <span class="seriesInfo">DOI 10.17487/RFC8461</span>, <time datetime="2018-09" class="refDate">September 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8461">https://www.rfc-editor.org/rfc/rfc8461</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8659">[RFC8659]</dt>
-        <dd>
-<span class="refAuthor">Hallam-Baker, P.</span>, <span class="refAuthor">Stradling, R.</span>, and <span class="refAuthor">J. Hoffman-Andrews</span>, <span class="refTitle">"DNS Certification Authority Authorization (CAA) Resource Record"</span>, <span class="seriesInfo">RFC 8659</span>, <span class="seriesInfo">DOI 10.17487/RFC8659</span>, <time datetime="2019-11" class="refDate">November 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8659">https://www.rfc-editor.org/rfc/rfc8659</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="WICG-EMAIL-VERIF">[WICG-EMAIL-VERIF]</dt>
       <dd>
-<span class="refTitle">"Email Verification Protocol"</span>, <span>n.d.</span>, <span>&lt;<a href="https://wicg.github.io/email-verification-protocol/">https://wicg.github.io/email-verification-protocol/</a>&gt;</span>. </dd>
+<span class="refAuthor">Hallam-Baker, P.</span>, <span class="refAuthor">Stradling, R.</span>, and <span class="refAuthor">J. Hoffman-Andrews</span>, <span class="refTitle">"DNS Certification Authority Authorization (CAA) Resource Record"</span>, <span class="seriesInfo">RFC 8659</span>, <span class="seriesInfo">DOI 10.17487/RFC8659</span>, <time datetime="2019-11" class="refDate">November 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8659">https://www.rfc-editor.org/rfc/rfc8659</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -2877,7 +2877,7 @@ Assertion Issuer Trust Methods registry
 <p id="appendix-A.1-1">Domain-Authorized Issuer Discovery applies the same
 authority-publication pattern that domain owners already use for
 CAA <span>[<a href="#RFC8659" class="cite xref">RFC8659</a>]</span>, MTA-STS <span>[<a href="#RFC8461" class="cite xref">RFC8461</a>]</span>, SPF, DKIM, and the Email
-Verification Protocol <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span>. <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>
+Verification Protocol <span>[<a href="#I-D.hardt-email-verification" class="cite xref">I-D.hardt-email-verification</a>]</span>. <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>
 §Authority Delegation Model covers the abstract pattern; this
 document chooses DNS at <code>_oauth-issuer-policy.{domain}</code> as the
 authoritative publication channel.<a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
@@ -2982,18 +2982,22 @@ deferred from this document; future specifications may register them.<a href="#a
         <h3 id="name-email-verification-protocol">
 <a href="#appendix-B.1" class="section-number selfRef">B.1. </a><a href="#name-email-verification-protocol" class="section-name selfRef">Email Verification Protocol Bridge</a>
         </h3>
-<p id="appendix-B.1-1">The WICG Email Verification Protocol <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span> defines a
-DNS TXT record at <code>_email-verification.{domain}</code> whose <code>iss=</code> values
-name authorized issuers for the namespace, using bare hostnames
-rather than full HTTPS issuer identifiers. A future Trust Method
-(provisionally <code>email_verification_dns</code>) could let a Resource
-Authorization Server honor those records without requiring the
-Subject Authority to also publish an <code>_oauth-issuer-policy</code> record.<a href="#appendix-B.1-1" class="pilcrow">¶</a></p>
+<p id="appendix-B.1-1">The Email Verification Protocol <span>[<a href="#I-D.hardt-email-verification" class="cite xref">I-D.hardt-email-verification</a>]</span>
+defines a DNS TXT record at <code>_email-verification.{domain}</code> whose
+<code>iss=</code> value names an authorized issuer for the namespace, using
+a bare hostname rather than a full HTTPS issuer identifier. A
+future Trust Method (provisionally <code>email_verification_dns</code>)
+could let a Resource Authorization Server honor those records
+without requiring the Subject Authority to also publish an
+<code>_oauth-issuer-policy</code> record.<a href="#appendix-B.1-1" class="pilcrow">¶</a></p>
 <p id="appendix-B.1-2">The bridge is deferred because it forces the reader to learn a
-second record format and a different issuer-identifier shape
-(bare-origin only, no path component), and because
-<span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span> is an external draft whose status is independent
-of this document. Deployments wanting the bridge can either publish
+second record format, a different issuer-identifier shape
+(bare-origin only, no path component), and a different
+email-domain semantics (the Email Verification Protocol parses
+the email's raw domain part, whereas this document normalizes to
+the registrable domain via the Public Suffix List). It is also
+deferred because <span>[<a href="#I-D.hardt-email-verification" class="cite xref">I-D.hardt-email-verification</a>]</span> is progressing
+on its own timeline independent of this document. Deployments wanting the bridge can either publish
 both records (an <code>_oauth-issuer-policy</code> record satisfying
 <code>domain_authorized_issuer</code> plus their existing
 <code>_email-verification</code> record for other consumers) or wait for the

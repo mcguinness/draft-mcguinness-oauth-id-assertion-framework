@@ -937,14 +937,15 @@ Table of Contents
 
 8.3.  Choosing the Lookup Mode
 
-   Within domain_authorized_issuer, a Resource Authorization Server uses
-   one lookup mode:
+   Within domain_authorized_issuer, a Resource Authorization Server
+   selects one lookup mode:
 
-   *  *Canonical DNS-first lookup* is the default.  It accepts the DNS-
-      first canonical lookup, which falls back to the HTTPS well-known
-      URL on negative-authoritative DNS responses; the "no DNS record,
-      only HTTPS document" Subject Authority case is therefore already
-      covered without the HTTPS-only variant.
+   *  *Canonical DNS-first lookup* is the default.  The Resource
+      Authorization Server queries _oauth-issuer-policy.{A} first and
+      falls back to the HTTPS well-known URL on negative-authoritative
+      DNS responses (Section 5).  The "no DNS record, only HTTPS
+      document" Subject Authority case is therefore already covered
+      without the HTTPS-only variant.
 
    *  *HTTPS-only lookup* is an explicit deployment variant.  Use it
       when local policy distrusts DNS-published authority entirely and
@@ -988,7 +989,8 @@ Table of Contents
 
    The HTTPS-only lookup mode (Section 8.2) substitutes TLS-server
    authentication for DNS-published authority.  The threat surfaces
-   differ from domain_authorized_issuer:
+   differ from the canonical DNS-first lookup of
+   domain_authorized_issuer:
 
    *  DNS-record attacks (Section 9.4) do NOT affect authority
       retrieval; the TXT record is not fetched.

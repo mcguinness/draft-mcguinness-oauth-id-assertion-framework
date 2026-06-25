@@ -2373,21 +2373,21 @@ identified by the well-known URL.<a href="#section-8.2-8.3.1" class="pilcrow">¶
 <a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-choosing-the-lookup-mode" class="section-name selfRef">Choosing the Lookup Mode</a>
         </h3>
 <p id="section-8.3-1">Within <code>domain_authorized_issuer</code>, a Resource Authorization Server
-uses one lookup mode:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
+selects one lookup mode:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.3-2.1">
-            <p id="section-8.3-2.1.1"><strong>Canonical DNS-first lookup</strong> is the default. It accepts
-the DNS-first canonical lookup, which falls back to the HTTPS
-well-known URL on <code>negative-authoritative</code> DNS responses; the "no
-DNS record, only HTTPS document" Subject Authority case is
-therefore already covered without the HTTPS-only variant.<a href="#section-8.3-2.1.1" class="pilcrow">¶</a></p>
+            <p id="section-8.3-2.1.1"><strong>Canonical DNS-first lookup</strong> is the default. The Resource
+Authorization Server queries <code>_oauth-issuer-policy.{A}</code> first and
+falls back to the HTTPS well-known URL on <code>negative-authoritative</code>
+DNS responses (<a href="#dii-lookup" class="auto internal xref">Section 5</a>). The "no DNS record, only HTTPS
+document" Subject Authority case is therefore already covered
+without the HTTPS-only variant.<a href="#section-8.3-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.3-2.2">
             <p id="section-8.3-2.2.1"><strong>HTTPS-only lookup</strong> is an explicit deployment variant. Use it
-when local policy distrusts
-DNS-published authority entirely and requires authority retrieval
-over TLS-authenticated HTTPS only. Inline DNS records and DNS
-pointer forms are rejected.<a href="#section-8.3-2.2.1" class="pilcrow">¶</a></p>
+when local policy distrusts DNS-published authority entirely and
+requires authority retrieval over TLS-authenticated HTTPS only.
+Inline DNS records and DNS pointer forms are rejected.<a href="#section-8.3-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.3-3">Resource Authorization Servers <span class="bcp14">MUST NOT</span> evaluate both lookup modes
@@ -2445,7 +2445,8 @@ Certificate Transparency logs.<a href="#section-9.2-1" class="pilcrow">¶</a></p
 <p id="section-9.3-1">The HTTPS-only lookup mode
 (<a href="#trust-method-https-authorized-issuer" class="auto internal xref">Section 8.2</a>) substitutes TLS-server
 authentication for DNS-published authority. The threat surfaces
-differ from <code>domain_authorized_issuer</code>:<a href="#section-9.3-1" class="pilcrow">¶</a></p>
+differ from the canonical DNS-first lookup of
+<code>domain_authorized_issuer</code>:<a href="#section-9.3-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-9.3-2.1">
             <p id="section-9.3-2.1.1">DNS-record attacks (<a href="#dns-integrity-and-compromise" class="auto internal xref">Section 9.4</a>) do NOT

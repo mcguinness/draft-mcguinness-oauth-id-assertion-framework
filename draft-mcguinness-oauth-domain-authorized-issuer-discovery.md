@@ -824,19 +824,19 @@ canonical DNS-first lookup, this mode:
 ## Choosing the Lookup Mode {#combining-dai-methods}
 
 Within `domain_authorized_issuer`, a Resource Authorization Server
-uses one lookup mode:
+selects one lookup mode:
 
-- **Canonical DNS-first lookup** is the default. It accepts
-  the DNS-first canonical lookup, which falls back to the HTTPS
-  well-known URL on `negative-authoritative` DNS responses; the "no
-  DNS record, only HTTPS document" Subject Authority case is
-  therefore already covered without the HTTPS-only variant.
+- **Canonical DNS-first lookup** is the default. The Resource
+  Authorization Server queries `_oauth-issuer-policy.{A}` first and
+  falls back to the HTTPS well-known URL on `negative-authoritative`
+  DNS responses ({{dii-lookup}}). The "no DNS record, only HTTPS
+  document" Subject Authority case is therefore already covered
+  without the HTTPS-only variant.
 
 - **HTTPS-only lookup** is an explicit deployment variant. Use it
-  when local policy distrusts
-  DNS-published authority entirely and requires authority retrieval
-  over TLS-authenticated HTTPS only. Inline DNS records and DNS
-  pointer forms are rejected.
+  when local policy distrusts DNS-published authority entirely and
+  requires authority retrieval over TLS-authenticated HTTPS only.
+  Inline DNS records and DNS pointer forms are rejected.
 
 Resource Authorization Servers MUST NOT evaluate both lookup modes
 as alternatives for the same assertion. Doing so creates an
@@ -877,7 +877,8 @@ Certificate Transparency logs.
 The HTTPS-only lookup mode
 ({{trust-method-https-authorized-issuer}}) substitutes TLS-server
 authentication for DNS-published authority. The threat surfaces
-differ from `domain_authorized_issuer`:
+differ from the canonical DNS-first lookup of
+`domain_authorized_issuer`:
 
 - DNS-record attacks ({{dns-integrity-and-compromise}}) do NOT
   affect authority retrieval; the TXT record is not fetched.

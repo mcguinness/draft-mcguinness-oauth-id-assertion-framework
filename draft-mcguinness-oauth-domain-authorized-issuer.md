@@ -79,12 +79,11 @@ Client-side discovery of which Assertion Issuer to use before an
 assertion exists is a separate use case and is deferred to future
 work.
 
-This document defines the Issuer Authorization Policy wire format
-and the canonical `domain_authorized_issuer` Trust Method that
-consumes it. The parent trust framework specification owns the
-generic Trust Policy document, Trust Method category structure,
-cross-category combination rule, and Subject Authority Determination
-concept.
+This document also defines the Issuer Authorization Policy wire
+format that the Trust Method consumes. The parent trust framework
+specification owns the generic Trust Policy document, Trust Method
+category structure, cross-category combination rule, and Subject
+Authority Determination concept.
 
 --- middle
 
@@ -135,7 +134,7 @@ one publication channel; the Assertion Issuer is the Delegate.
 Lookup state classification and fail-closed requirements follow
 {{TRUST-FRAMEWORK}} §Lookup States and Fail-Closed.
 
-DAI is consumed by {{TRUST-FRAMEWORK}}, which owns the Trust Policy
+DAI extends {{TRUST-FRAMEWORK}}, which owns the Trust Policy
 document format, Trust Method machinery, Subject Authority
 Determination, and OAuth grant-profile bindings. This document
 defines the Issuer Authorization Policy document
@@ -701,7 +700,7 @@ Cache lifetimes for the Issuer Authorization Policy:
 
 # Trust Methods {#trust-methods}
 
-This document defines `domain_authorized_issuer` as the canonical
+This document defines `domain_authorized_issuer` as a
 `subject_namespace_authorization` Trust Method of {{TRUST-FRAMEWORK}}.
 DNS at `_oauth-issuer-policy.{authority}` is the primary publication
 channel, with the HTTPS well-known URL as fallback. The Trust Method

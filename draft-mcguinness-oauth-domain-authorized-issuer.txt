@@ -8,32 +8,33 @@ Intended status: Standards Track                            23 June 2026
 Expires: 25 December 2026
 
 
-                OAuth Domain-Authorized Issuer Discovery
-    draft-mcguinness-oauth-domain-authorized-issuer-discovery-latest
+              OAuth Domain-Authorized Issuer Trust Method
+         draft-mcguinness-oauth-domain-authorized-issuer-latest
 
 Abstract
 
-   This document defines Domain-Authorized Issuer Discovery (DAI), a
-   mechanism by which the owner of a subject namespace (typically a DNS
-   domain) publishes a policy listing the OAuth authorization servers it
-   authorizes to assert identities in that namespace.  The mechanism
-   uses the DNS-based authority-publication pattern operators already
-   deploy for CAA, MTA-STS, SPF, and DKIM.  A Resource Authorization
-   Server uses the published policy to verify that an identity
-   assertion's issuer is authorized for the asserted subject namespace.
+   This document defines the Domain-Authorized Issuer (DAI) Trust
+   Method: a subject_namespace_authorization Trust Method for the OAuth
+   Identity Assertion Trust Framework in which the owner of a subject
+   namespace (typically a DNS domain) publishes a policy listing the
+   OAuth authorization servers it authorizes to assert identities in
+   that namespace.  The mechanism uses the DNS-based authority-
+   publication pattern operators already deploy for CAA, MTA-STS, SPF,
+   and DKIM.  A Resource Authorization Server uses the published policy
+   to verify that an identity assertion's issuer is authorized for the
+   asserted subject namespace.
 
-   The "discovery" defined by this document is verifier-side discovery
-   of the Subject Authority's issuer authorization policy.  Client-side
+   The lookup defined by this document is verifier-side: given an
+   identity assertion in hand, the Resource Authorization Server locates
+   the Subject Authority's issuer authorization policy.  Client-side
    discovery of which Assertion Issuer to use before an assertion exists
    is a separate use case and is deferred to future work.
 
-   DAI is a profile of the OAuth Identity Assertion Trust Framework: it
-   defines the Issuer Authorization Policy wire format and the canonical
-   domain_authorized_issuer subject_namespace_authorization Trust Method
-   that consumes it.  The parent trust framework specification owns the
-   generic Trust Policy document, Trust Method category structure,
-   cross-category combination rule, and Subject Authority Determination
-   concept.
+   This document defines the Issuer Authorization Policy wire format and
+   the canonical domain_authorized_issuer Trust Method that consumes it.
+   The parent trust framework specification owns the generic Trust
+   Policy document, Trust Method category structure, cross-category
+   combination rule, and Subject Authority Determination concept.
 
 Discussion Venues
 
@@ -44,8 +45,8 @@ Discussion Venues
    archived at https://mailarchive.ietf.org/arch/browse/oauth/.
 
    Source for this draft and an issue tracker can be found at
-   https://github.com/mcguinness/draft-mcguinness-oauth-identity-
-   assertion-trust-policy.
+   https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-
+   framework.
 
 Status of This Memo
 
@@ -145,8 +146,8 @@ Table of Contents
    subjects in any particular namespace; the namespace owner is the only
    authoritative source of that delegation.
 
-   Domain-Authorized Issuer Discovery (DAI) lets the owner of a DNS-
-   namable subject namespace publish, in DNS, the set of Assertion
+   The Domain-Authorized Issuer (DAI) Trust Method lets the owner of a
+   DNS-namable subject namespace publish, in DNS, the set of Assertion
    Issuers it authorizes for its namespace.  The DNS record can carry
    the authorized issuers inline (for simple deployments) or point at an
    HTTPS-hosted JSON document containing richer policy (validity
@@ -211,8 +212,8 @@ Table of Contents
 
    One term is specific to this document:
 
-   Domain-Authorized Issuer Discovery (DAI):  The mechanism defined by
-      this document for a Subject Authority to publish, via DNS, the set
+   Domain-Authorized Issuer (DAI):  The Trust Method defined by this
+      document, in which a Subject Authority publishes, via DNS, the set
       of Assertion Issuers it authorizes for its namespace.
 
 3.  Issuer Authorization Policy Document
@@ -830,12 +831,12 @@ Table of Contents
    assertion's Subject Identifier authorizes the Assertion Issuer to
    assert identities in that namespace, as defined in this document.
 
-   Domain-Authorized Issuer Discovery, defined in this document, is the
-   mechanism by which a Subject Authority publishes its authorized
-   Assertion Issuers.  A Subject Authority publishes a DNS TXT record at
-   _oauth-issuer-policy.{authority} (carrying authorized issuers inline,
-   or pointing to a richer HTTPS-hosted document) or an HTTPS JSON
-   document at .well-known/oauth-issuer-policy on the Subject
+   The Domain-Authorized Issuer Trust Method, defined in this document,
+   is the mechanism by which a Subject Authority publishes its
+   authorized Assertion Issuers.  A Subject Authority publishes a DNS
+   TXT record at _oauth-issuer-policy.{authority} (carrying authorized
+   issuers inline, or pointing to a richer HTTPS-hosted document) or an
+   HTTPS JSON document at .well-known/oauth-issuer-policy on the Subject
    Authority's host.  The full mechanism (record syntax, lookup
    procedure, failure handling, and security considerations) is
    specified in this document.
@@ -1269,7 +1270,7 @@ Table of Contents
    [TRUST-FRAMEWORK]
               "OAuth Identity Assertion Trust Framework",
               <https://datatracker.ietf.org/doc/draft-mcguinness-oauth-
-              identity-assertion-trust-framework/>.
+              id-assertion-framework/>.
 
 11.2.  Informative References
 
@@ -1299,7 +1300,7 @@ Appendix A.  Design Rationale
 
 A.1.  Following Existing DNS Authority Patterns
 
-   Domain-Authorized Issuer Discovery applies the same authority-
+   The Domain-Authorized Issuer Trust Method applies the same authority-
    publication pattern that domain owners already use for CAA [RFC8659],
    MTA-STS [RFC8461], SPF, DKIM, and the Email Verification Protocol
    [I-D.hardt-email-verification].  [TRUST-FRAMEWORK] §Authority
@@ -1632,8 +1633,7 @@ Appendix D.  Document History
 
    -00
 
-   *  initial draft, split from draft-mcguinness-oauth-identity-
-      assertion-issuer-trust-policy
+   *  initial draft
 
 Author's Address
 

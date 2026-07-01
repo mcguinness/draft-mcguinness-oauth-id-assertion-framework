@@ -4,52 +4,55 @@
 <meta charset="utf-8">
 <meta content="Common,Latin" name="scripts">
 <meta content="initial-scale=1.0" name="viewport">
-<title>OAuth Domain-Authorized Issuer Discovery</title>
+<title>OAuth Domain-Authorized Issuer Trust Method</title>
 <meta content="Karl McGuinness" name="author">
 <meta content="
-       This document defines Domain-Authorized Issuer Discovery (DAI), a
-mechanism by which the owner of a subject namespace (typically a
-DNS domain) publishes a policy listing the OAuth authorization
-servers it authorizes to assert identities in that namespace. The
-mechanism uses the DNS-based authority-publication pattern operators
-already deploy for CAA, MTA-STS, SPF, and DKIM. A Resource
-Authorization Server uses the published policy to verify that an
-identity assertion's issuer is authorized for the asserted subject
-namespace. 
-       The &quot;discovery&quot; defined by this document is verifier-side discovery
-of the Subject Authority's issuer authorization policy. Client-side
-discovery of which Assertion Issuer to use before an assertion exists
-is a separate use case and is deferred to future work. 
-       DAI is a profile of the OAuth Identity Assertion Issuer Trust Policy
-( ): it defines the Issuer Authorization Policy
-wire format and the canonical  domain_authorized_issuer 
-         subject_namespace_authorization  Trust Method that consumes it.
-The parent trust policy specification owns the generic Trust Policy
-document, Trust Method category structure, cross-category
-combination rule, and Subject Authority Determination concept. 
+       This document defines the Domain-Authorized Issuer (DAI) Trust
+Method: a  subject_namespace_authorization  Trust Method for the
+OAuth Identity Assertion Trust Framework in which the owner of a
+subject namespace (typically a DNS domain) publishes a policy
+listing the OAuth authorization servers it authorizes to assert
+identities in that namespace. The mechanism uses the DNS-based
+authority-publication pattern operators already deploy for CAA,
+MTA-STS, SPF, and DKIM. A Resource Authorization Server uses the
+published policy to verify that an identity assertion's issuer is
+authorized for the asserted subject namespace. 
+       The lookup defined by this document is verifier-side: given an
+identity assertion in hand, the Resource Authorization Server
+locates the Subject Authority's issuer authorization policy.
+Client-side discovery of which Assertion Issuer to use before an
+assertion exists is a separate use case and is deferred to future
+work. 
+       This document defines the Issuer Authorization Policy wire format
+and the canonical  domain_authorized_issuer  Trust Method that
+consumes it. The parent trust framework specification owns the
+generic Trust Policy document, Trust Method category structure,
+cross-category combination rule, and Subject Authority Determination
+concept. 
     " name="description">
-<meta content="xml2rfc 3.33.0" name="generator">
+<meta content="xml2rfc 3.34.0" name="generator">
 <meta content="OAuth" name="keyword">
 <meta content="JWT authorization grants" name="keyword">
 <meta content="identity assertion" name="keyword">
 <meta content="issuer discovery" name="keyword">
 <meta content="DNS authority" name="keyword">
-<meta content="draft-mcguinness-oauth-domain-authorized-issuer-discovery-latest" name="ietf.draft">
+<meta content="draft-mcguinness-oauth-domain-authorized-issuer-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.33.0
-    Python 3.12.13
-    ConfigArgParse 1.7
+  xml2rfc 3.34.0
+    Python 3.14.5
+    ConfigArgParse 1.7.5
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
-    lxml 6.0.2
-    platformdirs 4.9.6
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.10.0
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.7.0
+    wcwidth 0.8.1
 -->
-<link href="draft-mcguinness-oauth-domain-authorized-issuer-discovery.xml" rel="alternate" type="application/rfc+xml">
+<link href="draft-mcguinness-oauth-domain-authorized-issuer.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
 <style type="text/css">@font-face {
   font-family: 'Lora';
@@ -1065,12 +1068,12 @@ svg {
 <table class="ears">
 <thead><tr>
 <td class="left">Internet-Draft</td>
-<td class="center">Domain-Authorized Issuer Discovery</td>
-<td class="right">May 2026</td>
+<td class="center">Domain-Authorized Issuer Trust Method</td>
+<td class="right">June 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">McGuinness</td>
-<td class="center">Expires 29 November 2026</td>
+<td class="center">Expires 25 December 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1080,15 +1083,15 @@ svg {
 <dt class="label-workgroup">Workgroup:</dt>
 <dd class="workgroup">Web Authorization Protocol</dd>
 <dt class="label-internet-draft">Internet-Draft:</dt>
-<dd class="internet-draft">draft-mcguinness-oauth-domain-authorized-issuer-discovery-latest</dd>
+<dd class="internet-draft">draft-mcguinness-oauth-domain-authorized-issuer-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-05-28" class="published">28 May 2026</time>
+<time datetime="2026-06-23" class="published">23 June 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Standards Track</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-11-29">29 November 2026</time></dd>
+<dd class="expires"><time datetime="2026-12-25">25 December 2026</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1098,29 +1101,31 @@ svg {
 </dd>
 </dl>
 </div>
-<h1 id="title">OAuth Domain-Authorized Issuer Discovery</h1>
+<h1 id="title">OAuth Domain-Authorized Issuer Trust Method</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">This document defines Domain-Authorized Issuer Discovery (DAI), a
-mechanism by which the owner of a subject namespace (typically a
-DNS domain) publishes a policy listing the OAuth authorization
-servers it authorizes to assert identities in that namespace. The
-mechanism uses the DNS-based authority-publication pattern operators
-already deploy for CAA, MTA-STS, SPF, and DKIM. A Resource
-Authorization Server uses the published policy to verify that an
-identity assertion's issuer is authorized for the asserted subject
-namespace.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
-<p id="section-abstract-2">The "discovery" defined by this document is verifier-side discovery
-of the Subject Authority's issuer authorization policy. Client-side
-discovery of which Assertion Issuer to use before an assertion exists
-is a separate use case and is deferred to future work.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
-<p id="section-abstract-3">DAI is a profile of the OAuth Identity Assertion Issuer Trust Policy
-(<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>): it defines the Issuer Authorization Policy
-wire format and the canonical <code>domain_authorized_issuer</code>
-        <code>subject_namespace_authorization</code> Trust Method that consumes it.
-The parent trust policy specification owns the generic Trust Policy
-document, Trust Method category structure, cross-category
-combination rule, and Subject Authority Determination concept.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">This document defines the Domain-Authorized Issuer (DAI) Trust
+Method: a <code>subject_namespace_authorization</code> Trust Method for the
+OAuth Identity Assertion Trust Framework in which the owner of a
+subject namespace (typically a DNS domain) publishes a policy
+listing the OAuth authorization servers it authorizes to assert
+identities in that namespace. The mechanism uses the DNS-based
+authority-publication pattern operators already deploy for CAA,
+MTA-STS, SPF, and DKIM. A Resource Authorization Server uses the
+published policy to verify that an identity assertion's issuer is
+authorized for the asserted subject namespace.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">The lookup defined by this document is verifier-side: given an
+identity assertion in hand, the Resource Authorization Server
+locates the Subject Authority's issuer authorization policy.
+Client-side discovery of which Assertion Issuer to use before an
+assertion exists is a separate use case and is deferred to future
+work.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+<p id="section-abstract-3">This document defines the Issuer Authorization Policy wire format
+and the canonical <code>domain_authorized_issuer</code> Trust Method that
+consumes it. The parent trust framework specification owns the
+generic Trust Policy document, Trust Method category structure,
+cross-category combination rule, and Subject Authority Determination
+concept.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-discussion-venues">
@@ -1131,7 +1136,7 @@ combination rule, and Subject Authority Determination concept.<a href="#section-
     Web Authorization Protocol Working Group mailing list (oauth@ietf.org),
     which is archived at <span><a href="https://mailarchive.ietf.org/arch/browse/oauth/">https://mailarchive.ietf.org/arch/browse/oauth/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
 <p id="section-note.1-3">Source for this draft and an issue tracker can be found at
-    <span><a href="https://github.com/mcguinness/draft-mcguinness-oauth-identity-assertion-trust-policy">https://github.com/mcguinness/draft-mcguinness-oauth-identity-assertion-trust-policy</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+    <span><a href="https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework">https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
 </section>
 <div id="status-of-memo">
 <section id="section-boilerplate.1">
@@ -1152,7 +1157,7 @@ combination rule, and Subject Authority Determination concept.<a href="#section-
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 29 November 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 25 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1381,7 +1386,7 @@ subjects in this namespace?". An issuer authenticated by federation
 membership is not, by that membership alone, entitled to assert
 about subjects in any particular namespace; the namespace owner is
 the only authoritative source of that delegation.<a href="#section-1-1" class="pilcrow">¶</a></p>
-<p id="section-1-2">Domain-Authorized Issuer Discovery (DAI) lets the owner of a
+<p id="section-1-2">The Domain-Authorized Issuer (DAI) Trust Method lets the owner of a
 DNS-namable subject namespace publish, in DNS, the set of Assertion
 Issuers it authorizes for its namespace. The DNS record can carry
 the authorized issuers inline (for simple deployments) or point at
@@ -1456,11 +1461,11 @@ Policy, Issuer Authorization Policy) and from <span>[<a href="#TRUST-FRAMEWORK" 
 Subject Identifier formats follow <span>[<a href="#RFC9493" class="cite xref">RFC9493</a>]</span>.<a href="#section-2-1" class="pilcrow">¶</a></p>
 <p id="section-2-2">One term is specific to this document:<a href="#section-2-2" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-2-3">
-        <dt id="section-2-3.1">Domain-Authorized Issuer Discovery (DAI):</dt>
+        <dt id="section-2-3.1">Domain-Authorized Issuer (DAI):</dt>
         <dd style="margin-left: 1.5em" id="section-2-3.2">
-          <p id="section-2-3.2.1">The mechanism defined by this document for a Subject Authority
-to publish, via DNS, the set of Assertion Issuers it authorizes
-for its namespace.<a href="#section-2-3.2.1" class="pilcrow">¶</a></p>
+          <p id="section-2-3.2.1">The Trust Method defined by this document, in which a Subject
+Authority publishes, via DNS, the set of Assertion Issuers it
+authorizes for its namespace.<a href="#section-2-3.2.1" class="pilcrow">¶</a></p>
 </dd>
       <dd class="break"></dd>
 </dl>
@@ -1737,15 +1742,16 @@ indicates absence.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
         <h3 id="name-default-https-well-known-ur">
 <a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-default-https-well-known-ur" class="section-name selfRef">Default HTTPS Well-Known URL</a>
         </h3>
-<p id="section-4.2-1">A Subject Authority <span class="bcp14">MAY</span> additionally publish a JSON document at
-the default HTTPS well-known URL on its own host
-(<a href="#dii-https-url" class="auto internal xref">Section 4.4</a>). The lookup procedure (<a href="#dii-lookup" class="auto internal xref">Section 5</a>)
-consults DNS first and uses the HTTPS well-known URL only as a
-fallback when the DNS response is <code>negative-authoritative</code>. This
-channel covers the case where a Subject Authority has no DAI DNS
-record but does have well-known HTTPS infrastructure.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
-<p id="section-4.2-2">Operators are encouraged to publish the DNS record in all
-deployments because it matches the operational model of the
+<p id="section-4.2-1">A Subject Authority <span class="bcp14">MAY</span> publish a JSON document at the default
+HTTPS well-known URL on its own host (<a href="#dii-https-url" class="auto internal xref">Section 4.4</a>), either
+as the sole publication (Channel 3) or alongside a DNS record.
+The lookup procedure (<a href="#dii-lookup" class="auto internal xref">Section 5</a>) consults DNS first and uses
+the HTTPS well-known URL only when the DNS response is
+<code>negative-authoritative</code>. A Subject Authority with no DAI DNS
+record relies on the natural <code>negative-authoritative</code> DNS response
+to bring consumers to the well-known URL.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.2-2">Operators are encouraged to publish the DNS record where
+practical because it matches the operational model of the
 prior-art mechanisms in <a href="#dns-authority-patterns" class="auto internal xref">Appendix A.1</a> and because
 consumer lookup behavior is DNS-first.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
 </section>
@@ -2241,9 +2247,9 @@ registers in the Identity Assertion Issuer Trust Methods registry
 Issuer is acceptable if the Subject Authority identified by the
 assertion's Subject Identifier authorizes the Assertion Issuer to
 assert identities in that namespace, as defined in this document.<a href="#section-8.1-1" class="pilcrow">¶</a></p>
-<p id="section-8.1-2">Domain-Authorized Issuer Discovery, defined in this document, is the
-mechanism by which a Subject Authority publishes its authorized
-Assertion Issuers. A Subject Authority publishes a DNS TXT record at
+<p id="section-8.1-2">The Domain-Authorized Issuer Trust Method, defined in this document,
+is the mechanism by which a Subject Authority publishes its
+authorized Assertion Issuers. A Subject Authority publishes a DNS TXT record at
 <code>_oauth-issuer-policy.{authority}</code> (carrying authorized issuers
 inline, or pointing to a richer HTTPS-hosted document) or an HTTPS
 JSON document at <code>.well-known/oauth-issuer-policy</code> on the Subject
@@ -2371,21 +2377,21 @@ identified by the well-known URL.<a href="#section-8.2-8.3.1" class="pilcrow">¶
 <a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-choosing-the-lookup-mode" class="section-name selfRef">Choosing the Lookup Mode</a>
         </h3>
 <p id="section-8.3-1">Within <code>domain_authorized_issuer</code>, a Resource Authorization Server
-uses one lookup mode:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
+selects one lookup mode:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.3-2.1">
-            <p id="section-8.3-2.1.1"><strong>Canonical DNS-first lookup</strong> is the default. It accepts
-the DNS-first canonical lookup, which falls back to the HTTPS
-well-known URL on <code>negative-authoritative</code> DNS responses; the "no
-DNS record, only HTTPS document" Subject Authority case is
-therefore already covered without the HTTPS-only variant.<a href="#section-8.3-2.1.1" class="pilcrow">¶</a></p>
+            <p id="section-8.3-2.1.1"><strong>Canonical DNS-first lookup</strong> is the default. The Resource
+Authorization Server queries <code>_oauth-issuer-policy.{A}</code> first and
+falls back to the HTTPS well-known URL on <code>negative-authoritative</code>
+DNS responses (<a href="#dii-lookup" class="auto internal xref">Section 5</a>). The "no DNS record, only HTTPS
+document" Subject Authority case is therefore already covered
+without the HTTPS-only variant.<a href="#section-8.3-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.3-2.2">
             <p id="section-8.3-2.2.1"><strong>HTTPS-only lookup</strong> is an explicit deployment variant. Use it
-when local policy distrusts
-DNS-published authority entirely and requires authority retrieval
-over TLS-authenticated HTTPS only. Inline DNS records and DNS
-pointer forms are rejected.<a href="#section-8.3-2.2.1" class="pilcrow">¶</a></p>
+when local policy distrusts DNS-published authority entirely and
+requires authority retrieval over TLS-authenticated HTTPS only.
+Inline DNS records and DNS pointer forms are rejected.<a href="#section-8.3-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.3-3">Resource Authorization Servers <span class="bcp14">MUST NOT</span> evaluate both lookup modes
@@ -2443,7 +2449,8 @@ Certificate Transparency logs.<a href="#section-9.2-1" class="pilcrow">¶</a></p
 <p id="section-9.3-1">The HTTPS-only lookup mode
 (<a href="#trust-method-https-authorized-issuer" class="auto internal xref">Section 8.2</a>) substitutes TLS-server
 authentication for DNS-published authority. The threat surfaces
-differ from <code>domain_authorized_issuer</code>:<a href="#section-9.3-1" class="pilcrow">¶</a></p>
+differ from the canonical DNS-first lookup of
+<code>domain_authorized_issuer</code>:<a href="#section-9.3-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-9.3-2.1">
             <p id="section-9.3-2.1.1">DNS-record attacks (<a href="#dns-integrity-and-compromise" class="auto internal xref">Section 9.4</a>) do NOT
@@ -2799,10 +2806,6 @@ Assertion Issuer Trust Methods registry
         <dd>
 <span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Bradley, J.</span>, and <span class="refAuthor">N. Sakimura</span>, <span class="refTitle">"JSON Web Token (JWT)"</span>, <span class="seriesInfo">RFC 7519</span>, <span class="seriesInfo">DOI 10.17487/RFC7519</span>, <time datetime="2015-05" class="refDate">May 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7519">https://www.rfc-editor.org/rfc/rfc7519</a>&gt;</span>. </dd>
 <dd class="break"></dd>
-<dt id="RFC8126">[RFC8126]</dt>
-        <dd>
-<span class="refAuthor">Cotton, M.</span>, <span class="refAuthor">Leiba, B.</span>, and <span class="refAuthor">T. Narten</span>, <span class="refTitle">"Guidelines for Writing an IANA Considerations Section in RFCs"</span>, <span class="seriesInfo">BCP 26</span>, <span class="seriesInfo">RFC 8126</span>, <span class="seriesInfo">DOI 10.17487/RFC8126</span>, <time datetime="2017-06" class="refDate">June 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8126">https://www.rfc-editor.org/rfc/rfc8126</a>&gt;</span>. </dd>
-<dd class="break"></dd>
 <dt id="RFC8174">[RFC8174]</dt>
         <dd>
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
@@ -2833,7 +2836,7 @@ Assertion Issuer Trust Methods registry
 <dd class="break"></dd>
 <dt id="TRUST-FRAMEWORK">[TRUST-FRAMEWORK]</dt>
       <dd>
-<span class="refTitle">"OAuth Identity Assertion Trust Framework"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-mcguinness-oauth-identity-assertion-trust-framework/">https://datatracker.ietf.org/doc/draft-mcguinness-oauth-identity-assertion-trust-framework/</a>&gt;</span>. </dd>
+<span class="refTitle">"OAuth Identity Assertion Trust Framework"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-mcguinness-oauth-id-assertion-framework/">https://datatracker.ietf.org/doc/draft-mcguinness-oauth-id-assertion-framework/</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -2844,29 +2847,21 @@ Assertion Issuer Trust Methods registry
 <a href="#section-11.2" class="section-number selfRef">11.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
+<dt id="I-D.hardt-email-verification">[I-D.hardt-email-verification]</dt>
+        <dd>
+<span class="refTitle">"Email Verification Protocol"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-hardt-email-verification/">https://datatracker.ietf.org/doc/draft-hardt-email-verification/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="OIDC-DISCOVERY">[OIDC-DISCOVERY]</dt>
         <dd>
 <span class="refTitle">"OpenID Connect Discovery 1.0"</span>, <span>n.d.</span>, <span>&lt;<a href="https://openid.net/specs/openid-connect-discovery-1_0.html">https://openid.net/specs/openid-connect-discovery-1_0.html</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="OIDF-FEDERATION">[OIDF-FEDERATION]</dt>
-        <dd>
-<span class="refTitle">"OpenID Federation 1.0"</span>, <span>n.d.</span>, <span>&lt;<a href="https://openid.net/specs/openid-federation-1_0.html">https://openid.net/specs/openid-federation-1_0.html</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="PSL">[PSL]</dt>
-        <dd>
-<span class="refTitle">"Public Suffix List"</span>, <span>n.d.</span>, <span>&lt;<a href="https://publicsuffix.org/">https://publicsuffix.org/</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8461">[RFC8461]</dt>
         <dd>
 <span class="refAuthor">Margolis, D.</span>, <span class="refAuthor">Risher, M.</span>, <span class="refAuthor">Ramakrishnan, B.</span>, <span class="refAuthor">Brotman, A.</span>, and <span class="refAuthor">J. Jones</span>, <span class="refTitle">"SMTP MTA Strict Transport Security (MTA-STS)"</span>, <span class="seriesInfo">RFC 8461</span>, <span class="seriesInfo">DOI 10.17487/RFC8461</span>, <time datetime="2018-09" class="refDate">September 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8461">https://www.rfc-editor.org/rfc/rfc8461</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8659">[RFC8659]</dt>
-        <dd>
-<span class="refAuthor">Hallam-Baker, P.</span>, <span class="refAuthor">Stradling, R.</span>, and <span class="refAuthor">J. Hoffman-Andrews</span>, <span class="refTitle">"DNS Certification Authority Authorization (CAA) Resource Record"</span>, <span class="seriesInfo">RFC 8659</span>, <span class="seriesInfo">DOI 10.17487/RFC8659</span>, <time datetime="2019-11" class="refDate">November 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8659">https://www.rfc-editor.org/rfc/rfc8659</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="WICG-EMAIL-VERIF">[WICG-EMAIL-VERIF]</dt>
       <dd>
-<span class="refTitle">"Email Verification Protocol"</span>, <span>n.d.</span>, <span>&lt;<a href="https://wicg.github.io/email-verification-protocol/">https://wicg.github.io/email-verification-protocol/</a>&gt;</span>. </dd>
+<span class="refAuthor">Hallam-Baker, P.</span>, <span class="refAuthor">Stradling, R.</span>, and <span class="refAuthor">J. Hoffman-Andrews</span>, <span class="refTitle">"DNS Certification Authority Authorization (CAA) Resource Record"</span>, <span class="seriesInfo">RFC 8659</span>, <span class="seriesInfo">DOI 10.17487/RFC8659</span>, <time datetime="2019-11" class="refDate">November 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8659">https://www.rfc-editor.org/rfc/rfc8659</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -2884,10 +2879,10 @@ Assertion Issuer Trust Methods registry
         <h3 id="name-following-existing-dns-auth">
 <a href="#appendix-A.1" class="section-number selfRef">A.1. </a><a href="#name-following-existing-dns-auth" class="section-name selfRef">Following Existing DNS Authority Patterns</a>
         </h3>
-<p id="appendix-A.1-1">Domain-Authorized Issuer Discovery applies the same
+<p id="appendix-A.1-1">The Domain-Authorized Issuer Trust Method applies the same
 authority-publication pattern that domain owners already use for
 CAA <span>[<a href="#RFC8659" class="cite xref">RFC8659</a>]</span>, MTA-STS <span>[<a href="#RFC8461" class="cite xref">RFC8461</a>]</span>, SPF, DKIM, and the Email
-Verification Protocol <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span>. <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>
+Verification Protocol <span>[<a href="#I-D.hardt-email-verification" class="cite xref">I-D.hardt-email-verification</a>]</span>. <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>
 §Authority Delegation Model covers the abstract pattern; this
 document chooses DNS at <code>_oauth-issuer-policy.{domain}</code> as the
 authoritative publication channel.<a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
@@ -2992,18 +2987,22 @@ deferred from this document; future specifications may register them.<a href="#a
         <h3 id="name-email-verification-protocol">
 <a href="#appendix-B.1" class="section-number selfRef">B.1. </a><a href="#name-email-verification-protocol" class="section-name selfRef">Email Verification Protocol Bridge</a>
         </h3>
-<p id="appendix-B.1-1">The WICG Email Verification Protocol <span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span> defines a
-DNS TXT record at <code>_email-verification.{domain}</code> whose <code>iss=</code> values
-name authorized issuers for the namespace, using bare hostnames
-rather than full HTTPS issuer identifiers. A future Trust Method
-(provisionally <code>email_verification_dns</code>) could let a Resource
-Authorization Server honor those records without requiring the
-Subject Authority to also publish an <code>_oauth-issuer-policy</code> record.<a href="#appendix-B.1-1" class="pilcrow">¶</a></p>
+<p id="appendix-B.1-1">The Email Verification Protocol <span>[<a href="#I-D.hardt-email-verification" class="cite xref">I-D.hardt-email-verification</a>]</span>
+defines a DNS TXT record at <code>_email-verification.{domain}</code> whose
+<code>iss=</code> value names an authorized issuer for the namespace, using
+a bare hostname rather than a full HTTPS issuer identifier. A
+future Trust Method (provisionally <code>email_verification_dns</code>)
+could let a Resource Authorization Server honor those records
+without requiring the Subject Authority to also publish an
+<code>_oauth-issuer-policy</code> record.<a href="#appendix-B.1-1" class="pilcrow">¶</a></p>
 <p id="appendix-B.1-2">The bridge is deferred because it forces the reader to learn a
-second record format and a different issuer-identifier shape
-(bare-origin only, no path component), and because
-<span>[<a href="#WICG-EMAIL-VERIF" class="cite xref">WICG-EMAIL-VERIF</a>]</span> is an external draft whose status is independent
-of this document. Deployments wanting the bridge can either publish
+second record format, a different issuer-identifier shape
+(bare-origin only, no path component), and a different
+email-domain semantics (the Email Verification Protocol parses
+the email's raw domain part, whereas this document normalizes to
+the registrable domain via the Public Suffix List). It is also
+deferred because <span>[<a href="#I-D.hardt-email-verification" class="cite xref">I-D.hardt-email-verification</a>]</span> is progressing
+on its own timeline independent of this document. Deployments wanting the bridge can either publish
 both records (an <code>_oauth-issuer-policy</code> record satisfying
 <code>domain_authorized_issuer</code> plus their existing
 <code>_email-verification</code> record for other consumers) or wait for the
@@ -3186,8 +3185,7 @@ c. The <code>authority=acme.example</code> directive matches. No <code>uri=</cod
    <code>authorized_issuers</code> entry for <code>https://idp.example.net</code>.<a href="#appendix-C.4-1.2.4" class="pilcrow">¶</a></p>
 <p id="appendix-C.4-1.2.5">
 d. The ID-JAG <code>iss</code> value <code>https://idp.example.net</code> matches
-   the single <code>authorized_issuers[0].issuer</code>. Verification
-   succeeds.<a href="#appendix-C.4-1.2.5" class="pilcrow">¶</a></p>
+   the single entry's <code>issuer</code> value. Verification succeeds.<a href="#appendix-C.4-1.2.5" class="pilcrow">¶</a></p>
 </li>
           <li id="appendix-C.4-1.3">
             <p id="appendix-C.4-1.3.1">The Resource Authorization Server validates <code>private_key_jwt</code>,
@@ -3317,7 +3315,7 @@ enforce a local cache ceiling per <a href="#dii-caching" class="auto internal xr
 <p id="appendix-D-2">-00<a href="#appendix-D-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="appendix-D-3.1">
-          <p id="appendix-D-3.1.1">initial draft, split from draft-mcguinness-oauth-identity-assertion-issuer-trust-policy<a href="#appendix-D-3.1.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-3.1.1">initial draft<a href="#appendix-D-3.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>

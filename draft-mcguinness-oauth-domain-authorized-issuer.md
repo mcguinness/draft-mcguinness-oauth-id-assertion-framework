@@ -47,6 +47,7 @@ normative:
     date: false
 
 informative:
+  RFC7523:
   RFC8461:
   RFC8659:
   OIDC-DISCOVERY:
@@ -210,22 +211,24 @@ object has:
 
   `tenant`
   : OPTIONAL. String. The issuer-side tenant identifier authorized for
-  this Subject Authority, corresponding to the top-level `tenant`
-  claim defined in {{ID-JAG}} §6.1. When present, the assertion's
-  top-level `tenant` claim MUST be present and MUST exactly match this
-  value using case-sensitive string comparison; an assertion that lacks
-  the `tenant` claim or carries a different value does NOT match this
-  entry. When absent, no tenant constraint applies and the Assertion
-  Issuer is authorized for this Subject Authority regardless of its
-  `tenant` claim. Tenant values are issuer-specific: the string has
-  meaning only for the Assertion Issuer named by the same entry and
-  MUST NOT be compared across issuers. Subject Authorities authorizing
-  a shared-issuer multi-tenant Identity Provider (an Assertion Issuer
-  whose `iss` is shared across many tenants) SHOULD set `tenant` to the
-  specific tenant they intend to authorize; see {{dii-multi-tenant}}
-  for the rationale and trust assumptions. To authorize multiple
-  tenants of the same shared issuer, publish one `authorized_issuers`
-  entry per (issuer, tenant) pair.
+  this Subject Authority, corresponding to a top-level `tenant` claim
+  carried by the assertion (in ID-JAG, {{ID-JAG}} §6.1). When present,
+  the assertion's top-level `tenant` claim MUST be present and MUST
+  exactly match this value using case-sensitive string comparison; an
+  assertion that lacks the `tenant` claim or carries a different value
+  does NOT match this entry. When absent, no tenant constraint applies
+  and the Assertion Issuer is authorized for this Subject Authority
+  regardless of its `tenant` claim. Grant profiles that do not carry
+  a `tenant` claim (e.g., the generic JWT-bearer grant of
+  {{RFC7523}}) match only entries that omit `tenant`. Tenant values
+  are issuer-specific: the string has meaning only for the Assertion
+  Issuer named by the same entry and MUST NOT be compared across
+  issuers. Subject Authorities authorizing a shared-issuer multi-tenant
+  Identity Provider (an Assertion Issuer whose `iss` is shared across
+  many tenants) SHOULD set `tenant` to the specific tenant they intend
+  to authorize; see {{dii-multi-tenant}} for the rationale and trust
+  assumptions. To authorize multiple tenants of the same shared issuer,
+  publish one `authorized_issuers` entry per (issuer, tenant) pair.
 
   `subject_identifier_formats`
   : OPTIONAL. JSON array of Subject Identifier format names

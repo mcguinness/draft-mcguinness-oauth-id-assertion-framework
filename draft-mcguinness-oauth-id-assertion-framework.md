@@ -375,9 +375,10 @@ Trust Policy:
 by a Resource Authorization Server to declare its trust criteria.
 
 Issuer Authorization Policy:
-: The JSON document defined in {{DAI}} §Issuer Authorization Policy Document, published by a
-Subject Authority to authorize Assertion Issuers in its namespace.
-It is the Delegation Artifact for namespace-authority delegation.
+: The Delegation Artifact by which a Subject Authority declares the
+Assertion Issuers it authorizes for its namespace. Concrete
+representations (wire format, publication channel) are supplied by
+individual `subject_namespace_authorization` Trust Method specifications.
 
 # Authority Delegation Model {#delegation-model}
 
@@ -840,16 +841,12 @@ integration point between the federation and this framework; see
 ### Subject Namespace Authorization Methods {#subject-namespace-authorization-methods}
 
 `subject_namespace_authorization`-category methods are satisfied
-by evidence published by the Subject Authority itself (a DNS or
-HTTPS record under the Subject Authority's domain). The
+by evidence published by the Subject Authority itself (typically a
+DNS or HTTPS record under the Subject Authority's domain). The
 namespace-authorization trust graph is bounded to depth one
-({{transitive-authz-bounded}}).
-
-The `domain_authorized_issuer` Trust Method is defined in {{DAI}}.
-It belongs to the `subject_namespace_authorization` category and
-uses the Subject Authority's Issuer Authorization Policy as
-evidence. {{DAI}} also defines an HTTPS-only lookup mode for
-deployments that do not accept DNS-published authority.
+({{transitive-authz-bounded}}). Concrete methods in this category
+are defined by companion specifications and registered in the
+Trust Methods registry ({{iana-trust-methods-registry}}).
 
 ### Worked Example: OpenID Federation + DAI {#example-federation-dai}
 
@@ -1229,11 +1226,46 @@ Server MUST:
    that the ID-JAG issuer is authoritative for the subject; issuer
    acceptability is established only by evaluating the Trust Methods.
 
-If the `domain_authorized_issuer` Trust Method is used with ID-JAG,
-the Subject Authority is determined from the top-level
-`email`/`email_verified` claims per {{subject-authority-determination}} and the
-Resource Authorization Server validates the delegation using the
-procedure in {{DAI}}.
+## Generic JWT-Bearer Assertion Grant {#jwt-bearer-profile}
+
+This section provides the binding for the JWT-bearer authorization
+grant of {{RFC7523}} §2.1 when the assertion carries an identity
+claim to which Subject Authority Determination applies. Other
+identity-carrying grant profiles (e.g., ID-JAG,
+{{id-jag-profile}}) supply their own bindings.
+
+A Resource Authorization Server that accepts generic RFC 7523
+JWT-bearer assertion grants under this framework advertises
+`urn:ietf:params:oauth:grant-type:jwt-bearer` in
+`grant_types_supported`. RFC 7523 does not define a separate
+grant-profile URN, so generic JWT-bearer usage MAY omit an entry
+in `authorization_grant_profiles_supported`.
+
+The identity claim used for Subject Authority evaluation is taken
+from the top-level `sub` claim when its value is in email form, or
+from a top-level `email` claim accompanied by `email_verified=true`.
+Selection between these sources is a deployment-agreed matter
+between the Assertion Issuer and the Resource Authorization Server;
+once chosen, the same source MUST be applied consistently across
+all assertions evaluated under the same Trust Policy.
+
+In addition to the processing in {{rasp}}, the Resource
+Authorization Server MUST:
+
+1. Validate the JWT per {{RFC7523}}.
+
+2. Verify that the selected Subject Identifier uses a format
+   registered in `subject_identifier_formats_supported`, if that
+   trust policy member is present.
+
+3. Treat the identity claim only as input to Subject Authority
+   evaluation. Issuer acceptability is established only by
+   evaluating the Trust Methods.
+
+This binding does not apply to JWT client authentication
+({{RFC7523}} §2.2), where the Subject Identifier is the
+`client_id` registered with the authorization server and no
+external namespace-owner delegation exists.
 
 # Security Considerations
 
@@ -1601,8 +1633,6 @@ Initial entries:
 | Identifier | Categories | Parameters | Reference |
 |-|-|-|-|
 | `openid_federation` | `issuer_authentication` | `trust_anchors` (array of string, REQUIRED); `trust_marks` (array of object, OPTIONAL) | This document |
-Additional `subject_namespace_authorization` Trust Methods are
-registered by {{DAI}}.
 
 ### Trust Policy Members Registry {#iana-trust-policy-members-registry}
 

@@ -1355,7 +1355,10 @@ request, the Resource Authorization Server MUST:
       Methods for specific clients, subjects, or scopes.
 
    When the policy lists only `issuer_authentication` methods and the
-   assertion carries a namespace-bound Subject Identifier, the
+   assertion carries a namespace-bound Subject Identifier (one whose
+   format has a registered Subject Authority extraction procedure,
+   {{iana-authority-registry}}, so that the Resource Authorization
+   Server can determine this without running a namespace method), the
    Resource Authorization Server MUST reject the assertion (or apply a
    stricter local policy that independently establishes authority over
    the subject namespace), since federation membership alone does not
@@ -1384,21 +1387,23 @@ participate in Trust Method evaluation.
 ## ID-JAG {#id-jag-profile}
 
 For ID-JAG {{ID-JAG}}, `authorization_grant_profiles_supported` contains the value
-`urn:ietf:params:oauth:grant-profile:id-jag`. When the trust policy
-requires subject identifier evaluation, the Resource Authorization
-Server applies the policy to the email attribution carried by the
-ID-JAG. The email is taken from the top-level `email` claim,
-accompanied by `email_verified=true`, per {{subject-authority-determination}}.
+`urn:ietf:params:oauth:grant-profile:id-jag`. The Subject Identifier
+for ID-JAG is the top-level `email` claim, accompanied by
+`email_verified=true`, extracted per {{subject-authority-determination}}.
+When the trust policy contains a `subject_namespace_authorization`
+method, {{rasp}} step 5c requires the ID-JAG to carry that Subject
+Identifier and requires rejection if it is absent or unresolvable.
 
 In addition to the processing in {{rasp}}, the Resource Authorization
 Server MUST:
 
 1. Validate the ID-JAG per {{ID-JAG}}.
 
-2. Verify that the email attribution carried by the ID-JAG, when
-   present or required, uses a Subject Identifier format registered
-   in `subject_identifier_formats_supported`, if that trust policy
-   member is present.
+2. Verify that the `email` Subject Identifier, when the assertion
+   carries one, uses a format registered in
+   `subject_identifier_formats_supported`, if that trust policy member
+   is present. (Whether the assertion is required to carry the Subject
+   Identifier at all is governed by {{rasp}} step 5c.)
 
 3. Use the email attribution only for subject resolution and Subject
    Authority evaluation. The Resource Authorization Server MUST NOT
@@ -1451,6 +1456,20 @@ means a value satisfying the email-claim syntax of
 {{subject-authority-determination}}. A value that is not in email
 form under the designated source yields no determinable Subject
 Authority and is handled per {{rasp}} step 5c.
+
+This binding does not carry the claim designation in the Trust Policy
+on the wire: because the generic JWT-bearer grant has no standardized
+identity claim, the designation is bilateral configuration agreed
+out of band between the Assertion Issuer and the Resource
+Authorization Server. This removes the per-Validator source-selection
+lever that {{multiple-sources}} forbids (a given Validator applies one
+fixed source), but it does not provide the cross-Validator determinism
+that the registered `email` extraction gives ID-JAG, where the claim
+is fixed by this specification. Deployments needing multiple
+independent Validators to agree on the source without prior
+coordination SHOULD use a grant profile that fixes the identity claim
+(such as ID-JAG) rather than the generic binding, or define a Trust
+Policy member for the designation in a future extension.
 
 In addition to the processing in {{rasp}}, the Resource
 Authorization Server MUST:

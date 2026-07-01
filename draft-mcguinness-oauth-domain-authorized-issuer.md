@@ -28,6 +28,8 @@ author:
 
 normative:
   RFC1035:
+  RFC3339:
+  RFC3629:
   RFC5234:
   RFC5891:
   RFC7519:
@@ -36,7 +38,6 @@ normative:
   RFC8553:
   RFC8615:
   RFC9493:
-  RFC9728:
   ID-JAG:
     title: "Identity Assertion JWT Authorization Grant"
     target: https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/
@@ -47,9 +48,12 @@ normative:
     date: false
 
 informative:
+  RFC7033:
   RFC7523:
+  RFC8126:
   RFC8461:
   RFC8659:
+  RFC9728:
   OIDC-DISCOVERY:
     title: "OpenID Connect Discovery 1.0"
     target: https://openid.net/specs/openid-connect-discovery-1_0.html
@@ -155,18 +159,18 @@ in {{future-extensions}}.
 
 # Terminology
 
-This document uses terminology from {{TRUST-FRAMEWORK}} (Resource
+This document uses terminology from {{TRUST-FRAMEWORK}}: Resource
 Authorization Server, Assertion Issuer, Subject Authority, Trust
-Policy, Issuer Authorization Policy) and from {{TRUST-FRAMEWORK}}
-(Authority Holder, Delegate, Delegation Artifact, Validator).
-Subject Identifier formats follow {{RFC9493}}.
+Policy, Issuer Authorization Policy, Authority Holder, Delegate,
+Delegation Artifact, and Validator. Subject Identifier formats
+follow {{RFC9493}}.
 
 One term is specific to this document:
 
 Domain-Authorized Issuer (DAI):
 : The Trust Method defined by this document, in which a Subject
-Authority publishes, via DNS, the set of Assertion Issuers it
-authorizes for its namespace.
+Authority publishes, over DNS and HTTPS, the set of Assertion
+Issuers it authorizes for its namespace.
 
 # Issuer Authorization Policy Document {#dii-document}
 
@@ -193,22 +197,28 @@ with media type `application/json`. It has the following members:
   comparison rules for that Subject Authority form.
 
 `authorized_issuers`
-: REQUIRED. Non-empty JSON array of authorized issuer objects. Each
-object has:
+: REQUIRED. JSON array of authorized issuer objects, which MAY be
+empty. An empty array is an explicit denial: the Subject Authority
+authoritatively authorizes no issuer, so no assertion satisfies the
+Trust Method and consumers MUST NOT fall through to any other channel.
+This is the HTTPS-document way to publish the abstract Negative state
+({{TRUST-FRAMEWORK}} §Lookup States and Fail-Closed) affirmatively
+rather than by absence. Each object has:
 
   `issuer`
   : REQUIRED. String. The Assertion Issuer identifier. For OAuth
   authorization server issuer identifiers, this value MUST be an
   absolute HTTPS URL with no fragment component. The URL MAY contain a
-  path component; if the path is empty it is equivalent only to an
-  issuer identifier that uses the same string form according to the
-  applicable profile's issuer comparison rules. Query components are
+  path component. No normalization is applied before comparison: the
+  value and the JWT `iss` claim are compared by exact case-sensitive
+  string equality (octet-for-octet), consistent with {{RFC8414}}
+  issuer-identifier comparison. Consequently `https://a` and
+  `https://a/` are distinct issuers, and no trailing-slash or
+  percent-encoding normalization is performed. Query components are
   NOT RECOMMENDED because many issuer metadata profiles do not use
-  them. The value is compared to the JWT `iss` claim using the issuer
-  identifier comparison rules of the applicable assertion grant
-  profile. For JWT authorization grants that use OAuth authorization
-  server issuer identifiers, this is case-sensitive string comparison,
-  consistent with {{RFC8414}}.
+  them. Issuer identifiers whose string form contains a `;` cannot be
+  expressed in the inline DNS form ({{dii-dns-record}}) and MUST be
+  published via the HTTPS document instead.
 
   `tenant`
   : OPTIONAL. String. The issuer-side tenant identifier authorized for
@@ -238,17 +248,20 @@ object has:
   this Subject Authority.
 
   `valid_from`
-  : OPTIONAL. RFC 3339 date-time. The delegation MUST NOT be treated
-  as valid before this time. A small clock-skew tolerance (≤5
-  minutes) is consistent with JWT `nbf` conventions ({{RFC7519}}
-  Section 4.1.5).
+  : OPTIONAL. {{RFC3339}} date-time. The delegation MUST NOT be treated
+  as valid before this time. A consumer MAY apply a small clock-skew
+  tolerance (≤5 minutes), consistent with JWT `nbf` conventions
+  ({{RFC7519}} Section 4.1.5). This tolerance applies only to
+  `valid_from`; it MUST NOT be applied to `valid_until` to extend a
+  delegation past its stated end.
 
   `valid_until`
-  : OPTIONAL. RFC 3339 date-time. The delegation MUST NOT be treated
-  as valid at or after this time.
+  : OPTIONAL. {{RFC3339}} date-time. The delegation MUST NOT be treated
+  as valid at or after this time. No clock-skew tolerance is permitted
+  on this bound.
 
 `last_updated`
-: OPTIONAL. RFC 3339 date-time at which the policy was last published.
+: OPTIONAL. {{RFC3339}} date-time at which the policy was last published.
 
 `signed_policy`
 : OPTIONAL. Signed JWT containing policy members as claims, using the
@@ -258,19 +271,28 @@ object has:
   Its presence does not by itself require all consumers to support
   signed policy processing; consumers apply the requirements in
   {{TRUST-FRAMEWORK}} §Signed Policy Metadata and any local policy
-  that requires object-level integrity.
+  that requires object-level integrity. A Subject Authority that needs
+  to force signature processing lists `signed_policy` in `crit`.
 
-Consumers MUST ignore unrecognized members. Validation rules; a
-policy failing any is malformed:
+`crit`
+: OPTIONAL. Array of member names a consumer MUST understand to process
+  the policy safely, as defined in {{TRUST-FRAMEWORK}} §Critical
+  Members. A consumer that does not recognize any listed member MUST
+  treat the policy as malformed.
+
+Consumers MUST ignore unrecognized members, except those named in
+`crit`. A document containing duplicate member names (at the top level
+or within an `authorized_issuers` entry object) is malformed and MUST
+be rejected. Validation rules; a policy failing any is malformed:
 
 | Member | Required type / structure | Additional rule |
 |-|-|-|
 | `subject_authority` | string, required | matches the computed Subject Authority |
-| `authorized_issuers` | non-empty array of objects, required | each element has `issuer` |
+| `authorized_issuers` | array of objects, required (MAY be empty for explicit denial) | each element has `issuer` |
 | `issuer` | string, required | syntactically valid issuer identifier for the applicable grant profile |
 | `tenant` | string, optional | non-empty |
 | `subject_identifier_formats` | array of strings, optional | |
-| `valid_from`, `valid_until`, `last_updated` | RFC 3339 date-time, optional | |
+| `valid_from`, `valid_until`, `last_updated` | {{RFC3339}} date-time, optional | |
 | `signed_policy` | string, optional | signed JWT as defined in {{TRUST-FRAMEWORK}} §Signed Policy Metadata |
 
 For OAuth authorization server issuer identifiers, a non-HTTPS URL,
@@ -289,7 +311,7 @@ Example:
       "valid_until": "2027-01-01T00:00:00Z"
     },
     {
-      "issuer": "https://accounts.google.com",
+      "issuer": "https://accounts.shared.example",
       "tenant": "example.com",
       "subject_identifier_formats": ["email"]
     }
@@ -348,26 +370,38 @@ names are formed without a trailing dot for comparison purposes; the
 wire-format root label is not part of the Subject Authority value.
 
 The string segments of a TXT record ({{RFC1035}}) are concatenated
-without separator and interpreted as UTF-8 text.
+without separator and interpreted as UTF-8 {{RFC3629}} text (the
+directive values defined here are ASCII, a subset of UTF-8).
 
-A record is *recognized* if it begins with the version directive
-`v=oauth-issuer-policy1` (case-sensitive), optionally
-followed by trailing whitespace and a `;` separator. Records that do
-not begin with a supported version directive MUST be ignored.
+A record is *recognized* if the version token `v=oauth-issuer-policy1`
+(case-sensitive) appears at the start, terminated by end of record, by
+optional whitespace, or by a `;` separator; leading whitespace before
+the token is permitted. The version token matches only that exact
+string: a different token (for example, a future
+`v=oauth-issuer-policy2`) is NOT recognized, so the record is treated
+as unrecognized (not malformed) and is ignored by the recognition
+rule. Records that do not begin with a supported version token MUST be
+ignored.
 
 The remainder of a recognized record is a sequence of `name=value`
 directives separated by `;`. Parsing rules:
 
 - Whitespace (space and horizontal tab) immediately before and after
-  each directive is ignored. Whitespace inside a value is not.
+  each directive is ignored. A value MUST NOT contain whitespace or
+  non-ASCII characters; the directive values defined here (domain
+  names in A-label form and absolute HTTPS URLs) are ASCII by
+  construction.
 - Directive names are case-insensitive ASCII. Values are
   case-sensitive and preserved as written.
 - A directive splits into name and value at the first `=`. Subsequent
   `=` characters are part of the value.
 - The value runs to the next `;` or end of record. The character `;`
-  MUST NOT appear in a value; URLs containing `;` MUST be
-  percent-encoded.
+  MUST NOT appear in a value (see the issuer-identifier constraint in
+  {{dii-document}}).
 - CR, LF, and NUL MUST NOT appear in a value.
+- An empty directive (two consecutive `;` separators with no
+  intervening `name=value`) makes the record malformed
+  ({{dii-failures}}).
 - Unrecognized directives MUST be ignored.
 
 The parsing rules above are summarized in the following ABNF
@@ -375,28 +409,27 @@ The parsing rules above are summarized in the following ABNF
 normative if any disagreement exists.
 
 ~~~ abnf
-record       = version *( ";" directive ) [ ";" ]
-version      = "v=oauth-issuer-policy1"
-directive    = OWS name "=" value OWS
-name         = 1*( ALPHA / DIGIT / "_" / "-" )
-value        = *vchar-no-semi
-vchar-no-semi = %x21-3A / %x3C-7E
-                  ; printable ASCII minus ";" and excluding
-                  ; CR, LF, NUL
-OWS          = *( SP / HTAB )
+record        = OWS version *( ";" directive ) [ ";" ] OWS
+version       = "v=oauth-issuer-policy1"
+directive     = OWS name "=" value OWS
+name          = 1*( ALPHA / DIGIT / "_" / "-" )
+value         = *vchar-no-semi
+vchar-no-semi = %x21-3A / %x3C-7E   ; VCHAR (%x21-7E) minus ";"
+OWS           = *( SP / HTAB )
 ~~~
 
 The following directives are defined:
 
 `authority=A`
 : REQUIRED. The Subject Authority identifier this record claims to
-  bind. Consumers MUST normalize this value to A-label form per
-  {{RFC5891}}, then verify it matches the Subject Authority computed
-  from the query name (which is already in A-label form) using the
+  bind. The publisher MUST write this value in A-label (ASCII) form
+  per {{RFC5891}}; consumers compare it against the Subject Authority
+  computed from the query name (also in A-label form) using the
   case-insensitive ASCII comparison rules in {{TRUST-FRAMEWORK}} §Subject Authority Determination.
-  Records whose `authority=` value does not match MUST be ignored.
-  The publisher's `authority=` value MAY be written in U-label or
-  A-label form; consumers perform the conversion.
+  Records whose `authority=` value does not match are discarded (see
+  the lookup procedure in {{dii-lookup}}). A recognized record
+  containing more than one `authority=` directive is malformed
+  ({{dii-failures}}).
 
 `uri=URL`
 : OPTIONAL. An HTTPS URL identifying an Issuer Authorization Policy
@@ -428,9 +461,14 @@ https://{A}/.well-known/oauth-issuer-policy
 ~~~
 
 where `{A}` is the Subject Authority value rendered as a host (A-label
-form for internationalized names). Consumers fetch this URL using
-HTTPS with TLS server authentication and interpret the response body
-as the JSON document defined in {{dii-document}}.
+form for internationalized names). The URL uses the `https` scheme,
+the host `{A}`, the default HTTPS port (443), and the well-known path
+{{RFC8615}}; it has no userinfo, port, query, or fragment component. A
+Subject Authority whose form has no host representation (none is
+defined in this document beyond the `email`-derived DNS domain) cannot
+use the default well-known channel. Consumers fetch this URL with an
+HTTP GET over HTTPS with TLS server authentication and interpret the
+response body as the JSON document defined in {{dii-document}}.
 
 A URL obtained from a DNS `uri=` directive is fetched the same way;
 the host serving the URL is responsible for TLS server authentication
@@ -444,6 +482,16 @@ DNS `uri=` pointer is the Issuer Authorization Policy defined in
 as an Issuer Authorization Policy. Consumers MUST validate the
 complete policy as a unit; a malformed entry makes the whole policy
 malformed, not just the offending entry.
+
+Bounds (a response exceeding any bound is classified per
+{{dii-failures}}): consumers MUST accept a policy document of at least
+64 KiB and MAY reject one larger; publishers MUST keep the document
+within 64 KiB. Consumers MUST accept at least 100 `authorized_issuers`
+entries and MAY reject more. Consumers SHOULD apply an overall fetch
+timeout and SHOULD limit JSON nesting depth (the defined document has a
+fixed shallow structure). Consumers SHOULD send a conditional request
+(for example, `If-None-Match`) when they hold a cached policy, treating
+a 304 response per {{dii-failures}}.
 
 The following JSON shape illustrates the policy contract; the prose
 in {{dii-document}} is normative.
@@ -553,8 +601,7 @@ Authorization Server that cannot resolve DNS treats the lookup as
 ## Failure Handling {#dii-failures}
 
 DAI lookup outcomes map onto the Affirmative / Negative /
-Indeterminate states of the Authority Delegation Pattern's
-Exception-Handling and Fallback Model
+Indeterminate lookup states of the Authority Delegation Model
 ({{TRUST-FRAMEWORK}} §Lookup States and Fail-Closed). The normative
 requirements (fail closed on Negative and Indeterminate; no
 fallback to a different Authority Source; bounded cache reuse on
@@ -563,7 +610,7 @@ concrete DAI outcomes onto those states.
 
 | State | DAI outcomes |
 |-|-|
-| Affirmative | A well-formed Issuer Authorization Policy was retrieved (inline DNS, DNS pointer + HTTPS fetch, or HTTPS well-known URL), its `subject_authority` matches `A`, and its structural validation succeeds. HTTPS responses, when applicable, are 200 OK with a media type compatible with `application/json`. |
+| Affirmative | A well-formed Issuer Authorization Policy was retrieved (inline DNS, DNS pointer + HTTPS fetch, or HTTPS well-known URL), its `subject_authority` matches `A`, and its structural validation succeeds. HTTPS responses, when applicable, are 200 OK with a media type of `application/json` or a `+json`-suffixed type. A 304 (Not Modified) response to a conditional request refreshes the corresponding fresh cached policy and is Affirmative. |
 | Negative | DNS `negative-authoritative` followed by HTTPS 404 or 410 at the well-known URL, or HTTPS 404 or 410 reached from a DNS `uri=` pointer. The Authority Holder authoritatively publishes no delegation. |
 | Indeterminate | Any other outcome, fail-closed by default. See enumeration below. |
 
@@ -574,11 +621,15 @@ The Indeterminate state covers:
 - **HTTPS transport**: TLS error, connection failure, redirect loop,
   non-HTTPS redirect target.
 - **HTTPS response**: 5xx; 4xx other than 404 and 410 (for example
-  401, 403, 405, 429, 451); 2xx other than 200; unsupported media
-  type; over-size body.
-- **DNS record validation**: missing or mismatched `authority=`;
-  neither `uri=` nor `issuer=`; multiple distinct `uri=` values;
-  malformed directive.
+  401, 403, 405, 429, 451); 2xx other than 200; a 3xx that is not a
+  followed redirect ({{dii-lookup}}) and not a 304 refreshing a fresh
+  cached policy; unsupported media type; a body larger than the size
+  limit in {{https-policy-document-contract}}.
+- **DNS record validation**: `authority=` missing from any recognized
+  record; all recognized records discarded for `authority=` mismatch;
+  more than one `authority=` in a record; a recognized record with
+  neither `uri=` nor `issuer=`; multiple distinct `uri=` values; an
+  empty or otherwise malformed directive.
 - **HTTPS document validation**: body that is not a syntactically
   valid Issuer Authorization Policy; `subject_authority` that does
   not match `A`.
@@ -621,11 +672,23 @@ used during transient Indeterminate on the live channel, subject
 to {{dii-caching}}; the cache lifetime MUST NOT be extended by
 repeated Indeterminate retrievals.
 
-Consumers MAY follow HTTPS redirects subject to a local redirect
-limit. Every redirect target MUST use the `https` scheme and MUST
-NOT contain a fragment component. The final response MUST have a
-successful HTTP status and a media type compatible with
-`application/json`.
+HTTP redirect handling is fixed so that two consumers reach the same
+outcome and so that a redirect cannot silently move the authority
+anchor to a host the Subject Authority does not control. Consumers
+MUST follow HTTPS redirects up to a limit of 5 hops; a request that
+would exceed 5 hops, or that loops, is classified as Indeterminate
+({{dii-failures}}). Every redirect target MUST use the `https` scheme,
+MUST NOT contain a fragment component, and MUST remain within the same
+registrable domain as the initial fetch host (the Subject Authority
+`{A}` for the default well-known channel; the `uri=` pointer's host for
+the pointer channel). A redirect to a different registrable domain MUST
+NOT be followed and is classified as Indeterminate; cross-registrable-
+domain policy hosting is expressed only through the `uri=` pointer
+({{dii-https-url}}), where the delegation is published in DNS and
+visible to the Subject Authority. The final response MUST have HTTP
+status 200 and a media type of `application/json` or any media type
+using the structured `+json` suffix (media type parameters ignored);
+any other final status is classified per {{dii-failures}}.
 
 # Verification {#dii-verification}
 
@@ -646,29 +709,39 @@ Resource Authorization Server MUST:
    Subject Authority. (Virtual policies satisfy this by
    construction.)
 
-4. Find an entry in `authorized_issuers` whose `issuer` matches the
-   JWT `iss` claim using case-sensitive URL string equality AND, if
-   the entry contains a `tenant` member, whose `tenant` value
-   exactly matches the assertion's top-level `tenant` claim
-   ({{ID-JAG}} §6.1) using case-sensitive string comparison. An
-   entry with `tenant` does NOT match an assertion that lacks the
-   `tenant` claim; an entry without `tenant` matches regardless of
-   the assertion's `tenant` claim. When multiple entries share the
-   same `issuer` value, candidate entries are evaluated in array
-   order until one matches; entries with `tenant` are independent
-   matches per (issuer, tenant) pair.
+4. Determine whether any entry in `authorized_issuers` matches. An
+   entry matches when ALL of the following hold:
 
-5. If the matched entry contains `subject_identifier_formats`,
-   verify the Subject Identifier format of the assertion's subject
-   is listed.
+   a. `issuer` equals the JWT `iss` claim under case-sensitive URL
+      string comparison (the comparison rule fixed in
+      {{dii-document}}).
 
-6. If `valid_from` or `valid_until` are present, verify the current
-   time is within the validity window.
+   b. If the entry contains a `tenant` member, its value exactly
+      matches the assertion's top-level `tenant` claim (in ID-JAG,
+      {{ID-JAG}} §6.1) under case-sensitive string comparison. An
+      entry with `tenant` does not match an assertion that lacks the
+      `tenant` claim; an entry without `tenant` matches regardless of
+      any `tenant` claim in the assertion. Under a grant profile that
+      carries no `tenant` claim, any `tenant` claim physically present
+      in the assertion MUST be ignored for entry matching.
+
+   c. If the entry contains `subject_identifier_formats`, the Subject
+      Identifier format of the assertion's subject is listed.
+
+   d. If `valid_from` or `valid_until` are present, the current time
+      is within the validity window (with the skew rules of
+      {{dii-document}}).
+
+   The Trust Method is satisfied when step 3 succeeds and AT LEAST ONE
+   entry matches under (a)-(d). Entry order in `authorized_issuers`
+   carries no semantics: the outcome is the boolean "does any entry
+   match," so two consumers evaluating the same policy against the
+   same assertion reach the same result regardless of array order or
+   of which matching entry they examine first.
 
 Steps 1 and 2 are prerequisites; their failure causes assertion
 rejection per {{dii-failures}} and is not classified as a Trust
-Method satisfaction outcome. The Trust Method is satisfied when
-steps 3 through 6 all succeed. On failure, the Resource
+Method satisfaction outcome. On failure, the Resource
 Authorization Server MUST reject the assertion with an OAuth
 `invalid_grant` error when the cross-category combination rule of
 {{TRUST-FRAMEWORK}} §Resource Authorization Server Processing is not met.
@@ -686,15 +759,22 @@ Cache lifetimes for the Issuer Authorization Policy:
 - Subject Authorities SHOULD publish records and HTTPS policies
   with a steady-state TTL of at most 1 hour, reducing further
   during an active revocation.
-- Consumers MUST enforce an absolute local cache ceiling
-  (recommended: 24 hours) regardless of TTL or `Cache-Control`.
-- Consumers MAY serve a fresh cached Affirmative policy when the
-  live retrieval is `indeterminate`, but MUST NOT extend the
-  effective cache lifetime past the ceiling: cumulative
-  `indeterminate` retrieval streaks exceeding 1 hour MUST
-  transition to reject. This bound prevents an attacker who can
-  sustain denial of service against the policy endpoint from
-  extending revocation latency indefinitely.
+- Consumers MUST enforce an absolute local cache ceiling on the age
+  of any cached policy entry (recommended: 24 hours) regardless of TTL
+  or `Cache-Control`. A cached entry older than the ceiling MUST NOT be
+  used and MUST be re-fetched.
+- Serving stale cache during outages is separately bounded. Consumers
+  MAY serve a fresh cached Affirmative policy (one within its normal
+  TTL/`Cache-Control` lifetime) when a live retrieval returns
+  `indeterminate`. Independently of the absolute ceiling above,
+  consumers MUST NOT serve a cached policy across a continuous run of
+  `indeterminate` live results lasting longer than 1 hour: once the
+  most recent successful (Affirmative or Negative) live retrieval is
+  more than 1 hour old, the consumer MUST stop serving the cached
+  policy and treat the lookup as Indeterminate (reject). Any successful
+  live retrieval resets this 1-hour outage window. This bound prevents
+  an attacker who can sustain denial of service against the policy
+  endpoint from extending revocation latency up to the 24-hour ceiling.
 - Negative results MAY be cached subject to the same ceiling.
   Consumers whose threat model includes brief publication-channel
   takeover SHOULD cap negative-cache lifetime at a shorter value
@@ -913,6 +993,17 @@ attacker-friendly policy. The pointer form additionally depends on
 TLS authentication of the pointed-at host: TLS does NOT mitigate
 the DNS compromise that selected that host.
 
+The integrity of the inline DNS form rests entirely on the integrity
+of DNS resolution: absent DNSSEC or an authenticated resolver path,
+the assurance it provides is no stronger than the recursive resolver
+path between consumer and authoritative server. Deployments that
+require a stronger guarantee than that path SHOULD sign the zone with
+DNSSEC or use the HTTPS document form with the integrity controls of
+{{TRUST-FRAMEWORK}} §Shared Infrastructure and Hosted Well-Known
+Paths. The "common case" simplicity of the inline form
+({{publication-profiles}}) is an availability/operability tradeoff,
+not an integrity guarantee.
+
 Required framework defenses:
 
 - Consumers MUST discard records whose `authority=` does not match
@@ -923,12 +1014,26 @@ Required framework defenses:
 - Consumers MUST verify TLS for any host named by `uri=`.
 - Consumers MUST bound cache lifetimes ({{dii-caching}};
   recommended absolute ceiling 24 hours).
-- Consumers performing DNSSEC validation SHOULD treat validation
+- Consumers performing DNSSEC validation MUST treat validation
   failure as `indeterminate`, not `negative-authoritative`, to
   prevent signature-strip downgrade to HTTPS fallback.
 - Subject Authorities SHOULD sign `_oauth-issuer-policy.{A}` with
-  DNSSEC, and consumers without DNSSEC SHOULD use a trustworthy
-  resolver path (DoH/DoT to a vetted resolver).
+  DNSSEC, and consumers that do not validate DNSSEC SHOULD use a
+  trustworthy resolver path (DoH/DoT to a vetted resolver).
+
+Forged-Negative downgrade: a `negative-authoritative` DNS result
+(NXDOMAIN/NODATA) triggers the HTTPS well-known fallback
+({{dii-lookup}}). A consumer that does not validate DNSSEC cannot
+distinguish a forged negative answer from a genuine one, so an
+attacker able to both spoof a negative DNS response and serve (or
+redirect to) the victim's apex HTTPS origin can suppress a
+legitimately published inline record and substitute an
+attacker-controlled HTTPS policy. Consumers that do not validate
+DNSSEC and expect a Subject Authority to publish inline records
+SHOULD NOT honor a Negative-to-HTTPS transition for that authority
+without an authenticated resolver path; where the Subject Authority's
+publication channel is configured or discoverable, treat an
+unexpected Negative with the same suspicion as Indeterminate.
 
 Operational defenses Subject Authorities are encouraged to apply:
 registrar account lock; monitoring of the record set and policy
@@ -1024,16 +1129,101 @@ security points apply:
   delegations requiring due diligence on the Identity Provider's
   tenant-isolation guarantees.
 
-## Enumeration and Query Privacy
+## Denial of Service, Amplification, and SSRF {#dos-ssrf}
 
-DNS-based lookup exposes the Subject Authority being queried to the
-resolver path. It does not expose the full subject identifier for
-formats such as `email`, but it can reveal organizational
-relationships and timing. Resource Authorization Servers SHOULD use
-privacy-preserving resolver configurations where available and
-SHOULD avoid performing lookup until it is needed for a concrete
-verification decision.
+The `domain_authorized_issuer` lookup can be triggered before the
+Assertion Issuer is known to be trustworthy: the assertion signature
+validates against the issuer's own key, which an attacker operating
+their own authorization server controls. An attacker can therefore
+drive lookups at will, creating three risks:
 
+- **Reflection/amplification and cache exhaustion.** A flood of
+  assertions carrying distinct Subject Authorities
+  (`email: x@{random}.example`) makes the Resource Authorization
+  Server issue a live DNS query, and on a Negative result an HTTPS
+  fetch, per distinct authority, turning it into a request amplifier
+  aimed at third-party DNS/HTTPS infrastructure and filling its own
+  cache with distinct-authority entries. Consumers MUST bound lookup
+  work: enforce per-Subject-Authority and global rate limits, bound
+  concurrent outstanding lookups, negatively cache Negative and
+  Indeterminate outcomes (subject to {{dii-caching}}), and MAY impose
+  a maximum number of distinct-authority lookups per unit time,
+  shedding load by treating excess as Indeterminate (fail-closed).
+- **Server-Side Request Forgery via `uri=` and redirects.** An
+  attacker who controls DNS for a queried authority can point `uri=`
+  (or a redirect) at an arbitrary HTTPS target, including internal
+  addresses; the fetch occurs regardless of whether the body
+  validates, enabling blind internal probing through timing and error
+  differentials. Consumers MUST NOT fetch a `uri=` target or follow a
+  redirect whose resolved host is a private-use, loopback, link-local,
+  unique-local, or otherwise non-globally-routable IPv4 or IPv6
+  address, MUST cap redirects and response size ({{dii-lookup}},
+  {{https-policy-document-contract}}), and SHOULD apply a fetch
+  timeout. The same-registrable-domain constraint on redirects
+  ({{dii-lookup}}) further limits redirect-based SSRF.
+- **Cost asymmetry.** A single small assertion can cause a full
+  DNS+HTTPS round trip. Consumers SHOULD prefer cached results and
+  SHOULD NOT perform a live lookup until the assertion has passed all
+  cheaper checks (signature, audience, expiry) in {{dii-verification}}.
+
+## Privacy Considerations {#privacy}
+
+The lookup is verifier-side and per-verification, so it leaks metadata
+in two directions:
+
+- **To the resolver path.** A DNS query for
+  `_oauth-issuer-policy.{A}` exposes the Subject Authority `{A}` being
+  evaluated (and its timing) to every resolver and on-path observer.
+  It does not carry the full subject identifier for formats such as
+  `email`, but the authority plus timing can reveal organizational
+  relationships and login activity. Resource Authorization Servers
+  SHOULD use a privacy-preserving resolver path (DoH/DoT to a vetted
+  resolver) and SHOULD NOT perform the lookup until it is needed for a
+  concrete verification decision.
+- **To the Subject Authority.** For the HTTPS well-known and `uri=`
+  channels, the Subject Authority's own server (or its chosen policy
+  host) observes the Resource Authorization Server's egress IP address
+  and the timing of each fetch, learning which Resource Authorization
+  Servers its namespace's users are authenticating to; the
+  authoritative DNS operator for `{A}` observes per-lookup timing over
+  DNS. An employer acting as its own Subject Authority can thereby
+  obtain a near-real-time signal of where employees sign in. Caching
+  ({{dii-caching}}) is the primary mitigation: it coarsens timing and
+  collapses repeated lookups, and consumers SHOULD cache to the
+  bounds permitted rather than re-fetching per verification. Subject
+  Authorities and Resource Authorization Servers SHOULD treat this
+  lookup metadata as they would other authentication-adjacent
+  telemetry.
+
+# Operational Considerations {#operational}
+
+Publishing a DAI record makes DNS/HTTPS control a real-time input to
+sign-in authorization: a lapse in the record or its host can stop
+legitimate assertions from being accepted, and an unauthorized change
+can authorize an attacker. Subject Authorities SHOULD operate the
+record and any policy host with the same rigor as other sign-in-path
+infrastructure. Specific guidance:
+
+- **Change management and TTLs.** Reduce DNS TTLs in advance of any
+  planned change to the record or `uri=` pointer ({{third-party-policy-hosts}}),
+  and choose steady-state TTLs balancing propagation speed against
+  resolver load and the consumer cache bounds of {{dii-caching}}.
+- **Rotation.** To rotate an authorized issuer, publish the new
+  `authorized_issuers` entry alongside the old one and remove the old
+  entry only after the old issuer is decommissioned and caches have
+  expired; overlapping validity windows (`valid_from`/`valid_until`)
+  make the transition observable and bounded.
+- **Monitoring.** Monitor the record set and any HTTPS policy document
+  for unexpected changes, and perform cross-region/cross-resolver
+  checks to detect localized substitution ({{dns-integrity-and-compromise}}).
+- **Availability.** Because Negative and Indeterminate outcomes fail
+  closed ({{dii-failures}}), loss of the record or policy host blocks
+  sign-in for the namespace; provision the authoritative DNS and any
+  policy host for availability accordingly.
+- **Zone hygiene.** Avoid wildcard TXT records in zones participating
+  in this mechanism ({{dns-integrity-and-compromise}}); a wildcard
+  with a non-matching `authority=` causes recognized-but-discarded
+  records and can push a lookup to Indeterminate.
 
 # IANA Considerations
 
@@ -1066,22 +1256,80 @@ use by this document:
 RR Type:
 : TXT
 
-Node Name:
+_NODE NAME:
 : `_oauth-issuer-policy`
 
-Specification Document:
+Reference:
 : This document, {{dii-dns-record}}
 
 
 ## Trust Method Registrations
 
-This document registers the following entries in the Identity
+This document registers the following entry in the Identity
 Assertion Issuer Trust Methods registry
 ({{TRUST-FRAMEWORK}} §Identity Assertion Issuer Trust Methods Registry):
 
-| Identifier | Categories | Parameters | Reference |
+| Identifier | Categories | Parameters | Change Controller | Reference |
+|-|-|-|-|-|
+| `domain_authorized_issuer` | `subject_namespace_authorization` | `lookup` (string, OPTIONAL; value `https_only` selects the HTTPS-only lookup variant) | IETF | This document |
+
+## Issuer Authorization Policy Directives Registry {#iana-dii-directives}
+
+IANA is requested to establish a new registry titled "OAuth Issuer
+Authorization Policy DNS Directives" under the "OAuth Parameters"
+registry group, for the `name=value` directives carried in the DNS
+TXT record ({{dii-dns-record}}).
+
+Registration policy: Specification Required {{RFC8126}}.
+
+Each entry contains a Directive Name (character set `[a-z0-9_-]`), a
+Description, a Change Controller, and a Reference. Designated Expert
+instructions: the expert verifies the directive name is unique, its
+value syntax is specified within the ABNF value production of
+{{dii-dns-record}} (ASCII, no `;`, no whitespace), and its
+multiplicity and duplicate-handling rules are stated.
+
+Initial entries:
+
+| Directive Name | Description | Change Controller | Reference |
 |-|-|-|-|
-| `domain_authorized_issuer` | `subject_namespace_authorization` | `lookup` (string, OPTIONAL; value `https_only` selects the HTTPS-only lookup variant) | This document |
+| `v` | Version token; MUST appear first | IETF | This document |
+| `authority` | Subject Authority this record binds (A-label) | IETF | This document |
+| `uri` | HTTPS URL of an Issuer Authorization Policy document | IETF | This document |
+| `issuer` | An authorized Assertion Issuer identifier | IETF | This document |
+
+## Issuer Authorization Policy Members Registry {#iana-dii-members}
+
+IANA is requested to establish a new registry titled "OAuth Issuer
+Authorization Policy Members" under the "OAuth Parameters" registry
+group, for the JSON members of the Issuer Authorization Policy
+document ({{dii-document}}).
+
+Registration policy: Specification Required {{RFC8126}}.
+
+Each entry contains a Member Name, a Description, a Change Controller,
+and a Reference. Designated Expert instructions: the expert verifies
+the member name does not collide with an existing member, its JSON
+type and semantics are specified, and any decision-affecting member
+states how a consumer that does not recognize it behaves (the default
+is to ignore unrecognized members; a member requiring fail-closed
+handling uses the `crit` mechanism of {{TRUST-FRAMEWORK}} §Critical
+Members).
+
+Initial entries:
+
+| Member Name | Description | Change Controller | Reference |
+|-|-|-|-|
+| `subject_authority` | Subject Authority this policy applies to | IETF | This document |
+| `authorized_issuers` | Array of authorized issuer objects | IETF | This document |
+| `issuer` | Authorized Assertion Issuer identifier (within an entry) | IETF | This document |
+| `tenant` | Issuer-side tenant identifier (within an entry) | IETF | This document |
+| `subject_identifier_formats` | Permitted Subject Identifier formats (within an entry) | IETF | This document |
+| `valid_from` | Delegation start time (within an entry) | IETF | This document |
+| `valid_until` | Delegation end time (within an entry) | IETF | This document |
+| `last_updated` | Policy publication time | IETF | This document |
+| `signed_policy` | Signed JWT of the policy members | IETF | This document |
+| `crit` | Names members a consumer MUST understand or reject the document | IETF | This document |
 
 --- back
 
@@ -1093,19 +1341,45 @@ This appendix is non-normative.
 
 The Domain-Authorized Issuer Trust Method applies the same
 authority-publication pattern that domain owners already use for
-CAA {{RFC8659}}, MTA-STS {{RFC8461}}, SPF, DKIM, and the Email
+CAA {{RFC8659}}, MTA-STS {{RFC8461}}, SPF, DKIM, DMARC, and the Email
 Verification Protocol {{I-D.hardt-email-verification}}. {{TRUST-FRAMEWORK}}
 §Authority Delegation Model covers the abstract pattern; this
 document chooses DNS at `_oauth-issuer-policy.{domain}` as the
-authoritative publication channel.
+authoritative publication channel. The `name=value` record syntax is
+closest to DMARC's, and DMARC's operational experience with the Public
+Suffix List and the organizational-domain boundary informs the Subject
+Authority Determination approach in {{TRUST-FRAMEWORK}} §Subject
+Authority Determination (see also the DBOUND discussion there).
 
 Unlike CAA (deployment-time), SPF/DKIM (spam-score signal), and
 MTA-STS (inbound mail), the `_oauth-issuer-policy` record is
-consumed during user sign-in. Misconfiguration or staleness
-directly blocks user sign-in to dependent applications, so
-Subject Authorities deploying this framework SHOULD treat records
-with sign-in-dependency operational rigor (change-management
-review, monitoring for unexpected changes, rapid rollback).
+consumed during user sign-in; the operational consequences of that
+are covered normatively in {{operational}}.
+
+Relationship to issuer discovery. WebFinger {{RFC7033}} and OpenID
+Connect Discovery answer a different question: given a user
+identifier, where does a client go to authenticate the user? This
+Trust Method is verifier-side and authorization-oriented: given an
+assertion already in hand, is its issuer authorized for the subject's
+namespace? DAI is published per namespace (not per user), over a DNS
+channel whose control establishes the authority binding, and it
+carries authorization semantics (validity windows, tenant binding,
+format restrictions) that a discovery record does not. A deployment
+could layer client-side discovery on top (see
+{{assertion-issuer-discovery-client-side}}), but that is out of scope
+here.
+
+Relationship to the Email Verification Protocol. EVP
+{{I-D.hardt-email-verification}} also publishes, in DNS, issuers
+associated with an email domain, but for a different purpose: it names
+issuers that can *verify control* of an email address (an issuance-time
+question), whereas DAI names issuers *authorized to assert* identities
+in a namespace (a verification-time authorization question). The
+records differ accordingly: DAI uses full issuer identifiers
+(including path components) and PSL-normalized Subject Authorities, and
+carries authorization constraints. Convergence with EVP on a shared
+record or node name is possible future work; {{email-verification-protocol-bridge}}
+sketches a bridge.
 
 ## Why First-Class Tenant Binding
 
@@ -1179,7 +1453,7 @@ accommodating deployment variations.
 This appendix is non-normative. It sketches features intentionally
 deferred from this document; future specifications may register them.
 
-## Email Verification Protocol Bridge
+## Email Verification Protocol Bridge {#email-verification-protocol-bridge}
 
 The Email Verification Protocol {{I-D.hardt-email-verification}}
 defines a DNS TXT record at `_email-verification.{domain}` whose
@@ -1203,7 +1477,7 @@ both records (an `_oauth-issuer-policy` record satisfying
 `_email-verification` record for other consumers) or wait for the
 future Trust Method specification.
 
-## Assertion Issuer Discovery (Client-Side)
+## Assertion Issuer Discovery (Client-Side) {#assertion-issuer-discovery-client-side}
 
 The same DAI records that let a Resource Authorization Server
 verify an assertion can also let a client discover which Assertion
@@ -1252,12 +1526,13 @@ namespace.
 The Subject Authority publishes a single DNS TXT record:
 
 ~~~
-_oauth-issuer-policy.acme.example.  IN  TXT
-  "v=oauth-issuer-policy1;
-   authority=acme.example;
-   issuer=https://idp.example.net"
+_oauth-issuer-policy.acme.example. IN TXT ( "v=oauth-issuer-policy1;"
+    "authority=acme.example;"
+    "issuer=https://idp.example.net" )
 ~~~
 
+The quoted segments are concatenated without a separator, yielding
+`v=oauth-issuer-policy1;authority=acme.example;issuer=https://idp.example.net`.
 No HTTPS endpoint is operated on `acme.example`.
 
 The Resource Authorization Server publishes a trust policy that accepts
@@ -1349,10 +1624,9 @@ restrictions, or multiple issuers with ordering, it can switch to
 the pointer form without changing any consumer behavior:
 
 ~~~
-_oauth-issuer-policy.acme.example.  IN  TXT
-  "v=oauth-issuer-policy1;
-   authority=acme.example;
-   uri=https://acme.example/.well-known/oauth-issuer-policy"
+_oauth-issuer-policy.acme.example. IN TXT ( "v=oauth-issuer-policy1;"
+    "authority=acme.example;"
+    "uri=https://acme.example/.well-known/oauth-issuer-policy" )
 ~~~
 
 and publish the richer JSON document at the pointed-at URL:

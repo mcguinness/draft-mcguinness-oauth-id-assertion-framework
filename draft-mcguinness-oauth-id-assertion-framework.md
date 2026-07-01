@@ -35,6 +35,7 @@ normative:
   RFC7523:
   RFC8414:
   RFC8615:
+  RFC8785:
   RFC9493:
   RFC9728:
   RFC5891:
@@ -42,26 +43,29 @@ normative:
   OIDF-FEDERATION:
     title: "OpenID Federation 1.0"
     target: https://openid.net/specs/openid-federation-1_0.html
-  OIDC-DISCOVERY:
-    title: "OpenID Connect Discovery 1.0"
-    target: https://openid.net/specs/openid-connect-discovery-1_0.html
   ID-JAG:
     title: "Identity Assertion JWT Authorization Grant"
     target: https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/
     date: false
+  PSL:
+    title: "Public Suffix List"
+    target: https://publicsuffix.org/
+
+informative:
+  RFC5321:
+  RFC6530:
+  RFC7009:
+  RFC7033:
+  RFC7662:
+  RFC8725:
+  RFC9700:
+  OIDC-DISCOVERY:
+    title: "OpenID Connect Discovery 1.0"
+    target: https://openid.net/specs/openid-connect-discovery-1_0.html
   DAI:
     title: "OAuth Domain-Authorized Issuer Trust Method"
     target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer/
     date: false
-
-informative:
-  RFC7009:
-  RFC7662:
-  RFC8725:
-  RFC9700:
-  PSL:
-    title: "Public Suffix List"
-    target: https://publicsuffix.org/
   I-D.ietf-oauth-identity-chaining:
     title: "OAuth Identity and Authorization Chaining Across Domains"
     target: https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-chaining/
@@ -226,6 +230,20 @@ which issuers may assert about subjects in that namespace. This document also
 follows existing DNS authority-publication patterns such as CAA,
 MTA-STS, SPF, DKIM, and the Email Verification Protocol. Background and
 positioning details are in {{relationship-to-oidf}} and
+{{DAI}} §Following Existing DNS Authority Patterns.
+
+This framework is distinct from issuer *discovery* mechanisms such as
+WebFinger {{RFC7033}} and OpenID Connect Discovery {{OIDC-DISCOVERY}}.
+Those answer "given a user identifier, which issuer should a client
+use?" for a client that is about to authenticate the user. This
+framework answers the verifier-side question "may this issuer, which
+has already produced an assertion, be trusted for this subject's
+namespace?" A namespace owner's authorization statement is not the
+same as a per-user discovery record: it is published per namespace, it
+expresses authorization rather than routing, and it is consumed by the
+Resource Authorization Server at verification time. WebFinger could in
+principle carry a discovery hint, but it is per-resource and HTTPS-only
+and defines no verifier-side authorization semantics; see
 {{DAI}} §Following Existing DNS Authority Patterns.
 
 ## Documents in the Family {#family}
@@ -467,7 +485,7 @@ been delegated namespace authority by that fact; an Authority
 Holder's delegation to a signer does not authenticate the
 signer's identity beyond what the Delegation Artifact attests.
 
-#### Category Applicability
+#### Category Applicability {#category-applicability}
 
 Category applicability is a property of the Validator's published
 Trust Policy, not of the incoming Assertion. If the Trust Policy
@@ -477,8 +495,16 @@ within the profile's scope. The Assertion itself MUST NOT be able
 to waive the category: an Assertion lacking satisfying evidence
 for an applicable category MUST be rejected. Profiles MUST NOT
 define applicability conditions that depend on properties of the
-Assertion under evaluation. See {{applicability-bypass}} for the
-attack this prevents.
+Assertion under evaluation.
+
+A `subject_namespace_authorization` method therefore does not
+become inapplicable merely because an Assertion omits a Subject
+Identifier. A profile that admits such a method MUST require, in
+its grant-profile binding, that every Assertion in scope carry a
+Subject Identifier from which a Subject Authority is determinable,
+and MUST require rejection otherwise (see the processing rule in
+{{rasp}} and {{applicability-bypass}} for the attack this
+prevents).
 
 ### Multiple Authority Sources Within a Category {#multiple-sources}
 
@@ -622,9 +648,27 @@ authoritative.
 
 A Resource Authorization Server may additionally publish the trust
 policy at the well-known URI registered in
-{{iana-trust-policy-well-known}}. If both the metadata member and the
-well-known URI are available and identify different documents, the
-metadata member is authoritative.
+{{iana-trust-policy-well-known}}. The well-known URI is derived from
+the Resource Authorization Server's issuer identifier by the
+transformation of {{RFC8414}} Section 3: the well-known path component
+`identity-assertion-trust-policy` is inserted between the host (and
+port, if any) and any path component of the issuer identifier. For an
+issuer with no path component this yields
+`https://{host}/.well-known/identity-assertion-trust-policy`. If both
+the metadata member and the well-known URI are available and identify
+different documents, the metadata member is authoritative.
+
+A consumer retrieving a Trust Policy document (from either source)
+fetches it with an HTTP GET over HTTPS with TLS server authentication.
+The response MUST have status 200 and a media type of `application/json`
+or a `+json`-suffixed type (or, for a signed policy, the JWT form of
+{{signed-policy-metadata}}); the consumer treats any other status, a
+TLS failure, a cross-origin redirect, an unparseable body, or a body
+exceeding a consumer-chosen limit (which MUST allow at least 64 KiB) as
+a retrieval failure and MUST NOT act on a policy it could not retrieve
+and validate. Redirects, if followed, MUST remain within the issuer's
+origin. This retrieval failure is distinct from a successfully
+retrieved policy that rejects an assertion.
 
 Example authorization server metadata:
 
@@ -646,9 +690,13 @@ Example authorization server metadata:
 ## Trust Policy Document {#trust-policy-document}
 
 The Identity Assertion Issuer Trust Policy is a JSON object served
-over HTTPS with media type `application/json`. Consumers MUST
-reject a policy whose required members are absent or wrong-typed
-and MUST ignore unrecognized members.
+over HTTPS with media type `application/json` (or a media type using
+the structured `+json` suffix). Consumers MUST reject a policy whose
+required members are absent or wrong-typed, MUST reject a document
+containing duplicate member names at any object level, and MUST ignore
+unrecognized members except those named in `crit` ({{critical-members}}).
+The policy MAY include a `crit` member and a `signed_policy` member as
+defined in {{signed-policy-metadata}} and {{critical-members}}.
 
 Example:
 
@@ -729,27 +777,55 @@ trust method.
 
 ### Trust Method Categories {#trust-method-categories}
 
-Each Trust Method belongs to exactly one of the two categories
-below and is registered in {{iana-trust-methods-registry}}. The
+Each Trust Method belongs to one or more of the categories below
+(registered in {{iana-trust-method-categories-registry}}) and is
+itself registered in {{iana-trust-methods-registry}}. The
 cross-category combination rule ({{rasp}}) requires evidence from
-EACH category present in the policy and applicable to the
-assertion: AND across categories, OR within.
+EACH category present in the policy: AND across categories, OR
+within. A single evidence item is never counted toward more than one
+category, even if its method is registered in several ({{rasp}}
+step 5a).
 
 `issuer_authentication`
-: Applies unconditionally. Is the entity identified by the JWT
-`iss` claim authentically a member of a recognized ecosystem?
+: Is the entity identified by the JWT `iss` claim authentically a
+member of a recognized ecosystem?
 
 `subject_namespace_authorization`
-: Applies when the assertion carries a Subject Identifier. Is
-this Assertion Issuer entitled to assert about subjects in the
-named namespace? If the Subject Authority cannot be determined,
-the assertion fails closed.
+: Is this Assertion Issuer entitled to assert about subjects in the
+named namespace? When a policy lists a method in this category, every
+in-scope assertion must carry a Subject Identifier resolving to a
+Subject Authority, and the assertion fails closed if it does not
+({{category-applicability}}, {{rasp}} step 5c); category
+applicability is a property of the policy, not the assertion.
 
 Deployments accepting assertions about namespace-bound subjects
 SHOULD list at least one `subject_namespace_authorization`
 method; federation membership alone does not establish namespace
-authority. Future specifications MAY register additional
-categories.
+authority. Future specifications MAY register additional categories
+({{iana-trust-method-categories-registry}}).
+
+### Requirements on Trust Method Specifications {#trust-method-spec-requirements}
+
+A specification defining a new Trust Method (whether in this document
+or a companion such as {{DAI}}) MUST provide all of the following, so
+that the deferral from this framework to the method is testable:
+
+- The Trust Method identifier and the category or categories it
+  belongs to ({{iana-trust-methods-registry}}).
+- The evidence the method consumes and the exact procedure by which a
+  Validator decides the method is satisfied for a given (issuer,
+  subject) pair, precise enough for interoperable implementation.
+- The mapping of the method's retrieval and evaluation outcomes onto
+  the Affirmative / Negative / Indeterminate lookup states
+  ({{exception-handling}}), including which conditions fail closed.
+- For methods in `subject_namespace_authorization`, the deterministic
+  binding from the assertion's Subject Identifier to the Subject
+  Authority whose evidence is consulted, consistent with the
+  single-source-selection rule ({{multiple-sources}}).
+- Cache-lifetime bounds for any retrieved evidence, or an explicit
+  statement that the method caches nothing.
+- Any method-specific parameters, their JSON types, and whether each
+  is REQUIRED or OPTIONAL.
 
 ### Issuer Authentication Methods {#issuer-authentication-methods}
 
@@ -884,7 +960,8 @@ That Assertion Issuer is also a federation member of
 `https://federation.example.org`.
 
 A token-request flow with an ID-JAG carrying
-`sub: alice@acme.example`, `iss: https://idp.example.net`:
+`email: alice@acme.example`, `email_verified: true`,
+`iss: https://idp.example.net`:
 
 1. The Resource Authorization Server resolves both Trust Methods
    are applicable (the Trust Policy lists one in each category).
@@ -922,7 +999,18 @@ Mark satisfaction is in {{example-federation-walkthrough}}.
 
 ## Subject Authority Determination {#subject-authority-determination}
 
-The Subject Authority associated with a Subject Identifier is
+Determining the Subject Authority has two steps: first identify which
+registered Subject Identifier format the assertion carries, then apply
+that format's extraction procedure. The grant-profile binding
+({{bindings}}) designates which claim conveys the Subject Identifier
+and thus which format applies; for the bindings in this document, a
+top-level `email` claim (with `email_verified`) is the `email` format.
+A format is "used by the assertion" when the designated claim for that
+format is present. If the designated claim maps to no registered
+format, the `subject_namespace_authorization` category cannot be
+evaluated and processing follows {{rasp}} step 5c.
+
+The Subject Authority associated with a Subject Identifier is then
 determined as registered in {{iana-authority-registry}}. This
 document registers the `email` extraction as the initial entry. The
 extraction-procedure pattern (Subject Identifier format to Subject
@@ -945,19 +1033,37 @@ Initial extractions:
   Consumers MUST NOT treat an unverified `email` claim as though the
   assertion carried no Subject Identifier.
 
-  Consumers MUST reject an `email` claim value that does not contain
-  exactly one `@` character or whose domain part is empty. The
-  local-part is not used. The domain is then normalized to the
-  registrable domain ("eTLD+1") using a current Public Suffix List
-  {{PSL}}: the Subject Authority is the shortest suffix of the
-  email's domain that is not itself a public suffix. The result is
-  converted to A-label form per {{RFC5891}} and compared using
-  case-insensitive ASCII comparison. Normalization to the
-  registrable domain prevents an attacker who controls a subdomain
-  (for example, via subdomain takeover) from publishing a Subject
-  Authority record that would override the legitimate record at
-  the registrable domain. Consumers MUST reject an email whose
-  domain is itself a public suffix (no registrable domain exists).
+  The domain is the substring after the single `@`. Consumers MUST
+  reject an `email` claim value that does not contain exactly one `@`
+  character or whose domain part is empty; this document uses the
+  simple single-`@` rule rather than the full {{RFC5321}} addr-spec
+  grammar, and quoted local-parts or address forms that do not reduce
+  to a single unquoted `@` are out of scope for the `email` extraction.
+  The local-part is not used. A trailing dot on the domain, if present,
+  is removed. The domain is converted to A-label form per {{RFC5891}}
+  (applying IDNA processing, including Unicode normalization) BEFORE
+  any Public Suffix List matching, so that comparison operates on a
+  single canonical form.
+
+  The A-label domain is then normalized to its registrable domain
+  ("eTLD+1") by applying the Public Suffix List matching algorithm
+  {{PSL}} (including its wildcard `*` and exception `!` rules): the
+  Subject Authority is the shortest suffix of the domain that is one
+  label longer than the longest matching public suffix. Consumers MUST
+  use both the ICANN and PRIVATE divisions of the list, so that a
+  delegated namespace listed in the PRIVATE division (for example,
+  `team.example-pages.example`) resolves to that namespace rather than
+  to the operator's registrable domain; a consumer that used only the
+  ICANN division would compute a different, coarser Subject Authority
+  and query a different name. The resulting Subject Authority is
+  compared using case-insensitive ASCII comparison of A-labels.
+  Normalization to the registrable domain prevents an attacker who
+  controls a subdomain (for example, via subdomain takeover) from
+  publishing a Subject Authority record that would override the
+  legitimate record at the registrable domain. Consumers MUST reject
+  an email whose domain is itself a public suffix (no registrable
+  domain exists) and MUST reject a domain that is not a valid A-label
+  or U-label sequence.
 
 Subject Identifier formats not registered for this purpose MUST NOT
 be evaluated under this Trust Method; the Resource Authorization
@@ -971,13 +1077,30 @@ Subject Identifier format's extraction procedure.
 
 ### Public Suffix List Versioning {#psl-versioning}
 
-The PSL {{PSL}} is updated continuously and snapshots taken at
-different times can yield different registrable domains for the
-same email, a deterministic-source-selection hazard
-({{multiple-sources}}). Consumers SHOULD use a snapshot from
-`publicsuffix.org` no older than 30 days. Subject Authorities
-SHOULD monitor PSL changes affecting their namespace; cross-consumer
-PSL coordination is operational and not specified here.
+Deriving a registrable domain from a DNS name has no protocol
+solution: the IETF DBOUND working group examined the problem of
+determining administrative (organizational) boundaries in the DNS and
+concluded without a standard, and the Public Suffix List remains the
+de facto mechanism (it is used the same way by DMARC organizational-
+domain discovery and by cookie same-site rules). This framework
+inherits the PSL's limitations knowingly.
+
+The PSL {{PSL}} is updated continuously, and snapshots taken at
+different times can yield different registrable domains for the same
+email. Because the Subject Authority is the DNS name queried, two
+Resource Authorization Servers using different PSL snapshots can
+compute different Subject Authorities for the same assertion and thus
+query different names and reach different decisions; this is a
+deterministic-source-selection hazard ({{multiple-sources}}) and a
+security consideration, not merely an operational one, during the
+window in which a label's public-suffix status is changing. Consumers
+SHOULD use a snapshot of the {{PSL}} no older than 30 days.
+The determinism property this framework claims holds for a given
+computed Subject Authority; parties that require identical Subject
+Authority computation across verifiers (for example, a Subject
+Authority and the Resource Authorization Servers that consume its
+policy) SHOULD agree on, or pin, a PSL snapshot. Subject Authorities
+SHOULD monitor PSL changes affecting their namespace.
 
 ### Subdomain Authority {#subdomain-authority}
 
@@ -997,11 +1120,17 @@ object-level integrity for the policy document. This member follows
 the signed metadata pattern defined for authorization server metadata
 in {{RFC8414}} and protected resource metadata in {{RFC9728}}.
 
-The `signed_policy` value is a JWT {{RFC7519}} containing policy
-members as claims. The JWT MUST be digitally signed using JWS
-{{RFC7515}} with an asymmetric algorithm and MUST contain an `iss`
-claim identifying the party attesting to the signed policy claims.
-The JWT payload SHOULD NOT contain a `signed_policy` claim.
+The `signed_policy` value is a JWT {{RFC7519}} in JWS Compact
+Serialization {{RFC7515}} containing policy members as claims. The
+JWT MUST be digitally signed using an asymmetric algorithm, MUST
+contain an `iss` claim identifying the party attesting to the signed
+policy claims, and MUST contain `iat`. It MUST contain `exp`, so that
+a superseded signed policy cannot be replayed indefinitely (relevant
+in the shared-infrastructure scenario for which signing is
+recommended, {{shared-infrastructure}}); consumers MUST reject an expired
+`signed_policy`. The JOSE header SHOULD contain a `kid` identifying
+the signing key. The JWT payload SHOULD NOT contain a `signed_policy`
+claim.
 
 Algorithms: {{RFC8725}} (JWT Best Current Practices) applies
 unchanged. In addition, the JWT MUST NOT use a MAC algorithm
@@ -1034,23 +1163,46 @@ The acceptable signer depends on which policy document is signed:
   Subject Authority authorization unless such a relationship is
   explicitly established.
 
+  The verification key for an Issuer Authorization Policy signer MUST
+  be resolved through a channel independent of the one that carried the
+  policy document, or the signature adds no protection: an attacker who
+  controls the publication channel can substitute both the policy and,
+  if the key is fetched over that same channel, the key. A profile that
+  admits `signed_policy` on the Issuer Authorization Policy MUST specify
+  at least one of the following key-resolution mechanisms and state its
+  trust assumptions: (a) a key published under DNSSEC-signed records for
+  the Subject Authority; (b) a key resolved through a federation or
+  trust-anchor relationship established by an `issuer_authentication`
+  Trust Method; or (c) a key configured out of band at the consumer.
+  Absent an independent channel, `signed_policy` on an Issuer
+  Authorization Policy provides integrity no stronger than control of
+  the publication channel itself (which already establishes authority),
+  and consumers MUST NOT rely on it to defend against compromise of
+  that channel. Fetching the key over the same non-DNSSEC DNS/HTTPS
+  path that delivered the policy does not satisfy this requirement.
+
 If both unsigned policy members and `signed_policy` are present, the
 signed policy claims MUST be used as the policy values for all claims
 present in the JWT. Unsigned members that are not represented as claims
 in the JWT MAY be used subject to the normal processing rules for
 unrecognized members. A conflict exists when a member name appears in
 both the unsigned outer document and the signed JWT payload AND the
-values are not byte-identical after JSON canonicalization. Consumers
-MUST reject a policy that contains any such conflict; an attacker who
-can modify the outer document but not the signed JWT otherwise has a
-lever to inject visible-but-ignored members that may mislead operators
-or downstream tooling.
+two values are not equal when compared as parsed JSON values (member
+order and insignificant whitespace ignored; equivalently, their JCS
+{{RFC8785}} serializations differ). Consumers MUST reject a policy
+that contains any such conflict; an attacker who can modify the outer
+document but not the signed JWT otherwise has a lever to inject
+visible-but-ignored members that may mislead operators or downstream
+tooling.
 
-This specification does not define a criticality mechanism that lets
-a publisher require `signed_policy` processing by all consumers. The
-presence of `signed_policy` therefore provides integrity only for
-consumers that support and verify it, or for deployments where local
-policy requires signed policy processing.
+A publisher that needs to require `signed_policy` processing by all
+conforming consumers lists `signed_policy` in the document's `crit`
+member ({{critical-members}}); a consumer that does not implement
+`signed_policy` processing then rejects the document rather than
+silently ignoring the signature. Absent a `crit` entry, the presence
+of `signed_policy` provides integrity only for consumers that support
+and verify it, or for deployments where local policy requires signed
+policy processing.
 
 If a consumer requires object-level integrity by local policy, the
 consumer MUST verify the signed JWT before acting on the policy, and
@@ -1063,8 +1215,33 @@ above is not satisfied, or if the JWT omits a recognized
 decision-affecting member required for evaluation, the consumer MUST
 reject the policy as malformed.
 
+## Critical Members {#critical-members}
 
-# Trust Policy Processing
+The Trust Policy and Issuer Authorization Policy documents MAY include
+a `crit` member: a JSON array of strings naming other members of the
+same document whose correct processing is REQUIRED for safe
+interpretation. A consumer that does not recognize, or does not
+implement processing for, any member named in `crit` MUST reject the
+document as malformed rather than ignoring the unrecognized member.
+Members not named in `crit` retain the default handling: unrecognized
+members are ignored.
+
+`crit`, when present, MUST be a non-empty array of strings; each string
+SHOULD name a member that is actually present in the document. A
+consumer MUST reject the document if `crit` is present but not a
+non-empty array of strings, and MUST reject if `crit` names `crit`
+itself. This is the same fail-closed pattern JWS ({{RFC7515}}
+Section 4.1.11) uses for critical header parameters.
+
+This mechanism is defined in the base specification, with no member
+named critical by default, precisely so that a future extension can
+mark a new decision-affecting member critical and have already-deployed
+consumers honor it: a consumer conformant to this document already
+rejects documents whose `crit` names a member it does not understand.
+An extension that omitted this from the base could not retrofit
+fail-closed behavior onto the deployed base. The DNS record form uses
+its version token ({{DAI}}) for the analogous purpose and does not
+carry `crit`.
 
 The trust policy governs whether an Assertion Issuer's identity
 assertion is acceptable to the Resource Authorization Server. It does
@@ -1123,8 +1300,9 @@ When evaluating an identity assertion JWT presented in a token
 request, the Resource Authorization Server MUST:
 
 1. Select and parse the trust policy that applies to the token request.
-   If the policy document is malformed or no recognized Trust Method is
-   usable, reject the assertion.
+   If the policy document is malformed, reject the assertion.
+   (Recognition of individual Trust Method objects is handled in
+   step 5a.)
 
 2. Validate the assertion per the applicable grant profile
    ({{RFC7521}}, {{RFC7523}}, {{ID-JAG}}).
@@ -1140,42 +1318,47 @@ request, the Resource Authorization Server MUST:
 5. Verify that the Assertion Issuer identified by `iss` satisfies the
    Trust Method combination rule:
 
-   a. Partition the recognized Trust Method objects in
-      `issuer_trust_methods` by category (see
-      {{trust-method-categories}}). A Trust Method registered with
-      multiple categories belongs to each.
+   a. Partition the Trust Method objects in `issuer_trust_methods` by
+      category (see {{trust-method-categories}}). A Trust Method
+      registered with multiple categories belongs to each. If any
+      object in `issuer_trust_methods` is not recognized, is
+      malformed, or cannot be assigned to a category known to the
+      Resource Authorization Server, the Resource Authorization
+      Server MUST reject the assertion: it cannot determine whether
+      it is evaluating the full set of requirements the operator
+      declared, and silently ignoring the object would evaluate a
+      strict subset (a fail-open category downgrade). A single
+      evidence item MUST NOT be counted toward more than one category
+      even when its Trust Method is registered in several.
 
-   b. For each category that is BOTH present in the partitioned policy
-      AND applicable to the assertion, the Assertion Issuer MUST
-      satisfy at least one Trust Method from that category. An
-      `issuer_authentication` method applies unconditionally. A
-      `subject_namespace_authorization` method applies when the
-      assertion carries a Subject Identifier.
+   b. Each category present in the partitioned policy is applicable to
+      every assertion evaluated under this policy; applicability is a
+      property of the policy, not the assertion ({{category-applicability}}).
+      For each present category, the Assertion Issuer MUST satisfy at
+      least one Trust Method from that category.
 
-   c. If the assertion carries a Subject Identifier and the policy
-      contains a recognized `subject_namespace_authorization` Trust
-      Method, but no Subject Authority can be determined for the
-      assertion per {{subject-authority-determination}} or an equivalent registry, the
-      Resource Authorization Server MUST reject the assertion. The
-      Resource Authorization Server MUST NOT treat the
-      `subject_namespace_authorization` category as inapplicable in
-      this case.
+   c. When the policy contains a `subject_namespace_authorization`
+      Trust Method, the assertion MUST carry a Subject Identifier from
+      which a Subject Authority can be determined per
+      {{subject-authority-determination}} or an equivalent registry.
+      If the assertion carries no such Subject Identifier, or no
+      Subject Authority can be determined, the Resource Authorization
+      Server MUST reject the assertion. The Resource Authorization
+      Server MUST NOT treat the `subject_namespace_authorization`
+      category as inapplicable because the assertion omits a Subject
+      Identifier, and MUST NOT consume any subject or identity claim
+      from the assertion for account linking, authorization, or
+      subject resolution when the namespace category is present but
+      cannot be evaluated.
 
-   d. If no Trust Method object in the policy is both recognized,
-      present in a category, and applicable to the assertion, the
-      policy provides no trust evaluation basis for this assertion;
-      the Resource Authorization Server MUST reject the assertion.
-      This case can arise when, for example, the policy lists only
-      `subject_namespace_authorization` methods and the assertion
-      does not carry a Subject Identifier.
-
-   e. Local policy MAY require satisfaction of additional Trust
+   d. Local policy MAY require satisfaction of additional Trust
       Methods for specific clients, subjects, or scopes.
 
    When the policy lists only `issuer_authentication` methods and the
    assertion carries a namespace-bound Subject Identifier, the
-   Resource Authorization Server SHOULD reject the assertion or apply
-   a stricter local policy, since federation membership alone does not
+   Resource Authorization Server MUST reject the assertion (or apply a
+   stricter local policy that independently establishes authority over
+   the subject namespace), since federation membership alone does not
    establish authority over a particular subject namespace.
 
 6. Apply local policy (account-linking, consent, authorization,
@@ -1226,41 +1409,74 @@ Server MUST:
 ## Generic JWT-Bearer Assertion Grant {#jwt-bearer-profile}
 
 This section provides the binding for the JWT-bearer authorization
-grant of {{RFC7523}} §2.1 when the assertion carries an identity
-claim to which Subject Authority Determination applies. Other
-identity-carrying grant profiles (e.g., ID-JAG,
+grant of {{RFC7523}} Section 2.1 when the assertion carries an
+identity claim to which Subject Authority Determination applies.
+Other identity-carrying grant profiles (e.g., ID-JAG,
 {{id-jag-profile}}) supply their own bindings.
 
 A Resource Authorization Server that accepts generic RFC 7523
 JWT-bearer assertion grants under this framework advertises
 `urn:ietf:params:oauth:grant-type:jwt-bearer` in
-`grant_types_supported`. RFC 7523 does not define a separate
-grant-profile URN, so generic JWT-bearer usage MAY omit an entry
-in `authorization_grant_profiles_supported`.
+`grant_types_supported`. RFC 7523 defines no distinct
+grant-profile identifier; for the purposes of this framework the
+grant-type URN `urn:ietf:params:oauth:grant-type:jwt-bearer` is
+also used as the grant-profile identifier and, when a deployment
+accepts this grant, MUST appear in
+`authorization_grant_profiles_supported` so that the processing
+rule in {{rasp}} step 3 is satisfied uniformly.
 
-The identity claim used for Subject Authority evaluation is taken
-from the top-level `sub` claim when its value is in email form, or
-from a top-level `email` claim accompanied by `email_verified=true`.
-Selection between these sources is a deployment-agreed matter
-between the Assertion Issuer and the Resource Authorization Server;
-once chosen, the same source MUST be applied consistently across
-all assertions evaluated under the same Trust Policy.
+Unlike ID-JAG, the generic JWT-bearer grant does not fix which
+claim conveys the subject. To preserve the deterministic
+single-source-selection requirement of {{multiple-sources}}, a
+Trust Policy that admits this grant MUST designate exactly one
+top-level claim as the identity claim for Subject Authority
+evaluation, chosen once for the policy rather than per assertion:
+
+- the `email` claim, which MUST be accompanied by
+  `email_verified=true` (the extraction registered in
+  {{subject-authority-determination}}); or
+- the `sub` claim, permitted only when the Assertion Issuer and
+  the Resource Authorization Server have agreed that `sub` conveys
+  an email-form identifier for this deployment, AND the assertion
+  also carries `email_verified=true`. `sub` is an issuer-scoped
+  identifier ({{RFC7519}}) that may merely resemble an email; it
+  MUST NOT be used as a Subject Identifier without the same
+  verification signal the `email` extraction requires.
+
+The designated source MUST be applied to every assertion evaluated
+under the policy; the Resource Authorization Server MUST NOT fall
+back from one claim to another per assertion, and MUST ignore the
+non-designated claim for Subject Authority evaluation. "Email form"
+means a value satisfying the email-claim syntax of
+{{subject-authority-determination}}. A value that is not in email
+form under the designated source yields no determinable Subject
+Authority and is handled per {{rasp}} step 5c.
 
 In addition to the processing in {{rasp}}, the Resource
 Authorization Server MUST:
 
 1. Validate the JWT per {{RFC7523}}.
 
-2. Verify that the selected Subject Identifier uses a format
-   registered in `subject_identifier_formats_supported`, if that
-   trust policy member is present.
+2. Verify that the Subject Identifier drawn from the designated
+   claim uses a format registered in
+   `subject_identifier_formats_supported`, if that trust policy
+   member is present.
 
 3. Treat the identity claim only as input to Subject Authority
    evaluation. Issuer acceptability is established only by
    evaluating the Trust Methods.
 
+Because the generic JWT-bearer grant carries no `tenant` claim, an
+Issuer Authorization Policy entry that omits `tenant` authorizes
+every tenant of the named issuer (see {{DAI}}). A Subject Authority
+that relies on a shared multi-tenant Assertion Issuer (one `iss`
+serving many tenants) therefore cannot express tenant-scoped
+authorization for assertions delivered under this grant, and SHOULD
+NOT authorize such an issuer for the generic JWT-bearer grant unless
+per-tenant issuer identifiers are used.
+
 This binding does not apply to JWT client authentication
-({{RFC7523}} §2.2), where the Subject Identifier is the
+({{RFC7523}} Section 2.2), where the Subject Identifier is the
 `client_id` registered with the authorization server and no
 external namespace-owner delegation exists.
 
@@ -1271,9 +1487,15 @@ external namespace-owner delegation exists.
 This document complements the OAuth 2.0 Security Best Current
 Practice ({{RFC9700}}); it does not duplicate or override it. The
 `subject_namespace_authorization` category is the wire-format
-analog of {{RFC9700}} §4.4 (AS mix-up mitigations): a Resource
-Authorization Server cannot be tricked into accepting an assertion
-from an AS that the Subject Authority has not listed. Other
+analog of {{RFC9700}} §4.4 (AS mix-up mitigations): to the extent the
+Subject Authority's publication channel provides integrity, a Resource
+Authorization Server will not accept an assertion from an AS that the
+Subject Authority has not listed. This guarantee is only as strong as
+the integrity of that channel: a Trust Method whose evidence is
+published over unauthenticated DNS or a compromisable HTTPS origin can
+be defeated by an attacker who controls that channel (see the
+per-Trust-Method security analysis, e.g. {{DAI}}, and {{multiple-sources}}).
+It is not an unconditional guarantee. Other
 {{RFC9700}} topics (redirect URI validation, bearer-token replay,
 client authentication) apply at the grant-profile and
 client-authentication layers and are not addressed here.
@@ -1471,17 +1693,26 @@ Administrators SHOULD avoid delegating security-critical well-known
 paths to multi-tenant infrastructure unless they can ensure exclusive
 control over routing for those paths, authenticated origin access,
 cache invalidation, and tenant isolation. Deployments that host policy
-documents on shared infrastructure SHOULD use object-level
-cryptographic integrity for the policy document itself, such as the
-`signed_policy` member ({{signed-policy-metadata}}), rather than
-relying solely on the TLS channel to the shared edge. The signing key
-SHOULD be controlled by the Subject Authority or Resource Authorization
-Server independently of CDN tenant configuration.
+documents on shared infrastructure and treat the shared edge as
+outside their trust boundary MUST use object-level cryptographic
+integrity for the policy document itself, such as the `signed_policy`
+member ({{signed-policy-metadata}}), rather than relying on the TLS
+channel to the shared edge. The signing key MUST be controlled by the
+Subject Authority or Resource Authorization Server independently of CDN
+tenant configuration, and MUST be resolvable through a channel
+independent of the shared edge (see the key-resolution requirement in
+{{signed-policy-metadata}}).
 
-Consumers that require object-level integrity SHOULD require and verify
-the `signed_policy` member before acting on the policy and SHOULD
-treat a valid TLS connection to a shared edge as insufficient by itself
-when local policy requires object-level integrity.
+Because this specification defines no criticality mechanism that lets a
+publisher force `signed_policy` processing, a `signed_policy` member is
+only effective against an on-path or edge attacker if consumers are
+configured to require it: such an attacker can otherwise strip the
+`signed_policy` member and serve an unsigned document, which a consumer
+not configured to require signatures would accept (a signature-stripping
+downgrade). A consumer operating in a shared-infrastructure trust model
+therefore MUST require and verify `signed_policy` before acting on the
+policy, MUST reject a policy that omits it, and MUST treat a valid TLS
+connection to a shared edge as insufficient by itself.
 
 ## Downgrade Attacks {#downgrade}
 
@@ -1535,6 +1766,30 @@ host. RASes verifying with `domain_authorized_issuer` should treat
 the Subject Authority and Assertion Issuer relationship as
 sensitive operational data and avoid sending full subject
 identifiers in policy URLs, query parameters, logs, or telemetry.
+
+# Internationalization Considerations
+
+The `email` Subject Identifier format carries an internationalized
+domain. Consumers convert the domain to A-label form per {{RFC5891}}
+(applying IDNA2008 processing, including Unicode normalization) before
+Public Suffix List matching and before comparison, and compare A-labels
+using case-insensitive ASCII comparison
+({{subject-authority-determination}}). Performing all comparison on the
+A-label form means two visually distinct Unicode domains that map to
+different A-labels are correctly treated as different Subject
+Authorities; conversely, this mechanism does not by itself defend
+against homograph confusion presented to a human at account-linking or
+display time, which is out of scope and left to the consuming
+application. Comparison operates on the mechanism level, not the visual
+level.
+
+The `email` extraction uses the simple single-`@` rule and does not
+implement the full {{RFC5321}} addr-spec grammar; internationalized
+email addresses (SMTPUTF8, {{RFC6530}}) whose local-part requires
+UTF-8 are outside the scope of the `email` extraction defined here,
+though the domain of such an address is handled normally once isolated.
+A future Subject Identifier format may define richer address handling
+by registering its own extraction procedure ({{iana-authority-registry}}).
 
 # IANA Considerations
 
@@ -1597,6 +1852,34 @@ Status:
 Related Information:
 : None
 
+### Identity Assertion Issuer Trust Method Categories Registry {#iana-trust-method-categories-registry}
+
+IANA is requested to establish a new registry titled "Identity
+Assertion Issuer Trust Method Categories" under the "OAuth Parameters"
+registry group. This registry backs the category values used by the
+Trust Methods registry and referenced by the combination rule
+({{combination-rule}}).
+
+Registration policy: Specification Required {{RFC8126}}.
+
+Each registry entry contains a Category Name (character set `[a-z0-9_]`),
+a Description of the trust question the category answers, a Change
+Controller, and a Specification Document.
+
+Designated Expert instructions: the expert verifies that the proposed
+category answers a trust question genuinely distinct from existing
+categories (so that the cross-category AND semantics of
+{{combination-rule}} remain meaningful) and that the description makes
+clear what evidence satisfies it. Categories that merely rename or
+subdivide an existing category SHOULD be rejected.
+
+Initial entries:
+
+| Category Name | Description | Change Controller | Specification Document |
+|-|-|-|-|
+| `issuer_authentication` | Establishes that the Assertion Issuer is an authentic, recognized entity | IETF | This document |
+| `subject_namespace_authorization` | Establishes that the Assertion Issuer is authorized by the subject's namespace owner | IETF | This document |
+
 ### Identity Assertion Issuer Trust Methods Registry {#iana-trust-methods-registry}
 
 IANA is requested to establish a new registry titled "Identity
@@ -1613,23 +1896,34 @@ Identifiers MUST use the character set `[a-z0-9_]` and SHOULD
 describe the trust evaluation procedure.
 
 Categories:
-: One or more values from the set defined in
-{{trust-method-categories}} (`issuer_authentication`,
-`subject_namespace_authorization`). Future specifications MAY define
-additional categories via Specification Required.
+: One or more values registered in the Trust Method Categories
+registry ({{iana-trust-method-categories-registry}}).
 
 Parameters:
 : Additional JSON members defined for this Trust Method, with their
 JSON types and whether each is REQUIRED or OPTIONAL.
 
+Change Controller:
+: The party responsible for change control.
+
 Reference:
 : A reference to the specification defining the Trust Method.
 
+Designated Expert instructions: the expert verifies that the
+identifier is unique and descriptive; that each listed category is
+registered; that the Trust Method's evidence and evaluation procedure
+are specified precisely enough for interoperable implementation
+(including its mapping onto the Affirmative/Negative/Indeterminate
+lookup states and any cache-lifetime bounds, per
+{{trust-method-spec-requirements}}); and that parameter names do not
+collide in meaning with parameters of other methods in a way that
+would be ambiguous when methods are combined.
+
 Initial entries:
 
-| Identifier | Categories | Parameters | Reference |
-|-|-|-|-|
-| `openid_federation` | `issuer_authentication` | `trust_anchors` (array of string, REQUIRED); `trust_marks` (array of object, OPTIONAL) | This document |
+| Identifier | Categories | Parameters | Change Controller | Reference |
+|-|-|-|-|-|
+| `openid_federation` | `issuer_authentication` | `trust_anchors` (array of string, REQUIRED); `trust_marks` (array of object, OPTIONAL) | IETF | This document |
 
 ### Trust Policy Members Registry {#iana-trust-policy-members-registry}
 
@@ -1653,6 +1947,13 @@ Change Controller:
 Specification Document:
 : A reference to the specification defining the member.
 
+Designated Expert instructions: the expert verifies that the member
+name does not collide with an existing member, that its semantics and
+JSON type are specified, and that any decision-affecting member states
+how a consumer that does not recognize it behaves (the default is that
+unrecognized members are ignored; a member requiring fail-closed
+handling needs the criticality mechanism of {{critical-members}}).
+
 Initial entries:
 
 | Member Name | Member Description | Change Controller | Specification Document |
@@ -1662,6 +1963,7 @@ Initial entries:
 | `subject_identifier_formats_supported` | Supported Subject Identifier formats | IETF | This document |
 | `issuer_trust_methods` | Trust Method requirements enforced for incoming identity assertions | IETF | This document |
 | `signed_policy` | Signed JWT containing policy members as claims | IETF | This document |
+| `crit` | Names decision-affecting members a consumer MUST understand or reject the document | IETF | This document |
 
 ## Subject Authority Extraction Procedures Registry {#iana-authority-registry}
 
@@ -1686,6 +1988,12 @@ Extraction Procedure:
 : A reference to the specification text that defines how the Subject
 Authority is computed from a Subject Identifier of this format.
 
+Designated Expert instructions: the expert verifies that the format
+has a well-defined namespace authority, that the extraction procedure
+is deterministic (two consumers compute the same Subject Authority
+from the same Subject Identifier), and that it specifies exact-match
+comparison semantics per {{subject-authority-determination}}.
+
 Future specifications that define new Subject Identifier formats are
 expected to register additional entries here when those identifiers
 have a well-defined namespace authority.
@@ -1695,6 +2003,25 @@ Initial entries:
 | Subject Identifier Format | Subject Authority Form | Extraction Procedure |
 |-|-|-|
 | `email` | DNS domain | {{subject-authority-determination}} of this document |
+
+## Media Type Registrations
+
+IANA is requested to register the following media types in the "Media
+Types" registry, used as the JWT `typ` header values for the signed
+document forms ({{signed-policy-metadata}}).
+
+For `application/trust-policy+jwt`: Type name `application`; Subtype
+name `trust-policy+jwt`; Required parameters none; Optional parameters
+none; Encoding considerations binary (JWS Compact Serialization);
+Security considerations {{signed-policy-metadata}} and the Security
+Considerations of this document; Interoperability considerations none;
+Published specification this document; Applications OAuth Resource
+Authorization Servers; Fragment identifier considerations none; Change
+controller IETF.
+
+For `application/issuer-authorization-policy+jwt`: as above, with
+Subtype name `issuer-authorization-policy+jwt` and Applications OAuth
+Subject Authorities and Resource Authorization Servers.
 
 --- back
 
@@ -1764,24 +2091,19 @@ and a subdomain-exact email variant that requires an explicit
 delegation from the registrable-domain authority to prevent
 subdomain takeover.
 
-## Critical Extension Identifiers
+## Critical Directives for the DNS Record Form
 
-A future extension that defines members or directives whose
-correct processing is required for safe interpretation will need
-a way to mark them critical: a publisher includes the identifier
-in a `crit` list (a JSON array on the Trust Policy and Issuer
-Authorization Policy documents, or a `crit=` directive on the DAI
-DNS record), and consumers that do not recognize any listed value
-treat the document as malformed rather than ignoring the unknown
-member or directive. This is the same mechanism JWS {{RFC7515}}
-§4.1.11 uses for header parameter criticality.
-
-The mechanism is deferred from this first version because no
-member or directive defined here requires criticality semantics:
-the recognized members and directives are exhaustively listed
-and unrecognized ones are ignored. The first extension that needs
-fail-closed semantics on a new member will define `crit` /
-`crit=` and the recognition rules at the same time.
+The JSON document forms carry a `crit` member defined in the base
+specification ({{critical-members}}), so an extension that adds a
+decision-affecting member to the Trust Policy or Issuer Authorization
+Policy can mark it critical and have already-deployed consumers honor
+it. The DNS record form has no analogous per-directive criticality
+mechanism today; it relies on the version token ({{DAI}}) to fence off
+incompatible future syntax wholesale. A future extension that needs
+per-directive fail-closed semantics in the DNS form (rather than a new
+version token) would define a `crit=` directive and its recognition
+rules at that time; it is deferred because the version token already
+provides a fail-closed path for the DNS form.
 
 ## Actor Identity Trust Evaluation
 
@@ -1893,10 +2215,9 @@ end user `alice@example.com`.
 **Publication.** The customer publishes:
 
 ~~~
-_oauth-issuer-policy.example.com.  IN  TXT
-  "v=oauth-issuer-policy1;
-   authority=example.com;
-   issuer=https://agentprovider.example"
+_oauth-issuer-policy.example.com. IN TXT ( "v=oauth-issuer-policy1;"
+    "authority=example.com;"
+    "issuer=https://agentprovider.example" )
 ~~~
 
 The tool provider publishes a Trust Policy listing
@@ -2017,10 +2338,9 @@ constrains `issuer` and required auth methods via `metadata_policy`
 The Subject Authority publishes a DAI record:
 
 ~~~
-_oauth-issuer-policy.partner.example.  IN  TXT
-  "v=oauth-issuer-policy1;
-   authority=partner.example;
-   issuer=https://idp.partner.example"
+_oauth-issuer-policy.partner.example. IN TXT ( "v=oauth-issuer-policy1;"
+    "authority=partner.example;"
+    "issuer=https://idp.partner.example" )
 ~~~
 
 **Verification.** When an ID-JAG arrives with

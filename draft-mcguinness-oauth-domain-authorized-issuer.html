@@ -23,12 +23,11 @@ locates the Subject Authority's issuer authorization policy.
 Client-side discovery of which Assertion Issuer to use before an
 assertion exists is a separate use case and is deferred to future
 work. 
-       This document defines the Issuer Authorization Policy wire format
-and the canonical  domain_authorized_issuer  Trust Method that
-consumes it. The parent trust framework specification owns the
-generic Trust Policy document, Trust Method category structure,
-cross-category combination rule, and Subject Authority Determination
-concept. 
+       This document also defines the Issuer Authorization Policy wire
+format that the Trust Method consumes. The parent trust framework
+specification owns the generic Trust Policy document, Trust Method
+category structure, cross-category combination rule, and Subject
+Authority Determination concept. 
     " name="description">
 <meta content="xml2rfc 3.34.0" name="generator">
 <meta content="OAuth" name="keyword">
@@ -1120,12 +1119,11 @@ locates the Subject Authority's issuer authorization policy.
 Client-side discovery of which Assertion Issuer to use before an
 assertion exists is a separate use case and is deferred to future
 work.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
-<p id="section-abstract-3">This document defines the Issuer Authorization Policy wire format
-and the canonical <code>domain_authorized_issuer</code> Trust Method that
-consumes it. The parent trust framework specification owns the
-generic Trust Policy document, Trust Method category structure,
-cross-category combination rule, and Subject Authority Determination
-concept.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
+<p id="section-abstract-3">This document also defines the Issuer Authorization Policy wire
+format that the Trust Method consumes. The parent trust framework
+specification owns the generic Trust Policy document, Trust Method
+category structure, cross-category combination rule, and Subject
+Authority Determination concept.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-discussion-venues">
@@ -1422,7 +1420,7 @@ Artifact; the DNS record (or DNS pointer plus HTTPS document) is
 one publication channel; the Assertion Issuer is the Delegate.
 Lookup state classification and fail-closed requirements follow
 <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Lookup States and Fail-Closed.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
-<p id="section-1.1-2">DAI is consumed by <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>, which owns the Trust Policy
+<p id="section-1.1-2">DAI extends <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>, which owns the Trust Policy
 document format, Trust Method machinery, Subject Authority
 Determination, and OAuth grant-profile bindings. This document
 defines the Issuer Authorization Policy document
@@ -2232,7 +2230,7 @@ publication.<a href="#section-7-2.5.1" class="pilcrow">¶</a></p>
       <h2 id="name-trust-methods">
 <a href="#section-8" class="section-number selfRef">8. </a><a href="#name-trust-methods" class="section-name selfRef">Trust Methods</a>
       </h2>
-<p id="section-8-1">This document defines <code>domain_authorized_issuer</code> as the canonical
+<p id="section-8-1">This document defines <code>domain_authorized_issuer</code> as a
 <code>subject_namespace_authorization</code> Trust Method of <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>.
 DNS at <code>_oauth-issuer-policy.{authority}</code> is the primary publication
 channel, with the HTTPS well-known URL as fallback. The Trust Method

@@ -30,11 +30,11 @@ Abstract
    discovery of which Assertion Issuer to use before an assertion exists
    is a separate use case and is deferred to future work.
 
-   This document defines the Issuer Authorization Policy wire format and
-   the canonical domain_authorized_issuer Trust Method that consumes it.
-   The parent trust framework specification owns the generic Trust
-   Policy document, Trust Method category structure, cross-category
-   combination rule, and Subject Authority Determination concept.
+   This document also defines the Issuer Authorization Policy wire
+   format that the Trust Method consumes.  The parent trust framework
+   specification owns the generic Trust Policy document, Trust Method
+   category structure, cross-category combination rule, and Subject
+   Authority Determination concept.
 
 Discussion Venues
 
@@ -183,16 +183,16 @@ Table of Contents
    fail-closed requirements follow [TRUST-FRAMEWORK] §Lookup States and
    Fail-Closed.
 
-   DAI is consumed by [TRUST-FRAMEWORK], which owns the Trust Policy
-   document format, Trust Method machinery, Subject Authority
-   Determination, and OAuth grant-profile bindings.  This document
-   defines the Issuer Authorization Policy document (Section 3), the DNS
-   and HTTPS publication channels (Section 4.1), the lookup procedure
-   (Section 5), the verification rules (Section 6), the
-   domain_authorized_issuer Trust Method, and an HTTPS-only deployment
-   variant (Section 8.2).  A bridge to the Email Verification Protocol's
-   DNS records and a client-side discovery use case are sketched as
-   future extensions in Appendix B.
+   DAI extends [TRUST-FRAMEWORK], which owns the Trust Policy document
+   format, Trust Method machinery, Subject Authority Determination, and
+   OAuth grant-profile bindings.  This document defines the Issuer
+   Authorization Policy document (Section 3), the DNS and HTTPS
+   publication channels (Section 4.1), the lookup procedure (Section 5),
+   the verification rules (Section 6), the domain_authorized_issuer
+   Trust Method, and an HTTPS-only deployment variant (Section 8.2).  A
+   bridge to the Email Verification Protocol's DNS records and a client-
+   side discovery use case are sketched as future extensions in
+   Appendix B.
 
 1.2.  Conventions
 
@@ -816,7 +816,7 @@ Table of Contents
 
 8.  Trust Methods
 
-   This document defines domain_authorized_issuer as the canonical
+   This document defines domain_authorized_issuer as a
    subject_namespace_authorization Trust Method of [TRUST-FRAMEWORK].
    DNS at _oauth-issuer-policy.{authority} is the primary publication
    channel, with the HTTPS well-known URL as fallback.  The Trust Method

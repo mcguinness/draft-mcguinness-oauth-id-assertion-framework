@@ -11,18 +11,18 @@ identity-assertion trust evaluation.
    combination rule, lookup states), plus the Trust Policy
    document, Trust Method machinery, Subject Authority
    Determination, and OAuth grant-profile bindings.
-   * [Editor's Copy](https://mcguinness.github.io/draft-mcguinness-oauth-identity-assertion-trust-policy/#go.draft-mcguinness-oauth-identity-assertion-trust-framework.html)
-   * [Datatracker Page](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-identity-assertion-trust-framework)
-   * [Individual Draft](https://datatracker.ietf.org/doc/html/draft-mcguinness-oauth-identity-assertion-trust-framework)
+   * [Editor's Copy](https://mcguinness.github.io/draft-mcguinness-oauth-id-assertion-framework/#go.draft-mcguinness-oauth-id-assertion-framework.html)
+   * [Datatracker Page](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-id-assertion-framework)
+   * [Individual Draft](https://datatracker.ietf.org/doc/html/draft-mcguinness-oauth-id-assertion-framework)
 
-2. **OAuth Domain-Authorized Issuer Discovery (DAI)** — a
+2. **OAuth Domain-Authorized Issuer Trust Method (DAI)** — a
    Standards-Track profile of the framework. Defines the
-   Issuer Authorization Policy wire format and a DNS+HTTPS
-   publication mechanism by which a namespace owner declares
-   which Assertion Issuers it authorizes.
-   * [Editor's Copy](https://mcguinness.github.io/draft-mcguinness-oauth-identity-assertion-trust-policy/#go.draft-mcguinness-oauth-domain-authorized-issuer-discovery.html)
-   * [Datatracker Page](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer-discovery)
-   * [Individual Draft](https://datatracker.ietf.org/doc/html/draft-mcguinness-oauth-domain-authorized-issuer-discovery)
+   `domain_authorized_issuer` Trust Method and the Issuer
+   Authorization Policy wire format it consumes, published via
+   DNS+HTTPS by the namespace owner.
+   * [Editor's Copy](https://mcguinness.github.io/draft-mcguinness-oauth-id-assertion-framework/#go.draft-mcguinness-oauth-domain-authorized-issuer.html)
+   * [Datatracker Page](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer)
+   * [Individual Draft](https://datatracker.ietf.org/doc/html/draft-mcguinness-oauth-domain-authorized-issuer)
 
 ## How the documents relate
 
@@ -33,7 +33,7 @@ identity-assertion trust evaluation.
                           |
                           | extended with a Trust Method by
                           v
-            OAuth Domain-Authorized Issuer Discovery  (doc 2)
+          OAuth Domain-Authorized Issuer Trust Method  (doc 2)
                 (subject_namespace_authorization)
 ```
 
@@ -47,7 +47,7 @@ its namespace.
 ## Contributing
 
 See the
-[guidelines for contributions](https://github.com/mcguinness/draft-mcguinness-oauth-identity-assertion-trust-policy/blob/main/CONTRIBUTING.md).
+[guidelines for contributions](https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/blob/main/CONTRIBUTING.md).
 
 The contributing file also has tips on how to make contributions, if you
 don't already know how to do that.

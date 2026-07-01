@@ -3,5 +3,5 @@
     Web Authorization Protocol Working Group mailing list (oauth@ietf.org),
     which is archived at <eref target="https://mailarchive.ietf.org/arch/browse/oauth/"/>.</t>
 <t>Source for this draft and an issue tracker can be found at
-    <eref target="https://github.com/mcguinness/draft-mcguinness-oauth-identity-assertion-trust-policy"/>.</t>
+    <eref target="https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework"/>.</t>
 </note>

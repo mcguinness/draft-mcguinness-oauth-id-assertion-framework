@@ -1,7 +1,7 @@
 ---
 title: "OAuth Identity Assertion Trust Framework"
 abbrev: "Identity Assertion Trust Framework"
-docname: draft-mcguinness-oauth-identity-assertion-trust-framework-latest
+docname: draft-mcguinness-oauth-id-assertion-framework-latest
 date: 2026-06-23
 category: std
 submissiontype: IETF
@@ -50,8 +50,8 @@ normative:
     target: https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/
     date: false
   DAI:
-    title: "OAuth Domain-Authorized Issuer Discovery"
-    target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer-discovery/
+    title: "OAuth Domain-Authorized Issuer Trust Method"
+    target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer/
     date: false
 
 informative:
@@ -93,7 +93,7 @@ issuer-authentication methods (such as OpenID Federation) and
 subject-namespace authorization methods defined by separate
 profiles.
 
-Domain-Authorized Issuer Discovery is defined separately as one
+The Domain-Authorized Issuer Trust Method is defined separately as one
 subject-namespace authorization profile usable by this framework.
 
 --- middle
@@ -221,8 +221,8 @@ accepts and fails closed when required evidence is missing.
 
 This policy is complementary to OpenID Federation: OpenID Federation
 can authenticate that an issuer belongs to a trusted ecosystem, while
-Domain-Authorized Issuer Discovery lets the namespace owner say which
-issuers may assert about subjects in that namespace. This document also
+the Domain-Authorized Issuer Trust Method lets the namespace owner say
+which issuers may assert about subjects in that namespace. This document also
 follows existing DNS authority-publication patterns such as CAA,
 MTA-STS, SPF, DKIM, and the Email Verification Protocol. Background and
 positioning details are in {{relationship-to-oidf}} and
@@ -238,9 +238,9 @@ This document and {{DAI}} form a two-document set:
   Authorization Server, plus the Trust Method machinery, OAuth
   grant profile bindings, and the Subject Authority Determination
   concept.
-- **{{DAI}}**: Domain-Authorized Issuer Discovery, defining the
-  Issuer Authorization Policy wire format and the
-  `domain_authorized_issuer` Trust Method that consumes it.
+- **{{DAI}}**: the OAuth Domain-Authorized Issuer Trust Method, defining
+  the `domain_authorized_issuer` Trust Method and the Issuer Authorization
+  Policy wire format it consumes.
 
 This document does not define the Issuer Authorization Policy
 wire format; that lives in {{DAI}}. This document defines what an

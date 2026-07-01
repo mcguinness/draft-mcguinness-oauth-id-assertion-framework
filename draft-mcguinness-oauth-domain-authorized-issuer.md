@@ -1,7 +1,7 @@
 ---
-title: "OAuth Domain-Authorized Issuer Discovery"
-abbrev: "Domain-Authorized Issuer Discovery"
-docname: draft-mcguinness-oauth-domain-authorized-issuer-discovery-latest
+title: "OAuth Domain-Authorized Issuer Trust Method"
+abbrev: "Domain-Authorized Issuer Trust Method"
+docname: draft-mcguinness-oauth-domain-authorized-issuer-latest
 date: 2026-06-23
 category: std
 submissiontype: IETF
@@ -43,7 +43,7 @@ normative:
     date: false
   TRUST-FRAMEWORK:
     title: "OAuth Identity Assertion Trust Framework"
-    target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-identity-assertion-trust-framework/
+    target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-id-assertion-framework/
     date: false
 
 informative:
@@ -61,28 +61,30 @@ informative:
 
 --- abstract
 
-This document defines Domain-Authorized Issuer Discovery (DAI), a
-mechanism by which the owner of a subject namespace (typically a
-DNS domain) publishes a policy listing the OAuth authorization
-servers it authorizes to assert identities in that namespace. The
-mechanism uses the DNS-based authority-publication pattern operators
-already deploy for CAA, MTA-STS, SPF, and DKIM. A Resource
-Authorization Server uses the published policy to verify that an
-identity assertion's issuer is authorized for the asserted subject
-namespace.
+This document defines the Domain-Authorized Issuer (DAI) Trust
+Method: a `subject_namespace_authorization` Trust Method for the
+OAuth Identity Assertion Trust Framework in which the owner of a
+subject namespace (typically a DNS domain) publishes a policy
+listing the OAuth authorization servers it authorizes to assert
+identities in that namespace. The mechanism uses the DNS-based
+authority-publication pattern operators already deploy for CAA,
+MTA-STS, SPF, and DKIM. A Resource Authorization Server uses the
+published policy to verify that an identity assertion's issuer is
+authorized for the asserted subject namespace.
 
-The "discovery" defined by this document is verifier-side discovery
-of the Subject Authority's issuer authorization policy. Client-side
-discovery of which Assertion Issuer to use before an assertion exists
-is a separate use case and is deferred to future work.
+The lookup defined by this document is verifier-side: given an
+identity assertion in hand, the Resource Authorization Server
+locates the Subject Authority's issuer authorization policy.
+Client-side discovery of which Assertion Issuer to use before an
+assertion exists is a separate use case and is deferred to future
+work.
 
-DAI is a profile of the OAuth Identity Assertion Trust Framework:
-it defines the Issuer Authorization Policy wire format and the
-canonical `domain_authorized_issuer` `subject_namespace_authorization`
-Trust Method that consumes it. The parent trust framework
-specification owns the generic Trust Policy document, Trust Method
-category structure, cross-category combination rule, and Subject
-Authority Determination concept.
+This document defines the Issuer Authorization Policy wire format
+and the canonical `domain_authorized_issuer` Trust Method that
+consumes it. The parent trust framework specification owns the
+generic Trust Policy document, Trust Method category structure,
+cross-category combination rule, and Subject Authority Determination
+concept.
 
 --- middle
 
@@ -95,7 +97,7 @@ membership is not, by that membership alone, entitled to assert
 about subjects in any particular namespace; the namespace owner is
 the only authoritative source of that delegation.
 
-Domain-Authorized Issuer Discovery (DAI) lets the owner of a
+The Domain-Authorized Issuer (DAI) Trust Method lets the owner of a
 DNS-namable subject namespace publish, in DNS, the set of Assertion
 Issuers it authorizes for its namespace. The DNS record can carry
 the authorized issuers inline (for simple deployments) or point at
@@ -160,10 +162,10 @@ Subject Identifier formats follow {{RFC9493}}.
 
 One term is specific to this document:
 
-Domain-Authorized Issuer Discovery (DAI):
-: The mechanism defined by this document for a Subject Authority
-to publish, via DNS, the set of Assertion Issuers it authorizes
-for its namespace.
+Domain-Authorized Issuer (DAI):
+: The Trust Method defined by this document, in which a Subject
+Authority publishes, via DNS, the set of Assertion Issuers it
+authorizes for its namespace.
 
 # Issuer Authorization Policy Document {#dii-document}
 
@@ -713,9 +715,9 @@ Issuer is acceptable if the Subject Authority identified by the
 assertion's Subject Identifier authorizes the Assertion Issuer to
 assert identities in that namespace, as defined in this document.
 
-Domain-Authorized Issuer Discovery, defined in this document, is the
-mechanism by which a Subject Authority publishes its authorized
-Assertion Issuers. A Subject Authority publishes a DNS TXT record at
+The Domain-Authorized Issuer Trust Method, defined in this document,
+is the mechanism by which a Subject Authority publishes its
+authorized Assertion Issuers. A Subject Authority publishes a DNS TXT record at
 `_oauth-issuer-policy.{authority}` (carrying authorized issuers
 inline, or pointing to a richer HTTPS-hosted document) or an HTTPS
 JSON document at `.well-known/oauth-issuer-policy` on the Subject
@@ -1086,7 +1088,7 @@ This appendix is non-normative.
 
 ## Following Existing DNS Authority Patterns {#dns-authority-patterns}
 
-Domain-Authorized Issuer Discovery applies the same
+The Domain-Authorized Issuer Trust Method applies the same
 authority-publication pattern that domain owners already use for
 CAA {{RFC8659}}, MTA-STS {{RFC8461}}, SPF, DKIM, and the Email
 Verification Protocol {{I-D.hardt-email-verification}}. {{TRUST-FRAMEWORK}}
@@ -1436,4 +1438,4 @@ This appendix is non-normative and will be removed before publication.
 
 -00
 
-  * initial draft, split from draft-mcguinness-oauth-identity-assertion-issuer-trust-policy
+  * initial draft

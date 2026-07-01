@@ -1191,17 +1191,14 @@ it is a reconnaissance target.
 
 # Grant Profile and Token Bindings {#bindings}
 
-This section defines the binding to ID-JAG ({{id-jag-profile}}).
+This section defines bindings for ID-JAG ({{id-jag-profile}}) and
+the generic JWT-bearer assertion grant ({{jwt-bearer-profile}}).
 Other assertion-bearing grant profiles would supply analogous
-bindings.
+bindings, naming their grant profile identifier, their Subject
+Identifier-bearing claim, and any profile-specific JWT claims that
+participate in Trust Method evaluation.
 
 ## ID-JAG {#id-jag-profile}
-
-This section provides the binding for ID-JAG {{ID-JAG}}; other grant
-profiles would supply analogous bindings, naming their grant profile
-identifier, their Subject Identifier-bearing claim, and any
-profile-specific JWT claims that participate in Trust Method
-evaluation.
 
 For ID-JAG {{ID-JAG}}, `authorization_grant_profiles_supported` contains the value
 `urn:ietf:params:oauth:grant-profile:id-jag`. When the trust policy

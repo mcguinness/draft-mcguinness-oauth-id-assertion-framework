@@ -90,9 +90,10 @@ Authority Determination concept.
 
 # Introduction
 
-OAuth deployments using identity-assertion grants ({{TRUST-FRAMEWORK}})
-need to answer "is this Assertion Issuer authorized to assert about
-subjects in this namespace?". An issuer authenticated by federation
+OAuth deployments using identity-assertion grants (e.g., ID-JAG, or
+generic JWT-bearer assertions carrying an identity claim; see
+{{TRUST-FRAMEWORK}}) need to answer "is this Assertion Issuer
+authorized to assert about subjects in this namespace?". An issuer authenticated by federation
 membership is not, by that membership alone, entitled to assert
 about subjects in any particular namespace; the namespace owner is
 the only authoritative source of that delegation.

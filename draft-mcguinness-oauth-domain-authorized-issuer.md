@@ -229,23 +229,17 @@ rather than by absence. Each object has:
   : OPTIONAL. Non-empty string. The issuer-side tenant identifier
   authorized for this Subject Authority, corresponding to a top-level
   `tenant` claim carried by the assertion (in ID-JAG, {{ID-JAG}} §6.1).
-  When present,
-  the assertion's top-level `tenant` claim MUST be present and MUST
-  exactly match this value using case-sensitive string comparison; an
-  assertion that lacks the `tenant` claim or carries a different value
-  does not match this entry. When absent, no tenant constraint applies
-  and the Assertion Issuer is authorized for this Subject Authority
-  regardless of its `tenant` claim. Grant profiles that do not carry
-  a `tenant` claim (e.g., the generic JWT-bearer grant of
-  {{RFC7523}}) match only entries that omit `tenant`. Tenant values
-  are issuer-specific: the string has meaning only for the Assertion
-  Issuer named by the same entry and MUST NOT be compared across
-  issuers. Subject Authorities authorizing a shared-issuer multi-tenant
-  Identity Provider (an Assertion Issuer whose `iss` is shared across
-  many tenants) SHOULD set `tenant` to the specific tenant they intend
-  to authorize; see {{dii-multi-tenant}} for the rationale and trust
-  assumptions. To authorize multiple tenants of the same shared issuer,
-  publish one `authorized_issuers` entry per (issuer, tenant) pair.
+  When present, the assertion's top-level `tenant` claim MUST be
+  present and MUST exactly match this value using case-sensitive
+  string comparison; an assertion that lacks the `tenant` claim or
+  carries a different value does not match this entry. When absent,
+  no tenant constraint applies. Grant profiles that do not carry a
+  `tenant` claim (e.g., the generic JWT-bearer grant of {{RFC7523}})
+  match only entries that omit `tenant`. Tenant values are
+  issuer-specific and MUST NOT be compared across issuers. To
+  authorize multiple tenants of the same shared issuer, publish one
+  entry per (issuer, tenant) pair. Guidance for shared-issuer
+  multi-tenant Identity Providers is in {{dii-multi-tenant}}.
 
   `subject_identifier_formats`
   : OPTIONAL. JSON array of Subject Identifier format names
@@ -370,12 +364,10 @@ indicates absence.
 
 A Subject Authority MAY publish a JSON document at the default
 HTTPS well-known URL on its own host ({{dii-https-url}}), either
-as the sole publication (Channel 3) or alongside a DNS record.
-The lookup procedure ({{dii-lookup}}) consults DNS first and uses
-the HTTPS well-known URL only when the DNS response is
-`negative-authoritative`. A Subject Authority with no DAI DNS
-record relies on the natural `negative-authoritative` DNS response
-to bring consumers to the well-known URL.
+as the sole publication (Channel 3) or alongside a DNS record. A
+Subject Authority with no DAI DNS record relies on the natural
+`negative-authoritative` DNS response to bring consumers to the
+well-known URL ({{dii-lookup}}).
 
 Operators are encouraged to publish the DNS record where
 practical because it matches the operational model of the
@@ -1148,6 +1140,15 @@ security points apply:
   where offered and treat shared-issuer listings as long-lived
   delegations requiring due diligence on the Identity Provider's
   tenant-isolation guarantees.
+
+- **Grant profiles without a `tenant` claim.** Under a grant
+  profile that carries no `tenant` claim (e.g., the generic
+  JWT-bearer grant, {{TRUST-FRAMEWORK}} §Generic JWT-Bearer
+  Assertion Grant), only entries that omit `tenant` can match, so
+  tenant-scoped authorization is not expressible. A Subject
+  Authority relying on a shared multi-tenant Assertion Issuer
+  SHOULD NOT authorize that issuer for such a grant unless
+  per-tenant issuer identifiers are used.
 
 ## Denial of Service, Amplification, and SSRF {#dos-ssrf}
 

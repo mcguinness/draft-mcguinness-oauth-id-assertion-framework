@@ -144,16 +144,10 @@ This document defines the Authority Delegation Model
 ({{delegation-model}}) and uses it to profile OAuth identity
 assertions. It is consumed by {{DAI}}, which defines one
 Subject-Authority publication mechanism. The two documents together
-are described in {{family}}.
-
-This framework operates at a layer {{ID-JAG}} and
-{{I-D.ietf-oauth-identity-chaining}} do not address: those
-specifications define how a Resource Authorization Server *consumes*
-an identity assertion presented in a token request, but neither
-answers whether the issuing authorization server is *entitled* to
-assert about the subject's namespace. This document adds the
-issuer-trust evaluation layer; the assertion-bearer grant and
-chaining mechanics remain unchanged.
+are described in {{family}}. The assertion-bearer grant and chaining
+mechanics of {{ID-JAG}} and {{I-D.ietf-oauth-identity-chaining}}
+remain unchanged; this document adds only the issuer-trust
+evaluation layer.
 
 ## Minimal Deployment
 
@@ -188,10 +182,9 @@ for OAuth identity assertions ({{categories}}):
   category. It asks: has the namespace owner authorized this
   issuer to assert about subjects in its namespace?
 
-Each Trust Method belongs to exactly one of these categories. The
-cross-category combination rule ({{combination-rule}}) applies as
-instantiated in {{rasp}}: evidence from each applicable category
-is required.
+Each Trust Method belongs to one or more of these categories, and
+evidence is required from each applicable category
+({{combination-rule}}).
 
 ## Motivating Use Cases {#motivation}
 
@@ -466,10 +459,9 @@ The OAuth Trust Method categories defined in this document
 `subject_namespace_authorization` realizes Delegation authority
 for namespace-bound Subject Identifiers.
 
-Local policy (the Resource Authorization Server's discretion: risk scoring, scope
-grants, account linking, business rules) applies on top of these
-two categories. Trust framework evaluation is necessary but not
-sufficient; local policy is the final decision layer.
+Local policy (risk scoring, scope grants, account linking, business
+rules) applies on top of these two categories and remains the final
+decision layer ({{rasp}} step 6).
 
 ### Cross-Category Combination Rule {#combination-rule}
 
@@ -668,15 +660,18 @@ the metadata member and the well-known URI are available and identify
 different documents, the metadata member is authoritative.
 
 A consumer retrieving a Trust Policy document (from either source)
-fetches it with an HTTP GET over HTTPS with TLS server authentication.
-The response MUST have status 200 and a media type of `application/json`
-or a `+json`-suffixed type; the consumer treats any other status, a
-TLS failure, a cross-origin redirect, an unparseable body, or a body
-exceeding a consumer-chosen limit (which MUST allow at least 64 KiB) as
-a retrieval failure and MUST NOT act on a policy it could not retrieve
-and validate. Redirects, if followed, MUST remain within the issuer's
-origin. This retrieval failure is distinct from a successfully
-retrieved policy that rejects an assertion.
+fetches it with an HTTP GET over HTTPS with TLS server
+authentication, subject to the following rules. The consumer MUST NOT
+act on a policy it could not retrieve and validate; such a retrieval
+failure is distinct from a successfully retrieved policy that rejects
+an assertion.
+
+- The response MUST have status 200 and a media type of
+  `application/json` or a `+json`-suffixed type.
+- Redirects, if followed, MUST remain within the issuer's origin.
+- Any other status, a TLS failure, a cross-origin redirect, an
+  unparseable body, or a body exceeding a consumer-chosen limit
+  (which MUST allow at least 64 KiB) is a retrieval failure.
 
 Example authorization server metadata:
 
@@ -791,12 +786,10 @@ strict subset of the operator's declared requirements.
 
 Each Trust Method belongs to one or more of the categories below
 (registered in {{iana-trust-method-categories-registry}}) and is
-itself registered in {{iana-trust-methods-registry}}. The
-cross-category combination rule ({{combination-rule}}) requires
-evidence from each category present in the policy: *and* across
-categories, *or* within. A single evidence item is never counted
-toward more than one category, even if its method is registered in
-several ({{rasp}} step 5a).
+itself registered in {{iana-trust-methods-registry}}. Evidence is
+combined across categories per {{combination-rule}}; a single
+evidence item is never counted toward more than one category, even
+if its method is registered in several ({{rasp}} step 5a).
 
 `issuer_authentication`
 : Is the entity identified by the JWT `iss` claim authentically a
@@ -805,10 +798,8 @@ member of a recognized ecosystem?
 `subject_namespace_authorization`
 : Is this Assertion Issuer entitled to assert about subjects in the
 named namespace? When a policy lists a method in this category, every
-in-scope assertion must carry a Subject Identifier resolving to a
-Subject Authority, and the assertion fails closed if it does not
-({{category-applicability}}, {{rasp}} step 5c); category
-applicability is a property of the policy, not the assertion.
+in-scope assertion must carry a resolvable Subject Identifier and
+fails closed if it does not ({{rasp}} step 5c).
 
 Deployments accepting assertions about namespace-bound subjects
 SHOULD list at least one `subject_namespace_authorization`
@@ -1054,7 +1045,7 @@ Initial extractions:
   `email_verified` claim with the boolean value `true`. If the
   `email_verified` claim is absent or has any value other than
   `true`, consumers MUST treat the `email` Subject Identifier as
-  invalid for purposes of this Trust Method and MUST reject the
+  invalid for Subject Authority determination and MUST reject the
   assertion when `email` is the Subject Identifier being evaluated.
   Consumers MUST NOT treat an unverified `email` claim as though the
   assertion carried no Subject Identifier.
@@ -1073,28 +1064,25 @@ Initial extractions:
 
   The A-label domain is then normalized to its registrable domain
   ("eTLD+1") by applying the Public Suffix List matching algorithm
-  {{PSL}} (including its wildcard `*` and exception `!` rules): the
+  {{PSL}}, including its wildcard `*` and exception `!` rules: the
   Subject Authority is the shortest suffix of the domain that is one
-  label longer than the longest matching public suffix. Consumers MUST
-  use both the ICANN and PRIVATE divisions of the list, so that a
-  delegated namespace listed in the PRIVATE division (for example,
-  `team.example-pages.example`) resolves to that namespace rather than
-  to the operator's registrable domain; a consumer that used only the
-  ICANN division would compute a different, coarser Subject Authority
-  and query a different name. The resulting Subject Authority is
-  compared using case-insensitive ASCII comparison of A-labels.
-  Normalization to the registrable domain prevents an attacker who
-  controls a subdomain (for example, via subdomain takeover) from
-  publishing a Subject Authority record that would override the
-  legitimate record at the registrable domain. Consumers MUST reject
-  an email whose domain is itself a public suffix (no registrable
-  domain exists) and MUST reject a domain that is not a valid A-label
-  or U-label sequence.
+  label longer than the longest matching public suffix. Consumers
+  MUST use both the ICANN and PRIVATE divisions of the list (a
+  delegated namespace listed in the PRIVATE division, such as
+  `team.example-pages.example`, resolves to that namespace; using
+  only the ICANN division would compute a coarser Subject Authority
+  and query a different name). The result is compared using
+  case-insensitive ASCII comparison of A-labels. Consumers MUST
+  reject an email whose domain is itself a public suffix (no
+  registrable domain exists) and MUST reject a domain that is not a
+  valid A-label or U-label sequence. Registrable-domain
+  normalization prevents an attacker who controls a subdomain (for
+  example, via subdomain takeover) from overriding the legitimate
+  record at the registrable domain.
 
-Subject Identifier formats not registered for this purpose MUST NOT
-be evaluated under this Trust Method; the Resource Authorization
-Server MUST reject the assertion with an OAuth `invalid_grant`
-error.
+A Subject Identifier whose format is not registered in
+{{iana-authority-registry}} yields no Subject Authority; processing
+follows {{rasp}} step 5c.
 
 Subject Authority extraction MUST be exact-match: wildcard, suffix,
 regular-expression, and substring matching against Subject Authority
@@ -1196,22 +1184,23 @@ The acceptable signer depends on which policy document is signed:
   unless such a relationship is explicitly established.
 
   The verification key for an Issuer Authorization Policy signer MUST
-  be resolved through a channel independent of the one that carried the
-  policy document, or the signature adds no protection: an attacker who
-  controls the publication channel can substitute both the policy and,
-  if the key is fetched over that same channel, the key. A profile that
-  admits `signed_policy` on the Issuer Authorization Policy MUST specify
-  at least one of the following key-resolution mechanisms and state its
-  trust assumptions: (a) a key published under DNSSEC-signed records for
-  the Subject Authority; (b) a key resolved through a federation or
-  trust-anchor relationship established by an `issuer_authentication`
-  Trust Method; or (c) a key configured out of band at the consumer.
-  Absent an independent channel, `signed_policy` on an Issuer
-  Authorization Policy provides integrity no stronger than control of
-  the publication channel itself (which already establishes authority),
-  and consumers MUST NOT rely on it to defend against compromise of
-  that channel. Fetching the key over the same non-DNSSEC DNS/HTTPS
-  path that delivered the policy does not satisfy this requirement.
+  be resolved through a channel independent of the one that carried
+  the policy document. A profile that admits `signed_policy` on the
+  Issuer Authorization Policy MUST specify at least one of the
+  following key-resolution mechanisms and state its trust assumptions:
+
+  - a key published under DNSSEC-signed records for the Subject
+    Authority;
+  - a key resolved through a federation or trust-anchor relationship
+    established by an `issuer_authentication` Trust Method; or
+  - a key configured out of band at the consumer.
+
+  Rationale: an attacker who controls the publication channel can
+  substitute both the policy and, if the key is fetched over that same
+  channel, the key. Absent an independent channel, the signature
+  provides integrity no stronger than channel control (which already
+  establishes authority), and consumers MUST NOT rely on it to defend
+  against compromise of that channel.
 
 If both unsigned policy members and `signed_policy` are present, the
 signed policy claims MUST be used as the policy values for all claims
@@ -1272,16 +1261,11 @@ on them. It MAY additionally be duplicated as a claim in the signed
 JWT so that its value is integrity-protected.
 
 This mechanism is defined in the base specification, with no member
-named critical by default, precisely so that a future extension can
-mark a new decision-affecting member critical and have already-deployed
-consumers honor it: a consumer conformant to this document already
-rejects documents whose `crit` names a member it does not understand.
-An extension that omitted this from the base could not retrofit
-fail-closed behavior onto the deployed base. The DNS record form does
-not carry `crit`; its version token ({{DAI}}) prevents
-misinterpretation of future record syntax (unrecognized versions are
-ignored, steering the lookup to the HTTPS channel or to a Negative
-outcome) rather than providing per-member criticality.
+named critical by default, so that a future extension can mark a new
+decision-affecting member critical and have already-deployed
+consumers honor it; an extension that omitted it from the base could
+not retrofit fail-closed behavior onto the deployed base. The DNS
+record form does not carry `crit`; see {{crit-dns-form}}.
 
 # Trust Policy Processing
 
@@ -1506,14 +1490,11 @@ Authorization Server MUST:
    evaluation. Issuer acceptability is established only by
    evaluating the Trust Methods.
 
-Because the generic JWT-bearer grant carries no `tenant` claim, an
-Issuer Authorization Policy entry that omits `tenant` authorizes
-every tenant of the named issuer (see {{DAI}}). A Subject Authority
-that relies on a shared multi-tenant Assertion Issuer (one `iss`
-serving many tenants) therefore cannot express tenant-scoped
-authorization for assertions delivered under this grant, and SHOULD
-NOT authorize such an issuer for the generic JWT-bearer grant unless
-per-tenant issuer identifiers are used.
+Because the generic JWT-bearer grant carries no `tenant` claim,
+tenant-scoped authorization is not expressible for assertions
+delivered under this grant; the resulting constraint on Subject
+Authorities that rely on shared multi-tenant Assertion Issuers is
+specified in {{DAI}} §Single-Issuer Multi-Tenant Identity Providers.
 
 This binding does not apply to JWT client authentication
 ({{RFC7523}} Section 2.2), where the Subject Identifier is the
@@ -1657,10 +1638,10 @@ establish authenticity. The cross-category combination rule
 
 Trust-policy evaluation establishes that the Assertion Issuer is
 authorized to assert this class of Subject Identifiers under the
-namespace. It is necessary but not sufficient; Resource
-Authorization Servers MUST still validate the assertion (signature,
-audience, expiration, replay protection, client binding) per the
-applicable grant profile, and MUST NOT infer any of the following
+namespace. Resource Authorization Servers MUST still validate the
+assertion (signature, audience, expiration, replay protection,
+client binding) per the applicable grant profile, and MUST NOT
+infer any of the following
 from a successful trust-policy evaluation:
 
 - The named subject exists at the Assertion Issuer or controls
@@ -2137,7 +2118,7 @@ and a subdomain-exact email variant that requires an explicit
 delegation from the registrable-domain authority to prevent
 subdomain takeover.
 
-## Critical Directives for the DNS Record Form
+## Critical Directives for the DNS Record Form {#crit-dns-form}
 
 The JSON document forms carry a `crit` member defined in the base
 specification ({{critical-members}}), so an extension that adds a

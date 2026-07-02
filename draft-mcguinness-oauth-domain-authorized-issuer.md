@@ -993,16 +993,14 @@ attacker-friendly policy. The pointer form additionally depends on
 TLS authentication of the pointed-at host: TLS does NOT mitigate
 the DNS compromise that selected that host.
 
-The integrity of the inline DNS form rests entirely on the integrity
-of DNS resolution: absent DNSSEC or an authenticated resolver path,
-the assurance it provides is no stronger than the recursive resolver
-path between consumer and authoritative server. Deployments that
-require a stronger guarantee than that path SHOULD sign the zone with
-DNSSEC or use the HTTPS document form with the integrity controls of
-{{TRUST-FRAMEWORK}} §Shared Infrastructure and Hosted Well-Known
-Paths. The "common case" simplicity of the inline form
-({{publication-profiles}}) is an availability/operability tradeoff,
-not an integrity guarantee.
+Absent DNSSEC or an authenticated resolver path, the inline DNS form's
+integrity is no stronger than the recursive resolver path between
+consumer and authoritative server. Deployments needing a stronger
+guarantee SHOULD sign the zone with DNSSEC or use the HTTPS document
+form with the controls of {{TRUST-FRAMEWORK}} §Shared Infrastructure
+and Hosted Well-Known Paths; the inline form's "common case"
+simplicity ({{publication-profiles}}) is an operability tradeoff, not
+an integrity guarantee.
 
 Required framework defenses:
 
@@ -1189,11 +1187,8 @@ in two directions:
   DNS. An employer acting as its own Subject Authority can thereby
   obtain a near-real-time signal of where employees sign in. Caching
   ({{dii-caching}}) is the primary mitigation: it coarsens timing and
-  collapses repeated lookups, and consumers SHOULD cache to the
-  bounds permitted rather than re-fetching per verification. Subject
-  Authorities and Resource Authorization Servers SHOULD treat this
-  lookup metadata as they would other authentication-adjacent
-  telemetry.
+  collapses repeated lookups, so consumers SHOULD cache to the bounds
+  permitted rather than re-fetching per verification.
 
 # Operational Considerations {#operational}
 

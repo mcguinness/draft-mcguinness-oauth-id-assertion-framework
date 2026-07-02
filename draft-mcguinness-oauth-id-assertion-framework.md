@@ -233,18 +233,14 @@ positioning details are in {{relationship-to-oidf}} and
 {{DAI}} §Following Existing DNS Authority Patterns.
 
 This framework is distinct from issuer *discovery* mechanisms such as
-WebFinger {{RFC7033}} and OpenID Connect Discovery {{OIDC-DISCOVERY}}.
-Those answer "given a user identifier, which issuer should a client
-use?" for a client that is about to authenticate the user. This
-framework answers the verifier-side question "may this issuer, which
-has already produced an assertion, be trusted for this subject's
-namespace?" A namespace owner's authorization statement is not the
-same as a per-user discovery record: it is published per namespace, it
-expresses authorization rather than routing, and it is consumed by the
-Resource Authorization Server at verification time. WebFinger could in
-principle carry a discovery hint, but it is per-resource and HTTPS-only
-and defines no verifier-side authorization semantics; see
-{{DAI}} §Following Existing DNS Authority Patterns.
+WebFinger {{RFC7033}} and OpenID Connect Discovery {{OIDC-DISCOVERY}},
+which answer "given a user identifier, which issuer should a client
+use?" before authentication. This framework answers the verifier-side
+question "may this issuer, having already produced an assertion, be
+trusted for this subject's namespace?" Its answer is published per
+namespace, expresses authorization rather than routing, and is
+consumed at verification time. See {{DAI}} §Following Existing DNS
+Authority Patterns.
 
 ## Documents in the Family {#family}
 
@@ -1420,15 +1416,13 @@ Other identity-carrying grant profiles (e.g., ID-JAG,
 {{id-jag-profile}}) supply their own bindings.
 
 A Resource Authorization Server that accepts generic RFC 7523
-JWT-bearer assertion grants under this framework advertises
+JWT-bearer assertion grants advertises
 `urn:ietf:params:oauth:grant-type:jwt-bearer` in
-`grant_types_supported`. RFC 7523 defines no distinct
-grant-profile identifier; for the purposes of this framework the
-grant-type URN `urn:ietf:params:oauth:grant-type:jwt-bearer` is
-also used as the grant-profile identifier and, when a deployment
-accepts this grant, MUST appear in
-`authorization_grant_profiles_supported` so that the processing
-rule in {{rasp}} step 3 is satisfied uniformly.
+`grant_types_supported`. RFC 7523 defines no distinct grant-profile
+identifier, so this framework reuses that grant-type URN as the
+grant-profile identifier; a deployment accepting this grant MUST list
+it in `authorization_grant_profiles_supported` so {{rasp}} step 3
+applies uniformly.
 
 Unlike ID-JAG, the generic JWT-bearer grant does not fix which
 claim conveys the subject. To preserve the deterministic
@@ -1457,19 +1451,15 @@ means a value satisfying the email-claim syntax of
 form under the designated source yields no determinable Subject
 Authority and is handled per {{rasp}} step 5c.
 
-This binding does not carry the claim designation in the Trust Policy
-on the wire: because the generic JWT-bearer grant has no standardized
-identity claim, the designation is bilateral configuration agreed
-out of band between the Assertion Issuer and the Resource
-Authorization Server. This removes the per-Validator source-selection
-lever that {{multiple-sources}} forbids (a given Validator applies one
-fixed source), but it does not provide the cross-Validator determinism
-that the registered `email` extraction gives ID-JAG, where the claim
-is fixed by this specification. Deployments needing multiple
-independent Validators to agree on the source without prior
-coordination SHOULD use a grant profile that fixes the identity claim
-(such as ID-JAG) rather than the generic binding, or define a Trust
-Policy member for the designation in a future extension.
+The claim designation is not carried in the Trust Policy: the generic
+grant has no standardized identity claim, so the choice is bilateral
+out-of-band configuration between the Assertion Issuer and the Resource
+Authorization Server. This removes the per-Validator selection lever
+{{multiple-sources}} forbids (each Validator applies one fixed source)
+but does not give the cross-Validator determinism ID-JAG gets from the
+registered `email` extraction. Deployments needing independent
+Validators to agree without prior coordination SHOULD use a profile
+that fixes the identity claim, such as ID-JAG.
 
 In addition to the processing in {{rasp}}, the Resource
 Authorization Server MUST:

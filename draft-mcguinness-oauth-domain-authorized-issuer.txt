@@ -95,6 +95,7 @@ Table of Contents
    5.  Lookup Procedure
      5.1.  Failure Handling
    6.  Verification
+     6.1.  Monitor Mode
    7.  Caching
    8.  Trust Methods
      8.1.  domain_authorized_issuer
@@ -106,11 +107,12 @@ Table of Contents
      9.3.  HTTPS-Only Authority Trust Model
      9.4.  DNS Integrity and Compromise
      9.5.  Policy Hosts
-     9.6.  Policy Conflicts and Determinism
-     9.7.  Mechanism Limits
-     9.8.  Email Local-Part Is Not Authenticated
-     9.9.  Single-Issuer Multi-Tenant Identity Providers
-     9.10. Denial of Service, Amplification, and SSRF
+     9.6.  Monitor-Mode Downgrade
+     9.7.  Policy Conflicts and Determinism
+     9.8.  Mechanism Limits
+     9.9.  Email Local-Part Is Not Authenticated
+     9.10. Single-Issuer Multi-Tenant Identity Providers
+     9.11. Denial of Service, Amplification, and SSRF
    10. Privacy Considerations
    11. Operational Considerations
    12. IANA Considerations
@@ -128,8 +130,10 @@ Table of Contents
      A.3.  Choosing Between DNS-Published and HTTPS-Only Authority
      A.4.  Why HTTPS Fallback
    Appendix B.  Future Extensions
-     B.1.  Email Verification Protocol Bridge
-     B.2.  Assertion Issuer Discovery (Client-Side)
+     B.1.  Monitoring Reports
+     B.2.  Audience-Scoped Delegations
+     B.3.  Email Verification Protocol Bridge
+     B.4.  Assertion Issuer Discovery (Client-Side)
    Appendix C.  DNS-Based Domain-Authorized Issuer End-to-End Example
      C.1.  Cast
      C.2.  Publication
@@ -255,11 +259,11 @@ Table of Contents
    authorized_issuers  REQUIRED.  JSON array of authorized issuer
       objects, which MAY be empty.  An empty array is an explicit
       denial: the Subject Authority authoritatively authorizes no
-      issuer, so no assertion satisfies the Trust Method and consumers
-      MUST NOT fall through to any other channel.  This is the HTTPS-
-      document way to publish the abstract Negative state
-      ([TRUST-FRAMEWORK] §Lookup States and Fail-Closed) affirmatively
-      rather than by absence.  Each object has:
+      issuer.  The retrieval of such a policy is Affirmative
+      (Section 5.1); the denial takes effect at verification, where no
+      entry can match (Section 6), subject to mode.  Consumers MUST NOT
+      fall through to any other channel on encountering a denial.  Each
+      object has:
 
       issuer  REQUIRED.  String.  The Assertion Issuer identifier.  For
          OAuth authorization server issuer identifiers, this value MUST
@@ -290,7 +294,7 @@ Table of Contents
          compared across issuers.  To authorize multiple tenants of the
          same shared issuer, publish one entry per (issuer, tenant)
          pair.  Guidance for shared-issuer multi-tenant Identity
-         Providers is in Section 9.9.
+         Providers is in Section 9.10.
 
       subject_identifier_formats  OPTIONAL.  JSON array of Subject
          Identifier format names ([RFC9493]) this Assertion Issuer is
@@ -308,6 +312,13 @@ Table of Contents
          NOT be treated as valid at or after this time.  No clock-skew
          tolerance is permitted on this bound.
 
+   mode  OPTIONAL.  String, either enforce or monitor; default enforce
+      when absent.  In monitor mode the policy is provisional: consumers
+      evaluate it and log the outcome but do not reject assertions on
+      the basis of a mismatch (Section 6.1).  A policy whose mode value
+      is any other string is malformed; an unrecognized future mode MUST
+      NOT be silently treated as either defined value.
+
    last_updated  OPTIONAL.  [RFC3339] date-time at which the policy was
       last published.
 
@@ -322,10 +333,10 @@ Table of Contents
       processing lists signed_policy in crit.  Per the key-resolution
       requirement of [TRUST-FRAMEWORK] §Signed Policy Metadata, the
       verification key for this profile MUST be resolved through one of:
-      (a) a key published under DNSSEC-signed records for the Subject
-      Authority, or (c) a key configured out of band at the consumer.
-      Both channels are independent of the DNS/HTTPS path that carries
-      the policy document; the trust assumption is, respectively, DNSSEC
+      a key published under DNSSEC-signed records for the Subject
+      Authority, or a key configured out of band at the consumer.  Both
+      channels are independent of the DNS/HTTPS path that carries the
+      policy document; the trust assumption is, respectively, DNSSEC
       validation to the Subject Authority's zone, or the consumer's own
       key-provisioning process.  This document does not define a DNS
       record format for key publication; deployments using (a) do so via
@@ -374,6 +385,10 @@ Table of Contents
     | valid_from, valid_until,   | [RFC3339]     |                    |
     | last_updated               | date-time,    |                    |
     |                            | optional      |                    |
+    +----------------------------+---------------+--------------------+
+    | mode                       | string,       | exactly enforce or |
+    |                            | optional      | monitor; any other |
+    |                            |               | value is malformed |
     +----------------------------+---------------+--------------------+
     | signed_policy              | string,       | signed JWT as      |
     |                            | optional      | defined in         |
@@ -564,6 +579,14 @@ Table of Contents
       absolute HTTPS URL and MUST NOT contain a fragment component.  MAY
       appear multiple times within a record and across records.
 
+   mode=MODE  OPTIONAL.  Either enforce or monitor; default enforce when
+      absent (Section 6.1).  At most one mode= directive per record; a
+      second is malformed.  If any remaining record after authority=
+      filtering carries mode=, all remaining records MUST carry mode=
+      with the same value; a mix of differing or partially present mode=
+      directives across records is malformed.  A mode= value other than
+      the two defined values is malformed.
+
    A recognized record MUST contain at least one uri= directive or at
    least one issuer= directive.  Recognized records containing neither
    MUST be treated as malformed (see Section 5.1).
@@ -699,18 +722,21 @@ Table of Contents
           remaining records, treat as malformed.
 
        *  Otherwise fetch the JSON policy from that URL per Section 4.4.
-          The fetched document is the Issuer Authorization Policy.  All
-          issuer= directives across all records are ignored.
+          The fetched document is the Issuer Authorization Policy,
+          including its mode.  All issuer= and mode= directives across
+          all records are ignored.
 
        c.  Otherwise (no uri= present), construct a virtual Issuer
        Authorization Policy with subject_authority set to A and one
        entry in authorized_issuers for each distinct issuer= value
        across the remaining records.  Entry order carries no semantics
-       (Section 6); the deduplicated values form a set.  Entries have no
-       tenant, subject_identifier_formats, valid_from, or valid_until.
-       The virtual policy is processed identically to one fetched over
-       HTTPS, except that its cache lifetime is derived from DNS TTLs as
-       described in Section 7.
+       (Section 6); the deduplicated values form a set.  The virtual
+       policy's mode is the common mode= value of the remaining records,
+       or enforce when none carries mode= (Section 4.3).  Entries have
+       no tenant, subject_identifier_formats, valid_from, or
+       valid_until.  The virtual policy is processed identically to one
+       fetched over HTTPS, except that its cache lifetime is derived
+       from DNS TTLs as described in Section 7.
 
    3.  If the DNS response is negative-authoritative, fetch the policy
        from the default HTTPS well-known URL per Section 4.4.
@@ -741,37 +767,35 @@ Table of Contents
    Indeterminate) apply unchanged; this section maps the concrete DAI
    outcomes onto those states.
 
-   +===============+===================================================+
-   | State         | DAI outcomes                                      |
-   +===============+===================================================+
-   | Affirmative   | A well-formed Issuer Authorization Policy was     |
-   |               | retrieved (inline DNS, DNS pointer + HTTPS        |
-   |               | fetch, or HTTPS well-known URL), its              |
-   |               | subject_authority matches A, its structural       |
-   |               | validation succeeds, and its                      |
-   |               | authorized_issuers array is non-empty.  HTTPS     |
-   |               | responses, when applicable, are 200 OK with a     |
-   |               | media type of application/json or a +json-        |
-   |               | suffixed type.  A 304 (Not Modified) response     |
-   |               | to a conditional request validating a held        |
-   |               | cached policy within the absolute ceiling of      |
-   |               | Section 7 renews its freshness and is             |
-   |               | classified as the held policy's state; it         |
-   |               | does not reset the absolute cache-entry age.      |
-   +---------------+---------------------------------------------------+
-   | Negative      | DNS negative-authoritative followed by HTTPS      |
-   |               | 404 or 410 at the well-known URL; HTTPS 404       |
-   |               | or 410 reached from a DNS uri= pointer; under     |
-   |               | the HTTPS-only lookup mode (Section 8.2),         |
-   |               | HTTPS 404 or 410 at the well-known URL; or a      |
-   |               | retrieved well-formed policy whose                |
-   |               | authorized_issuers array is empty (explicit       |
-   |               | denial, Section 3).  The Authority Holder         |
-   |               | authoritatively publishes no delegation.          |
-   +---------------+---------------------------------------------------+
-   | Indeterminate | Any other outcome, fail-closed by default.        |
-   |               | See enumeration below.                            |
-   +---------------+---------------------------------------------------+
+    +===============+=================================================+
+    | State         | DAI outcomes                                    |
+    +===============+=================================================+
+    | Affirmative   | A well-formed Issuer Authorization Policy was   |
+    |               | retrieved (inline DNS, DNS pointer + HTTPS      |
+    |               | fetch, or HTTPS well-known URL), its            |
+    |               | subject_authority matches A, and its structural |
+    |               | validation succeeds; this includes a policy     |
+    |               | whose authorized_issuers array is empty         |
+    |               | (explicit denial, evaluated in Section 6).      |
+    |               | HTTPS responses, when applicable, are 200 OK    |
+    |               | with a media type of application/json or a      |
+    |               | +json-suffixed type.  A 304 (Not Modified)      |
+    |               | response to a conditional request validating a  |
+    |               | held cached policy within the absolute ceiling  |
+    |               | of Section 7 renews its freshness and is        |
+    |               | classified as the held policy's state; it does  |
+    |               | not reset the absolute cache-entry age.         |
+    +---------------+-------------------------------------------------+
+    | Negative      | DNS negative-authoritative followed by HTTPS    |
+    |               | 404 or 410 at the well-known URL; HTTPS 404 or  |
+    |               | 410 reached from a DNS uri= pointer; or, under  |
+    |               | the HTTPS-only lookup mode (Section 8.2), HTTPS |
+    |               | 404 or 410 at the well-known URL.  The          |
+    |               | Authority Holder publishes no policy at all.    |
+    +---------------+-------------------------------------------------+
+    | Indeterminate | Any other outcome, fail-closed by default.  See |
+    |               | enumeration below.                              |
+    +---------------+-------------------------------------------------+
 
                                   Table 3
 
@@ -792,13 +816,15 @@ Table of Contents
 
    *  *DNS record validation*: authority= missing from any recognized
       record; all recognized records discarded for authority= mismatch;
-      more than one authority= in a record; a recognized record with
+      more than one authority= or mode= in a record; differing or
+      partially present mode= values across remaining records; a mode=
+      value other than enforce or monitor; a recognized record with
       neither uri= nor issuer=; multiple distinct uri= values; an empty
       or otherwise malformed directive.
 
    *  *HTTPS document validation*: body that is not a syntactically
-      valid Issuer Authorization Policy; subject_authority that does not
-      match A.
+      valid Issuer Authorization Policy; a mode value other than enforce
+      or monitor; subject_authority that does not match A.
 
    Any outcome not explicitly mapped to Affirmative or Negative above
    MUST be treated as Indeterminate.
@@ -896,6 +922,43 @@ Table of Contents
    cross-category combination rule of [TRUST-FRAMEWORK] §Resource
    Authorization Server Processing is not met.
 
+6.1.  Monitor Mode
+
+   A Subject Authority deploying its first policy cannot easily know
+   whether its issuer list is complete; an omission breaks sign-in for
+   its users.  Monitor mode, following the deployment pattern of DMARC's
+   p=none, lets the Subject Authority publish, observe, and then
+   enforce.
+
+   When the retrieved policy's mode is monitor (Section 3):
+
+   *  The consumer MUST evaluate steps 3 and 4 normally.
+
+   *  If no entry matches (including the empty-array explicit-denial
+      case), the Trust Method is nevertheless satisfied: the consumer
+      MUST NOT reject the assertion on the basis of the mismatch, and
+      SHOULD log the monitored outcome (Subject Authority, assertion
+      issuer, matched or mismatched, timestamp) so the Subject Authority
+      can be informed out of band.
+
+   *  If an entry matches, the outcome is identical to enforce mode.
+
+   Monitor mode affects only the evaluation of a successfully retrieved
+   policy.  It does not alter lookup-state classification: Indeterminate
+   outcomes still fail closed (the consumer cannot know the mode of a
+   policy it could not retrieve), and Negative outcomes are unchanged.
+
+   Monitor mode provides no protection: while it is in effect, any
+   authenticated issuer is accepted for the namespace exactly as if no
+   policy were enforced, with logging as the only difference.  It is a
+   transitional state; Subject Authorities SHOULD move to enforce mode
+   promptly once the observed mismatches are resolved (see Section 11
+   for the rollout sequence and Section 9.6 for the downgrade risk).
+
+   An aggregate reporting mechanism by which consumers deliver
+   monitored-mismatch reports to the Subject Authority (analogous to
+   DMARC's rua) is deferred; see Appendix B.
+
 7.  Caching
 
    Cache lifetimes for the Issuer Authorization Policy:
@@ -929,13 +992,14 @@ Table of Contents
       against the policy endpoint from extending revocation latency up
       to the 24-hour ceiling.
 
-   *  Negative results (including a retrieved explicit-denial policy,
-      Section 3) SHOULD be cached, subject to the same ceiling, to bound
-      lookup work under load (Section 9.10).  Consumers whose threat
-      model includes brief publication-channel takeover SHOULD cap
-      negative-cache lifetime at a shorter value (recommended: 5
+   *  Negative results SHOULD be cached, subject to the same ceiling, to
+      bound lookup work under load (Section 9.11).  Consumers whose
+      threat model includes brief publication-channel takeover SHOULD
+      cap negative-cache lifetime at a shorter value (recommended: 5
       minutes) so that a Negative cached during a takeover does not hide
-      the legitimate Authority Holder's later publication.
+      the legitimate Authority Holder's later publication; the same
+      shorter cap SHOULD apply to a cached explicit-denial policy
+      (Section 3).
 
    *  Indeterminate outcomes MAY be cached for a short period
       (recommended: no more than 5 minutes) to absorb retry storms; an
@@ -976,7 +1040,7 @@ Table of Contents
       via the top-level tenant claim of [ID-JAG] §6.1): the
       authorized_issuers[].tenant field binds the authorization to a
       specific tenant of the shared issuer, with the security properties
-      described in Section 9.9.
+      described in Section 9.10.
 
    {
      "method": "domain_authorized_issuer"
@@ -1217,7 +1281,21 @@ Table of Contents
       Authorities SHOULD reduce DNS TTLs in advance of any planned
       change of policy host.
 
-9.6.  Policy Conflicts and Determinism
+9.6.  Monitor-Mode Downgrade
+
+   An attacker who can modify the published policy has a stealthier
+   option than adding their own issuer: flipping mode from enforce to
+   monitor.  The policy remains present and superficially intact, but
+   enforcement is silently off (Section 6.1).  Consumers SHOULD surface
+   mode transitions for a given Subject Authority in their logs, and
+   Subject Authorities SHOULD monitor their published records for
+   unexpected mode changes with the same rigor as for issuer-list
+   changes (Section 11).  Because monitor mode accepts any authenticated
+   issuer for the namespace, a policy observed in monitor mode for an
+   extended period SHOULD be treated by operators on both sides as a
+   misconfiguration signal.
+
+9.7.  Policy Conflicts and Determinism
 
    The lookup procedure (Section 5) is deterministic across the common
    conflict scenarios that arise when multiple records or sources
@@ -1230,7 +1308,7 @@ Table of Contents
    Common conflict scenarios and their deterministic dispositions are
    specified in Section 5.1.
 
-9.7.  Mechanism Limits
+9.8.  Mechanism Limits
 
    *  *Authentication.* The inline DNS form has no signing mechanism;
       its authority binding is DNS control.  The HTTPS document form
@@ -1248,7 +1326,7 @@ Table of Contents
       with no issuer= is malformed, so the inline form cannot publish an
       empty delegation set.
 
-9.8.  Email Local-Part Is Not Authenticated
+9.9.  Email Local-Part Is Not Authenticated
 
    domain_authorized_issuer evaluates only the email's registrable
    domain.  The local-part is unauthenticated by this Trust Method: it
@@ -1262,7 +1340,7 @@ Table of Contents
    outside this document.  See also [TRUST-FRAMEWORK] §Scope of
    Namespace Authorization.
 
-9.9.  Single-Issuer Multi-Tenant Identity Providers
+9.10.  Single-Issuer Multi-Tenant Identity Providers
 
    The shared-issuer case and its tenant binding are demonstrated in the
    Shared Issuer Variant of the End-to-End Example.  Two security points
@@ -1295,7 +1373,7 @@ Table of Contents
       multi-tenant Assertion Issuer SHOULD NOT authorize that issuer for
       such a grant unless per-tenant issuer identifiers are used.
 
-9.10.  Denial of Service, Amplification, and SSRF
+9.11.  Denial of Service, Amplification, and SSRF
 
    The domain_authorized_issuer lookup can be triggered before the
    Assertion Issuer is known to be trustworthy: the assertion signature
@@ -1371,6 +1449,15 @@ Table of Contents
    can authorize an attacker.  Subject Authorities SHOULD operate the
    record and any policy host with the same rigor as other sign-in-path
    infrastructure.  Specific guidance:
+
+   *  *Rollout.* Deploy in three phases: publish with mode=monitor
+      (Section 6.1); observe logged mismatches until the issuer list is
+      known complete (forgotten regional tenants and departing Identity
+      Providers surface here rather than as sign-in outages); then
+      switch to enforce.  Before enforcing, Subject Authorities SHOULD
+      sign the zone with DNSSEC or publish via the HTTPS document form,
+      since enforce-mode decisions carry the full weight of the
+      publication channel's integrity (Section 9.4).
 
    *  *Change management and TTLs.* Reduce DNS TTLs in advance of any
       planned change to the record or uri= pointer (Section 9.5), and
@@ -1486,6 +1573,10 @@ Table of Contents
       |           | Assertion Issuer       |            | document  |
       |           | identifier             |            |           |
       +-----------+------------------------+------------+-----------+
+      | mode      | Enforcement mode:      | IETF       | This      |
+      |           | enforce (default) or   |            | document  |
+      |           | monitor                |            |           |
+      +-----------+------------------------+------------+-----------+
 
                                   Table 5
 
@@ -1552,6 +1643,12 @@ Table of Contents
    |                          |end time   |          |                 |
    |                          |(within an |          |                 |
    |                          |entry)     |          |                 |
+   +--------------------------+-----------+----------+-----------------+
+   |mode                      |Enforcement|IETF      |This document    |
+   |                          |mode:      |          |                 |
+   |                          |enforce    |          |                 |
+   |                          |(default)  |          |                 |
+   |                          |or monitor |          |                 |
    +--------------------------+-----------+----------+-----------------+
    |last_updated              |Policy     |IETF      |This document    |
    |                          |publication|          |                 |
@@ -1722,7 +1819,7 @@ A.1.  Following Existing DNS Authority Patterns
    channel whose control establishes the authority binding, and it
    carries authorization semantics (validity windows, tenant binding,
    format restrictions) that a discovery record does not.  A deployment
-   could layer client-side discovery on top (see Appendix B.2), but that
+   could layer client-side discovery on top (see Appendix B.4), but that
    is out of scope here.
 
    Relationship to the Email Verification Protocol.  EVP
@@ -1735,7 +1832,7 @@ A.1.  Following Existing DNS Authority Patterns
    identifiers (including path components) and PSL-normalized Subject
    Authorities, and carries authorization constraints.  Convergence with
    EVP on a shared record or node name is possible future work;
-   Appendix B.1 sketches a bridge.
+   Appendix B.3 sketches a bridge.
 
 A.2.  Why First-Class Tenant Binding
 
@@ -1754,7 +1851,7 @@ A.2.  Why First-Class Tenant Binding
    on the wire and verifiable per assertion.  It does not eliminate the
    trust assumption on the Identity Provider's tenant-isolation
    enforcement; it makes the assumption explicit and auditable.  See
-   Section 9.9.
+   Section 9.10.
 
    A generic claim-matching mechanism (matching arbitrary JWT claims
    against publisher-specified values) was considered as an alternative.
@@ -1807,7 +1904,34 @@ Appendix B.  Future Extensions
    This appendix is non-normative.  It sketches features intentionally
    deferred from this document; future specifications may register them.
 
-B.1.  Email Verification Protocol Bridge
+B.1.  Monitoring Reports
+
+   Monitor mode (Section 6.1) relies on consumer-side logging with out-
+   of-band delivery to the Subject Authority.  A future extension can
+   define an aggregate reporting mechanism, analogous to DMARC's rua: a
+   policy member naming a reporting endpoint, a report format (observed
+   issuers, match/mismatch counts, time window), and delivery
+   requirements.  It is deferred because report formats and transport
+   carry privacy and abuse considerations (a reporting endpoint learns
+   which Resource Authorization Servers a namespace's users sign in to,
+   concentrating the metadata discussed in Section 10) that deserve
+   their own document.
+
+B.2.  Audience-Scoped Delegations
+
+   An authorized_issuers entry authorizes an issuer for a namespace
+   without constraining which Resource Authorization Servers may accept
+   the resulting assertions; a compromised-but-listed issuer can assert
+   the namespace's users to any consumer ([TRUST-FRAMEWORK] §Scope of
+   Namespace Authorization).  A future permitted_audiences member on
+   entries would let a Subject Authority bound that blast radius by
+   enumerating or pattern-matching acceptable audiences.  It is deferred
+   because audience identifiers are grant-profile-specific and an
+   enumerable audience set does not exist for the open-world deployments
+   this mechanism targets; a workable design likely needs audience
+   patterns and an interaction rule with the assertion's aud claim.
+
+B.3.  Email Verification Protocol Bridge
 
    The Email Verification Protocol [I-D.hardt-email-verification]
    defines a DNS TXT record at _email-verification.{domain} whose iss=
@@ -1830,7 +1954,7 @@ B.1.  Email Verification Protocol Bridge
    verification record for other consumers) or wait for the future Trust
    Method specification.
 
-B.2.  Assertion Issuer Discovery (Client-Side)
+B.4.  Assertion Issuer Discovery (Client-Side)
 
    The same DAI records that let a Resource Authorization Server verify
    an assertion can also let a client discover which Assertion Issuer is
@@ -2030,7 +2154,7 @@ C.6.  Shared Issuer Variant: Multi-Tenant Identity Provider
    top-level tenant claim to equal "acme-corp".  An assertion from
    https://accounts.shared.example with a different tenant value (or no
    tenant) does not match this entry.  The security properties and
-   operational guidance for this case are in Section 9.9.
+   operational guidance for this case are in Section 9.10.
 
 C.7.  Failure Variants
 

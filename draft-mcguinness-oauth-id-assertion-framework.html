@@ -1435,13 +1435,16 @@ subject-namespace authorization profile usable by this framework.<a href="#secti
                 <p id="section-toc.1-1.13.2.1.1"><a href="#appendix-B.1" class="auto internal xref">B.1</a>.  <a href="#name-additional-subject-identifi" class="internal xref">Additional Subject Identifier Formats</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.2">
-                <p id="section-toc.1-1.13.2.2.1"><a href="#appendix-B.2" class="auto internal xref">B.2</a>.  <a href="#name-critical-directives-for-the" class="internal xref">Critical Directives for the DNS Record Form</a></p>
+                <p id="section-toc.1-1.13.2.2.1"><a href="#appendix-B.2" class="auto internal xref">B.2</a>.  <a href="#name-presented-delegation-creden" class="internal xref">Presented Delegation Credentials</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.3">
-                <p id="section-toc.1-1.13.2.3.1"><a href="#appendix-B.3" class="auto internal xref">B.3</a>.  <a href="#name-actor-identity-trust-evalua" class="internal xref">Actor Identity Trust Evaluation</a></p>
+                <p id="section-toc.1-1.13.2.3.1"><a href="#appendix-B.3" class="auto internal xref">B.3</a>.  <a href="#name-critical-directives-for-the" class="internal xref">Critical Directives for the DNS Record Form</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.4">
-                <p id="section-toc.1-1.13.2.4.1"><a href="#appendix-B.4" class="auto internal xref">B.4</a>.  <a href="#name-trust-policy-discovery" class="internal xref">Trust Policy Discovery</a></p>
+                <p id="section-toc.1-1.13.2.4.1"><a href="#appendix-B.4" class="auto internal xref">B.4</a>.  <a href="#name-actor-identity-trust-evalua" class="internal xref">Actor Identity Trust Evaluation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.5">
+                <p id="section-toc.1-1.13.2.5.1"><a href="#appendix-B.5" class="auto internal xref">B.5</a>.  <a href="#name-trust-policy-discovery" class="internal xref">Trust Policy Discovery</a></p>
 </li>
             </ul>
 </li>
@@ -2048,15 +2051,17 @@ Assertion against the artifact's contents.<a href="#section-3.4.1-1.1.1" class="
 the absence of a Delegation Artifact. Examples include DNS
 NXDOMAIN or NODATA with a valid (possibly DNSSEC-signed)
 authoritative answer where DNS is the profile's sole or final
-publication channel, HTTPS 404 from the authority-bound origin,
-or an explicit denial published through the channel (for
-example, a policy authorizing no issuers). A profile with
-multiple publication channels for the same Authority Source
-reaches Negative only when every channel reports absence (see
-e.g. <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>). A Negative state is itself a decision by the
-Authority Holder (the namespace exists but no delegation is in
-effect) and carries the same normative weight as any other
-published decision.<a href="#section-3.4.1-1.2.1" class="pilcrow">¶</a></p>
+publication channel, and HTTPS 404 from the authority-bound
+origin. A profile with multiple publication channels for the
+same Authority Source reaches Negative only when every channel
+reports absence (see e.g. <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>). A profile <span class="bcp14">MAY</span> additionally
+define an explicitly published denial; whether it maps to
+Negative or to an Affirmative retrieval whose evaluation cannot
+succeed is the profile's choice under its state mapping. A
+Negative state is itself a decision by the Authority Holder
+(the namespace exists but no delegation is in effect) and
+carries the same normative weight as any other published
+decision.<a href="#section-3.4.1-1.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-3.4.1-1.3">
               <p id="section-3.4.1-1.3.1"><strong>Indeterminate</strong>: the lookup did not produce an authoritative
@@ -2877,7 +2882,7 @@ named critical by default, so that a future extension can mark a new
 decision-affecting member critical and have already-deployed
 consumers honor it; an extension that omitted it from the base could
 not retrofit fail-closed behavior onto the deployed base. The DNS
-record form does not carry <code>crit</code>; see <a href="#crit-dns-form" class="auto internal xref">Appendix B.2</a>.<a href="#section-4.6-4" class="pilcrow">¶</a></p>
+record form does not carry <code>crit</code>; see <a href="#crit-dns-form" class="auto internal xref">Appendix B.3</a>.<a href="#section-4.6-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3350,18 +3355,24 @@ Server's.<a href="#section-7.6-2.4.1" class="pilcrow">¶</a></p>
 compliance regime.<a href="#section-7.6-2.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-7.6-3">These properties are out of scope and obtained, if needed, through
+<p id="section-7.6-3">The authorization is also not audience-scoped: a Delegation Artifact
+authorizes an issuer for a namespace, not for particular Resource
+Authorization Servers, so a compromised-but-authorized issuer can
+mint assertions about the namespace's subjects for any consumer. A
+future extension may let Authority Holders constrain acceptable
+audiences (see <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Future Extensions).<a href="#section-7.6-3" class="pilcrow">¶</a></p>
+<p id="section-7.6-4">These properties are out of scope and obtained, if needed, through
 mechanisms outside this framework (authentication-method/AAL
 claims, fresh-authentication signals, account-status attestations,
 out-of-band verification). In particular, <code>email_verified=true</code> is
 a prerequisite for deriving namespace authority from the email's
-domain; it is not evidence of current mailbox control.<a href="#section-7.6-3" class="pilcrow">¶</a></p>
-<p id="section-7.6-4">The <code>subject_namespace_authorization</code> category constrains which
+domain; it is not evidence of current mailbox control.<a href="#section-7.6-4" class="pilcrow">¶</a></p>
+<p id="section-7.6-5">The <code>subject_namespace_authorization</code> category constrains which
 Assertion Issuers may assert about a namespace; it does not
 constrain which Resource Authorization Servers an authorized
 Assertion Issuer may target. Audience binding is enforced by the
 assertion's <code>aud</code> claim and the applicable grant profile, not by
-the Subject Authority.<a href="#section-7.6-4" class="pilcrow">¶</a></p>
+the Subject Authority.<a href="#section-7.6-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="per-assertion-revocation">
@@ -4202,12 +4213,41 @@ delegation from the registrable-domain authority to prevent
 subdomain takeover.<a href="#appendix-B.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="crit-dns-form">
+<div id="presented-delegation-credentials">
 <section id="appendix-B.2">
-        <h3 id="name-critical-directives-for-the">
-<a href="#appendix-B.2" class="section-number selfRef">B.2. </a><a href="#name-critical-directives-for-the" class="section-name selfRef">Critical Directives for the DNS Record Form</a>
+        <h3 id="name-presented-delegation-creden">
+<a href="#appendix-B.2" class="section-number selfRef">B.2. </a><a href="#name-presented-delegation-creden" class="section-name selfRef">Presented Delegation Credentials</a>
         </h3>
-<p id="appendix-B.2-1">The JSON document forms carry a <code>crit</code> member defined in the base
+<p id="appendix-B.2-1">The <code>subject_namespace_authorization</code> methods defined so far are
+declarative and fetched: the Validator retrieves the Authority
+Holder's published policy at verification time. The complementary
+shape is a presented credential: the Authority Holder signs a
+delegation ("issuer X may assert for namespace A until time T",
+optionally audience-scoped), gives it to the Assertion Issuer, and
+the issuer presents it with the assertion, in the manner of an
+<code>x5c</code> chain or an OpenID Federation Subordinate Statement.
+Verification becomes offline once the Authority Holder's key is
+known, removing the per-verification lookup from the token path and
+enabling constraints (audiences, scopes, chains) a flat record
+cannot express. The costs are the mirror image: the Authority
+Holder needs key management and signing automation, key discovery
+recurses to a DNS- or HTTPS-anchored channel, and revocation
+requires status checking or short-lived credentials. Nothing in
+this framework precludes such a method: it would register as a
+<code>subject_namespace_authorization</code> Trust Method whose evidence is
+carried in-band, satisfy the checklist in
+<a href="#trust-method-spec-requirements" class="auto internal xref">Section 4.3.3</a>, and compose with existing
+methods under the combination rule. It is deferred as an
+assurance-tier extension for deployments whose requirements justify
+the operational cost.<a href="#appendix-B.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="crit-dns-form">
+<section id="appendix-B.3">
+        <h3 id="name-critical-directives-for-the">
+<a href="#appendix-B.3" class="section-number selfRef">B.3. </a><a href="#name-critical-directives-for-the" class="section-name selfRef">Critical Directives for the DNS Record Form</a>
+        </h3>
+<p id="appendix-B.3-1">The JSON document forms carry a <code>crit</code> member defined in the base
 specification (<a href="#critical-members" class="auto internal xref">Section 4.6</a>), so an extension that adds a
 decision-affecting member to the Trust Policy or Issuer Authorization
 Policy can mark it critical and have already-deployed consumers honor
@@ -4218,15 +4258,15 @@ unrecognized versions ignored (which steers the lookup to the HTTPS
 channel or a Negative outcome, not to a hard rejection). A future
 extension that needs true per-directive fail-closed semantics in the
 DNS form would define a <code>crit=</code> directive and its recognition rules
-at that time.<a href="#appendix-B.2-1" class="pilcrow">¶</a></p>
+at that time.<a href="#appendix-B.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="actor-identity-trust-evaluation">
-<section id="appendix-B.3">
+<section id="appendix-B.4">
         <h3 id="name-actor-identity-trust-evalua">
-<a href="#appendix-B.3" class="section-number selfRef">B.3. </a><a href="#name-actor-identity-trust-evalua" class="section-name selfRef">Actor Identity Trust Evaluation</a>
+<a href="#appendix-B.4" class="section-number selfRef">B.4. </a><a href="#name-actor-identity-trust-evalua" class="section-name selfRef">Actor Identity Trust Evaluation</a>
         </h3>
-<p id="appendix-B.3-1">OAuth assertions can carry an <code>act</code> object expressing actor
+<p id="appendix-B.4-1">OAuth assertions can carry an <code>act</code> object expressing actor
 delegation (a service acting on behalf of a user). A future
 extension can apply the trust-evaluation categories of
 <a href="#delegation-model" class="auto internal xref">Section 3</a> to actor identities: a Resource Authorization
@@ -4237,32 +4277,32 @@ Authority extraction procedure applicable to actor-carried
 Subject Identifiers and is therefore tied to the OAuth Actor
 Profile being progressed separately. Until that extension lands,
 trust evaluation of actor identities is governed by local policy
-at the Resource Authorization Server.<a href="#appendix-B.3-1" class="pilcrow">¶</a></p>
+at the Resource Authorization Server.<a href="#appendix-B.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="trust-policy-discovery">
-<section id="appendix-B.4">
+<section id="appendix-B.5">
         <h3 id="name-trust-policy-discovery">
-<a href="#appendix-B.4" class="section-number selfRef">B.4. </a><a href="#name-trust-policy-discovery" class="section-name selfRef">Trust Policy Discovery</a>
+<a href="#appendix-B.5" class="section-number selfRef">B.5. </a><a href="#name-trust-policy-discovery" class="section-name selfRef">Trust Policy Discovery</a>
         </h3>
-<p id="appendix-B.4-1">This document specifies how a Resource Authorization Server
+<p id="appendix-B.5-1">This document specifies how a Resource Authorization Server
 publishes its Trust Policy (via authorization server metadata or
 protected resource metadata) but assumes a client or peer that
 already knows the Resource Authorization Server's identity. In
 open-world deployments (agent runtimes, AI tools, cross-organization
 integrations), a peer may need to discover a Resource Owner's
-Trust Policy before any prior bilateral relationship exists.<a href="#appendix-B.4-1" class="pilcrow">¶</a></p>
-<p id="appendix-B.4-2">A future Trust Policy Discovery extension can let a Resource
+Trust Policy before any prior bilateral relationship exists.<a href="#appendix-B.5-1" class="pilcrow">¶</a></p>
+<p id="appendix-B.5-2">A future Trust Policy Discovery extension can let a Resource
 Owner publish a DNS-named pointer at
 <code>_oauth-trust-policy.{resource-domain}</code> to its Trust Policy
 document, mirroring the DNS-authority pattern of <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> for the
 resource-side. The Resource Owner's domain becomes the
 publication channel for "where do I trust assertions from?", the
-dual of DAI's "who do I authorize to assert about me?".<a href="#appendix-B.4-2" class="pilcrow">¶</a></p>
-<p id="appendix-B.4-3">The extension is deferred because the open-world first-contact
+dual of DAI's "who do I authorize to assert about me?".<a href="#appendix-B.5-2" class="pilcrow">¶</a></p>
+<p id="appendix-B.5-3">The extension is deferred because the open-world first-contact
 case is not yet a deployed need for the namespace and federation
 profiles defined here; bilateral configuration plus the metadata
-endpoints suffice for the current target deployments.<a href="#appendix-B.4-3" class="pilcrow">¶</a></p>
+endpoints suffice for the current target deployments.<a href="#appendix-B.5-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>

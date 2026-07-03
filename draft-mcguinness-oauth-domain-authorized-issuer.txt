@@ -111,17 +111,17 @@ Table of Contents
      9.8.  Email Local-Part Is Not Authenticated
      9.9.  Single-Issuer Multi-Tenant Identity Providers
      9.10. Denial of Service, Amplification, and SSRF
-     9.11. Privacy Considerations
-   10. Operational Considerations
-   11. IANA Considerations
-     11.1.  Well-Known URI for Issuer Authorization Policy
-     11.2.  Underscored DNS Node Name
-     11.3.  Trust Method Registrations
-     11.4.  Issuer Authorization Policy Directives Registry
-     11.5.  Issuer Authorization Policy Members Registry
-   12. References
-     12.1.  Normative References
-     12.2.  Informative References
+   10. Privacy Considerations
+   11. Operational Considerations
+   12. IANA Considerations
+     12.1.  Well-Known URI for Issuer Authorization Policy
+     12.2.  Underscored DNS Node Name
+     12.3.  Trust Method Registrations
+     12.4.  Issuer Authorization Policy Directives Registry
+     12.5.  Issuer Authorization Policy Members Registry
+   13. References
+     13.1.  Normative References
+     13.2.  Informative References
    Appendix A.  Design Rationale
      A.1.  Following Existing DNS Authority Patterns
      A.2.  Why First-Class Tenant Binding
@@ -157,9 +157,9 @@ Table of Contents
    Issuers it authorizes for its namespace.  The DNS record can carry
    the authorized issuers inline (for simple deployments) or point at an
    HTTPS-hosted JSON document containing richer policy (validity
-   windows, format restrictions, tenant binding, multiple ordered
-   issuers).  Authority is established by control of the publication
-   channel: whoever can publish at _oauth-issuer-policy.{domain} IS the
+   windows, format restrictions, tenant binding, multiple issuers).
+   Authority is established by control of the publication channel:
+   whoever can publish at _oauth-issuer-policy.{domain} is itself the
    Subject Authority for {domain}. The pattern follows CAA [RFC8659],
    MTA-STS [RFC8461], SPF, and DKIM (Appendix A.1).
 
@@ -225,7 +225,7 @@ Table of Contents
 
 3.  Issuer Authorization Policy Document
 
-   The Issuer Authorization Policy is a delegation artifact: a Subject
+   The Issuer Authorization Policy is a Delegation Artifact: a Subject
    Authority (Authority Holder for a subject namespace) uses it to
    delegate the right to assert identities in its namespace to one or
    more named Assertion Issuers.  Each authorized_issuers entry is a
@@ -238,14 +238,19 @@ Table of Contents
    Issuer is not authorized for the asserted namespace regardless of any
    other property of the assertion.
 
-   The Issuer Authorization Policy is a JSON object served over HTTPS
-   with media type application/json.  It has the following members:
+   The Issuer Authorization Policy is a JSON object served over HTTPS.
+   Publishers MUST serve it with media type application/json; consumers
+   additionally accept any media type using the structured +json suffix
+   (Section 5.1).  It has the following members:
 
    subject_authority  REQUIRED.  String.  The Subject Authority
-      identifier this policy applies to.  Consumers MUST verify this
-      value matches the Subject Authority computed in [TRUST-FRAMEWORK]
-      §Subject Authority Determination after applying the comparison
-      rules for that Subject Authority form.
+      identifier this policy applies to.  For DNS-domain Subject
+      Authorities the publisher MUST write this value in A-label (ASCII)
+      form per [RFC5891], mirroring the authority= directive
+      (Section 4.3).  Consumers MUST verify this value matches the
+      Subject Authority computed in [TRUST-FRAMEWORK] §Subject Authority
+      Determination after applying the comparison rules for that Subject
+      Authority form.
 
    authorized_issuers  REQUIRED.  JSON array of authorized issuer
       objects, which MAY be empty.  An empty array is an explicit
@@ -271,27 +276,21 @@ Table of Contents
          inline DNS form (Section 4.3) and MUST be published via the
          HTTPS document instead.
 
-      tenant  OPTIONAL.  String.  The issuer-side tenant identifier
-         authorized for this Subject Authority, corresponding to a top-
-         level tenant claim carried by the assertion (in ID-JAG,
-         [ID-JAG] §6.1).  When present, the assertion's top-level tenant
-         claim MUST be present and MUST exactly match this value using
-         case-sensitive string comparison; an assertion that lacks the
-         tenant claim or carries a different value does NOT match this
-         entry.  When absent, no tenant constraint applies and the
-         Assertion Issuer is authorized for this Subject Authority
-         regardless of its tenant claim.  Grant profiles that do not
-         carry a tenant claim (e.g., the generic JWT-bearer grant of
-         [RFC7523]) match only entries that omit tenant.  Tenant values
-         are issuer-specific: the string has meaning only for the
-         Assertion Issuer named by the same entry and MUST NOT be
-         compared across issuers.  Subject Authorities authorizing a
-         shared-issuer multi-tenant Identity Provider (an Assertion
-         Issuer whose iss is shared across many tenants) SHOULD set
-         tenant to the specific tenant they intend to authorize; see
-         Section 9.9 for the rationale and trust assumptions.  To
-         authorize multiple tenants of the same shared issuer, publish
-         one authorized_issuers entry per (issuer, tenant) pair.
+      tenant  OPTIONAL.  Non-empty string.  The issuer-side tenant
+         identifier authorized for this Subject Authority, corresponding
+         to a top-level tenant claim carried by the assertion (in ID-
+         JAG, [ID-JAG] §6.1).  When present, the assertion's top-level
+         tenant claim MUST be present and MUST exactly match this value
+         using case-sensitive string comparison; an assertion that lacks
+         the tenant claim or carries a different value does not match
+         this entry.  When absent, no tenant constraint applies.  Grant
+         profiles that do not carry a tenant claim (e.g., the generic
+         JWT-bearer grant of [RFC7523]) match only entries that omit
+         tenant.  Tenant values are issuer-specific and MUST NOT be
+         compared across issuers.  To authorize multiple tenants of the
+         same shared issuer, publish one entry per (issuer, tenant)
+         pair.  Guidance for shared-issuer multi-tenant Identity
+         Providers is in Section 9.9.
 
       subject_identifier_formats  OPTIONAL.  JSON array of Subject
          Identifier format names ([RFC9493]) this Assertion Issuer is
@@ -320,56 +319,76 @@ Table of Contents
       consumers apply the requirements in [TRUST-FRAMEWORK] §Signed
       Policy Metadata and any local policy that requires object-level
       integrity.  A Subject Authority that needs to force signature
-      processing lists signed_policy in crit.
+      processing lists signed_policy in crit.  Per the key-resolution
+      requirement of [TRUST-FRAMEWORK] §Signed Policy Metadata, the
+      verification key for this profile MUST be resolved through one of:
+      (a) a key published under DNSSEC-signed records for the Subject
+      Authority, or (c) a key configured out of band at the consumer.
+      Both channels are independent of the DNS/HTTPS path that carries
+      the policy document; the trust assumption is, respectively, DNSSEC
+      validation to the Subject Authority's zone, or the consumer's own
+      key-provisioning process.  This document does not define a DNS
+      record format for key publication; deployments using (a) do so via
+      a mechanism agreed with their consumers until one is standardized.
 
    crit  OPTIONAL.  Array of member names a consumer MUST understand to
       process the policy safely, as defined in [TRUST-FRAMEWORK]
-      §Critical Members.  A consumer that does not recognize any listed
-      member MUST treat the policy as malformed.
+      §Critical Members.  A consumer that fails to recognize, or does
+      not implement processing for, one or more listed members MUST
+      treat the policy as malformed.
 
    Consumers MUST ignore unrecognized members, except those named in
    crit.  A document containing duplicate member names (at the top level
    or within an authorized_issuers entry object) is malformed and MUST
-   be rejected.  Validation rules; a policy failing any is malformed:
+   be rejected.  The following validation rules apply; a policy failing
+   any of them is malformed:
 
-   +============================+==================+===================+
-   | Member                     | Required type    | Additional rule   |
-   |                            | / structure      |                   |
-   +============================+==================+===================+
-   | subject_authority          | string,          | matches the       |
-   |                            | required         | computed Subject  |
-   |                            |                  | Authority         |
-   +----------------------------+------------------+-------------------+
-   | authorized_issuers         | array of         | each element has  |
-   |                            | objects,         | issuer            |
-   |                            | required (MAY    |                   |
-   |                            | be empty for     |                   |
-   |                            | explicit         |                   |
-   |                            | denial)          |                   |
-   +----------------------------+------------------+-------------------+
-   | issuer                     | string,          | syntactically     |
-   |                            | required         | valid issuer      |
-   |                            |                  | identifier for    |
-   |                            |                  | the applicable    |
-   |                            |                  | grant profile     |
-   +----------------------------+------------------+-------------------+
-   | tenant                     | string,          | non-empty         |
-   |                            | optional         |                   |
-   +----------------------------+------------------+-------------------+
-   | subject_identifier_formats | array of         |                   |
-   |                            | strings,         |                   |
-   |                            | optional         |                   |
-   +----------------------------+------------------+-------------------+
-   | valid_from, valid_until,   | [RFC3339]        |                   |
-   | last_updated               | date-time,       |                   |
-   |                            | optional         |                   |
-   +----------------------------+------------------+-------------------+
-   | signed_policy              | string,          | signed JWT as     |
-   |                            | optional         | defined in        |
-   |                            |                  | [TRUST-FRAMEWORK] |
-   |                            |                  | §Signed Policy    |
-   |                            |                  | Metadata          |
-   +----------------------------+------------------+-------------------+
+    +============================+===============+====================+
+    | Member                     | Required type | Additional rule    |
+    |                            | / structure   |                    |
+    +============================+===============+====================+
+    | subject_authority          | string,       | matches the        |
+    |                            | required      | computed Subject   |
+    |                            |               | Authority          |
+    +----------------------------+---------------+--------------------+
+    | authorized_issuers         | array of      | each element has   |
+    |                            | objects,      | issuer             |
+    |                            | required (MAY |                    |
+    |                            | be empty for  |                    |
+    |                            | explicit      |                    |
+    |                            | denial)       |                    |
+    +----------------------------+---------------+--------------------+
+    | issuer                     | string,       | syntactically      |
+    |                            | required      | valid issuer       |
+    |                            |               | identifier for the |
+    |                            |               | applicable grant   |
+    |                            |               | profile            |
+    +----------------------------+---------------+--------------------+
+    | tenant                     | string,       | non-empty (see     |
+    |                            | optional      | member definition) |
+    +----------------------------+---------------+--------------------+
+    | subject_identifier_formats | array of      |                    |
+    |                            | strings,      |                    |
+    |                            | optional      |                    |
+    +----------------------------+---------------+--------------------+
+    | valid_from, valid_until,   | [RFC3339]     |                    |
+    | last_updated               | date-time,    |                    |
+    |                            | optional      |                    |
+    +----------------------------+---------------+--------------------+
+    | signed_policy              | string,       | signed JWT as      |
+    |                            | optional      | defined in         |
+    |                            |               | [TRUST-FRAMEWORK]  |
+    |                            |               | §Signed Policy     |
+    |                            |               | Metadata           |
+    +----------------------------+---------------+--------------------+
+    | crit                       | array of      | non-empty; every   |
+    |                            | strings,      | listed member      |
+    |                            | optional      | recognized and     |
+    |                            |               | implemented, else  |
+    |                            |               | malformed          |
+    |                            |               | ([TRUST-FRAMEWORK] |
+    |                            |               | §Critical Members) |
+    +----------------------------+---------------+--------------------+
 
                                   Table 1
 
@@ -399,11 +418,12 @@ Table of Contents
 4.  Publication
 
    A Subject Authority publishes the Issuer Authorization Policy through
-   one of the publication channels defined in Section 4.1.  DNS
-   publication uses the TXT record at _oauth-issuer-policy.{A},
-   following the pattern of CAA, MTA-STS, SPF, and DKIM (Appendix A.1).
-   HTTPS publication uses the default well-known URL on the Subject
-   Authority's own host.
+   one of the publication channels defined in Section 4.1.  Throughout
+   this document, {A} denotes the Subject Authority rendered as a DNS
+   name (A-label form, Section 4.3).  DNS publication uses the TXT
+   record at _oauth-issuer-policy.{A}, following the pattern of CAA,
+   MTA-STS, SPF, and DKIM (Appendix A.1).  HTTPS publication uses the
+   default well-known URL on the Subject Authority's own host.
 
 4.1.  Publication Channels
 
@@ -449,12 +469,10 @@ Table of Contents
 
    A Subject Authority MAY publish a JSON document at the default HTTPS
    well-known URL on its own host (Section 4.4), either as the sole
-   publication (Channel 3) or alongside a DNS record.  The lookup
-   procedure (Section 5) consults DNS first and uses the HTTPS well-
-   known URL only when the DNS response is negative-authoritative.  A
-   Subject Authority with no DAI DNS record relies on the natural
-   negative-authoritative DNS response to bring consumers to the well-
-   known URL.
+   publication (Channel 3) or alongside a DNS record.  A Subject
+   Authority with no DAI DNS record relies on the natural negative-
+   authoritative DNS response to bring consumers to the well-known URL
+   (Section 5).
 
    Operators are encouraged to publish the DNS record where practical
    because it matches the operational model of the prior-art mechanisms
@@ -470,18 +488,20 @@ Table of Contents
    format root label is not part of the Subject Authority value.
 
    The string segments of a TXT record ([RFC1035]) are concatenated
-   without separator and interpreted as UTF-8 [RFC3629] text (the
-   directive values defined here are ASCII, a subset of UTF-8).
+   without separator and interpreted as ASCII text (a record containing
+   a non-ASCII octet is malformed, since all defined directive values
+   are ASCII by construction).
 
    A record is _recognized_ if the version token v=oauth-issuer-policy1
    (case-sensitive) appears at the start, terminated by end of record,
    by optional whitespace, or by a ; separator; leading whitespace
    before the token is permitted.  The version token matches only that
    exact string: a different token (for example, a future v=oauth-
-   issuer-policy2) is NOT recognized, so the record is treated as
+   issuer-policy2) is not recognized, so the record is treated as
    unrecognized (not malformed) and is ignored by the recognition rule.
    Records that do not begin with a supported version token MUST be
-   ignored.
+   ignored.  A v= directive appearing anywhere other than the start of a
+   recognized record makes the record malformed (Section 5.1).
 
    The remainder of a recognized record is a sequence of name=value
    directives separated by ;. Parsing rules:
@@ -510,11 +530,12 @@ Table of Contents
    *  Unrecognized directives MUST be ignored.
 
    The parsing rules above are summarized in the following ABNF
-   [RFC5234] for implementer convenience; the prose above is normative
-   if any disagreement exists.
+   ([RFC5234] with the case-sensitive string extension of [RFC7405]) for
+   implementer convenience; the prose above is normative if any
+   disagreement exists.
 
-   record        = OWS version *( ";" directive ) [ ";" ] OWS
-   version       = "v=oauth-issuer-policy1"
+   record        = OWS version OWS *( ";" directive ) [ ";" OWS ]
+   version       = %s"v=oauth-issuer-policy1"
    directive     = OWS name "=" value OWS
    name          = 1*( ALPHA / DIGIT / "_" / "-" )
    value         = *vchar-no-semi
@@ -572,6 +593,34 @@ Table of Contents
    host serving the URL is responsible for TLS server authentication of
    itself, not of A.
 
+   HTTP redirect handling is fixed so that two consumers reach the same
+   outcome and so that a redirect cannot silently move the authority
+   anchor to a host the Subject Authority does not control:
+
+   *  Consumers MUST follow HTTPS redirects up to a limit of 5 hops; a
+      request that would exceed 5 hops, or that loops, is classified as
+      Indeterminate (Section 5.1).
+
+   *  Every redirect target MUST use the https scheme and MUST NOT
+      contain a fragment component.
+
+   *  Every redirect target MUST remain within the same registrable
+      domain as the initial fetch host (the Subject Authority {A} for
+      the default well-known channel; the uri= pointer's host for the
+      pointer channel), where the registrable domain is computed with
+      the Public Suffix List algorithm of [TRUST-FRAMEWORK] §Subject
+      Authority Determination (ICANN and PRIVATE divisions) applied to
+      the A-label host.  A redirect to a different registrable domain
+      MUST NOT be followed and is classified as Indeterminate; cross-
+      registrable-domain policy hosting is expressed only through the
+      uri= pointer, where the delegation is published in DNS and visible
+      to the Subject Authority.
+
+   *  The final response MUST have HTTP status 200 and a media type of
+      application/json or any media type using the structured +json
+      suffix (media type parameters ignored); any other final status is
+      classified per Section 5.1.
+
 4.5.  HTTPS Policy Document Contract
 
    The document retrieved from either the default well-known URL or a
@@ -591,22 +640,8 @@ Table of Contents
    request (for example, If-None-Match) when they hold a cached policy,
    treating a 304 response per Section 5.1.
 
-   The following JSON shape illustrates the policy contract; the prose
-   in Section 3 is normative.
-
-   {
-     "subject_authority": "example.com",
-     "authorized_issuers": [
-       {
-         "issuer": "https://idp.example.com",
-         "tenant": "example-tenant",
-         "subject_identifier_formats": ["email"],
-         "valid_from": "2026-01-01T00:00:00Z",
-         "valid_until": "2027-01-01T00:00:00Z"
-       }
-     ],
-     "last_updated": "2026-05-01T00:00:00Z"
-   }
+   The document's shape and members are defined, with an example, in
+   Section 3.
 
 5.  Lookup Procedure
 
@@ -649,6 +684,8 @@ Table of Contents
        recognized record is missing an authority= directive, treat the
        response as malformed.  If all recognized records are discarded
        because of authority= mismatch, treat the response as malformed.
+       (A malformed outcome is classified as Indeterminate,
+       Section 5.1.)
 
        Before continuing, validate the remaining recognized records
        against the directive rules in Section 4.3.  This includes
@@ -668,8 +705,9 @@ Table of Contents
        c.  Otherwise (no uri= present), construct a virtual Issuer
        Authorization Policy with subject_authority set to A and one
        entry in authorized_issuers for each distinct issuer= value
-       across the remaining records, in the order first seen.  Entries
-       have no subject_identifier_formats, valid_from, or valid_until.
+       across the remaining records.  Entry order carries no semantics
+       (Section 6); the deduplicated values form a set.  Entries have no
+       tenant, subject_identifier_formats, valid_from, or valid_until.
        The virtual policy is processed identically to one fetched over
        HTTPS, except that its cache lifetime is derived from DNS TTLs as
        described in Section 7.
@@ -682,15 +720,16 @@ Table of Contents
        suppresses DNS responses could otherwise force the consumer onto
        a path the attacker has compromised separately.
 
-   A Resource Authorization Server MAY skip the DNS query as a matter of
-   local policy (for example, when deployed in an environment with an
-   untrusted DNS resolution path), but SHOULD NOT do so in production
-   deployments: a Subject Authority that publishes only inline DNS
-   records (a common pattern given the operational simplicity of the
-   inline form) will be unfindable by such a Resource Authorization
-   Server.  A Resource Authorization Server that cannot resolve DNS
-   treats the lookup as indeterminate and rejects the assertion, fail-
-   closed.
+   Two distinct situations remove DNS from the picture, with different
+   outcomes.  A deployment whose Trust Policy selects the HTTPS-only
+   lookup mode (Section 8.2) never consults DNS by design; note that a
+   Subject Authority publishing only inline DNS records (a common
+   pattern) is unfindable under that mode.  By contrast, under the
+   canonical DNS-first mode specified here, a Resource Authorization
+   Server that cannot resolve DNS (resolver failure, untrusted
+   resolution path) treats the lookup as indeterminate and rejects the
+   assertion, fail-closed; it MUST NOT improvise a fallback to the HTTPS
+   channel.
 
 5.1.  Failure Handling
 
@@ -702,29 +741,37 @@ Table of Contents
    Indeterminate) apply unchanged; this section maps the concrete DAI
    outcomes onto those states.
 
-    +===============+=================================================+
-    | State         | DAI outcomes                                    |
-    +===============+=================================================+
-    | Affirmative   | A well-formed Issuer Authorization Policy was   |
-    |               | retrieved (inline DNS, DNS pointer + HTTPS      |
-    |               | fetch, or HTTPS well-known URL), its            |
-    |               | subject_authority matches A, and its structural |
-    |               | validation succeeds.  HTTPS responses, when     |
-    |               | applicable, are 200 OK with a media type of     |
-    |               | application/json or a +json-suffixed type.  A   |
-    |               | 304 (Not Modified) response to a conditional    |
-    |               | request refreshes the corresponding fresh       |
-    |               | cached policy and is Affirmative.               |
-    +---------------+-------------------------------------------------+
-    | Negative      | DNS negative-authoritative followed by HTTPS    |
-    |               | 404 or 410 at the well-known URL, or HTTPS 404  |
-    |               | or 410 reached from a DNS uri= pointer.  The    |
-    |               | Authority Holder authoritatively publishes no   |
-    |               | delegation.                                     |
-    +---------------+-------------------------------------------------+
-    | Indeterminate | Any other outcome, fail-closed by default.  See |
-    |               | enumeration below.                              |
-    +---------------+-------------------------------------------------+
+   +===============+===================================================+
+   | State         | DAI outcomes                                      |
+   +===============+===================================================+
+   | Affirmative   | A well-formed Issuer Authorization Policy was     |
+   |               | retrieved (inline DNS, DNS pointer + HTTPS        |
+   |               | fetch, or HTTPS well-known URL), its              |
+   |               | subject_authority matches A, its structural       |
+   |               | validation succeeds, and its                      |
+   |               | authorized_issuers array is non-empty.  HTTPS     |
+   |               | responses, when applicable, are 200 OK with a     |
+   |               | media type of application/json or a +json-        |
+   |               | suffixed type.  A 304 (Not Modified) response     |
+   |               | to a conditional request validating a held        |
+   |               | cached policy within the absolute ceiling of      |
+   |               | Section 7 renews its freshness and is             |
+   |               | classified as the held policy's state; it         |
+   |               | does not reset the absolute cache-entry age.      |
+   +---------------+---------------------------------------------------+
+   | Negative      | DNS negative-authoritative followed by HTTPS      |
+   |               | 404 or 410 at the well-known URL; HTTPS 404       |
+   |               | or 410 reached from a DNS uri= pointer; under     |
+   |               | the HTTPS-only lookup mode (Section 8.2),         |
+   |               | HTTPS 404 or 410 at the well-known URL; or a      |
+   |               | retrieved well-formed policy whose                |
+   |               | authorized_issuers array is empty (explicit       |
+   |               | denial, Section 3).  The Authority Holder         |
+   |               | authoritatively publishes no delegation.          |
+   +---------------+---------------------------------------------------+
+   | Indeterminate | Any other outcome, fail-closed by default.        |
+   |               | See enumeration below.                            |
+   +---------------+---------------------------------------------------+
 
                                   Table 3
 
@@ -738,9 +785,10 @@ Table of Contents
 
    *  *HTTPS response*: 5xx; 4xx other than 404 and 410 (for example
       401, 403, 405, 429, 451); 2xx other than 200; a 3xx that is not a
-      followed redirect (Section 5) and not a 304 refreshing a fresh
+      followed redirect (Section 4.4) and not a 304 validating a held
       cached policy; unsupported media type; a body larger than the size
-      limit in Section 4.5.
+      limit, or containing more authorized_issuers entries than the
+      consumer's entry limit (Section 4.5).
 
    *  *DNS record validation*: authority= missing from any recognized
       record; all recognized records discarded for authority= mismatch;
@@ -759,7 +807,7 @@ Table of Contents
 
    *  Multiple recognized TXT records containing only issuer= directives
       are merged into a single virtual policy. issuer= values across
-      records are deduplicated, with order preserved by first-seen
+      records are deduplicated into a set; order carries no semantics
       (Section 5, step 2c).
 
    *  If any recognized record contains a uri= directive after
@@ -790,24 +838,6 @@ Table of Contents
    transient Indeterminate on the live channel, subject to Section 7;
    the cache lifetime MUST NOT be extended by repeated Indeterminate
    retrievals.
-
-   HTTP redirect handling is fixed so that two consumers reach the same
-   outcome and so that a redirect cannot silently move the authority
-   anchor to a host the Subject Authority does not control.  Consumers
-   MUST follow HTTPS redirects up to a limit of 5 hops; a request that
-   would exceed 5 hops, or that loops, is classified as Indeterminate
-   (Section 5.1).  Every redirect target MUST use the https scheme, MUST
-   NOT contain a fragment component, and MUST remain within the same
-   registrable domain as the initial fetch host (the Subject Authority
-   {A} for the default well-known channel; the uri= pointer's host for
-   the pointer channel).  A redirect to a different registrable domain
-   MUST NOT be followed and is classified as Indeterminate; cross-
-   registrable- domain policy hosting is expressed only through the uri=
-   pointer (Section 4.4), where the delegation is published in DNS and
-   visible to the Subject Authority.  The final response MUST have HTTP
-   status 200 and a media type of application/json or any media type
-   using the structured +json suffix (media type parameters ignored);
-   any other final status is classified per Section 5.1.
 
 6.  Verification
 
@@ -887,24 +917,30 @@ Table of Contents
 
    *  Serving stale cache during outages is separately bounded.
       Consumers MAY serve a fresh cached Affirmative policy (one within
-      its normal TTL/Cache-Control lifetime) when a live retrieval
-      returns indeterminate.  Independently of the absolute ceiling
-      above, consumers MUST NOT serve a cached policy across a
-      continuous run of indeterminate live results lasting longer than 1
-      hour: once the most recent successful (Affirmative or Negative)
-      live retrieval is more than 1 hour old, the consumer MUST stop
-      serving the cached policy and treat the lookup as Indeterminate
-      (reject).  Any successful live retrieval resets this 1-hour outage
-      window.  This bound prevents an attacker who can sustain denial of
-      service against the policy endpoint from extending revocation
-      latency up to the 24-hour ceiling.
+      its normal TTL/Cache-Control lifetime) when a live retrieval is
+      Indeterminate.  Independently of the absolute ceiling above,
+      consumers MUST NOT serve a cached policy across a continuous run
+      of Indeterminate live results lasting longer than 1 hour: once the
+      most recent successful (Affirmative or Negative) live retrieval is
+      more than 1 hour old, the consumer MUST stop serving the cached
+      policy and treat the lookup as Indeterminate (reject).  Any
+      successful live retrieval resets this 1-hour outage window.  This
+      bound prevents an attacker who can sustain denial of service
+      against the policy endpoint from extending revocation latency up
+      to the 24-hour ceiling.
 
-   *  Negative results MAY be cached subject to the same ceiling.
-      Consumers whose threat model includes brief publication-channel
-      takeover SHOULD cap negative-cache lifetime at a shorter value
-      (recommended: 5 minutes) so that a Negative cached during a
-      takeover does not hide the legitimate Authority Holder's later
-      publication.
+   *  Negative results (including a retrieved explicit-denial policy,
+      Section 3) SHOULD be cached, subject to the same ceiling, to bound
+      lookup work under load (Section 9.10).  Consumers whose threat
+      model includes brief publication-channel takeover SHOULD cap
+      negative-cache lifetime at a shorter value (recommended: 5
+      minutes) so that a Negative cached during a takeover does not hide
+      the legitimate Authority Holder's later publication.
+
+   *  Indeterminate outcomes MAY be cached for a short period
+      (recommended: no more than 5 minutes) to absorb retry storms; an
+      Indeterminate cache entry MUST NOT be treated as a policy and
+      never satisfies the Trust Method.
 
 8.  Trust Methods
 
@@ -921,17 +957,9 @@ Table of Contents
    The domain_authorized_issuer method indicates that the Assertion
    Issuer is acceptable if the Subject Authority identified by the
    assertion's Subject Identifier authorizes the Assertion Issuer to
-   assert identities in that namespace, as defined in this document.
-
-   The Domain-Authorized Issuer Trust Method, defined in this document,
-   is the mechanism by which a Subject Authority publishes its
-   authorized Assertion Issuers.  A Subject Authority publishes a DNS
-   TXT record at _oauth-issuer-policy.{authority} (carrying authorized
-   issuers inline, or pointing to a richer HTTPS-hosted document) or an
-   HTTPS JSON document at .well-known/oauth-issuer-policy on the Subject
-   Authority's host.  The full mechanism (record syntax, lookup
-   procedure, failure handling, and security considerations) is
-   specified in this document.
+   assert identities in that namespace, using the publication channels
+   (Section 4.1), lookup procedure (Section 5), and verification rules
+   (Section 6) of this document.
 
    This Trust Method natively expresses authorization for either form of
    multi-tenant Assertion Issuer:
@@ -1007,10 +1035,10 @@ Table of Contents
        live retrieval is Indeterminate.
 
    4.  Verify the fetched policy and match the Assertion Issuer against
-       authorized_issuers using steps 3 through 6 of Section 6.
+       authorized_issuers using steps 3 and 4 of Section 6.
 
    A Resource Authorization Server uses this variant when it requires
-   authority publication via HTTPS only and explicitly does NOT accept
+   authority publication via HTTPS only and explicitly does not accept
    DNS-published authority (inline or DNS pointer).  Compared to
    canonical DNS-first lookup, this mode:
 
@@ -1101,7 +1129,8 @@ Table of Contents
       hosted on a marketing CDN with no path control) cannot participate
       via this mode.
 
-   The trade-off between the two methods is discussed in Appendix A.3.
+   The trade-off between the two lookup modes is discussed in
+   Appendix A.3.
 
 9.4.  DNS Integrity and Compromise
 
@@ -1112,7 +1141,7 @@ Table of Contents
    Issuer to the inline form, redirect a uri= pointer, or force
    indeterminate outcomes to benefit a cached attacker-friendly policy.
    The pointer form additionally depends on TLS authentication of the
-   pointed-at host: TLS does NOT mitigate the DNS compromise that
+   pointed-at host: TLS does not mitigate the DNS compromise that
    selected that host.
 
    Absent DNSSEC or an authenticated resolver path, the inline DNS
@@ -1213,8 +1242,11 @@ Table of Contents
 
    *  *Inline-form features.* The inline DNS form expresses only "issuer
       X is authorized for Subject Authority A."  Deployments needing
-      tenant, subject_identifier_formats, valid_from, or valid_until
-      MUST use the HTTPS or DNS pointer form.
+      tenant, subject_identifier_formats, valid_from, valid_until, or
+      explicit denial (an empty authorized_issuers array, Section 3)
+      MUST use the HTTPS or DNS pointer form; a recognized inline record
+      with no issuer= is malformed, so the inline form cannot publish an
+      empty delegation set.
 
 9.8.  Email Local-Part Is Not Authenticated
 
@@ -1237,7 +1269,7 @@ Table of Contents
    apply:
 
    *  *Unconstrained-listing risk.* A Subject Authority that lists a
-      shared issuer with no tenant value authorizes EVERY tenant of that
+      shared issuer with no tenant value authorizes every tenant of that
       Identity Provider, almost never the intent.  Subject Authorities
       listing a shared issuer SHOULD include tenant.  Resource
       Authorization Servers SHOULD log a warning when accepting under an
@@ -1255,6 +1287,14 @@ Table of Contents
       issuer listings as long-lived delegations requiring due diligence
       on the Identity Provider's tenant-isolation guarantees.
 
+   *  *Grant profiles without a tenant claim.* Under a grant profile
+      that carries no tenant claim (e.g., the generic JWT-bearer grant,
+      [TRUST-FRAMEWORK] §Generic JWT-Bearer Assertion Grant), only
+      entries that omit tenant can match, so tenant-scoped authorization
+      is not expressible.  A Subject Authority relying on a shared
+      multi-tenant Assertion Issuer SHOULD NOT authorize that issuer for
+      such a grant unless per-tenant issuer identifiers are used.
+
 9.10.  Denial of Service, Amplification, and SSRF
 
    The domain_authorized_issuer lookup can be triggered before the
@@ -1270,10 +1310,10 @@ Table of Contents
       distinct authority, turning it into a request amplifier aimed at
       third-party DNS/HTTPS infrastructure and filling its own cache
       with distinct-authority entries.  Consumers MUST bound lookup
-      work: enforce per-Subject-Authority and global rate limits, bound
-      concurrent outstanding lookups, negatively cache Negative and
-      Indeterminate outcomes (subject to Section 7), and MAY impose a
-      maximum number of distinct-authority lookups per unit time,
+      work: enforce per-Subject-Authority and global rate limits and
+      bound concurrent outstanding lookups.  Consumers SHOULD cache
+      Negative and Indeterminate outcomes per Section 7, and MAY impose
+      a maximum number of distinct-authority lookups per unit time,
       shedding load by treating excess as Indeterminate (fail-closed).
 
    *  *Server-Side Request Forgery via uri= and redirects.* An attacker
@@ -1284,17 +1324,19 @@ Table of Contents
       error differentials.  Consumers MUST NOT fetch a uri= target or
       follow a redirect whose resolved host is a private-use, loopback,
       link-local, unique-local, or otherwise non-globally-routable IPv4
-      or IPv6 address, MUST cap redirects and response size (Section 5,
-      Section 4.5), and SHOULD apply a fetch timeout.  The same-
-      registrable-domain constraint on redirects (Section 5) further
-      limits redirect-based SSRF.
+      or IPv6 address, MUST cap redirects and response size
+      (Section 4.4, Section 4.5), and SHOULD apply a fetch timeout.  The
+      same-registrable-domain constraint on redirects (Section 4.4)
+      further limits redirect-based SSRF.
 
    *  *Cost asymmetry.* A single small assertion can cause a full
       DNS+HTTPS round trip.  Consumers SHOULD prefer cached results and
       SHOULD NOT perform a live lookup until the assertion has passed
-      all cheaper checks (signature, audience, expiry) in Section 6.
+      the cheaper grant-profile validation checks (signature, audience,
+      expiry; [TRUST-FRAMEWORK] §Resource Authorization Server
+      Processing step 2).
 
-9.11.  Privacy Considerations
+10.  Privacy Considerations
 
    The lookup is verifier-side and per-verification, so it leaks
    metadata in two directions:
@@ -1321,7 +1363,7 @@ Table of Contents
       and collapses repeated lookups, so consumers SHOULD cache to the
       bounds permitted rather than re-fetching per verification.
 
-10.  Operational Considerations
+11.  Operational Considerations
 
    Publishing a DAI record makes DNS/HTTPS control a real-time input to
    sign-in authorization: a lapse in the record or its host can stop
@@ -1355,9 +1397,9 @@ Table of Contents
       authority= causes recognized-but-discarded records and can push a
       lookup to Indeterminate.
 
-11.  IANA Considerations
+12.  IANA Considerations
 
-11.1.  Well-Known URI for Issuer Authorization Policy
+12.1.  Well-Known URI for Issuer Authorization Policy
 
    Registers the following well-known URI in the IANA "Well-Known URIs"
    registry [RFC8615], for use by this document:
@@ -1372,7 +1414,7 @@ Table of Contents
 
    Related Information:  None
 
-11.2.  Underscored DNS Node Name
+12.2.  Underscored DNS Node Name
 
    Registers the following entry in the IANA "Underscored and Globally
    Scoped DNS Node Names" registry per [RFC8552] and [RFC8553], for use
@@ -1384,7 +1426,7 @@ Table of Contents
 
    Reference:  This document, Section 4.3
 
-11.3.  Trust Method Registrations
+12.3.  Trust Method Registrations
 
    This document registers the following entry in the Identity Assertion
    Issuer Trust Methods registry ([TRUST-FRAMEWORK] §Identity Assertion
@@ -1408,7 +1450,7 @@ Table of Contents
 
                                   Table 4
 
-11.4.  Issuer Authorization Policy Directives Registry
+12.4.  Issuer Authorization Policy Directives Registry
 
    IANA is requested to establish a new registry titled "OAuth Issuer
    Authorization Policy DNS Directives" under the "OAuth Parameters"
@@ -1447,7 +1489,7 @@ Table of Contents
 
                                   Table 5
 
-11.5.  Issuer Authorization Policy Members Registry
+12.5.  Issuer Authorization Policy Members Registry
 
    IANA is requested to establish a new registry titled "OAuth Issuer
    Authorization Policy Members" under the "OAuth Parameters" registry
@@ -1467,73 +1509,76 @@ Table of Contents
 
    Initial entries:
 
-   +============================+===============+============+=========+
-   | Member Name                | Description   | Change     |Reference|
-   |                            |               | Controller |         |
-   +============================+===============+============+=========+
-   | subject_authority          | Subject       | IETF       |This     |
-   |                            | Authority     |            |document |
-   |                            | this policy   |            |         |
-   |                            | applies to    |            |         |
-   +----------------------------+---------------+------------+---------+
-   | authorized_issuers         | Array of      | IETF       |This     |
-   |                            | authorized    |            |document |
-   |                            | issuer        |            |         |
-   |                            | objects       |            |         |
-   +----------------------------+---------------+------------+---------+
-   | issuer                     | Authorized    | IETF       |This     |
-   |                            | Assertion     |            |document |
-   |                            | Issuer        |            |         |
-   |                            | identifier    |            |         |
-   |                            | (within an    |            |         |
-   |                            | entry)        |            |         |
-   +----------------------------+---------------+------------+---------+
-   | tenant                     | Issuer-side   | IETF       |This     |
-   |                            | tenant        |            |document |
-   |                            | identifier    |            |         |
-   |                            | (within an    |            |         |
-   |                            | entry)        |            |         |
-   +----------------------------+---------------+------------+---------+
-   | subject_identifier_formats | Permitted     | IETF       |This     |
-   |                            | Subject       |            |document |
-   |                            | Identifier    |            |         |
-   |                            | formats       |            |         |
-   |                            | (within an    |            |         |
-   |                            | entry)        |            |         |
-   +----------------------------+---------------+------------+---------+
-   | valid_from                 | Delegation    | IETF       |This     |
-   |                            | start time    |            |document |
-   |                            | (within an    |            |         |
-   |                            | entry)        |            |         |
-   +----------------------------+---------------+------------+---------+
-   | valid_until                | Delegation    | IETF       |This     |
-   |                            | end time      |            |document |
-   |                            | (within an    |            |         |
-   |                            | entry)        |            |         |
-   +----------------------------+---------------+------------+---------+
-   | last_updated               | Policy        | IETF       |This     |
-   |                            | publication   |            |document |
-   |                            | time          |            |         |
-   +----------------------------+---------------+------------+---------+
-   | signed_policy              | Signed JWT    | IETF       |This     |
-   |                            | of the        |            |document |
-   |                            | policy        |            |         |
-   |                            | members       |            |         |
-   +----------------------------+---------------+------------+---------+
-   | crit                       | Names         | IETF       |This     |
-   |                            | members a     |            |document |
-   |                            | consumer      |            |         |
-   |                            | MUST          |            |         |
-   |                            | understand    |            |         |
-   |                            | or reject     |            |         |
-   |                            | the document  |            |         |
-   +----------------------------+---------------+------------+---------+
+   +==========================+===========+==========+=================+
+   |Member Name               |Description|Change    |Reference        |
+   |                          |           |Controller|                 |
+   +==========================+===========+==========+=================+
+   |subject_authority         |Subject    |IETF      |This document    |
+   |                          |Authority  |          |                 |
+   |                          |this policy|          |                 |
+   |                          |applies to |          |                 |
+   +--------------------------+-----------+----------+-----------------+
+   |authorized_issuers        |Array of   |IETF      |This document    |
+   |                          |authorized |          |                 |
+   |                          |issuer     |          |                 |
+   |                          |objects    |          |                 |
+   +--------------------------+-----------+----------+-----------------+
+   |issuer                    |Authorized |IETF      |This document    |
+   |                          |Assertion  |          |                 |
+   |                          |Issuer     |          |                 |
+   |                          |identifier |          |                 |
+   |                          |(within an |          |                 |
+   |                          |entry)     |          |                 |
+   +--------------------------+-----------+----------+-----------------+
+   |tenant                    |Issuer-side|IETF      |This document    |
+   |                          |tenant     |          |                 |
+   |                          |identifier |          |                 |
+   |                          |(within an |          |                 |
+   |                          |entry)     |          |                 |
+   +--------------------------+-----------+----------+-----------------+
+   |subject_identifier_formats|Permitted  |IETF      |This document    |
+   |                          |Subject    |          |                 |
+   |                          |Identifier |          |                 |
+   |                          |formats    |          |                 |
+   |                          |(within an |          |                 |
+   |                          |entry)     |          |                 |
+   +--------------------------+-----------+----------+-----------------+
+   |valid_from                |Delegation |IETF      |This document    |
+   |                          |start time |          |                 |
+   |                          |(within an |          |                 |
+   |                          |entry)     |          |                 |
+   +--------------------------+-----------+----------+-----------------+
+   |valid_until               |Delegation |IETF      |This document    |
+   |                          |end time   |          |                 |
+   |                          |(within an |          |                 |
+   |                          |entry)     |          |                 |
+   +--------------------------+-----------+----------+-----------------+
+   |last_updated              |Policy     |IETF      |This document    |
+   |                          |publication|          |                 |
+   |                          |time       |          |                 |
+   +--------------------------+-----------+----------+-----------------+
+   |signed_policy             |Signed JWT |IETF      |This document;   |
+   |                          |of the     |          |[TRUST-FRAMEWORK]|
+   |                          |policy     |          |§Signed Policy   |
+   |                          |members    |          |Metadata         |
+   +--------------------------+-----------+----------+-----------------+
+   |crit                      |Names      |IETF      |This document;   |
+   |                          |decision-  |          |[TRUST-FRAMEWORK]|
+   |                          |affecting  |          |§Critical Members|
+   |                          |members a  |          |                 |
+   |                          |consumer   |          |                 |
+   |                          |MUST       |          |                 |
+   |                          |understand |          |                 |
+   |                          |or reject  |          |                 |
+   |                          |the        |          |                 |
+   |                          |document   |          |                 |
+   +--------------------------+-----------+----------+-----------------+
 
                                   Table 6
 
-12.  References
+13.  References
 
-12.1.  Normative References
+13.1.  Normative References
 
    [ID-JAG]   "Identity Assertion JWT Authorization Grant",
               <https://datatracker.ietf.org/doc/draft-ietf-oauth-
@@ -1552,10 +1597,6 @@ Table of Contents
               Timestamps", RFC 3339, DOI 10.17487/RFC3339, July 2002,
               <https://www.rfc-editor.org/rfc/rfc3339>.
 
-   [RFC3629]  Yergeau, F., "UTF-8, a transformation format of ISO
-              10646", STD 63, RFC 3629, DOI 10.17487/RFC3629, November
-              2003, <https://www.rfc-editor.org/rfc/rfc3629>.
-
    [RFC5234]  Crocker, D., Ed. and P. Overell, "Augmented BNF for Syntax
               Specifications: ABNF", STD 68, RFC 5234,
               DOI 10.17487/RFC5234, January 2008,
@@ -1565,6 +1606,10 @@ Table of Contents
               Applications (IDNA): Protocol", RFC 5891,
               DOI 10.17487/RFC5891, August 2010,
               <https://www.rfc-editor.org/rfc/rfc5891>.
+
+   [RFC7405]  Kyzivat, P., "Case-Sensitive String Support in ABNF",
+              RFC 7405, DOI 10.17487/RFC7405, December 2014,
+              <https://www.rfc-editor.org/rfc/rfc7405>.
 
    [RFC7519]  Jones, M., Bradley, J., and N. Sakimura, "JSON Web Token
               (JWT)", RFC 7519, DOI 10.17487/RFC7519, May 2015,
@@ -1603,7 +1648,7 @@ Table of Contents
               <https://datatracker.ietf.org/doc/draft-mcguinness-oauth-
               id-assertion-framework/>.
 
-12.2.  Informative References
+13.2.  Informative References
 
    [I-D.hardt-email-verification]
               "Email Verification Protocol",
@@ -1666,7 +1711,7 @@ A.1.  Following Existing DNS Authority Patterns
    Unlike CAA (deployment-time), SPF/DKIM (spam-score signal), and MTA-
    STS (inbound mail), the _oauth-issuer-policy record is consumed
    during user sign-in; the operational consequences of that are covered
-   normatively in Section 10.
+   normatively in Section 11.
 
    Relationship to issuer discovery.  WebFinger [RFC7033] and OpenID
    Connect Discovery answer a different question: given a user
@@ -1792,8 +1837,10 @@ B.2.  Assertion Issuer Discovery (Client-Side)
    authoritative for a subject identifier's namespace before any
    assertion exists: given alice@acme.example, a client can query
    _oauth-issuer-policy.acme.example, retrieve the Issuer Authorization
-   Policy, and resolve the first authorized issuer's authorization
-   server metadata to find its token endpoint.
+   Policy, and resolve an authorized issuer's authorization server
+   metadata to find its token endpoint (entry order carries no
+   semantics, so issuer selection would need to be specified by the
+   profiling document).
 
    This client-side use case is deferred from the first version of DAI
    because it adds a second mental model (back-channel discovery vs.
@@ -1922,8 +1969,8 @@ C.4.  Verification (Resource Authorization Server Side)
 C.5.  Migration Variant: Pointer Form
 
    If acme.example later wants to express validity windows, format
-   restrictions, or multiple issuers with ordering, it can switch to the
-   pointer form without changing any consumer behavior:
+   restrictions, or tenant binding, it can switch to the pointer form
+   without changing any consumer behavior:
 
    _oauth-issuer-policy.acme.example. IN TXT ( "v=oauth-issuer-policy1;"
        "authority=acme.example;"
@@ -1994,7 +2041,9 @@ C.7.  Failure Variants
 
    *  A wildcard record at *.example covering acme.example would have to
       carry authority=acme.example to be accepted.  A wildcard with a
-      different authority= is discarded.
+      different authority= is discarded; if no other recognized record
+      remains, the response is malformed (Indeterminate) and the
+      assertion is rejected with no fallback to the well-known URL.
 
    *  If acme.example rotates its authorized Assertion Issuer and the
       Resource Authorization Server has a cached virtual policy, the

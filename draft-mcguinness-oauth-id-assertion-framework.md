@@ -564,15 +564,17 @@ outcome of the lookup operation onto exactly one of these states.
   the absence of a Delegation Artifact. Examples include DNS
   NXDOMAIN or NODATA with a valid (possibly DNSSEC-signed)
   authoritative answer where DNS is the profile's sole or final
-  publication channel, HTTPS 404 from the authority-bound origin,
-  or an explicit denial published through the channel (for
-  example, a policy authorizing no issuers). A profile with
-  multiple publication channels for the same Authority Source
-  reaches Negative only when every channel reports absence (see
-  e.g. {{DAI}}). A Negative state is itself a decision by the
-  Authority Holder (the namespace exists but no delegation is in
-  effect) and carries the same normative weight as any other
-  published decision.
+  publication channel, and HTTPS 404 from the authority-bound
+  origin. A profile with multiple publication channels for the
+  same Authority Source reaches Negative only when every channel
+  reports absence (see e.g. {{DAI}}). A profile MAY additionally
+  define an explicitly published denial; whether it maps to
+  Negative or to an Affirmative retrieval whose evaluation cannot
+  succeed is the profile's choice under its state mapping. A
+  Negative state is itself a decision by the Authority Holder
+  (the namespace exists but no delegation is in effect) and
+  carries the same normative weight as any other published
+  decision.
 
 - **Indeterminate**: the lookup did not produce an authoritative
   Affirmative or Negative result. Examples include DNS SERVFAIL,
@@ -1656,6 +1658,13 @@ from a successful trust-policy evaluation:
 - Suitability for any specific risk class, scope sensitivity, or
   compliance regime.
 
+The authorization is also not audience-scoped: a Delegation Artifact
+authorizes an issuer for a namespace, not for particular Resource
+Authorization Servers, so a compromised-but-authorized issuer can
+mint assertions about the namespace's subjects for any consumer. A
+future extension may let Authority Holders constrain acceptable
+audiences (see {{DAI}} §Future Extensions).
+
 These properties are out of scope and obtained, if needed, through
 mechanisms outside this framework (authentication-method/AAL
 claims, fresh-authentication signals, account-status attestations,
@@ -2117,6 +2126,31 @@ Subject Identifiers (`url_host`), Decentralized Identifiers (`did`),
 and a subdomain-exact email variant that requires an explicit
 delegation from the registrable-domain authority to prevent
 subdomain takeover.
+
+## Presented Delegation Credentials
+
+The `subject_namespace_authorization` methods defined so far are
+declarative and fetched: the Validator retrieves the Authority
+Holder's published policy at verification time. The complementary
+shape is a presented credential: the Authority Holder signs a
+delegation ("issuer X may assert for namespace A until time T",
+optionally audience-scoped), gives it to the Assertion Issuer, and
+the issuer presents it with the assertion, in the manner of an
+`x5c` chain or an OpenID Federation Subordinate Statement.
+Verification becomes offline once the Authority Holder's key is
+known, removing the per-verification lookup from the token path and
+enabling constraints (audiences, scopes, chains) a flat record
+cannot express. The costs are the mirror image: the Authority
+Holder needs key management and signing automation, key discovery
+recurses to a DNS- or HTTPS-anchored channel, and revocation
+requires status checking or short-lived credentials. Nothing in
+this framework precludes such a method: it would register as a
+`subject_namespace_authorization` Trust Method whose evidence is
+carried in-band, satisfy the checklist in
+{{trust-method-spec-requirements}}, and compose with existing
+methods under the combination rule. It is deferred as an
+assurance-tier extension for deployments whose requirements justify
+the operational cost.
 
 ## Critical Directives for the DNS Record Form {#crit-dns-form}
 

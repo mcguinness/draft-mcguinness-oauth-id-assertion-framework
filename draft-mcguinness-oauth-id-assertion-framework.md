@@ -35,6 +35,7 @@ normative:
   RFC7523:
   RFC8414:
   RFC8615:
+  RFC8725:
   RFC8785:
   RFC9493:
   RFC9728:
@@ -58,7 +59,6 @@ informative:
   RFC7033:
   RFC7489:
   RFC7662:
-  RFC8725:
   RFC9700:
   OIDC-DISCOVERY:
     title: "OpenID Connect Discovery 1.0"
@@ -1792,11 +1792,11 @@ applicable).
 
 ## Trust Policy Caching {#caching}
 
-HTTP caching of the Trust Policy follows {{?RFC9111}}, subject to
-local maximum cache lifetimes. Revocation status of validated trust
-evidence MUST be checked at the cadence required by the applicable
-Trust Method specification, independent of policy-document cache
-expiration. Transport integrity is addressed in {{integrity}}.
+Consumers cache the Trust Policy using ordinary HTTP caching (see
+{{?RFC9111}} for the mechanism), bounded by a local maximum cache
+lifetime. Independent of any policy-document cache expiration,
+revocation status of validated trust evidence MUST be checked at the
+cadence required by the applicable Trust Method specification. Transport integrity is addressed in {{integrity}}.
 
 ## Observability
 

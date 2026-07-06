@@ -569,7 +569,7 @@ outcome of the lookup operation onto exactly one of these states.
   origin. A profile with multiple publication channels for the
   same Authority Source reaches Negative only when the channels
   its lookup procedure consults authoritatively report no
-  delegation (see e.g. {{DAI}}). A profile MAY additionally
+  delegation (see, for example, {{DAI}}). A profile MAY additionally
   define an explicitly published denial; whether it maps to
   Negative or to an Affirmative retrieval whose evaluation yields
   no matching delegation is the profile's choice under its state
@@ -838,7 +838,7 @@ that the deferral from this framework to the method is testable:
 A Trust Method specification MAY define provisional (monitoring)
 enforcement semantics under which the Authority Holder's own
 published policy directs Validators to log rather than reject a
-mismatch (see e.g. {{DAI}} §Monitor Mode). Because the waiver is
+mismatch (see, for example, {{DAI}} §Monitor Mode). Because the waiver is
 published by the Authority Holder, not carried by the Assertion,
 this does not conflict with {{category-applicability}}.
 
@@ -2147,9 +2147,10 @@ the issuer presents it with the assertion, in the manner of an
 `x5c` chain or an OpenID Federation Subordinate Statement.
 Verification becomes offline once the Authority Holder's key is
 known, removing the per-verification lookup from the token path and
-enabling constraints (audiences, scopes, and, if a future revision
-relaxed the depth-1 bound of {{transitive-authz-bounded}},
-delegation chains) a flat record cannot express. The costs are the mirror image: the Authority
+enabling constraints a flat record cannot express, such as audiences
+and scopes (and delegation chains, should a future revision relax
+the depth-1 bound of {{transitive-authz-bounded}}). The costs are
+the mirror image: the Authority
 Holder needs key management and signing automation, key discovery
 recurses to a DNS- or HTTPS-anchored channel, and revocation
 requires status checking or short-lived credentials. Nothing in

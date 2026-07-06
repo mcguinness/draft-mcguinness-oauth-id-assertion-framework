@@ -2055,7 +2055,7 @@ publication channel, and HTTPS 404 from the authority-bound
 origin. A profile with multiple publication channels for the
 same Authority Source reaches Negative only when the channels
 its lookup procedure consults authoritatively report no
-delegation (see e.g. <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>). A profile <span class="bcp14">MAY</span> additionally
+delegation (see, for example, <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>). A profile <span class="bcp14">MAY</span> additionally
 define an explicitly published denial; whether it maps to
 Negative or to an Affirmative retrieval whose evaluation yields
 no matching delegation is the profile's choice under its state
@@ -2398,7 +2398,7 @@ is <span class="bcp14">REQUIRED</span> or <span class="bcp14">OPTIONAL</span>.<a
 <p id="section-4.3.3-3">A Trust Method specification <span class="bcp14">MAY</span> define provisional (monitoring)
 enforcement semantics under which the Authority Holder's own
 published policy directs Validators to log rather than reject a
-mismatch (see e.g. <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Monitor Mode). Because the waiver is
+mismatch (see, for example, <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Monitor Mode). Because the waiver is
 published by the Authority Holder, not carried by the Assertion,
 this does not conflict with <a href="#category-applicability" class="auto internal xref">Section 3.2.1.1</a>.<a href="#section-4.3.3-3" class="pilcrow">¶</a></p>
 </section>
@@ -4239,9 +4239,10 @@ the issuer presents it with the assertion, in the manner of an
 <code>x5c</code> chain or an OpenID Federation Subordinate Statement.
 Verification becomes offline once the Authority Holder's key is
 known, removing the per-verification lookup from the token path and
-enabling constraints (audiences, scopes, and, if a future revision
-relaxed the depth-1 bound of <a href="#transitive-authz-bounded" class="auto internal xref">Section 7.5</a>,
-delegation chains) a flat record cannot express. The costs are the mirror image: the Authority
+enabling constraints a flat record cannot express, such as audiences
+and scopes (and delegation chains, should a future revision relax
+the depth-1 bound of <a href="#transitive-authz-bounded" class="auto internal xref">Section 7.5</a>). The costs are
+the mirror image: the Authority
 Holder needs key management and signing automation, key discovery
 recurses to a DNS- or HTTPS-anchored channel, and revocation
 requires status checking or short-lived credentials. Nothing in

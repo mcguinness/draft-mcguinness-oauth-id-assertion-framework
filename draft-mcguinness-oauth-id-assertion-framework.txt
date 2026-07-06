@@ -619,14 +619,14 @@ Table of Contents
       channel, and HTTPS 404 from the authority-bound origin.  A profile
       with multiple publication channels for the same Authority Source
       reaches Negative only when the channels its lookup procedure
-      consults authoritatively report no delegation (see e.g. [DAI]).  A
-      profile MAY additionally define an explicitly published denial;
-      whether it maps to Negative or to an Affirmative retrieval whose
-      evaluation yields no matching delegation is the profile's choice
-      under its state mapping.  A Negative state is itself a decision by
-      the Authority Holder (the namespace exists but no delegation is in
-      effect) and carries the same normative weight as any other
-      published decision.
+      consults authoritatively report no delegation (see, for example,
+      [DAI]).  A profile MAY additionally define an explicitly published
+      denial; whether it maps to Negative or to an Affirmative retrieval
+      whose evaluation yields no matching delegation is the profile's
+      choice under its state mapping.  A Negative state is itself a
+      decision by the Authority Holder (the namespace exists but no
+      delegation is in effect) and carries the same normative weight as
+      any other published decision.
 
    *  *Indeterminate*: the lookup did not produce an authoritative
       Affirmative or Negative result.  Examples include DNS SERVFAIL,
@@ -881,9 +881,9 @@ Table of Contents
    A Trust Method specification MAY define provisional (monitoring)
    enforcement semantics under which the Authority Holder's own
    published policy directs Validators to log rather than reject a
-   mismatch (see e.g. [DAI] §Monitor Mode).  Because the waiver is
-   published by the Authority Holder, not carried by the Assertion, this
-   does not conflict with Section 3.2.1.1.
+   mismatch (see, for example, [DAI] §Monitor Mode).  Because the waiver
+   is published by the Authority Holder, not carried by the Assertion,
+   this does not conflict with Section 3.2.1.1.
 
 4.3.4.  Issuer Authentication Methods
 
@@ -2355,14 +2355,14 @@ B.2.  Presented Delegation Credentials
    chain or an OpenID Federation Subordinate Statement.  Verification
    becomes offline once the Authority Holder's key is known, removing
    the per-verification lookup from the token path and enabling
-   constraints (audiences, scopes, and, if a future revision relaxed the
-   depth-1 bound of Section 7.5, delegation chains) a flat record cannot
-   express.  The costs are the mirror image: the Authority Holder needs
-   key management and signing automation, key discovery recurses to a
-   DNS- or HTTPS-anchored channel, and revocation requires status
-   checking or short-lived credentials.  Nothing in this framework
-   precludes such a method: it would register as a
-   subject_namespace_authorization Trust Method whose evidence is
+   constraints a flat record cannot express, such as audiences and
+   scopes (and delegation chains, should a future revision relax the
+   depth-1 bound of Section 7.5).  The costs are the mirror image: the
+   Authority Holder needs key management and signing automation, key
+   discovery recurses to a DNS- or HTTPS-anchored channel, and
+   revocation requires status checking or short-lived credentials.
+   Nothing in this framework precludes such a method: it would register
+   as a subject_namespace_authorization Trust Method whose evidence is
    carried in-band, satisfy the checklist in Section 4.3.3, and compose
    with existing methods under the combination rule.  It is deferred as
    an assurance-tier extension for deployments whose requirements

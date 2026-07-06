@@ -1367,6 +1367,9 @@ Status:
 Related Information:
 : None
 
+The suffix names the document rather than the consuming framework;
+see {{rationale-generic-name}}.
+
 ## Underscored DNS Node Name
 
 Registers the following entry in the IANA "Underscored and Globally
@@ -1502,6 +1505,23 @@ records differ accordingly: DAI uses full issuer identifiers
 carries authorization constraints. Convergence with EVP on a shared
 record or node name is possible future work; {{email-verification-protocol-bridge}}
 sketches a bridge.
+
+## Why a Generic Record Name {#rationale-generic-name}
+
+The DNS node name, well-known URI suffix, and version token name the
+document they locate (the Issuer Authorization Policy), not the
+identity framework consuming it. The wire format is
+subject-class-agnostic: no member or directive is specific to email
+or identity assertions; the subject class is expressed through
+`subject_identifier_formats` ({{RFC9493}}), and the identity-specific
+machinery lives in {{TRUST-FRAMEWORK}}, whose own well-known URI is
+identity-scoped for that reason. A future Subject Identifier format
+with a DNS-publishable Subject Authority reuses
+`domain_authorized_issuer` and this same record
+({{TRUST-FRAMEWORK}} §Future Extensions); an identity-scoped name
+would force a second record at a second DNS name. One per-domain
+policy surface, extended through registered members rather than new
+names, follows the `oauth-authorization-server` metadata precedent.
 
 ## Why First-Class Tenant Binding
 

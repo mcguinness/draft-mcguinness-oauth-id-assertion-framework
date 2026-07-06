@@ -1739,6 +1739,11 @@ Table of Contents
               (JWT)", RFC 7519, DOI 10.17487/RFC7519, May 2015,
               <https://www.rfc-editor.org/rfc/rfc7519>.
 
+   [RFC8126]  Cotton, M., Leiba, B., and T. Narten, "Guidelines for
+              Writing an IANA Considerations Section in RFCs", BCP 26,
+              RFC 8126, DOI 10.17487/RFC8126, June 2017,
+              <https://www.rfc-editor.org/rfc/rfc8126>.
+
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
@@ -1797,11 +1802,6 @@ Table of Contents
               (JWT) Profile for OAuth 2.0 Client Authentication and
               Authorization Grants", RFC 7523, DOI 10.17487/RFC7523, May
               2015, <https://www.rfc-editor.org/rfc/rfc7523>.
-
-   [RFC8126]  Cotton, M., Leiba, B., and T. Narten, "Guidelines for
-              Writing an IANA Considerations Section in RFCs", BCP 26,
-              RFC 8126, DOI 10.17487/RFC8126, June 2017,
-              <https://www.rfc-editor.org/rfc/rfc8126>.
 
    [RFC8461]  Margolis, D., Risher, M., Ramakrishnan, B., Brotman, A.,
               and J. Jones, "SMTP MTA Strict Transport Security (MTA-

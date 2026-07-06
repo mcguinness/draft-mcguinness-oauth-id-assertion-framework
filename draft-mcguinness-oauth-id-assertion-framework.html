@@ -3503,11 +3503,11 @@ applicable).<a href="#section-7.10-1" class="pilcrow">¶</a></p>
         <h3 id="name-trust-policy-caching">
 <a href="#section-7.11" class="section-number selfRef">7.11. </a><a href="#name-trust-policy-caching" class="section-name selfRef">Trust Policy Caching</a>
         </h3>
-<p id="section-7.11-1">HTTP caching of the Trust Policy follows <span>[<a href="#RFC9111" class="cite xref">RFC9111</a>]</span>, subject to
-local maximum cache lifetimes. Revocation status of validated trust
-evidence <span class="bcp14">MUST</span> be checked at the cadence required by the applicable
-Trust Method specification, independent of policy-document cache
-expiration. Transport integrity is addressed in <a href="#integrity" class="auto internal xref">Section 7.8</a>.<a href="#section-7.11-1" class="pilcrow">¶</a></p>
+<p id="section-7.11-1">Consumers cache the Trust Policy using ordinary HTTP caching (see
+<span>[<a href="#RFC9111" class="cite xref">RFC9111</a>]</span> for the mechanism), bounded by a local maximum cache
+lifetime. Independent of any policy-document cache expiration,
+revocation status of validated trust evidence <span class="bcp14">MUST</span> be checked at the
+cadence required by the applicable Trust Method specification. Transport integrity is addressed in <a href="#integrity" class="auto internal xref">Section 7.8</a>.<a href="#section-7.11-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="observability">
@@ -4082,6 +4082,10 @@ Subject Authorities and Resource Authorization Servers.<a href="#section-10.3-3"
         <dd>
 <span class="refAuthor">Nottingham, M.</span>, <span class="refTitle">"Well-Known Uniform Resource Identifiers (URIs)"</span>, <span class="seriesInfo">RFC 8615</span>, <span class="seriesInfo">DOI 10.17487/RFC8615</span>, <time datetime="2019-05" class="refDate">May 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8615">https://www.rfc-editor.org/rfc/rfc8615</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="RFC8725">[RFC8725]</dt>
+        <dd>
+<span class="refAuthor">Sheffer, Y.</span>, <span class="refAuthor">Hardt, D.</span>, and <span class="refAuthor">M. Jones</span>, <span class="refTitle">"JSON Web Token Best Current Practices"</span>, <span class="seriesInfo">BCP 225</span>, <span class="seriesInfo">RFC 8725</span>, <span class="seriesInfo">DOI 10.17487/RFC8725</span>, <time datetime="2020-02" class="refDate">February 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8725">https://www.rfc-editor.org/rfc/rfc8725</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC8785">[RFC8785]</dt>
         <dd>
 <span class="refAuthor">Rundgren, A.</span>, <span class="refAuthor">Jordan, B.</span>, and <span class="refAuthor">S. Erdtman</span>, <span class="refTitle">"JSON Canonicalization Scheme (JCS)"</span>, <span class="seriesInfo">RFC 8785</span>, <span class="seriesInfo">DOI 10.17487/RFC8785</span>, <time datetime="2020-06" class="refDate">June 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8785">https://www.rfc-editor.org/rfc/rfc8785</a>&gt;</span>. </dd>
@@ -4138,10 +4142,6 @@ Subject Authorities and Resource Authorization Servers.<a href="#section-10.3-3"
 <dt id="RFC7662">[RFC7662]</dt>
         <dd>
 <span class="refAuthor">Richer, J., Ed.</span>, <span class="refTitle">"OAuth 2.0 Token Introspection"</span>, <span class="seriesInfo">RFC 7662</span>, <span class="seriesInfo">DOI 10.17487/RFC7662</span>, <time datetime="2015-10" class="refDate">October 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7662">https://www.rfc-editor.org/rfc/rfc7662</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="RFC8725">[RFC8725]</dt>
-        <dd>
-<span class="refAuthor">Sheffer, Y.</span>, <span class="refAuthor">Hardt, D.</span>, and <span class="refAuthor">M. Jones</span>, <span class="refTitle">"JSON Web Token Best Current Practices"</span>, <span class="seriesInfo">BCP 225</span>, <span class="seriesInfo">RFC 8725</span>, <span class="seriesInfo">DOI 10.17487/RFC8725</span>, <time datetime="2020-02" class="refDate">February 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8725">https://www.rfc-editor.org/rfc/rfc8725</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC9111">[RFC9111]</dt>
         <dd>

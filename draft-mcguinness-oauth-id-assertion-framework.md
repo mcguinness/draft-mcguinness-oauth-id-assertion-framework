@@ -1173,7 +1173,10 @@ support ES256 and SHOULD support EdDSA and ES384; RS256 with
 Per {{RFC8725}} §3.11 (cross-context confusion), the JWT `typ`
 header MUST be `trust-policy+jwt` for Trust Policy documents or
 `issuer-authorization-policy+jwt` for Issuer Authorization Policy
-documents.
+documents. These are the registered media subtypes with the
+`application/` prefix omitted, per the {{RFC8725}} §3.11 convention;
+the corresponding media types are registered in
+{{iana-media-types}}.
 
 The acceptable signer depends on which policy document is signed:
 
@@ -1354,10 +1357,15 @@ request, the Resource Authorization Server MUST:
    `openid_federation` requires a federation-resolved JWKS,
    {{trust-method-openid-federation}}). The Resource Authorization
    Server MUST NOT accept the assertion until the signature has been
-   verified with a key permitted by every applicable Trust Method;
-   a signature validated only against an unconstrained source (such
-   as the `iss` URL's authorization server metadata) does not
-   satisfy this step when a Trust Method constrains the key source.
+   verified with a key permitted by each key-source-constraining
+   Trust Method that it relies on to satisfy the combination rule in
+   step 5 (not every listed method: under the or-semantics of
+   {{combination-rule}}, a category may be satisfied by one of
+   several alternative methods, and only the constraints of the
+   method actually relied on apply). A signature validated only
+   against an unconstrained source, such as the `iss` URL's
+   authorization server metadata, does not satisfy this step when the
+   relied-on Trust Method constrains the key source.
 
 3. Verify that the applicable grant profile is listed in
    `authorization_grant_profiles_supported`.
@@ -2059,11 +2067,15 @@ Initial entries:
 |-|-|-|
 | `email` | DNS domain | {{subject-authority-determination}} of this document |
 
-## Media Type Registrations
+## Media Type Registrations {#iana-media-types}
 
 IANA is requested to register the following media types in the "Media
-Types" registry, used as the JWT `typ` header values for the signed
-document forms ({{signed-policy-metadata}}).
+Types" registry for the signed document forms
+({{signed-policy-metadata}}). Following {{RFC8725}} §3.11, the JWT
+`typ` header value is the media subtype with the `application/`
+prefix omitted (`trust-policy+jwt` and
+`issuer-authorization-policy+jwt`, respectively), as required in
+{{signed-policy-metadata}}.
 
 For `application/trust-policy+jwt`: Type name `application`; Subtype
 name `trust-policy+jwt`; Required parameters none; Optional parameters

@@ -2176,12 +2176,15 @@ an assertion.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
 <code>application/json</code> or a <code>+json</code>-suffixed type.<a href="#section-4.1-6.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-4.1-6.2">
-            <p id="section-4.1-6.2.1">Redirects, if followed, <span class="bcp14">MUST</span> remain within the issuer's origin.<a href="#section-4.1-6.2.1" class="pilcrow">¶</a></p>
+            <p id="section-4.1-6.2.1">Consumers <span class="bcp14">MUST</span> follow HTTPS redirects up to a limit of 5 hops;
+every redirect target <span class="bcp14">MUST</span> use the <code>https</code> scheme and <span class="bcp14">MUST</span> remain
+within the issuer's origin. A redirect to a different origin, or
+exceeding the hop limit, is a retrieval failure.<a href="#section-4.1-6.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-4.1-6.3">
-            <p id="section-4.1-6.3.1">Any other status, a TLS failure, a cross-origin redirect, an
-unparseable body, or a body exceeding a consumer-chosen limit
-(which <span class="bcp14">MUST</span> allow at least 64 KiB) is a retrieval failure.<a href="#section-4.1-6.3.1" class="pilcrow">¶</a></p>
+            <p id="section-4.1-6.3.1">Any other status, a TLS failure, an unparseable body, or a body
+exceeding a consumer-chosen limit (which <span class="bcp14">MUST</span> allow at least
+64 KiB) is a retrieval failure.<a href="#section-4.1-6.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-4.1-7">Example authorization server metadata:<a href="#section-4.1-7" class="pilcrow">¶</a></p>
@@ -2977,7 +2980,17 @@ step 5a.)<a href="#section-5.2-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-5.2-3.2">
             <p id="section-5.2-3.2.1">Validate the assertion per the applicable grant profile
-(<span>[<a href="#RFC7521" class="cite xref">RFC7521</a>]</span>, <span>[<a href="#RFC7523" class="cite xref">RFC7523</a>]</span>, <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>).<a href="#section-5.2-3.2.1" class="pilcrow">¶</a></p>
+(<span>[<a href="#RFC7521" class="cite xref">RFC7521</a>]</span>, <span>[<a href="#RFC7523" class="cite xref">RFC7523</a>]</span>, <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>). This validation is
+provisional with respect to signing-key resolution: a Trust
+Method evaluated in step 5 <span class="bcp14">MAY</span> constrain the source of the key
+used to verify the assertion signature (for example,
+<code>openid_federation</code> requires a federation-resolved JWKS,
+<a href="#trust-method-openid-federation" class="auto internal xref">Section 4.3.4.1</a>). The Resource Authorization
+Server <span class="bcp14">MUST NOT</span> accept the assertion until the signature has been
+verified with a key permitted by every applicable Trust Method;
+a signature validated only against an unconstrained source (such
+as the <code>iss</code> URL's authorization server metadata) does not
+satisfy this step when a Trust Method constrains the key source.<a href="#section-5.2-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-5.2-3.3">
             <p id="section-5.2-3.3.1">Verify that the applicable grant profile is listed in

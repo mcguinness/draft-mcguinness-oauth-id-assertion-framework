@@ -49,6 +49,7 @@ normative:
 
 informative:
   RFC7033:
+  RFC7489:
   RFC7523:
   RFC8126:
   RFC8461:
@@ -290,8 +291,9 @@ NOT be silently treated as either defined value.
   assumption is, respectively, DNSSEC validation to the Subject
   Authority's zone, or the consumer's own key-provisioning process.
   This document does not define a DNS record format for key
-  publication; deployments using (a) do so via a mechanism agreed
-  with their consumers until one is standardized.
+  publication; deployments using the DNSSEC-published-key option do
+  so via a mechanism agreed with their consumers until one is
+  standardized.
 
 `crit`
 : OPTIONAL. Array of member names a consumer MUST understand to process
@@ -615,7 +617,12 @@ entirely and retrieves only from the HTTPS well-known URL.
       - Otherwise fetch the JSON policy from that URL per
         {{dii-https-url}}. The fetched document is the Issuer
         Authorization Policy, including its `mode`. All `issuer=`
-        and `mode=` directives across all records are ignored.
+        and `mode=` directives across all records are ignored:
+        their values do not contribute to the policy, but the
+        directive-validity rules of {{dii-dns-record}} (including
+        `mode=` consistency) were already applied in step 2a, so a
+        record set malformed under those rules never reaches this
+        step.
 
    c. Otherwise (no `uri=` present), construct a virtual Issuer
       Authorization Policy with `subject_authority` set to `A` and
@@ -662,7 +669,7 @@ concrete DAI outcomes onto those states.
 | State | DAI outcomes |
 |-|-|
 | Affirmative | A well-formed Issuer Authorization Policy was retrieved (inline DNS, DNS pointer + HTTPS fetch, or HTTPS well-known URL), its `subject_authority` matches `A`, and its structural validation succeeds; this includes a policy whose `authorized_issuers` array is empty (explicit denial, evaluated in {{dii-verification}}). HTTPS responses, when applicable, are 200 OK with a media type of `application/json` or a `+json`-suffixed type. A 304 (Not Modified) response to a conditional request validating a held cached policy within the absolute ceiling of {{dii-caching}} renews its freshness and is classified as the held policy's state; it does not reset the absolute cache-entry age. |
-| Negative | DNS `negative-authoritative` followed by HTTPS 404 or 410 at the well-known URL; HTTPS 404 or 410 reached from a DNS `uri=` pointer; or, under the HTTPS-only lookup mode ({{trust-method-https-authorized-issuer}}), HTTPS 404 or 410 at the well-known URL. The Authority Holder publishes no policy at all. |
+| Negative | DNS `negative-authoritative` followed by HTTPS 404 or 410 at the well-known URL; HTTPS 404 or 410 reached from a DNS `uri=` pointer; or, under the HTTPS-only lookup mode ({{trust-method-https-authorized-issuer}}), HTTPS 404 or 410 at the well-known URL. No policy is published at the location(s) the lookup consults. |
 | Indeterminate | Any other outcome, fail-closed by default. See enumeration below. |
 
 The Indeterminate state covers:
@@ -694,7 +701,7 @@ MUST be treated as Indeterminate.
 
 The following deterministic conflict rules apply:
 
-- Multiple recognized TXT records containing only `issuer=` directives
+- Multiple recognized TXT records containing no `uri=` directive
   are merged into a single virtual policy. `issuer=` values across
   records are deduplicated into a set; order carries no semantics
   ({{dii-lookup}}, step 2c).
@@ -769,37 +776,40 @@ Resource Authorization Server MUST:
       is within the validity window (with the skew rules of
       {{dii-document}}).
 
-   The Trust Method is satisfied when step 3 succeeds and AT LEAST ONE
-   entry matches under (a)-(d). Entry order in `authorized_issuers`
-   carries no semantics: the outcome is the boolean "does any entry
-   match," so two consumers evaluating the same policy against the
-   same assertion reach the same result regardless of array order or
-   of which matching entry they examine first.
+   Under a policy whose `mode` is `enforce` (the default), the Trust
+   Method is satisfied when step 3 succeeds and at least one entry
+   matches under (a)-(d); under `monitor`, see {{monitor-mode}}.
+   Entry order in `authorized_issuers` carries no semantics: the
+   outcome is the boolean "does any entry match," so two consumers
+   evaluating the same policy against the same assertion reach the
+   same result regardless of array order or of which matching entry
+   they examine first.
 
 Steps 1 and 2 are prerequisites; their failure causes assertion
-rejection per {{dii-failures}} and is not classified as a Trust
-Method satisfaction outcome. On failure, the Resource
-Authorization Server MUST reject the assertion with an OAuth
-`invalid_grant` error when the cross-category combination rule of
-{{TRUST-FRAMEWORK}} §Resource Authorization Server Processing is not met.
+rejection per {{dii-failures}} unconditionally and is not classified
+as a Trust Method satisfaction outcome. When the Trust Method is not
+satisfied and, as a result, the cross-category combination rule
+({{TRUST-FRAMEWORK}} §Cross-Category Combination Rule) is not met,
+the Resource Authorization Server MUST reject the assertion with an
+OAuth `invalid_grant` error.
 
 ## Monitor Mode {#monitor-mode}
 
 A Subject Authority deploying its first policy cannot easily know
 whether its issuer list is complete; an omission breaks sign-in for
-its users. Monitor mode, following the deployment pattern of DMARC's
-`p=none`, lets the Subject Authority publish, observe, and then
-enforce.
+its users. Monitor mode, following the deployment pattern of the
+DMARC {{RFC7489}} `p=none` policy, lets the Subject Authority
+publish, observe, and then enforce.
 
 When the retrieved policy's `mode` is `monitor` ({{dii-document}}):
 
-- The consumer MUST evaluate steps 3 and 4 normally.
+- The consumer MUST evaluate steps 3 and 4 normally, and SHOULD log
+  every evaluation under the monitored policy (Subject Authority,
+  assertion issuer, matched or mismatched, timestamp) so the Subject
+  Authority can be informed out of band.
 - If no entry matches (including the empty-array explicit-denial
   case), the Trust Method is nevertheless satisfied: the consumer
-  MUST NOT reject the assertion on the basis of the mismatch, and
-  SHOULD log the monitored outcome (Subject Authority, assertion
-  issuer, matched or mismatched, timestamp) so the Subject Authority
-  can be informed out of band.
+  MUST NOT reject the assertion on the basis of the mismatch.
 - If an entry matches, the outcome is identical to enforce mode.
 
 Monitor mode affects only the evaluation of a successfully retrieved
@@ -956,8 +966,8 @@ When evaluated, the Resource Authorization Server MUST:
    when the live retrieval is Indeterminate.
 
 4. Verify the fetched policy and match the Assertion Issuer against
-   `authorized_issuers` using steps 3 and 4 of
-   {{dii-verification}}.
+   `authorized_issuers` using steps 3 and 4 of {{dii-verification}},
+   including {{monitor-mode}} when the policy's `mode` is `monitor`.
 
 A Resource Authorization Server uses this variant when it requires
 authority publication via HTTPS only and explicitly does not accept
@@ -1137,7 +1147,14 @@ DAI-specific points:
 An attacker who can modify the published policy has a stealthier
 option than adding their own issuer: flipping `mode` from `enforce`
 to `monitor`. The policy remains present and superficially intact,
-but enforcement is silently off ({{monitor-mode}}). Consumers SHOULD
+but enforcement is silently off ({{monitor-mode}}). A variant
+targets signed policies: because unsigned members absent from the
+signed JWT are not conflict-checked ({{TRUST-FRAMEWORK}} §Signed
+Policy Metadata), an attacker who can edit the outer document but
+not the JWT can inject an unsigned `mode: monitor` beside an intact
+signature. Subject Authorities publishing `signed_policy` SHOULD
+therefore include `mode` among the signed claims, so that an
+injected outer value is rejected as a conflict. Consumers SHOULD
 surface mode transitions for a given Subject Authority in their
 logs, and Subject Authorities SHOULD monitor their published records
 for unexpected `mode` changes with the same rigor as for issuer-list

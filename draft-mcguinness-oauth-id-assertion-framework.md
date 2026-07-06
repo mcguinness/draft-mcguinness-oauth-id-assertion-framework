@@ -56,6 +56,7 @@ informative:
   RFC6530:
   RFC7009:
   RFC7033:
+  RFC7489:
   RFC7662:
   RFC8725:
   RFC9700:
@@ -353,7 +354,7 @@ The following terms are specific to OAuth identity assertions.
 
 Resource Authorization Server (RAS):
 : The OAuth authorization server that receives an identity
-assertion as a grant, evaluates the trust policy, and issues
+assertion as a grant, evaluates the Trust Policy, and issues
 access tokens for a protected resource. Not a new OAuth protocol
 role; OAuth readers may read it as "the authorization server
 receiving the assertion grant." The RAS is the Validator.
@@ -566,11 +567,13 @@ outcome of the lookup operation onto exactly one of these states.
   authoritative answer where DNS is the profile's sole or final
   publication channel, and HTTPS 404 from the authority-bound
   origin. A profile with multiple publication channels for the
-  same Authority Source reaches Negative only when every channel
-  reports absence (see e.g. {{DAI}}). A profile MAY additionally
+  same Authority Source reaches Negative only when the channels
+  its lookup procedure consults authoritatively report no
+  delegation (see e.g. {{DAI}}). A profile MAY additionally
   define an explicitly published denial; whether it maps to
-  Negative or to an Affirmative retrieval whose evaluation cannot
-  succeed is the profile's choice under its state mapping. A
+  Negative or to an Affirmative retrieval whose evaluation yields
+  no matching delegation is the profile's choice under its state
+  mapping. A
   Negative state is itself a decision by the Authority Holder
   (the namespace exists but no delegation is in effect) and
   carries the same normative weight as any other published
@@ -832,6 +835,13 @@ that the deferral from this framework to the method is testable:
 - Any method-specific parameters, their JSON types, and whether each
   is REQUIRED or OPTIONAL.
 
+A Trust Method specification MAY define provisional (monitoring)
+enforcement semantics under which the Authority Holder's own
+published policy directs Validators to log rather than reject a
+mismatch (see e.g. {{DAI}} §Monitor Mode). Because the waiver is
+published by the Authority Holder, not carried by the Assertion,
+this does not conflict with {{category-applicability}}.
+
 ### Issuer Authentication Methods {#issuer-authentication-methods}
 
 `issuer_authentication`-category methods are satisfied by evidence
@@ -936,10 +946,10 @@ integration point between the federation and this framework; see
 ### Subject Namespace Authorization Methods {#subject-namespace-authorization-methods}
 
 `subject_namespace_authorization`-category methods are satisfied
-by evidence published by the Subject Authority itself (typically a
-DNS or HTTPS record under the Subject Authority's domain). The
-namespace-authorization trust graph is bounded to depth one
-({{transitive-authz-bounded}}). Concrete methods in this category
+by evidence originating from the Subject Authority itself (typically
+a DNS or HTTPS record published under the Subject Authority's
+domain). The namespace-authorization trust graph is bounded to depth
+one ({{transitive-authz-bounded}}). Concrete methods in this category
 are defined by companion specifications and registered in the
 Trust Methods registry ({{iana-trust-methods-registry}}).
 
@@ -982,8 +992,9 @@ A token-request flow with an ID-JAG carrying
 `email: alice@acme.example`, `email_verified: true`,
 `iss: https://idp.example.net`:
 
-1. The Resource Authorization Server resolves both Trust Methods
-   are applicable (the Trust Policy lists one in each category).
+1. The Resource Authorization Server determines that both Trust
+   Methods are applicable (the Trust Policy lists one in each
+   category).
 
 2. **Authenticity** (`issuer_authentication` category): the
    Resource Authorization Server validates the OpenID Federation
@@ -1097,7 +1108,7 @@ Deriving a registrable domain from a DNS name has no protocol
 solution: the IETF DBOUND working group examined the problem of
 determining administrative (organizational) boundaries in the DNS and
 concluded without a standard, and the Public Suffix List remains the
-de facto mechanism (it is used the same way by DMARC organizational-
+de facto mechanism (it is used the same way by DMARC {{RFC7489}} organizational-
 domain discovery and by cookie same-site rules). This framework
 inherits the PSL's limitations knowingly.
 
@@ -1310,7 +1321,7 @@ Authorization Server:
 6. Requests an identity assertion JWT from the selected Assertion
    Issuer.
 
-The client MUST NOT treat the trust policy as a guarantee that a
+The client MUST NOT treat the Trust Policy as a guarantee that a
 particular assertion will be accepted. The Resource Authorization
 Server always applies local policy at token request time.
 
@@ -1327,7 +1338,7 @@ deterministic per {{multiple-sources}}.
 When evaluating an identity assertion JWT presented in a token
 request, the Resource Authorization Server MUST:
 
-1. Select and parse the trust policy that applies to the token request.
+1. Select and parse the Trust Policy that applies to the token request.
    If the policy document is malformed, reject the assertion.
    (Recognition of individual Trust Method objects is handled in
    step 5a.)
@@ -1398,7 +1409,7 @@ request, the Resource Authorization Server MUST:
    and sender-constraining; this document does not specify either.
 
 Failure to satisfy issuer trust, subject identifier, or assertion
-claim requirements in the trust policy MUST result in an OAuth
+claim requirements in the Trust Policy MUST result in an OAuth
 `invalid_grant` error unless another error is defined by the
 applicable grant profile. Detailed trust-evaluation failure state
 MUST NOT be returned to public clients in the OAuth error response;
@@ -1426,7 +1437,7 @@ For ID-JAG {{ID-JAG}}, `authorization_grant_profiles_supported` contains the val
 `urn:ietf:params:oauth:grant-profile:id-jag`. The Subject Identifier
 for ID-JAG is the top-level `email` claim, accompanied by
 `email_verified=true`, extracted per {{subject-authority-determination}}.
-When the trust policy contains a `subject_namespace_authorization`
+When the Trust Policy contains a `subject_namespace_authorization`
 method, {{rasp}} step 5c requires the ID-JAG to carry that Subject
 Identifier and requires rejection if it is absent or unresolvable.
 
@@ -1658,13 +1669,6 @@ from a successful trust-policy evaluation:
 - Suitability for any specific risk class, scope sensitivity, or
   compliance regime.
 
-The authorization is also not audience-scoped: a Delegation Artifact
-authorizes an issuer for a namespace, not for particular Resource
-Authorization Servers, so a compromised-but-authorized issuer can
-mint assertions about the namespace's subjects for any consumer. A
-future extension may let Authority Holders constrain acceptable
-audiences (see {{DAI}} §Future Extensions).
-
 These properties are out of scope and obtained, if needed, through
 mechanisms outside this framework (authentication-method/AAL
 claims, fresh-authentication signals, account-status attestations,
@@ -1672,12 +1676,16 @@ out-of-band verification). In particular, `email_verified=true` is
 a prerequisite for deriving namespace authority from the email's
 domain; it is not evidence of current mailbox control.
 
-The `subject_namespace_authorization` category constrains which
-Assertion Issuers may assert about a namespace; it does not
-constrain which Resource Authorization Servers an authorized
-Assertion Issuer may target. Audience binding is enforced by the
-assertion's `aud` claim and the applicable grant profile, not by
-the Subject Authority.
+The authorization is also not audience-scoped: the
+`subject_namespace_authorization` category constrains which
+Assertion Issuers may assert about a namespace, not which Resource
+Authorization Servers an authorized issuer may target, so a
+compromised-but-authorized issuer can mint assertions about the
+namespace's subjects for any consumer. Audience binding is enforced
+by the assertion's `aud` claim and the applicable grant profile,
+not by the Subject Authority; a future extension may let Authority
+Holders constrain acceptable audiences (see {{DAI}} §Future
+Extensions).
 
 ## Per-Assertion Revocation Is Out of Scope {#per-assertion-revocation}
 
@@ -1755,7 +1763,7 @@ per-subject local requirements, Resource Authorization Servers MUST
 enforce differentiated requirements at token request time rather than
 relying on the policy document alone; a client's choice of a weaker
 listed Trust Method is not a protocol violation the client can be
-held to, it is a condition the Resource Authorization Server rejects. The
+held to but a condition the Resource Authorization Server rejects. The
 cross-category combination rule in {{rasp}} prevents downgrade across
 categories (for example, satisfying only an `issuer_authentication`
 method when a `subject_namespace_authorization` method is also
@@ -1763,7 +1771,7 @@ applicable).
 
 ## Trust Policy Caching {#caching}
 
-HTTP caching of the trust policy follows {{?RFC9111}}, subject to
+HTTP caching of the Trust Policy follows {{?RFC9111}}, subject to
 local maximum cache lifetimes. Revocation status of validated trust
 evidence MUST be checked at the cadence required by the applicable
 Trust Method specification, independent of policy-document cache
@@ -1773,7 +1781,7 @@ expiration. Transport integrity is addressed in {{integrity}}.
 
 Trust-policy evaluation is a security-critical decision; deployments
 are encouraged to log, for each processed assertion, at minimum the
-Assertion Issuer identifier, the trust policy URI with its retrieval
+Assertion Issuer identifier, the Trust Policy URI with its retrieval
 time and cache validator (for example, its ETag), the Trust Methods
 that succeeded, the matched trust
 anchor or Issuer Authorization Policy origin, the Subject Identifier
@@ -2139,8 +2147,9 @@ the issuer presents it with the assertion, in the manner of an
 `x5c` chain or an OpenID Federation Subordinate Statement.
 Verification becomes offline once the Authority Holder's key is
 known, removing the per-verification lookup from the token path and
-enabling constraints (audiences, scopes, chains) a flat record
-cannot express. The costs are the mirror image: the Authority
+enabling constraints (audiences, scopes, and, if a future revision
+relaxed the depth-1 bound of {{transitive-authz-bounded}},
+delegation chains) a flat record cannot express. The costs are the mirror image: the Authority
 Holder needs key management and signing automation, key discovery
 recurses to a DNS- or HTTPS-anchored channel, and revocation
 requires status checking or short-lived credentials. Nothing in
@@ -2240,11 +2249,13 @@ configured. Conflating them is the bug
 
 **Q: What if my Subject Authority cannot publish DNS TXT records?**
 
-Use DAI's HTTPS-only lookup mode ({{DAI}} §HTTPS-Only Deployment
-Variant): the Resource Authorization Server retrieves the policy
-from `https://{authority}/.well-known/oauth-issuer-policy` directly,
-skipping the `_oauth-issuer-policy` TXT lookup. A Subject Authority
-with no DNS-named authority at all cannot participate in DAI.
+Publish only the HTTPS well-known document at
+`https://{authority}/.well-known/oauth-issuer-policy`: the canonical
+lookup finds it when DNS authoritatively reports no record ({{DAI}}
+§Lookup Procedure). Deployments that must avoid DNS on the verifier
+side instead select the HTTPS-only lookup mode in the Trust Policy
+({{DAI}} §HTTPS-Only Deployment Variant). A Subject Authority with
+no DNS-named authority at all cannot participate in DAI.
 
 **Q: Does this work for path-bearing issuer identifiers
 (`https://login.example.com/{tenant}/v2.0`)?**
@@ -2315,7 +2326,7 @@ The attacker's `email_verified: true` self-claim has no force;
 trust derives from the `iss`-vs-policy check, not from the
 assertion's own statements. `attacker.example` has no path to
 impersonate users in `example.com` unless the customer publishes
-them in DAI.
+them in DAI (the policy shown being in enforce mode, the default).
 
 # OpenID Federation Walkthrough {#example-federation-walkthrough}
 

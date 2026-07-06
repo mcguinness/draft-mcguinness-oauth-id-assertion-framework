@@ -673,10 +673,13 @@ an assertion.
 
 - The response MUST have status 200 and a media type of
   `application/json` or a `+json`-suffixed type.
-- Redirects, if followed, MUST remain within the issuer's origin.
-- Any other status, a TLS failure, a cross-origin redirect, an
-  unparseable body, or a body exceeding a consumer-chosen limit
-  (which MUST allow at least 64 KiB) is a retrieval failure.
+- Consumers MUST follow HTTPS redirects up to a limit of 5 hops;
+  every redirect target MUST use the `https` scheme and MUST remain
+  within the issuer's origin. A redirect to a different origin, or
+  exceeding the hop limit, is a retrieval failure.
+- Any other status, a TLS failure, an unparseable body, or a body
+  exceeding a consumer-chosen limit (which MUST allow at least
+  64 KiB) is a retrieval failure.
 
 Example authorization server metadata:
 
@@ -1344,7 +1347,17 @@ request, the Resource Authorization Server MUST:
    step 5a.)
 
 2. Validate the assertion per the applicable grant profile
-   ({{RFC7521}}, {{RFC7523}}, {{ID-JAG}}).
+   ({{RFC7521}}, {{RFC7523}}, {{ID-JAG}}). This validation is
+   provisional with respect to signing-key resolution: a Trust
+   Method evaluated in step 5 MAY constrain the source of the key
+   used to verify the assertion signature (for example,
+   `openid_federation` requires a federation-resolved JWKS,
+   {{trust-method-openid-federation}}). The Resource Authorization
+   Server MUST NOT accept the assertion until the signature has been
+   verified with a key permitted by every applicable Trust Method;
+   a signature validated only against an unconstrained source (such
+   as the `iss` URL's authorization server metadata) does not
+   satisfy this step when a Trust Method constrains the key source.
 
 3. Verify that the applicable grant profile is listed in
    `authorization_grant_profiles_supported`.

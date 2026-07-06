@@ -511,6 +511,12 @@ A URL obtained from a DNS `uri=` directive is fetched the same way;
 the host serving the URL is responsible for TLS server authentication
 of itself, not of `A`.
 
+For every policy fetch defined here (the default well-known URL, a
+`uri=` target, and the HTTPS-only mode of
+{{trust-method-https-authorized-issuer}}), and for any redirect
+followed from one, the consumer MUST NOT connect to a host that
+resolves to a non-globally-routable address; see {{dos-ssrf}}.
+
 HTTP redirect handling is fixed so that two consumers reach the same
 outcome and so that a redirect cannot silently move the authority
 anchor to a host the Subject Authority does not control:
@@ -1262,13 +1268,16 @@ drive lookups at will, creating three risks:
   impose a maximum number of distinct-authority lookups per unit
   time, shedding load by treating excess as Indeterminate
   (fail-closed).
-- **Server-Side Request Forgery via `uri=` and redirects.** An
-  attacker who controls DNS for a queried authority can point `uri=`
-  (or a redirect) at an arbitrary HTTPS target, including internal
-  addresses; the fetch occurs regardless of whether the body
-  validates, enabling blind internal probing through timing and error
-  differentials. Consumers MUST NOT fetch a `uri=` target or follow a
-  redirect whose resolved host is a private-use, loopback, link-local,
+- **Server-Side Request Forgery.** Every HTTPS policy fetch resolves
+  a host the attacker may control: the Subject Authority `{A}` for
+  the default well-known fetch (the attacker presents an assertion
+  whose namespace is a domain it owns, then points that domain's apex
+  A/AAAA records at an internal address), the `uri=` pointer's host,
+  the well-known host under the HTTPS-only mode, and any redirect
+  target. The fetch occurs regardless of whether the body validates,
+  enabling blind internal probing through timing and error
+  differentials. For every such fetch, consumers MUST NOT connect to
+  a host that resolves to a private-use, loopback, link-local,
   unique-local, or otherwise non-globally-routable IPv4 or IPv6
   address, MUST cap redirects and response size ({{dii-https-url}},
   {{https-policy-document-contract}}), and SHOULD apply a fetch

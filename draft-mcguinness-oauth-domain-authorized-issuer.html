@@ -1636,8 +1636,9 @@ DNS/HTTPS path that carries the policy document; the trust
 assumption is, respectively, DNSSEC validation to the Subject
 Authority's zone, or the consumer's own key-provisioning process.
 This document does not define a DNS record format for key
-publication; deployments using (a) do so via a mechanism agreed
-with their consumers until one is standardized.<a href="#section-3-3.10.1" class="pilcrow">¶</a></p>
+publication; deployments using the DNSSEC-published-key option do
+so via a mechanism agreed with their consumers until one is
+standardized.<a href="#section-3-3.10.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-3-3.11"><code>crit</code></dt>
@@ -2123,7 +2124,12 @@ remaining records, treat as <code>malformed</code>.<a href="#section-5-4.2.5.1.1
               <p id="section-5-4.2.5.2.1">Otherwise fetch the JSON policy from that URL per
 <a href="#dii-https-url" class="auto internal xref">Section 4.4</a>. The fetched document is the Issuer
 Authorization Policy, including its <code>mode</code>. All <code>issuer=</code>
-and <code>mode=</code> directives across all records are ignored.<a href="#section-5-4.2.5.2.1" class="pilcrow">¶</a></p>
+and <code>mode=</code> directives across all records are ignored:
+their values do not contribute to the policy, but the
+directive-validity rules of <a href="#dii-dns-record" class="auto internal xref">Section 4.3</a> (including
+<code>mode=</code> consistency) were already applied in step 2a, so a
+record set malformed under those rules never reaches this
+step.<a href="#section-5-4.2.5.2.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 <p id="section-5-4.2.6">
@@ -2188,7 +2194,7 @@ concrete DAI outcomes onto those states.<a href="#section-5.1-1" class="pilcrow"
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">Negative</td>
-              <td class="text-left" rowspan="1" colspan="1">DNS <code>negative-authoritative</code> followed by HTTPS 404 or 410 at the well-known URL; HTTPS 404 or 410 reached from a DNS <code>uri=</code> pointer; or, under the HTTPS-only lookup mode (<a href="#trust-method-https-authorized-issuer" class="auto internal xref">Section 8.2</a>), HTTPS 404 or 410 at the well-known URL. The Authority Holder publishes no policy at all.</td>
+              <td class="text-left" rowspan="1" colspan="1">DNS <code>negative-authoritative</code> followed by HTTPS 404 or 410 at the well-known URL; HTTPS 404 or 410 reached from a DNS <code>uri=</code> pointer; or, under the HTTPS-only lookup mode (<a href="#trust-method-https-authorized-issuer" class="auto internal xref">Section 8.2</a>), HTTPS 404 or 410 at the well-known URL. No policy is published at the location(s) the lookup consults.</td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">Indeterminate</td>
@@ -2235,7 +2241,7 @@ not match <code>A</code>.<a href="#section-5.1-4.5.1" class="pilcrow">¶</a></p>
 <p id="section-5.1-6">The following deterministic conflict rules apply:<a href="#section-5.1-6" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-5.1-7.1">
-            <p id="section-5.1-7.1.1">Multiple recognized TXT records containing only <code>issuer=</code> directives
+            <p id="section-5.1-7.1.1">Multiple recognized TXT records containing no <code>uri=</code> directive
 are merged into a single virtual policy. <code>issuer=</code> values across
 records are deduplicated into a set; order carries no semantics
 (<a href="#dii-lookup" class="auto internal xref">Section 5</a>, step 2c).<a href="#section-5.1-7.1.1" class="pilcrow">¶</a></p>
@@ -2326,20 +2332,23 @@ d. If <code>valid_from</code> or <code>valid_until</code> are present, the curre
    is within the validity window (with the skew rules of
    <a href="#dii-document" class="auto internal xref">Section 3</a>).<a href="#section-6-2.4.5" class="pilcrow">¶</a></p>
 <p id="section-6-2.4.6">
-The Trust Method is satisfied when step 3 succeeds and AT LEAST ONE
-entry matches under (a)-(d). Entry order in <code>authorized_issuers</code>
-carries no semantics: the outcome is the boolean "does any entry
-match," so two consumers evaluating the same policy against the
-same assertion reach the same result regardless of array order or
-of which matching entry they examine first.<a href="#section-6-2.4.6" class="pilcrow">¶</a></p>
+Under a policy whose <code>mode</code> is <code>enforce</code> (the default), the Trust
+Method is satisfied when step 3 succeeds and at least one entry
+matches under (a)-(d); under <code>monitor</code>, see <a href="#monitor-mode" class="auto internal xref">Section 6.1</a>.
+Entry order in <code>authorized_issuers</code> carries no semantics: the
+outcome is the boolean "does any entry match," so two consumers
+evaluating the same policy against the same assertion reach the
+same result regardless of array order or of which matching entry
+they examine first.<a href="#section-6-2.4.6" class="pilcrow">¶</a></p>
 </li>
       </ol>
 <p id="section-6-3">Steps 1 and 2 are prerequisites; their failure causes assertion
-rejection per <a href="#dii-failures" class="auto internal xref">Section 5.1</a> and is not classified as a Trust
-Method satisfaction outcome. On failure, the Resource
-Authorization Server <span class="bcp14">MUST</span> reject the assertion with an OAuth
-<code>invalid_grant</code> error when the cross-category combination rule of
-<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Resource Authorization Server Processing is not met.<a href="#section-6-3" class="pilcrow">¶</a></p>
+rejection per <a href="#dii-failures" class="auto internal xref">Section 5.1</a> unconditionally and is not classified
+as a Trust Method satisfaction outcome. When the Trust Method is not
+satisfied and, as a result, the cross-category combination rule
+(<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Cross-Category Combination Rule) is not met,
+the Resource Authorization Server <span class="bcp14">MUST</span> reject the assertion with an
+OAuth <code>invalid_grant</code> error.<a href="#section-6-3" class="pilcrow">¶</a></p>
 <div id="monitor-mode">
 <section id="section-6.1">
         <h3 id="name-monitor-mode">
@@ -2347,21 +2356,21 @@ Authorization Server <span class="bcp14">MUST</span> reject the assertion with a
         </h3>
 <p id="section-6.1-1">A Subject Authority deploying its first policy cannot easily know
 whether its issuer list is complete; an omission breaks sign-in for
-its users. Monitor mode, following the deployment pattern of DMARC's
-<code>p=none</code>, lets the Subject Authority publish, observe, and then
-enforce.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+its users. Monitor mode, following the deployment pattern of the
+DMARC <span>[<a href="#RFC7489" class="cite xref">RFC7489</a>]</span> <code>p=none</code> policy, lets the Subject Authority
+publish, observe, and then enforce.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
 <p id="section-6.1-2">When the retrieved policy's <code>mode</code> is <code>monitor</code> (<a href="#dii-document" class="auto internal xref">Section 3</a>):<a href="#section-6.1-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-6.1-3.1">
-            <p id="section-6.1-3.1.1">The consumer <span class="bcp14">MUST</span> evaluate steps 3 and 4 normally.<a href="#section-6.1-3.1.1" class="pilcrow">¶</a></p>
+            <p id="section-6.1-3.1.1">The consumer <span class="bcp14">MUST</span> evaluate steps 3 and 4 normally, and <span class="bcp14">SHOULD</span> log
+every evaluation under the monitored policy (Subject Authority,
+assertion issuer, matched or mismatched, timestamp) so the Subject
+Authority can be informed out of band.<a href="#section-6.1-3.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.1-3.2">
             <p id="section-6.1-3.2.1">If no entry matches (including the empty-array explicit-denial
 case), the Trust Method is nevertheless satisfied: the consumer
-<span class="bcp14">MUST NOT</span> reject the assertion on the basis of the mismatch, and
-<span class="bcp14">SHOULD</span> log the monitored outcome (Subject Authority, assertion
-issuer, matched or mismatched, timestamp) so the Subject Authority
-can be informed out of band.<a href="#section-6.1-3.2.1" class="pilcrow">¶</a></p>
+<span class="bcp14">MUST NOT</span> reject the assertion on the basis of the mismatch.<a href="#section-6.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.1-3.3">
             <p id="section-6.1-3.3.1">If an entry matches, the outcome is identical to enforce mode.<a href="#section-6.1-3.3.1" class="pilcrow">¶</a></p>
@@ -2553,8 +2562,8 @@ when the live retrieval is Indeterminate.<a href="#section-8.2-6.3.1" class="pil
 </li>
           <li id="section-8.2-6.4">
             <p id="section-8.2-6.4.1">Verify the fetched policy and match the Assertion Issuer against
-<code>authorized_issuers</code> using steps 3 and 4 of
-<a href="#dii-verification" class="auto internal xref">Section 6</a>.<a href="#section-8.2-6.4.1" class="pilcrow">¶</a></p>
+<code>authorized_issuers</code> using steps 3 and 4 of <a href="#dii-verification" class="auto internal xref">Section 6</a>,
+including <a href="#monitor-mode" class="auto internal xref">Section 6.1</a> when the policy's <code>mode</code> is <code>monitor</code>.<a href="#section-8.2-6.4.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 <p id="section-8.2-7">A Resource Authorization Server uses this variant when it requires
@@ -2797,7 +2806,14 @@ change of policy host.<a href="#section-9.5-2.3.1" class="pilcrow">¶</a></p>
 <p id="section-9.6-1">An attacker who can modify the published policy has a stealthier
 option than adding their own issuer: flipping <code>mode</code> from <code>enforce</code>
 to <code>monitor</code>. The policy remains present and superficially intact,
-but enforcement is silently off (<a href="#monitor-mode" class="auto internal xref">Section 6.1</a>). Consumers <span class="bcp14">SHOULD</span>
+but enforcement is silently off (<a href="#monitor-mode" class="auto internal xref">Section 6.1</a>). A variant
+targets signed policies: because unsigned members absent from the
+signed JWT are not conflict-checked (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Signed
+Policy Metadata), an attacker who can edit the outer document but
+not the JWT can inject an unsigned <code>mode: monitor</code> beside an intact
+signature. Subject Authorities publishing <code>signed_policy</code> <span class="bcp14">SHOULD</span>
+therefore include <code>mode</code> among the signed claims, so that an
+injected outer value is rejected as a conflict. Consumers <span class="bcp14">SHOULD</span>
 surface mode transitions for a given Subject Authority in their
 logs, and Subject Authorities <span class="bcp14">SHOULD</span> monitor their published records
 for unexpected <code>mode</code> changes with the same rigor as for issuer-list
@@ -3449,6 +3465,10 @@ Members).<a href="#section-12.5-3" class="pilcrow">¶</a></p>
 <dt id="RFC7033">[RFC7033]</dt>
         <dd>
 <span class="refAuthor">Jones, P.</span>, <span class="refAuthor">Salgueiro, G.</span>, <span class="refAuthor">Jones, M.</span>, and <span class="refAuthor">J. Smarr</span>, <span class="refTitle">"WebFinger"</span>, <span class="seriesInfo">RFC 7033</span>, <span class="seriesInfo">DOI 10.17487/RFC7033</span>, <time datetime="2013-09" class="refDate">September 2013</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7033">https://www.rfc-editor.org/rfc/rfc7033</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7489">[RFC7489]</dt>
+        <dd>
+<span class="refAuthor">Kucherawy, M., Ed.</span> and <span class="refAuthor">E. Zwicky, Ed.</span>, <span class="refTitle">"Domain-based Message Authentication, Reporting, and Conformance (DMARC)"</span>, <span class="seriesInfo">RFC 7489</span>, <span class="seriesInfo">DOI 10.17487/RFC7489</span>, <time datetime="2015-03" class="refDate">March 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7489">https://www.rfc-editor.org/rfc/rfc7489</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC7523">[RFC7523]</dt>
         <dd>

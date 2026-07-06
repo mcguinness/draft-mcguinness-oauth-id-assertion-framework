@@ -1793,7 +1793,7 @@ intermediates).<a href="#section-2-3.14.1" class="pilcrow">¶</a></p>
         <dt id="section-2-5.1">Resource Authorization Server (RAS):</dt>
         <dd style="margin-left: 1.5em" id="section-2-5.2">
           <p id="section-2-5.2.1">The OAuth authorization server that receives an identity
-assertion as a grant, evaluates the trust policy, and issues
+assertion as a grant, evaluates the Trust Policy, and issues
 access tokens for a protected resource. Not a new OAuth protocol
 role; OAuth readers may read it as "the authorization server
 receiving the assertion grant." The RAS is the Validator.<a href="#section-2-5.2.1" class="pilcrow">¶</a></p>
@@ -2053,11 +2053,13 @@ NXDOMAIN or NODATA with a valid (possibly DNSSEC-signed)
 authoritative answer where DNS is the profile's sole or final
 publication channel, and HTTPS 404 from the authority-bound
 origin. A profile with multiple publication channels for the
-same Authority Source reaches Negative only when every channel
-reports absence (see e.g. <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>). A profile <span class="bcp14">MAY</span> additionally
+same Authority Source reaches Negative only when the channels
+its lookup procedure consults authoritatively report no
+delegation (see e.g. <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>). A profile <span class="bcp14">MAY</span> additionally
 define an explicitly published denial; whether it maps to
-Negative or to an Affirmative retrieval whose evaluation cannot
-succeed is the profile's choice under its state mapping. A
+Negative or to an Affirmative retrieval whose evaluation yields
+no matching delegation is the profile's choice under its state
+mapping. A
 Negative state is itself a decision by the Authority Holder
 (the namespace exists but no delegation is in effect) and
 carries the same normative weight as any other published
@@ -2393,6 +2395,12 @@ statement that the method caches nothing.<a href="#section-4.3.3-2.5.1" class="p
 is <span class="bcp14">REQUIRED</span> or <span class="bcp14">OPTIONAL</span>.<a href="#section-4.3.3-2.6.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
+<p id="section-4.3.3-3">A Trust Method specification <span class="bcp14">MAY</span> define provisional (monitoring)
+enforcement semantics under which the Authority Holder's own
+published policy directs Validators to log rather than reject a
+mismatch (see e.g. <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Monitor Mode). Because the waiver is
+published by the Authority Holder, not carried by the Assertion,
+this does not conflict with <a href="#category-applicability" class="auto internal xref">Section 3.2.1.1</a>.<a href="#section-4.3.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="issuer-authentication-methods">
@@ -2525,10 +2533,10 @@ integration point between the federation and this framework; see
 <a href="#section-4.3.5" class="section-number selfRef">4.3.5. </a><a href="#name-subject-namespace-authoriza" class="section-name selfRef">Subject Namespace Authorization Methods</a>
           </h4>
 <p id="section-4.3.5-1"><code>subject_namespace_authorization</code>-category methods are satisfied
-by evidence published by the Subject Authority itself (typically a
-DNS or HTTPS record under the Subject Authority's domain). The
-namespace-authorization trust graph is bounded to depth one
-(<a href="#transitive-authz-bounded" class="auto internal xref">Section 7.5</a>). Concrete methods in this category
+by evidence originating from the Subject Authority itself (typically
+a DNS or HTTPS record published under the Subject Authority's
+domain). The namespace-authorization trust graph is bounded to depth
+one (<a href="#transitive-authz-bounded" class="auto internal xref">Section 7.5</a>). Concrete methods in this category
 are defined by companion specifications and registered in the
 Trust Methods registry (<a href="#iana-trust-methods-registry" class="auto internal xref">Section 10.1.5</a>).<a href="#section-4.3.5-1" class="pilcrow">¶</a></p>
 </section>
@@ -2574,8 +2582,9 @@ That Assertion Issuer is also a federation member of
 <code>iss: https://idp.example.net</code>:<a href="#section-4.3.6-5" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-4.3.6-6">
 <li id="section-4.3.6-6.1">
-              <p id="section-4.3.6-6.1.1">The Resource Authorization Server resolves both Trust Methods
-are applicable (the Trust Policy lists one in each category).<a href="#section-4.3.6-6.1.1" class="pilcrow">¶</a></p>
+              <p id="section-4.3.6-6.1.1">The Resource Authorization Server determines that both Trust
+Methods are applicable (the Trust Policy lists one in each
+category).<a href="#section-4.3.6-6.1.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-4.3.6-6.2">
               <p id="section-4.3.6-6.2.1"><strong>Authenticity</strong> (<code>issuer_authentication</code> category): the
@@ -2698,7 +2707,7 @@ Subject Identifier format's extraction procedure.<a href="#section-4.4-6" class=
 solution: the IETF DBOUND working group examined the problem of
 determining administrative (organizational) boundaries in the DNS and
 concluded without a standard, and the Public Suffix List remains the
-de facto mechanism (it is used the same way by DMARC organizational-
+de facto mechanism (it is used the same way by DMARC <span>[<a href="#RFC7489" class="cite xref">RFC7489</a>]</span> organizational-
 domain discovery and by cookie same-site rules). This framework
 inherits the PSL's limitations knowingly.<a href="#section-4.4.1-1" class="pilcrow">¶</a></p>
 <p id="section-4.4.1-2">The PSL <span>[<a href="#PSL" class="cite xref">PSL</a>]</span> is updated continuously, and snapshots taken at
@@ -2940,7 +2949,7 @@ and required by the applicable grant profile.<a href="#section-5.1-2.5.1" class=
 Issuer.<a href="#section-5.1-2.6.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
-<p id="section-5.1-3">The client <span class="bcp14">MUST NOT</span> treat the trust policy as a guarantee that a
+<p id="section-5.1-3">The client <span class="bcp14">MUST NOT</span> treat the Trust Policy as a guarantee that a
 particular assertion will be accepted. The Resource Authorization
 Server always applies local policy at token request time.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
 </section>
@@ -2961,7 +2970,7 @@ deterministic per <a href="#multiple-sources" class="auto internal xref">Section
 request, the Resource Authorization Server <span class="bcp14">MUST</span>:<a href="#section-5.2-2" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-5.2-3">
 <li id="section-5.2-3.1">
-            <p id="section-5.2-3.1.1">Select and parse the trust policy that applies to the token request.
+            <p id="section-5.2-3.1.1">Select and parse the Trust Policy that applies to the token request.
 If the policy document is malformed, reject the assertion.
 (Recognition of individual Trust Method objects is handled in
 step 5a.)<a href="#section-5.2-3.1.1" class="pilcrow">¶</a></p>
@@ -3038,7 +3047,7 @@ and sender-constraining; this document does not specify either.<a href="#section
 </li>
         </ol>
 <p id="section-5.2-4">Failure to satisfy issuer trust, subject identifier, or assertion
-claim requirements in the trust policy <span class="bcp14">MUST</span> result in an OAuth
+claim requirements in the Trust Policy <span class="bcp14">MUST</span> result in an OAuth
 <code>invalid_grant</code> error unless another error is defined by the
 applicable grant profile. Detailed trust-evaluation failure state
 <span class="bcp14">MUST NOT</span> be returned to public clients in the OAuth error response;
@@ -3073,7 +3082,7 @@ JWT-bearer assertions are evaluated under <a href="#jwt-bearer-profile" class="a
 <code>urn:ietf:params:oauth:grant-profile:id-jag</code>. The Subject Identifier
 for ID-JAG is the top-level <code>email</code> claim, accompanied by
 <code>email_verified=true</code>, extracted per <a href="#subject-authority-determination" class="auto internal xref">Section 4.4</a>.
-When the trust policy contains a <code>subject_namespace_authorization</code>
+When the Trust Policy contains a <code>subject_namespace_authorization</code>
 method, <a href="#rasp" class="auto internal xref">Section 5.2</a> step 5c requires the ID-JAG to carry that Subject
 Identifier and requires rejection if it is absent or unresolvable.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
 <p id="section-6.1-2">In addition to the processing in <a href="#rasp" class="auto internal xref">Section 5.2</a>, the Resource Authorization
@@ -3355,24 +3364,22 @@ Server's.<a href="#section-7.6-2.4.1" class="pilcrow">¶</a></p>
 compliance regime.<a href="#section-7.6-2.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-7.6-3">The authorization is also not audience-scoped: a Delegation Artifact
-authorizes an issuer for a namespace, not for particular Resource
-Authorization Servers, so a compromised-but-authorized issuer can
-mint assertions about the namespace's subjects for any consumer. A
-future extension may let Authority Holders constrain acceptable
-audiences (see <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Future Extensions).<a href="#section-7.6-3" class="pilcrow">¶</a></p>
-<p id="section-7.6-4">These properties are out of scope and obtained, if needed, through
+<p id="section-7.6-3">These properties are out of scope and obtained, if needed, through
 mechanisms outside this framework (authentication-method/AAL
 claims, fresh-authentication signals, account-status attestations,
 out-of-band verification). In particular, <code>email_verified=true</code> is
 a prerequisite for deriving namespace authority from the email's
-domain; it is not evidence of current mailbox control.<a href="#section-7.6-4" class="pilcrow">¶</a></p>
-<p id="section-7.6-5">The <code>subject_namespace_authorization</code> category constrains which
-Assertion Issuers may assert about a namespace; it does not
-constrain which Resource Authorization Servers an authorized
-Assertion Issuer may target. Audience binding is enforced by the
-assertion's <code>aud</code> claim and the applicable grant profile, not by
-the Subject Authority.<a href="#section-7.6-5" class="pilcrow">¶</a></p>
+domain; it is not evidence of current mailbox control.<a href="#section-7.6-3" class="pilcrow">¶</a></p>
+<p id="section-7.6-4">The authorization is also not audience-scoped: the
+<code>subject_namespace_authorization</code> category constrains which
+Assertion Issuers may assert about a namespace, not which Resource
+Authorization Servers an authorized issuer may target, so a
+compromised-but-authorized issuer can mint assertions about the
+namespace's subjects for any consumer. Audience binding is enforced
+by the assertion's <code>aud</code> claim and the applicable grant profile,
+not by the Subject Authority; a future extension may let Authority
+Holders constrain acceptable audiences (see <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Future
+Extensions).<a href="#section-7.6-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="per-assertion-revocation">
@@ -3463,7 +3470,7 @@ per-subject local requirements, Resource Authorization Servers <span class="bcp1
 enforce differentiated requirements at token request time rather than
 relying on the policy document alone; a client's choice of a weaker
 listed Trust Method is not a protocol violation the client can be
-held to, it is a condition the Resource Authorization Server rejects. The
+held to but a condition the Resource Authorization Server rejects. The
 cross-category combination rule in <a href="#rasp" class="auto internal xref">Section 5.2</a> prevents downgrade across
 categories (for example, satisfying only an <code>issuer_authentication</code>
 method when a <code>subject_namespace_authorization</code> method is also
@@ -3475,7 +3482,7 @@ applicable).<a href="#section-7.10-1" class="pilcrow">¶</a></p>
         <h3 id="name-trust-policy-caching">
 <a href="#section-7.11" class="section-number selfRef">7.11. </a><a href="#name-trust-policy-caching" class="section-name selfRef">Trust Policy Caching</a>
         </h3>
-<p id="section-7.11-1">HTTP caching of the trust policy follows <span>[<a href="#RFC9111" class="cite xref">RFC9111</a>]</span>, subject to
+<p id="section-7.11-1">HTTP caching of the Trust Policy follows <span>[<a href="#RFC9111" class="cite xref">RFC9111</a>]</span>, subject to
 local maximum cache lifetimes. Revocation status of validated trust
 evidence <span class="bcp14">MUST</span> be checked at the cadence required by the applicable
 Trust Method specification, independent of policy-document cache
@@ -3489,7 +3496,7 @@ expiration. Transport integrity is addressed in <a href="#integrity" class="auto
         </h3>
 <p id="section-7.12-1">Trust-policy evaluation is a security-critical decision; deployments
 are encouraged to log, for each processed assertion, at minimum the
-Assertion Issuer identifier, the trust policy URI with its retrieval
+Assertion Issuer identifier, the Trust Policy URI with its retrieval
 time and cache validator (for example, its ETag), the Trust Methods
 that succeeded, the matched trust
 anchor or Issuer Authorization Policy origin, the Subject Identifier
@@ -4099,6 +4106,10 @@ Subject Authorities and Resource Authorization Servers.<a href="#section-10.3-3"
         <dd>
 <span class="refAuthor">Jones, P.</span>, <span class="refAuthor">Salgueiro, G.</span>, <span class="refAuthor">Jones, M.</span>, and <span class="refAuthor">J. Smarr</span>, <span class="refTitle">"WebFinger"</span>, <span class="seriesInfo">RFC 7033</span>, <span class="seriesInfo">DOI 10.17487/RFC7033</span>, <time datetime="2013-09" class="refDate">September 2013</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7033">https://www.rfc-editor.org/rfc/rfc7033</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="RFC7489">[RFC7489]</dt>
+        <dd>
+<span class="refAuthor">Kucherawy, M., Ed.</span> and <span class="refAuthor">E. Zwicky, Ed.</span>, <span class="refTitle">"Domain-based Message Authentication, Reporting, and Conformance (DMARC)"</span>, <span class="seriesInfo">RFC 7489</span>, <span class="seriesInfo">DOI 10.17487/RFC7489</span>, <time datetime="2015-03" class="refDate">March 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7489">https://www.rfc-editor.org/rfc/rfc7489</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC7662">[RFC7662]</dt>
         <dd>
 <span class="refAuthor">Richer, J., Ed.</span>, <span class="refTitle">"OAuth 2.0 Token Introspection"</span>, <span class="seriesInfo">RFC 7662</span>, <span class="seriesInfo">DOI 10.17487/RFC7662</span>, <time datetime="2015-10" class="refDate">October 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7662">https://www.rfc-editor.org/rfc/rfc7662</a>&gt;</span>. </dd>
@@ -4228,8 +4239,9 @@ the issuer presents it with the assertion, in the manner of an
 <code>x5c</code> chain or an OpenID Federation Subordinate Statement.
 Verification becomes offline once the Authority Holder's key is
 known, removing the per-verification lookup from the token path and
-enabling constraints (audiences, scopes, chains) a flat record
-cannot express. The costs are the mirror image: the Authority
+enabling constraints (audiences, scopes, and, if a future revision
+relaxed the depth-1 bound of <a href="#transitive-authz-bounded" class="auto internal xref">Section 7.5</a>,
+delegation chains) a flat record cannot express. The costs are the mirror image: the Authority
 Holder needs key management and signing automation, key discovery
 recurses to a DNS- or HTTPS-anchored channel, and revocation
 requires status checking or short-lived credentials. Nothing in
@@ -4337,11 +4349,13 @@ different question and the cross-category combination rule
 configured. Conflating them is the bug
 (<a href="#applicability-bypass" class="auto internal xref">Section 7.3</a>, <a href="#unverified-claim" class="auto internal xref">Section 7.2</a>).<a href="#appendix-C-7" class="pilcrow">¶</a></p>
 <p id="appendix-C-8"><strong>Q: What if my Subject Authority cannot publish DNS TXT records?</strong><a href="#appendix-C-8" class="pilcrow">¶</a></p>
-<p id="appendix-C-9">Use DAI's HTTPS-only lookup mode (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §HTTPS-Only Deployment
-Variant): the Resource Authorization Server retrieves the policy
-from <code>https://{authority}/.well-known/oauth-issuer-policy</code> directly,
-skipping the <code>_oauth-issuer-policy</code> TXT lookup. A Subject Authority
-with no DNS-named authority at all cannot participate in DAI.<a href="#appendix-C-9" class="pilcrow">¶</a></p>
+<p id="appendix-C-9">Publish only the HTTPS well-known document at
+<code>https://{authority}/.well-known/oauth-issuer-policy</code>: the canonical
+lookup finds it when DNS authoritatively reports no record (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span>
+§Lookup Procedure). Deployments that must avoid DNS on the verifier
+side instead select the HTTPS-only lookup mode in the Trust Policy
+(<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §HTTPS-Only Deployment Variant). A Subject Authority with
+no DNS-named authority at all cannot participate in DAI.<a href="#appendix-C-9" class="pilcrow">¶</a></p>
 <p id="appendix-C-10"><strong>Q: Does this work for path-bearing issuer identifiers
 (<code>https://login.example.com/{tenant}/v2.0</code>)?</strong><a href="#appendix-C-10" class="pilcrow">¶</a></p>
 <p id="appendix-C-11">Yes. <code>domain_authorized_issuer</code> uses case-sensitive URL string
@@ -4409,7 +4423,7 @@ The attacker's <code>email_verified: true</code> self-claim has no force;
 trust derives from the <code>iss</code>-vs-policy check, not from the
 assertion's own statements. <code>attacker.example</code> has no path to
 impersonate users in <code>example.com</code> unless the customer publishes
-them in DAI.<a href="#appendix-D-8" class="pilcrow">¶</a></p>
+them in DAI (the policy shown being in enforce mode, the default).<a href="#appendix-D-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="example-federation-walkthrough">

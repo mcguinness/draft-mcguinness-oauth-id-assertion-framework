@@ -339,8 +339,9 @@ Table of Contents
       policy document; the trust assumption is, respectively, DNSSEC
       validation to the Subject Authority's zone, or the consumer's own
       key-provisioning process.  This document does not define a DNS
-      record format for key publication; deployments using (a) do so via
-      a mechanism agreed with their consumers until one is standardized.
+      record format for key publication; deployments using the DNSSEC-
+      published-key option do so via a mechanism agreed with their
+      consumers until one is standardized.
 
    crit  OPTIONAL.  Array of member names a consumer MUST understand to
       process the policy safely, as defined in [TRUST-FRAMEWORK]
@@ -724,7 +725,11 @@ Table of Contents
        *  Otherwise fetch the JSON policy from that URL per Section 4.4.
           The fetched document is the Issuer Authorization Policy,
           including its mode.  All issuer= and mode= directives across
-          all records are ignored.
+          all records are ignored: their values do not contribute to the
+          policy, but the directive-validity rules of Section 4.3
+          (including mode= consistency) were already applied in step 2a,
+          so a record set malformed under those rules never reaches this
+          step.
 
        c.  Otherwise (no uri= present), construct a virtual Issuer
        Authorization Policy with subject_authority set to A and one
@@ -790,8 +795,9 @@ Table of Contents
     |               | 404 or 410 at the well-known URL; HTTPS 404 or  |
     |               | 410 reached from a DNS uri= pointer; or, under  |
     |               | the HTTPS-only lookup mode (Section 8.2), HTTPS |
-    |               | 404 or 410 at the well-known URL.  The          |
-    |               | Authority Holder publishes no policy at all.    |
+    |               | 404 or 410 at the well-known URL.  No policy is |
+    |               | published at the location(s) the lookup         |
+    |               | consults.                                       |
     +---------------+-------------------------------------------------+
     | Indeterminate | Any other outcome, fail-closed by default.  See |
     |               | enumeration below.                              |
@@ -831,9 +837,9 @@ Table of Contents
 
    The following deterministic conflict rules apply:
 
-   *  Multiple recognized TXT records containing only issuer= directives
-      are merged into a single virtual policy. issuer= values across
-      records are deduplicated into a set; order carries no semantics
+   *  Multiple recognized TXT records containing no uri= directive are
+      merged into a single virtual policy. issuer= values across records
+      are deduplicated into a set; order carries no semantics
       (Section 5, step 2c).
 
    *  If any recognized record contains a uri= directive after
@@ -907,39 +913,41 @@ Table of Contents
        d.  If valid_from or valid_until are present, the current time is
        within the validity window (with the skew rules of Section 3).
 
-       The Trust Method is satisfied when step 3 succeeds and AT LEAST
-       ONE entry matches under (a)-(d).  Entry order in
-       authorized_issuers carries no semantics: the outcome is the
-       boolean "does any entry match," so two consumers evaluating the
-       same policy against the same assertion reach the same result
+       Under a policy whose mode is enforce (the default), the Trust
+       Method is satisfied when step 3 succeeds and at least one entry
+       matches under (a)-(d); under monitor, see Section 6.1.  Entry
+       order in authorized_issuers carries no semantics: the outcome is
+       the boolean "does any entry match," so two consumers evaluating
+       the same policy against the same assertion reach the same result
        regardless of array order or of which matching entry they examine
        first.
 
    Steps 1 and 2 are prerequisites; their failure causes assertion
-   rejection per Section 5.1 and is not classified as a Trust Method
-   satisfaction outcome.  On failure, the Resource Authorization Server
-   MUST reject the assertion with an OAuth invalid_grant error when the
-   cross-category combination rule of [TRUST-FRAMEWORK] §Resource
-   Authorization Server Processing is not met.
+   rejection per Section 5.1 unconditionally and is not classified as a
+   Trust Method satisfaction outcome.  When the Trust Method is not
+   satisfied and, as a result, the cross-category combination rule
+   ([TRUST-FRAMEWORK] §Cross-Category Combination Rule) is not met, the
+   Resource Authorization Server MUST reject the assertion with an OAuth
+   invalid_grant error.
 
 6.1.  Monitor Mode
 
    A Subject Authority deploying its first policy cannot easily know
    whether its issuer list is complete; an omission breaks sign-in for
-   its users.  Monitor mode, following the deployment pattern of DMARC's
-   p=none, lets the Subject Authority publish, observe, and then
-   enforce.
+   its users.  Monitor mode, following the deployment pattern of the
+   DMARC [RFC7489] p=none policy, lets the Subject Authority publish,
+   observe, and then enforce.
 
    When the retrieved policy's mode is monitor (Section 3):
 
-   *  The consumer MUST evaluate steps 3 and 4 normally.
+   *  The consumer MUST evaluate steps 3 and 4 normally, and SHOULD log
+      every evaluation under the monitored policy (Subject Authority,
+      assertion issuer, matched or mismatched, timestamp) so the Subject
+      Authority can be informed out of band.
 
    *  If no entry matches (including the empty-array explicit-denial
       case), the Trust Method is nevertheless satisfied: the consumer
-      MUST NOT reject the assertion on the basis of the mismatch, and
-      SHOULD log the monitored outcome (Subject Authority, assertion
-      issuer, matched or mismatched, timestamp) so the Subject Authority
-      can be informed out of band.
+      MUST NOT reject the assertion on the basis of the mismatch.
 
    *  If an entry matches, the outcome is identical to enforce mode.
 
@@ -1099,7 +1107,8 @@ Table of Contents
        live retrieval is Indeterminate.
 
    4.  Verify the fetched policy and match the Assertion Issuer against
-       authorized_issuers using steps 3 and 4 of Section 6.
+       authorized_issuers using steps 3 and 4 of Section 6, including
+       Section 6.1 when the policy's mode is monitor.
 
    A Resource Authorization Server uses this variant when it requires
    authority publication via HTTPS only and explicitly does not accept
@@ -1286,14 +1295,20 @@ Table of Contents
    An attacker who can modify the published policy has a stealthier
    option than adding their own issuer: flipping mode from enforce to
    monitor.  The policy remains present and superficially intact, but
-   enforcement is silently off (Section 6.1).  Consumers SHOULD surface
-   mode transitions for a given Subject Authority in their logs, and
-   Subject Authorities SHOULD monitor their published records for
-   unexpected mode changes with the same rigor as for issuer-list
-   changes (Section 11).  Because monitor mode accepts any authenticated
-   issuer for the namespace, a policy observed in monitor mode for an
-   extended period SHOULD be treated by operators on both sides as a
-   misconfiguration signal.
+   enforcement is silently off (Section 6.1).  A variant targets signed
+   policies: because unsigned members absent from the signed JWT are not
+   conflict-checked ([TRUST-FRAMEWORK] §Signed Policy Metadata), an
+   attacker who can edit the outer document but not the JWT can inject
+   an unsigned mode: monitor beside an intact signature.  Subject
+   Authorities publishing signed_policy SHOULD therefore include mode
+   among the signed claims, so that an injected outer value is rejected
+   as a conflict.  Consumers SHOULD surface mode transitions for a given
+   Subject Authority in their logs, and Subject Authorities SHOULD
+   monitor their published records for unexpected mode changes with the
+   same rigor as for issuer-list changes (Section 11).  Because monitor
+   mode accepts any authenticated issuer for the namespace, a policy
+   observed in monitor mode for an extended period SHOULD be treated by
+   operators on both sides as a misconfiguration signal.
 
 9.7.  Policy Conflicts and Determinism
 
@@ -1760,6 +1775,11 @@ Table of Contents
    [RFC7033]  Jones, P., Salgueiro, G., Jones, M., and J. Smarr,
               "WebFinger", RFC 7033, DOI 10.17487/RFC7033, September
               2013, <https://www.rfc-editor.org/rfc/rfc7033>.
+
+   [RFC7489]  Kucherawy, M., Ed. and E. Zwicky, Ed., "Domain-based
+              Message Authentication, Reporting, and Conformance
+              (DMARC)", RFC 7489, DOI 10.17487/RFC7489, March 2015,
+              <https://www.rfc-editor.org/rfc/rfc7489>.
 
    [RFC7523]  Jones, M., Campbell, B., and C. Mortimore, "JSON Web Token
               (JWT) Profile for OAuth 2.0 Client Authentication and

@@ -2778,7 +2778,10 @@ support ES256 and <span class="bcp14">SHOULD</span> support EdDSA and ES384; RS2
 <p id="section-4.5-4">Per <span>[<a href="#RFC8725" class="cite xref">RFC8725</a>]</span> §3.11 (cross-context confusion), the JWT <code>typ</code>
 header <span class="bcp14">MUST</span> be <code>trust-policy+jwt</code> for Trust Policy documents or
 <code>issuer-authorization-policy+jwt</code> for Issuer Authorization Policy
-documents.<a href="#section-4.5-4" class="pilcrow">¶</a></p>
+documents. These are the registered media subtypes with the
+<code>application/</code> prefix omitted, per the <span>[<a href="#RFC8725" class="cite xref">RFC8725</a>]</span> §3.11 convention;
+the corresponding media types are registered in
+<a href="#iana-media-types" class="auto internal xref">Section 10.3</a>.<a href="#section-4.5-4" class="pilcrow">¶</a></p>
 <p id="section-4.5-5">The acceptable signer depends on which policy document is signed:<a href="#section-4.5-5" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-4.5-6.1">
@@ -2987,10 +2990,15 @@ used to verify the assertion signature (for example,
 <code>openid_federation</code> requires a federation-resolved JWKS,
 <a href="#trust-method-openid-federation" class="auto internal xref">Section 4.3.4.1</a>). The Resource Authorization
 Server <span class="bcp14">MUST NOT</span> accept the assertion until the signature has been
-verified with a key permitted by every applicable Trust Method;
-a signature validated only against an unconstrained source (such
-as the <code>iss</code> URL's authorization server metadata) does not
-satisfy this step when a Trust Method constrains the key source.<a href="#section-5.2-3.2.1" class="pilcrow">¶</a></p>
+verified with a key permitted by each key-source-constraining
+Trust Method that it relies on to satisfy the combination rule in
+step 5 (not every listed method: under the or-semantics of
+<a href="#combination-rule" class="auto internal xref">Section 3.2.1</a>, a category may be satisfied by one of
+several alternative methods, and only the constraints of the
+method actually relied on apply). A signature validated only
+against an unconstrained source, such as the <code>iss</code> URL's
+authorization server metadata, does not satisfy this step when the
+relied-on Trust Method constrains the key source.<a href="#section-5.2-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-5.2-3.3">
             <p id="section-5.2-3.3.1">Verify that the applicable grant profile is listed in
@@ -3978,14 +3986,18 @@ have a well-defined namespace authority.<a href="#section-10.2-6" class="pilcrow
         </table>
 </section>
 </div>
-<div id="media-type-registrations">
+<div id="iana-media-types">
 <section id="section-10.3">
         <h3 id="name-media-type-registrations">
 <a href="#section-10.3" class="section-number selfRef">10.3. </a><a href="#name-media-type-registrations" class="section-name selfRef">Media Type Registrations</a>
         </h3>
 <p id="section-10.3-1">IANA is requested to register the following media types in the "Media
-Types" registry, used as the JWT <code>typ</code> header values for the signed
-document forms (<a href="#signed-policy-metadata" class="auto internal xref">Section 4.5</a>).<a href="#section-10.3-1" class="pilcrow">¶</a></p>
+Types" registry for the signed document forms
+(<a href="#signed-policy-metadata" class="auto internal xref">Section 4.5</a>). Following <span>[<a href="#RFC8725" class="cite xref">RFC8725</a>]</span> §3.11, the JWT
+<code>typ</code> header value is the media subtype with the <code>application/</code>
+prefix omitted (<code>trust-policy+jwt</code> and
+<code>issuer-authorization-policy+jwt</code>, respectively), as required in
+<a href="#signed-policy-metadata" class="auto internal xref">Section 4.5</a>.<a href="#section-10.3-1" class="pilcrow">¶</a></p>
 <p id="section-10.3-2">For <code>application/trust-policy+jwt</code>: Type name <code>application</code>; Subtype
 name <code>trust-policy+jwt</code>; Required parameters none; Optional parameters
 none; Encoding considerations 8bit (the value is a JWT in JWS Compact

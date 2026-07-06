@@ -126,9 +126,10 @@ Table of Contents
      13.2.  Informative References
    Appendix A.  Design Rationale
      A.1.  Following Existing DNS Authority Patterns
-     A.2.  Why First-Class Tenant Binding
-     A.3.  Choosing Between DNS-Published and HTTPS-Only Authority
-     A.4.  Why HTTPS Fallback
+     A.2.  Why a Generic Record Name
+     A.3.  Why First-Class Tenant Binding
+     A.4.  Choosing Between DNS-Published and HTTPS-Only Authority
+     A.5.  Why HTTPS Fallback
    Appendix B.  Future Extensions
      B.1.  Monitoring Reports
      B.2.  Audience-Scoped Delegations
@@ -1203,7 +1204,7 @@ Table of Contents
       via this mode.
 
    The trade-off between the two lookup modes is discussed in
-   Appendix A.3.
+   Appendix A.4.
 
 9.4.  DNS Integrity and Compromise
 
@@ -1515,6 +1516,9 @@ Table of Contents
    Status:  permanent
 
    Related Information:  None
+
+   The suffix names the document rather than the consuming framework;
+   see Appendix A.2.
 
 12.2.  Underscored DNS Node Name
 
@@ -1854,7 +1858,24 @@ A.1.  Following Existing DNS Authority Patterns
    EVP on a shared record or node name is possible future work;
    Appendix B.3 sketches a bridge.
 
-A.2.  Why First-Class Tenant Binding
+A.2.  Why a Generic Record Name
+
+   The DNS node name, well-known URI suffix, and version token name the
+   document they locate (the Issuer Authorization Policy), not the
+   identity framework consuming it.  The wire format is subject-class-
+   agnostic: no member or directive is specific to email or identity
+   assertions; the subject class is expressed through
+   subject_identifier_formats ([RFC9493]), and the identity-specific
+   machinery lives in [TRUST-FRAMEWORK], whose own well-known URI is
+   identity-scoped for that reason.  A future Subject Identifier format
+   with a DNS-publishable Subject Authority reuses
+   domain_authorized_issuer and this same record ([TRUST-FRAMEWORK]
+   §Future Extensions); an identity-scoped name would force a second
+   record at a second DNS name.  One per-domain policy surface, extended
+   through registered members rather than new names, follows the oauth-
+   authorization-server metadata precedent.
+
+A.3.  Why First-Class Tenant Binding
 
    Shared-issuer multi-tenant Identity Providers (Google Workspace,
    Auth0 in some configurations, Microsoft Entra B2B in some flows)
@@ -1880,7 +1901,7 @@ A.2.  Why First-Class Tenant Binding
    the wire-format expression is simpler than a generic claim-matching
    object.
 
-A.3.  Choosing Between DNS-Published and HTTPS-Only Authority
+A.4.  Choosing Between DNS-Published and HTTPS-Only Authority
 
    Canonical DNS-first lookup and HTTPS-only lookup are not strictly
    ordered by security strength; they trade different risks.  HTTPS-only
@@ -1897,7 +1918,7 @@ A.3.  Choosing Between DNS-Published and HTTPS-Only Authority
    favors the inline DNS form.  A Subject Authority with strong CAA/CT
    monitoring and limited DNS control favors HTTPS-only.
 
-A.4.  Why HTTPS Fallback
+A.5.  Why HTTPS Fallback
 
    The framework supports an HTTPS-hosted Issuer Authorization Policy at
    a well-known URL on the Subject Authority's host.  This serves two

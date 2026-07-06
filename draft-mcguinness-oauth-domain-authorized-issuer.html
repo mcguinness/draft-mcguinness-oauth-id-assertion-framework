@@ -1336,13 +1336,16 @@ Authority Determination concept.<a href="#section-abstract-3" class="pilcrow">¶
                 <p id="section-toc.1-1.14.2.1.1"><a href="#appendix-A.1" class="auto internal xref">A.1</a>.  <a href="#name-following-existing-dns-auth" class="internal xref">Following Existing DNS Authority Patterns</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.2">
-                <p id="section-toc.1-1.14.2.2.1"><a href="#appendix-A.2" class="auto internal xref">A.2</a>.  <a href="#name-why-first-class-tenant-bind" class="internal xref">Why First-Class Tenant Binding</a></p>
+                <p id="section-toc.1-1.14.2.2.1"><a href="#appendix-A.2" class="auto internal xref">A.2</a>.  <a href="#name-why-a-generic-record-name" class="internal xref">Why a Generic Record Name</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.3">
-                <p id="section-toc.1-1.14.2.3.1"><a href="#appendix-A.3" class="auto internal xref">A.3</a>.  <a href="#name-choosing-between-dns-publis" class="internal xref">Choosing Between DNS-Published and HTTPS-Only Authority</a></p>
+                <p id="section-toc.1-1.14.2.3.1"><a href="#appendix-A.3" class="auto internal xref">A.3</a>.  <a href="#name-why-first-class-tenant-bind" class="internal xref">Why First-Class Tenant Binding</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.4">
-                <p id="section-toc.1-1.14.2.4.1"><a href="#appendix-A.4" class="auto internal xref">A.4</a>.  <a href="#name-why-https-fallback" class="internal xref">Why HTTPS Fallback</a></p>
+                <p id="section-toc.1-1.14.2.4.1"><a href="#appendix-A.4" class="auto internal xref">A.4</a>.  <a href="#name-choosing-between-dns-publis" class="internal xref">Choosing Between DNS-Published and HTTPS-Only Authority</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.5">
+                <p id="section-toc.1-1.14.2.5.1"><a href="#appendix-A.5" class="auto internal xref">A.5</a>.  <a href="#name-why-https-fallback" class="internal xref">Why HTTPS Fallback</a></p>
 </li>
             </ul>
 </li>
@@ -2693,7 +2696,7 @@ participate via this mode.<a href="#section-9.3-2.4.1" class="pilcrow">¶</a></p
 </li>
         </ul>
 <p id="section-9.3-3">The trade-off between the two lookup modes is discussed in
-<a href="#rationale-https-only" class="auto internal xref">Appendix A.3</a>.<a href="#section-9.3-3" class="pilcrow">¶</a></p>
+<a href="#rationale-https-only" class="auto internal xref">Appendix A.4</a>.<a href="#section-9.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="dns-integrity-and-compromise">
@@ -3111,6 +3114,8 @@ registry <span>[<a href="#RFC8615" class="cite xref">RFC8615</a>]</span>, for us
 </dd>
         <dd class="break"></dd>
 </dl>
+<p id="section-12.1-3">The suffix names the document rather than the consuming framework;
+see <a href="#rationale-generic-name" class="auto internal xref">Appendix A.2</a>.<a href="#section-12.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="underscored-dns-node-name">
@@ -3546,40 +3551,61 @@ record or node name is possible future work; <a href="#email-verification-protoc
 sketches a bridge.<a href="#appendix-A.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="why-first-class-tenant-binding">
+<div id="rationale-generic-name">
 <section id="appendix-A.2">
-        <h3 id="name-why-first-class-tenant-bind">
-<a href="#appendix-A.2" class="section-number selfRef">A.2. </a><a href="#name-why-first-class-tenant-bind" class="section-name selfRef">Why First-Class Tenant Binding</a>
+        <h3 id="name-why-a-generic-record-name">
+<a href="#appendix-A.2" class="section-number selfRef">A.2. </a><a href="#name-why-a-generic-record-name" class="section-name selfRef">Why a Generic Record Name</a>
         </h3>
-<p id="appendix-A.2-1">Shared-issuer multi-tenant Identity Providers (Google Workspace,
+<p id="appendix-A.2-1">The DNS node name, well-known URI suffix, and version token name the
+document they locate (the Issuer Authorization Policy), not the
+identity framework consuming it. The wire format is
+subject-class-agnostic: no member or directive is specific to email
+or identity assertions; the subject class is expressed through
+<code>subject_identifier_formats</code> (<span>[<a href="#RFC9493" class="cite xref">RFC9493</a>]</span>), and the identity-specific
+machinery lives in <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>, whose own well-known URI is
+identity-scoped for that reason. A future Subject Identifier format
+with a DNS-publishable Subject Authority reuses
+<code>domain_authorized_issuer</code> and this same record
+(<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Future Extensions); an identity-scoped name
+would force a second record at a second DNS name. One per-domain
+policy surface, extended through registered members rather than new
+names, follows the <code>oauth-authorization-server</code> metadata precedent.<a href="#appendix-A.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="why-first-class-tenant-binding">
+<section id="appendix-A.3">
+        <h3 id="name-why-first-class-tenant-bind">
+<a href="#appendix-A.3" class="section-number selfRef">A.3. </a><a href="#name-why-first-class-tenant-bind" class="section-name selfRef">Why First-Class Tenant Binding</a>
+        </h3>
+<p id="appendix-A.3-1">Shared-issuer multi-tenant Identity Providers (Google Workspace,
 Auth0 in some configurations, Microsoft Entra B2B in some flows)
 serve many customer tenants under a single issuer URL. The
 deployment reality is that these Identity Providers are common;
 authorizing them without tenant binding effectively authorizes
 every tenant of the Identity Provider for the namespace, which is
-almost never the intent.<a href="#appendix-A.2-1" class="pilcrow">¶</a></p>
-<p id="appendix-A.2-2">The <code>tenant</code> member on <code>authorized_issuers[]</code> entries binds
+almost never the intent.<a href="#appendix-A.3-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.3-2">The <code>tenant</code> member on <code>authorized_issuers[]</code> entries binds
 authorization to the specific tenant identifier the Identity
 Provider populates in the top-level <code>tenant</code> claim defined in
 <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §6.1. The binding makes the Subject Authority's choice
 of authorized tenant observable on the wire and verifiable per
 assertion. It does not eliminate the trust assumption on the
 Identity Provider's tenant-isolation enforcement; it makes the
-assumption explicit and auditable. See <a href="#dii-multi-tenant" class="auto internal xref">Section 9.10</a>.<a href="#appendix-A.2-2" class="pilcrow">¶</a></p>
-<p id="appendix-A.2-3">A generic claim-matching mechanism (matching arbitrary JWT claims
+assumption explicit and auditable. See <a href="#dii-multi-tenant" class="auto internal xref">Section 9.10</a>.<a href="#appendix-A.3-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.3-3">A generic claim-matching mechanism (matching arbitrary JWT claims
 against publisher-specified values) was considered as an
 alternative. First-class <code>tenant</code> was preferred because the claim
 name is standardized in <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>, the deployment intent is
 unambiguous, and the wire-format expression is simpler than a
-generic claim-matching object.<a href="#appendix-A.2-3" class="pilcrow">¶</a></p>
+generic claim-matching object.<a href="#appendix-A.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="rationale-https-only">
-<section id="appendix-A.3">
+<section id="appendix-A.4">
         <h3 id="name-choosing-between-dns-publis">
-<a href="#appendix-A.3" class="section-number selfRef">A.3. </a><a href="#name-choosing-between-dns-publis" class="section-name selfRef">Choosing Between DNS-Published and HTTPS-Only Authority</a>
+<a href="#appendix-A.4" class="section-number selfRef">A.4. </a><a href="#name-choosing-between-dns-publis" class="section-name selfRef">Choosing Between DNS-Published and HTTPS-Only Authority</a>
         </h3>
-<p id="appendix-A.3-1">Canonical DNS-first lookup and HTTPS-only lookup are not strictly
+<p id="appendix-A.4-1">Canonical DNS-first lookup and HTTPS-only lookup are not strictly
 ordered by security strength; they trade different risks.
 HTTPS-only lookup is resilient to TXT-record attacks but depends on
 apex-hostname resolution plus the public CA trust system; a DNS
@@ -3589,39 +3615,39 @@ misissuance against the apex because the authority artifact is the
 TXT record itself; an attacker needs DNS-write or DNSSEC-bypass
 capability. The DNS pointer form and HTTPS fallback inherit
 TLS-misissuance risk on the pointed-at host while also depending
-on DNS for selection.<a href="#appendix-A.3-1" class="pilcrow">¶</a></p>
-<p id="appendix-A.3-2">A Subject Authority with strong DNSSEC and weak TLS-issuance
+on DNS for selection.<a href="#appendix-A.4-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.4-2">A Subject Authority with strong DNSSEC and weak TLS-issuance
 controls favors the inline DNS form. A Subject Authority with
-strong CAA/CT monitoring and limited DNS control favors HTTPS-only.<a href="#appendix-A.3-2" class="pilcrow">¶</a></p>
+strong CAA/CT monitoring and limited DNS control favors HTTPS-only.<a href="#appendix-A.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="why-https-fallback">
-<section id="appendix-A.4">
+<section id="appendix-A.5">
         <h3 id="name-why-https-fallback">
-<a href="#appendix-A.4" class="section-number selfRef">A.4. </a><a href="#name-why-https-fallback" class="section-name selfRef">Why HTTPS Fallback</a>
+<a href="#appendix-A.5" class="section-number selfRef">A.5. </a><a href="#name-why-https-fallback" class="section-name selfRef">Why HTTPS Fallback</a>
         </h3>
-<p id="appendix-A.4-1">The framework supports an HTTPS-hosted Issuer Authorization Policy
+<p id="appendix-A.5-1">The framework supports an HTTPS-hosted Issuer Authorization Policy
 at a well-known URL on the Subject Authority's host. This serves
-two purposes:<a href="#appendix-A.4-1" class="pilcrow">¶</a></p>
+two purposes:<a href="#appendix-A.5-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-A.4-2.1">
-            <p id="appendix-A.4-2.1.1"><strong>Backward-compatibility runway.</strong> Subject Authorities that
+<li class="normal" id="appendix-A.5-2.1">
+            <p id="appendix-A.5-2.1.1"><strong>Backward-compatibility runway.</strong> Subject Authorities that
 cannot or do not yet operate the DNS record can participate via
 HTTPS publication only. The lookup procedure consults the HTTPS
 well-known URL when the DNS query returns
-<code>negative-authoritative</code> (<a href="#dii-lookup" class="auto internal xref">Section 5</a>).<a href="#appendix-A.4-2.1.1" class="pilcrow">¶</a></p>
+<code>negative-authoritative</code> (<a href="#dii-lookup" class="auto internal xref">Section 5</a>).<a href="#appendix-A.5-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="appendix-A.4-2.2">
-            <p id="appendix-A.4-2.2.1"><strong>Richer policy expression.</strong> The HTTPS form supports the full
+          <li class="normal" id="appendix-A.5-2.2">
+            <p id="appendix-A.5-2.2.1"><strong>Richer policy expression.</strong> The HTTPS form supports the full
 Issuer Authorization Policy JSON schema (validity windows, tenant
 binding, format restrictions) that the inline DNS form cannot
-express.<a href="#appendix-A.4-2.2.1" class="pilcrow">¶</a></p>
+express.<a href="#appendix-A.5-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="appendix-A.4-3">DNS remains the entry point; HTTPS is consulted only as fallback
+<p id="appendix-A.5-3">DNS remains the entry point; HTTPS is consulted only as fallback
 when the DNS query returns <code>negative-authoritative</code>. This preserves
 the DNS-authority pattern as the primary channel while
-accommodating deployment variations.<a href="#appendix-A.4-3" class="pilcrow">¶</a></p>
+accommodating deployment variations.<a href="#appendix-A.5-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>

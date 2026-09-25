@@ -1002,6 +1002,11 @@ requirements:
    definition above). The type in the Entity Configuration entry
    MUST match the type in the validated Trust Mark JWT; the issuer
    is taken from the JWT's `iss` claim, not from the enclosing entry.
+   The trust in the Trust Mark Issuer that {{OIDF-FEDERATION}} §7.3
+   requires before validation MUST be established through a trust
+   chain terminating at the same trust anchor as the leaf's chain
+   (the trust anchor whose `trust_mark_issuers` claim applies when
+   `issuer` is absent).
 
 The proposed Well-Known Binding mechanism {{OIDF-WKB}} illustrates
 the additional key-source path in item 3: it binds a JWK Set to the

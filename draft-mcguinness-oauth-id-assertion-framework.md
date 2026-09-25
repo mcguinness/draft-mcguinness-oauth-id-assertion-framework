@@ -1264,8 +1264,12 @@ The acceptable signer depends on which policy document is signed:
   in the shared-infrastructure trust model of {{shared-infrastructure}},
   where the `jwks_uri` typically traverses the same shared edge as
   the policy document and the key MUST instead be resolved through
-  a channel independent of that edge (federation or local
-  configuration).
+  a channel independent of that edge: local configuration, or a
+  federation key source whose key set is integrity-protected
+  independently of that edge (`jwks` or `signed_jwks_uri` in
+  policy-applied metadata, or an extension-defined digest-bound key
+  set). A federation `jwks_uri` fetched through the shared edge does
+  not qualify.
 
 - For an Issuer Authorization Policy document, the JWT payload MUST
   contain the member that identifies the Subject Authority in the
@@ -1848,9 +1852,7 @@ or its digest binding MUST be controlled by the Subject Authority or
 Resource Authorization Server independently of CDN tenant
 configuration, and MUST be resolvable through a channel independent
 of the shared edge (see the key-resolution requirement in
-{{signed-policy-metadata}}). A federation-authenticated `jwks_uri`
-alone is insufficient if the JWK Set is fetched through that edge
-without independent integrity protection.
+{{signed-policy-metadata}}).
 
 Because the `crit` member ({{critical-members}}) is itself carried in
 the unsigned document, an attacker who can strip `signed_policy` can

@@ -968,13 +968,16 @@ requirements:
    requirement.
 
 3. **Federation-bound key resolution.** The signing key for the
-   identity assertion JWT MUST be taken from a key set whose binding
-   to the leaf's Entity Identifier is authenticated through the
-   validated trust chain. The key sources defined in
-   {{OIDF-FEDERATION}} §5.2.1.1 satisfy this requirement: the `jwks`,
-   `jwks_uri`, or `signed_jwks_uri` value in the leaf's policy-applied
+   identity assertion JWT MUST be taken from a key set that the
+   leaf's policy-applied metadata designates, or that is otherwise
+   bound to the leaf's Entity Identifier through the validated trust
+   chain. The key sources defined in {{OIDF-FEDERATION}} §5.2.1.1
+   satisfy this requirement: the `jwks`, `jwks_uri`, or
+   `signed_jwks_uri` value in the leaf's policy-applied
    `openid_provider` or `oauth_authorization_server` metadata,
-   processed according to that specification. Specifications that
+   processed according to that specification. For `jwks_uri`, the
+   trust chain authenticates the URI, not the key set it returns,
+   which relies on HTTPS to that endpoint. Specifications that
    extend this Trust Method MAY define additional key sources that
    satisfy it. If the policy-applied metadata carries a key source,
    that source is the only one permitted; an extension-defined source
@@ -983,11 +986,9 @@ requirements:
    to an extension-defined source. A JWK Set obtained any other way,
    including from the `jwks_uri` of {{RFC8414}} metadata that no
    qualifying source binds, MUST NOT be used. This prevents a
-   downgrade to an independently discovered key source when the
-   Assertion Issuer's origin is compromised. A `jwks_uri` source
-   still relies on the integrity of the referenced endpoint;
-   authenticating its URI does not authenticate the returned key
-   set independently of HTTPS. If no qualifying key source is
+   downgrade in which an attacker who can alter the Assertion
+   Issuer's {{RFC8414}} metadata, but not its federation metadata,
+   substitutes the key source. If no qualifying key source is
    available, or its binding cannot be verified, the outcome is
    Indeterminate ({{exception-handling}}).
 

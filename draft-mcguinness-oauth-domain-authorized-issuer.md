@@ -53,6 +53,9 @@ informative:
     title: "OpenID Federation Well-Known Binding 1.0"
     target: https://dickhardt.github.io/well-known-binding/main.html
     date: 2026-09-24
+    author:
+      - name: Dick Hardt
+        ins: D. Hardt
   RFC7033:
   RFC7489:
   RFC7523:

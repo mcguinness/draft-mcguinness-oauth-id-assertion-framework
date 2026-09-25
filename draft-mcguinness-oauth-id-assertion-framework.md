@@ -44,9 +44,11 @@ normative:
   OIDF-FEDERATION:
     title: "OpenID Federation 1.1"
     target: https://openid.net/specs/openid-federation-1_1.html
+    date: 2026-05-05
   OIDF-FEDERATION-CONNECT:
     title: "OpenID Federation for OpenID Connect 1.1"
     target: https://openid.net/specs/openid-federation-connect-1_1.html
+    date: 2026-05-05
   ID-JAG:
     title: "Identity Assertion JWT Authorization Grant"
     target: https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/
@@ -60,6 +62,9 @@ informative:
     title: "OpenID Federation Well-Known Binding 1.0"
     target: https://dickhardt.github.io/well-known-binding/main.html
     date: 2026-09-24
+    author:
+      - name: Dick Hardt
+        ins: D. Hardt
   RFC5321:
   RFC6530:
   RFC7009:

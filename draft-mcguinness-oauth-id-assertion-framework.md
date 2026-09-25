@@ -676,9 +676,29 @@ issuer with no path component this yields
 `https://{host}/.well-known/identity-assertion-trust-policy`. If both
 the metadata member and the well-known URI are available and identify
 different documents, the metadata member is authoritative, except
-when the consumer requires a federation-authenticated digest binding
-to the well-known document ({{shared-infrastructure}}); in that case
-the well-known URI governs.
+as follows.
+
+A Resource Authorization Server that is an OpenID Federation Entity
+can provide object-level integrity for its Trust Policy by listing
+the policy's digest in its own Entity Configuration, using an
+extension that defines such a binding (for example, {{OIDF-WKB}}).
+This document does not require implementation of any particular
+digest-binding mechanism; the following requirements apply when a
+consumer relies on one for Trust Policy integrity. The consumer MUST
+fetch the Trust Policy from the well-known URI, even if discovery
+metadata advertises a different URI. A Resource Authorization Server
+that binds its Trust Policy this way and also publishes
+`identity_assertion_trust_policy_uri` MUST set that member to the
+well-known URI. The consumer MUST validate the binding through a
+trust chain to a locally trusted anchor and verify that the Entity
+Identifier and the policy's `resource_authorization_server` value
+both equal the Resource Authorization Server issuer identifier used
+to derive the well-known URI. Missing or unverifiable bindings are
+policy retrieval failures; consumers MUST NOT fall back to an
+unbound copy. Consumers MUST NOT rely on a cached binding beyond the
+Entity Configuration's `exp` or the trust chain's expiry, even if
+the HTTP cache lifetime is longer. {{shared-infrastructure}}
+discusses when such integrity is required and its limits.
 
 A consumer retrieving a Trust Policy document (from either source)
 fetches it with an HTTP GET over HTTPS with TLS server
@@ -1815,7 +1835,7 @@ authentication. Deployments needing integrity beyond TLS use the
 `signed_policy` member ({{signed-policy-metadata}}), with the
 signer binding rules defined there, or an extension-defined
 federation-authenticated digest binding for the Trust Policy
-({{shared-infrastructure}}). Mirrored or cached copies
+({{metadata-publication}}). Mirrored or cached copies
 MUST NOT be relied on beyond their HTTP cache lifetime
 ({{caching}}).
 
@@ -1847,7 +1867,8 @@ outside their trust boundary MUST use object-level cryptographic
 integrity for the policy document itself. This can be the
 `signed_policy` member ({{signed-policy-metadata}}) or, for a Trust
 Policy, an extension-defined digest binding authenticated through
-a validated federation trust chain. The key used to sign the policy
+a validated federation trust chain ({{metadata-publication}}). The
+key used to sign the policy
 or its digest binding MUST be controlled by the Subject Authority or
 Resource Authorization Server independently of CDN tenant
 configuration, and MUST be resolvable through a channel independent
@@ -1867,35 +1888,19 @@ mechanism before acting on the policy, MUST reject a policy whose
 required signature or binding is missing or invalid, and MUST treat a
 valid TLS connection to a shared edge as insufficient by itself.
 
-A consumer that relies on a digest binding in the Resource
-Authorization Server's Entity Configuration for Trust Policy integrity
-MUST fetch the Trust Policy from the well-known URI of
-{{metadata-publication}}, even if discovery metadata advertises a
-different URI. A Resource Authorization Server that binds its Trust
-Policy this way and also publishes `identity_assertion_trust_policy_uri`
-MUST set that member to the well-known URI. The consumer MUST validate
-the binding through a trust chain to a locally trusted anchor and
-verify that the Entity Identifier and the policy's
-`resource_authorization_server` value both equal the Resource
-Authorization Server issuer identifier used to derive the well-known
-URI. Missing or unverifiable bindings
-are policy retrieval failures; consumers MUST NOT fall back to an
-unbound copy. These requirements are conditional on use of a supported
-extension; this document does not require implementation of any
-particular digest-binding mechanism. Consumers MUST NOT rely on a
-cached binding beyond the Entity Configuration's `exp` or the trust
-chain's expiry, even if the HTTP cache lifetime is longer.
-
-The proposed Well-Known Binding mechanism {{OIDF-WKB}} is an example:
-the Entity Configuration lists the Trust Policy's digest under the
-`identity-assertion-trust-policy` well-known suffix. Its integrity
-depends on preserving exact document octets. For a mechanism that
-binds exact octets, publishers SHOULD serve
-such documents with `Cache-Control: no-transform`. A transformation
-that causes a digest mismatch fails closed. During an update, overlap
-between old and new digests permits replay of the superseded policy
-for the overlap period plus the longest remaining lifetime of cached
-Entity Configurations containing the old digest.
+With a Trust Policy digest binding ({{metadata-publication}}), such
+as {{OIDF-WKB}} listing the policy's digest under the
+`identity-assertion-trust-policy` well-known suffix, an edge
+attacker can withhold the policy but cannot substitute it: the
+Entity Configuration must verify under a key that the Superior's
+Subordinate Statement binds ({{OIDF-FEDERATION}} §3.1.1). Such a
+binding depends on preserving exact document octets, and a
+transformation that causes a digest mismatch fails closed;
+publishers SHOULD serve bound documents with
+`Cache-Control: no-transform`. During an update, overlap between
+old and new digests permits replay of the superseded policy for the
+overlap period plus the longest remaining lifetime of cached Entity
+Configurations containing the old digest.
 
 ## Downgrade Attacks {#downgrade}
 

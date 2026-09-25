@@ -2629,7 +2629,9 @@ Federation Entity Keys, and the same Trust Mark as above.
   "sub": "https://idp.partner.example",
   "authority_hints": ["https://sector.example.org"],
   "metadata": {
-    "oauth_authorization_server": {}
+    "oauth_authorization_server": {
+      "issuer": "https://idp.partner.example"
+    }
   },
   "well_known_bindings": {
     "oauth-authorization-server": {
@@ -2648,8 +2650,8 @@ identifies `https://idp.partner.example` as its `issuer` and references
 Intermediate does not supply a protocol key source or require one
 through `metadata_policy`; the `openid_provider` policy shown above
 does not apply to this variant's `oauth_authorization_server` type.
-Any applicable metadata validation still applies; the empty object
-demonstrates only the framework's type-declaration check.
+The Entity Type metadata carries `issuer` but no key source, so
+item 3 selects the extension-defined source.
 
 After validating the trust chain, the consumer verifies the covered
 metadata and JWK Set using the extension's digest rules and checks

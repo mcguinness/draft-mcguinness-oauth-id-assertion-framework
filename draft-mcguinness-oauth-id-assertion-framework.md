@@ -234,12 +234,6 @@ MTA-STS, SPF, DKIM, and the Email Verification Protocol. Background and
 positioning details are in {{relationship-to-oidf}} and
 {{DAI}} §Following Existing DNS Authority Patterns.
 
-The proposed Well-Known Binding mechanism {{OIDF-WKB}} offers an
-extension path for an {{RFC8414}} authorization server to satisfy
-`openid_federation` while continuing to publish its protocol metadata
-at its well-known URI, without moving that metadata into Entity
-Statements ({{trust-method-openid-federation}}).
-
 This framework is distinct from issuer *discovery* mechanisms such as
 WebFinger {{RFC7033}} and OpenID Connect Discovery {{OIDC-DISCOVERY}},
 which answer "given a user identifier, which issuer should a client
@@ -1539,9 +1533,6 @@ claim requirements in the Trust Policy MUST result in an OAuth
 applicable grant profile. Detailed trust-evaluation failure state
 MUST NOT be returned to public clients in the OAuth error response;
 it is a reconnaissance target.
-This framework does not adopt the `trust_mark_required` error
-proposed in {{OIDF-WKB}} for the token endpoint; the grant-profile
-error rule above also applies to unsatisfied Trust Mark requirements.
 
 # Grant Profile and Token Bindings {#bindings}
 
@@ -2253,7 +2244,10 @@ and keys by digest. It illustrates how an {{RFC8414}} authorization
 server can use the extension path in {{trust-method-openid-federation}}
 without moving its protocol metadata into Entity Statements. This
 changes how issuer-authentication evidence is bound, not who holds
-authority over a subject namespace.
+authority over a subject namespace. This framework does not adopt
+the `trust_mark_required` error proposed in {{OIDF-WKB}}; an
+unsatisfied Trust Mark requirement produces the error specified in
+{{rasp}}.
 
 ## Why Bounded-Depth-1 Namespace Authorization
 

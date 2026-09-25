@@ -29,7 +29,7 @@ profiles.
        The Domain-Authorized Issuer Trust Method is defined separately as one
 subject-namespace authorization profile usable by this framework. 
     " name="description">
-<meta content="xml2rfc 3.34.0" name="generator">
+<meta content="xml2rfc 3.34.1" name="generator">
 <meta content="OAuth" name="keyword">
 <meta content="JWT authorization grants" name="keyword">
 <meta content="identity assertion" name="keyword">
@@ -38,19 +38,19 @@ subject-namespace authorization profile usable by this framework.
 <meta content="authority delegation" name="keyword">
 <meta content="draft-mcguinness-oauth-id-assertion-framework-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.34.0
-    Python 3.14.5
-    ConfigArgParse 1.7.5
+  xml2rfc 3.34.1
+    Python 3.14.7
+    ConfigArgParse 1.7.7
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.10.0
+    platformdirs 4.11.10
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.8.2
+    wcwidth 0.8.4
 -->
 <link href="draft-mcguinness-oauth-id-assertion-framework.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -86,7 +86,6 @@ subject-namespace authorization profile usable by this framework.
   src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
   unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
-
 @font-face {
   font-family: 'Lora';
   font-style: italic;
@@ -135,7 +134,6 @@ subject-namespace authorization profile usable by this framework.
   src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
-
 @font-face {
   font-family: 'Lora';
   font-style: normal;
@@ -200,7 +198,6 @@ subject-namespace authorization profile usable by this framework.
   font-display: swap;
   src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
 }
 
 @font-face {
@@ -1456,6 +1453,11 @@ subject-namespace authorization profile usable by this framework.<a href="#secti
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16">
             <p id="section-toc.1-1.16.1"><a href="#appendix-E" class="auto internal xref">Appendix E</a>.  <a href="#name-openid-federation-walkthrou" class="internal xref">OpenID Federation Walkthrough</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16.2.1">
+                <p id="section-toc.1-1.16.2.1.1"><a href="#appendix-E.1" class="auto internal xref">E.1</a>.  <a href="#name-well-known-binding-variant" class="internal xref">Well-Known Binding Variant</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.17">
             <p id="section-toc.1-1.17.1"><a href="#appendix-F" class="auto internal xref">Appendix F</a>.  <a href="#name-document-history" class="internal xref">Document History</a></p>
@@ -1613,7 +1615,12 @@ follows existing DNS authority-publication patterns such as CAA,
 MTA-STS, SPF, DKIM, and the Email Verification Protocol. Background and
 positioning details are in <a href="#relationship-to-oidf" class="auto internal xref">Appendix A.1</a> and
 <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Following Existing DNS Authority Patterns.<a href="#section-1.4-1" class="pilcrow">¶</a></p>
-<p id="section-1.4-2">This framework is distinct from issuer <em>discovery</em> mechanisms such as
+<p id="section-1.4-2">The proposed Well-Known Binding mechanism <span>[<a href="#OIDF-WKB" class="cite xref">OIDF-WKB</a>]</span> offers an
+extension path for an <span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span> authorization server to satisfy
+<code>openid_federation</code> while continuing to publish its protocol metadata
+at its well-known URI, without moving that metadata into Entity
+Statements (<a href="#trust-method-openid-federation" class="auto internal xref">Section 4.3.4.1</a>).<a href="#section-1.4-2" class="pilcrow">¶</a></p>
+<p id="section-1.4-3">This framework is distinct from issuer <em>discovery</em> mechanisms such as
 WebFinger <span>[<a href="#RFC7033" class="cite xref">RFC7033</a>]</span> and OpenID Connect Discovery <span>[<a href="#OIDC-DISCOVERY" class="cite xref">OIDC-DISCOVERY</a>]</span>,
 which answer "given a user identifier, which issuer should a client
 use?" before authentication. This framework answers the verifier-side
@@ -1621,7 +1628,7 @@ question "may this issuer, having already produced an assertion, be
 trusted for this subject's namespace?" Its answer is published per
 namespace, expresses authorization rather than routing, and is
 consumed at verification time. See <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Following Existing DNS
-Authority Patterns.<a href="#section-1.4-2" class="pilcrow">¶</a></p>
+Authority Patterns.<a href="#section-1.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="family">
@@ -2163,7 +2170,10 @@ port, if any) and any path component of the issuer identifier. For an
 issuer with no path component this yields
 <code>https://{host}/.well-known/identity-assertion-trust-policy</code>. If both
 the metadata member and the well-known URI are available and identify
-different documents, the metadata member is authoritative.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
+different documents, the metadata member is authoritative, except
+when the consumer requires a federation-authenticated digest binding
+to the well-known document (<a href="#shared-infrastructure" class="auto internal xref">Section 7.9</a>); in that case
+the well-known URI governs.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
 <p id="section-4.1-5">A consumer retrieving a Trust Policy document (from either source)
 fetches it with an HTTP GET over HTTPS with TLS server
 authentication, subject to the following rules. The consumer <span class="bcp14">MUST NOT</span>
@@ -2431,7 +2441,7 @@ the leaf holds the required Trust Marks.<a href="#section-4.3.4.1-1" class="pilc
   "trust_anchors": ["https://federation.example.org"],
   "trust_marks": [
     {
-      "id": "https://federation.example.org/marks/loa3",
+      "trust_mark_type": "https://federation.example.org/marks/loa3",
       "issuer": "https://federation.example.org"
     }
   ]
@@ -2448,31 +2458,48 @@ entity identifiers.<a href="#section-4.3.4.1-3.2.1" class="pilcrow">¶</a></p>
 <dt id="section-4.3.4.1-3.3"><code>trust_marks</code></dt>
               <dd style="margin-left: 1.5em" id="section-4.3.4.1-3.4">
                 <p id="section-4.3.4.1-3.4.1"><span class="bcp14">OPTIONAL</span>. JSON array of Trust Mark requirement objects. When
-present, the leaf's Entity Configuration <span class="bcp14">MUST</span> include at least one
-Trust Mark satisfying every requirement object listed. Each
+present, each requirement object listed <span class="bcp14">MUST</span> be satisfied by at least
+one Trust Mark in the leaf's Entity Configuration. Each
 requirement object has:<a href="#section-4.3.4.1-3.4.1" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-4.3.4.1-3.4.2">
-                  <dt id="section-4.3.4.1-3.4.2.1"><code>id</code></dt>
+                  <dt id="section-4.3.4.1-3.4.2.1"><code>trust_mark_type</code></dt>
                   <dd style="margin-left: 1.5em" id="section-4.3.4.1-3.4.2.2">
-                    <p id="section-4.3.4.1-3.4.2.2.1"><span class="bcp14">REQUIRED</span>. String. The Trust Mark identifier.<a href="#section-4.3.4.1-3.4.2.2.1" class="pilcrow">¶</a></p>
+                    <p id="section-4.3.4.1-3.4.2.2.1"><span class="bcp14">REQUIRED</span>. String. The Trust Mark type identifier.<a href="#section-4.3.4.1-3.4.2.2.1" class="pilcrow">¶</a></p>
 </dd>
                   <dd class="break"></dd>
 <dt id="section-4.3.4.1-3.4.2.3"><code>issuer</code></dt>
                   <dd style="margin-left: 1.5em" id="section-4.3.4.1-3.4.2.4">
-                    <p id="section-4.3.4.1-3.4.2.4.1"><span class="bcp14">REQUIRED</span>. String. The Entity Identifier of the Trust Mark
-Issuer expected to have signed the Trust Mark.<a href="#section-4.3.4.1-3.4.2.4.1" class="pilcrow">¶</a></p>
+                    <p id="section-4.3.4.1-3.4.2.4.1"><span class="bcp14">OPTIONAL</span>. String. The Entity Identifier of the Trust Mark
+Issuer expected to have signed the Trust Mark. When absent, the
+Trust Mark's <code>iss</code> claim <span class="bcp14">MUST</span> appear in the non-empty array that
+the terminal trust anchor's <code>trust_mark_issuers</code> claim gives for
+that Trust Mark type. If the trust anchor gives no such array,
+or an empty one, the requirement is not satisfied. This
+deliberately narrows OpenID Federation's allowance for any
+issuer when no issuer restriction is published; omitting
+<code>issuer</code> here delegates issuer selection to an explicit trust
+anchor allowlist, not to an unrestricted set of issuers.<a href="#section-4.3.4.1-3.4.2.4.1" class="pilcrow">¶</a></p>
 </dd>
                 <dd class="break"></dd>
 </dl>
 </dd>
             <dd class="break"></dd>
 </dl>
-<p id="section-4.3.4.1-4">The Resource Authorization Server <span class="bcp14">MUST</span> validate the federation
+<p id="section-4.3.4.1-4">The Trust Policy governs Trust Mark requirements for identity
+assertions. A Resource Authorization Server that also advertises
+Trust Mark requirements through discovery metadata <span class="bcp14">SHOULD</span> keep those
+advertisements consistent with this policy; discovery advertisements
+do not replace enforcement of its Trust Method requirements.<a href="#section-4.3.4.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.3.4.1-5">The Resource Authorization Server <span class="bcp14">MUST</span> validate the federation
 trust chain, metadata policy, and Trust Marks per
 <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span>; failure of any is failure of this Trust
-Method.<a href="#section-4.3.4.1-4" class="pilcrow">¶</a></p>
-<p id="section-4.3.4.1-5">Lookup states (<a href="#exception-handling" class="auto internal xref">Section 3.4</a>): a fully validated chain
-terminating at a listed trust anchor is Affirmative. A chain that
+Method.
+Federation <code>metadata_policy</code> constrains Entity Type metadata in
+Entity Statements; it does not constrain the contents of documents
+bound by digest through an extension such as <span>[<a href="#OIDF-WKB" class="cite xref">OIDF-WKB</a>]</span>.<a href="#section-4.3.4.1-5" class="pilcrow">¶</a></p>
+<p id="section-4.3.4.1-6">Lookup states (<a href="#exception-handling" class="auto internal xref">Section 3.4</a>): a fully validated chain
+terminating at a listed trust anchor and satisfying all the
+framework-specific requirements below is Affirmative. A chain that
 validates but establishes non-membership (no path to any listed
 trust anchor, or an Entity Statement that authoritatively excludes
 the leaf) is Negative. Any retrieval or validation failure that
@@ -2483,49 +2510,75 @@ Indeterminate; both Negative and Indeterminate fail closed. Entity
 Statement caching follows the statements' own <code>exp</code> values per
 <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span>, bounded by the consumer's local cache ceiling;
 a cached chain <span class="bcp14">MUST NOT</span> be used past the earliest <code>exp</code> in the
-chain.<a href="#section-4.3.4.1-5" class="pilcrow">¶</a></p>
-<p id="section-4.3.4.1-6">In addition to the procedures in <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span>, the Resource
+chain.<a href="#section-4.3.4.1-6" class="pilcrow">¶</a></p>
+<p id="section-4.3.4.1-7">In addition to the procedures in <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span>, the Resource
 Authorization Server <span class="bcp14">MUST</span> apply the following framework-specific
-requirements:<a href="#section-4.3.4.1-6" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-4.3.4.1-7">
-<li id="section-4.3.4.1-7.1">
-                <p id="section-4.3.4.1-7.1.1"><strong>Trust anchor match.</strong> The terminal trust anchor of the
+requirements:<a href="#section-4.3.4.1-7" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-4.3.4.1-8">
+<li id="section-4.3.4.1-8.1">
+                <p id="section-4.3.4.1-8.1.1"><strong>Trust anchor match.</strong> The terminal trust anchor of the
 validated chain <span class="bcp14">MUST</span> exactly match one of the listed
-<code>trust_anchors</code> values.<a href="#section-4.3.4.1-7.1.1" class="pilcrow">¶</a></p>
+<code>trust_anchors</code> values.<a href="#section-4.3.4.1-8.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li id="section-4.3.4.1-7.2">
-                <p id="section-4.3.4.1-7.2.1"><strong>Entity type constraint.</strong> The leaf's policy-applied federation
+              <li id="section-4.3.4.1-8.2">
+                <p id="section-4.3.4.1-8.2.1"><strong>Entity type constraint.</strong> The leaf's policy-applied federation
 metadata <span class="bcp14">MUST</span> declare one of the entity types <code>openid_provider</code>
-or <code>oauth_authorization_server</code> (<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §5). The
-presence of other entity types alone does not satisfy this
-requirement.<a href="#section-4.3.4.1-7.2.1" class="pilcrow">¶</a></p>
+or <code>oauth_authorization_server</code> (<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span>
+§5.1.2 and §5.1.3). For this type-declaration check, a present
+Entity Type member whose value is an object declares that type,
+even when the object is empty. This does not waive metadata
+validation required by the applicable federation specifications.
+The presence of other entity types alone does not satisfy this
+requirement.<a href="#section-4.3.4.1-8.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li id="section-4.3.4.1-7.3">
-                <p id="section-4.3.4.1-7.3.1"><strong>Federation-bound JWKS resolution.</strong> The signing key for the
-identity assertion JWT <span class="bcp14">MUST</span> be resolved from the leaf's
-policy-applied federation metadata (the <code>jwks</code> or <code>jwks_uri</code>
-value in <code>metadata.openid_provider</code> or
-<code>metadata.oauth_authorization_server</code>). The Resource
-Authorization Server <span class="bcp14">MUST NOT</span> use a JWKS retrieved outside the
-federation (for example, fetched from the assertion <code>iss</code> URL
-via <span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span> Authorization Server Metadata) unless that
-JWKS exactly matches the federation-resolved JWKS. This
-prevents a downgrade attack in which an attacker compromises
-the AS metadata endpoint without compromising the federation
-infrastructure.<a href="#section-4.3.4.1-7.3.1" class="pilcrow">¶</a></p>
+              <li id="section-4.3.4.1-8.3">
+                <p id="section-4.3.4.1-8.3.1"><strong>Federation-bound key resolution.</strong> The signing key for the
+identity assertion JWT <span class="bcp14">MUST</span> be taken from a key set whose binding
+to the leaf's Entity Identifier is authenticated through the
+validated trust chain. The key sources defined in
+<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §5.2.1.1 satisfy this requirement: the <code>jwks</code>,
+<code>jwks_uri</code>, or <code>signed_jwks_uri</code> value in the leaf's policy-applied
+<code>openid_provider</code> or <code>oauth_authorization_server</code> metadata,
+processed according to that specification. Specifications that
+extend this Trust Method <span class="bcp14">MAY</span> define additional key sources that
+satisfy it. If the policy-applied metadata carries a key source,
+that source is the only one permitted; an extension-defined source
+is used only when the metadata carries none. Failure to retrieve
+or validate the metadata's key source <span class="bcp14">MUST NOT</span> trigger fallback
+to an extension-defined source. A JWK Set obtained any other way,
+including from the <code>jwks_uri</code> of <span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span> metadata that no
+qualifying source binds, <span class="bcp14">MUST NOT</span> be used. This prevents a
+downgrade to an independently discovered key source when the
+Assertion Issuer's origin is compromised. A <code>jwks_uri</code> source
+still relies on the integrity of the referenced endpoint;
+authenticating its URI does not authenticate the returned key
+set independently of HTTPS. If no qualifying key source is
+available, or its binding cannot be verified, the outcome is
+Indeterminate (<a href="#exception-handling" class="auto internal xref">Section 3.4</a>).<a href="#section-4.3.4.1-8.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li id="section-4.3.4.1-7.4">
-                <p id="section-4.3.4.1-7.4.1"><strong>Trust Mark satisfaction.</strong> If the Trust Method object
-contains <code>trust_marks</code>, the leaf's Entity Configuration <span class="bcp14">MUST</span>
-include Trust Marks satisfying every requirement object: each
-requirement is satisfied when at least one Trust Mark in the
-leaf's <code>trust_marks</code> array matches both <code>id</code> and <code>issuer</code> and
-validates per <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §7.<a href="#section-4.3.4.1-7.4.1" class="pilcrow">¶</a></p>
+              <li id="section-4.3.4.1-8.4">
+                <p id="section-4.3.4.1-8.4.1"><strong>Trust Mark satisfaction.</strong> If the Trust Method object
+contains <code>trust_marks</code>, each requirement object <span class="bcp14">MUST</span> be satisfied
+by at least one Trust Mark in the leaf's Entity Configuration
+<code>trust_marks</code> claim that validates per <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §7.3,
+whose <code>trust_mark_type</code> equals the requirement's <code>trust_mark_type</code>,
+and whose <code>iss</code> claim equals the requirement's <code>issuer</code> (or, when
+<code>issuer</code> is absent, satisfies the rule in the <code>issuer</code> member
+definition above). The type in the Entity Configuration entry
+<span class="bcp14">MUST</span> match the type in the validated Trust Mark JWT; the issuer
+is taken from the JWT's <code>iss</code> claim, not from the enclosing entry.<a href="#section-4.3.4.1-8.4.1" class="pilcrow">¶</a></p>
 </li>
             </ol>
-<p id="section-4.3.4.1-8">For OpenID Federation deployments, this Trust Method is the primary
+<p id="section-4.3.4.1-9">The proposed Well-Known Binding mechanism <span>[<a href="#OIDF-WKB" class="cite xref">OIDF-WKB</a>]</span> illustrates
+the additional key-source path in item 3: it binds a JWK Set to the
+Entity Identifier by listing its digest in the leaf's Entity
+Configuration. Support for that mechanism is not required by this
+document; a consumer without a supported qualifying key source
+returns Indeterminate. See <a href="#example-federation-walkthrough" class="auto internal xref">Appendix E</a> for
+an illustrative variant.<a href="#section-4.3.4.1-9" class="pilcrow">¶</a></p>
+<p id="section-4.3.4.1-10">For OpenID Federation deployments, this Trust Method is the primary
 integration point between the federation and this framework; see
-<a href="#relationship-to-oidf" class="auto internal xref">Appendix A.1</a> for positioning.<a href="#section-4.3.4.1-8" class="pilcrow">¶</a></p>
+<a href="#relationship-to-oidf" class="auto internal xref">Appendix A.1</a> for positioning.<a href="#section-4.3.4.1-10" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2789,9 +2842,10 @@ the corresponding media types are registered in
 <code>resource_authorization_server</code> claim. The verification key <span class="bcp14">MUST</span> be
 controlled by that Resource Authorization Server. Consumers <span class="bcp14">MAY</span>
 resolve the key from the Resource Authorization Server's
-authorization server metadata <code>jwks_uri</code>, federation entity
-configuration, or local configuration, except in the
-shared-infrastructure trust model of <a href="#shared-infrastructure" class="auto internal xref">Section 7.9</a>,
+authorization server metadata <code>jwks_uri</code>, a protocol key source
+resolved per <a href="#trust-method-openid-federation" class="auto internal xref">Section 4.3.4.1</a> item 3 with a
+consumer-configured trust anchor, or local configuration, except
+in the shared-infrastructure trust model of <a href="#shared-infrastructure" class="auto internal xref">Section 7.9</a>,
 where the <code>jwks_uri</code> typically traverses the same shared edge as
 the policy document and the key <span class="bcp14">MUST</span> instead be resolved through
 a channel independent of that edge (federation or local
@@ -3072,7 +3126,10 @@ claim requirements in the Trust Policy <span class="bcp14">MUST</span> result in
 <code>invalid_grant</code> error unless another error is defined by the
 applicable grant profile. Detailed trust-evaluation failure state
 <span class="bcp14">MUST NOT</span> be returned to public clients in the OAuth error response;
-it is a reconnaissance target.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
+it is a reconnaissance target.
+This framework does not adopt the <code>trust_mark_required</code> error
+proposed in <span>[<a href="#OIDF-WKB" class="cite xref">OIDF-WKB</a>]</span> for the token endpoint; the grant-profile
+error rule above also applies to unsatisfied Trust Mark requirements.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3317,6 +3374,12 @@ publication-channel compromise. Recovery is operational. Profiles
 <span class="bcp14">SHOULD</span> recommend operational defenses appropriate to their
 publication channel (DNSSEC, registry-lock, CAA records,
 Certificate Transparency monitoring, federation key rotation).
+Trust anchor key rollover in <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §11.2 has no
+mandatory hold-down period: a compromised current key can introduce
+a replacement immediately. Operators <span class="bcp14">SHOULD</span> retrieve trust anchor
+keys through an independent channel as recommended in
+<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §11.3; routine rollover alone does not provide
+recovery from trust anchor compromise.
 See <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Security Considerations for the DNS+HTTPS
 publication-channel compromise model.<a href="#section-7.4-2" class="pilcrow">¶</a></p>
 </section>
@@ -3427,7 +3490,9 @@ or short assertion lifetimes at the grant-profile layer.<a href="#section-7.7-1"
 <p id="section-7.8-1">The trust policy <span class="bcp14">MUST</span> be served over HTTPS with TLS server
 authentication. Deployments needing integrity beyond TLS use the
 <code>signed_policy</code> member (<a href="#signed-policy-metadata" class="auto internal xref">Section 4.5</a>), with the
-signer binding rules defined there. Mirrored or cached copies
+signer binding rules defined there, or an extension-defined
+federation-authenticated digest binding for the Trust Policy
+(<a href="#shared-infrastructure" class="auto internal xref">Section 7.9</a>). Mirrored or cached copies
 <span class="bcp14">MUST NOT</span> be relied on beyond their HTTP cache lifetime
 (<a href="#caching" class="auto internal xref">Section 7.11</a>).<a href="#section-7.8-1" class="pilcrow">¶</a></p>
 </section>
@@ -3458,25 +3523,57 @@ control over routing for those paths, authenticated origin access,
 cache invalidation, and tenant isolation. Deployments that host policy
 documents on shared infrastructure and treat the shared edge as
 outside their trust boundary <span class="bcp14">MUST</span> use object-level cryptographic
-integrity for the policy document itself, such as the <code>signed_policy</code>
-member (<a href="#signed-policy-metadata" class="auto internal xref">Section 4.5</a>), rather than relying on the TLS
-channel to the shared edge. The signing key <span class="bcp14">MUST</span> be controlled by the
-Subject Authority or Resource Authorization Server independently of CDN
-tenant configuration, and <span class="bcp14">MUST</span> be resolvable through a channel
-independent of the shared edge (see the key-resolution requirement in
-<a href="#signed-policy-metadata" class="auto internal xref">Section 4.5</a>).<a href="#section-7.9-3" class="pilcrow">¶</a></p>
+integrity for the policy document itself. This can be the
+<code>signed_policy</code> member (<a href="#signed-policy-metadata" class="auto internal xref">Section 4.5</a>) or, for a Trust
+Policy, an extension-defined digest binding authenticated through
+a validated federation trust chain. The key used to sign the policy
+or its digest binding <span class="bcp14">MUST</span> be controlled by the Subject Authority or
+Resource Authorization Server independently of CDN tenant
+configuration, and <span class="bcp14">MUST</span> be resolvable through a channel independent
+of the shared edge (see the key-resolution requirement in
+<a href="#signed-policy-metadata" class="auto internal xref">Section 4.5</a>). A federation-authenticated <code>jwks_uri</code>
+alone is insufficient if the JWK Set is fetched through that edge
+without independent integrity protection.<a href="#section-7.9-3" class="pilcrow">¶</a></p>
 <p id="section-7.9-4">Because the <code>crit</code> member (<a href="#critical-members" class="auto internal xref">Section 4.6</a>) is itself carried in
 the unsigned document, an attacker who can strip <code>signed_policy</code> can
 strip <code>crit</code> with it; publisher-side criticality therefore does not
 defend against stripping by an on-path or edge attacker. A
-<code>signed_policy</code> member is only effective against such an attacker if
-consumers are configured to require it: the attacker can otherwise
-serve an unsigned document, which a consumer not configured to require
-signatures would accept (a signature-stripping downgrade). A consumer
-operating in a shared-infrastructure trust model therefore <span class="bcp14">MUST</span> require
-and verify <code>signed_policy</code> before acting on the policy, <span class="bcp14">MUST</span> reject a
-policy that omits it, and <span class="bcp14">MUST</span> treat a valid TLS connection to a shared
-edge as insufficient by itself.<a href="#section-7.9-4" class="pilcrow">¶</a></p>
+signature or digest binding is only effective against such an attacker
+if consumers are configured to require it: the attacker can otherwise
+serve an unprotected document, which a consumer not configured to require
+integrity would accept. A consumer operating in a shared-infrastructure
+trust model therefore <span class="bcp14">MUST</span> require and verify its configured integrity
+mechanism before acting on the policy, <span class="bcp14">MUST</span> reject a policy whose
+required signature or binding is missing or invalid, and <span class="bcp14">MUST</span> treat a
+valid TLS connection to a shared edge as insufficient by itself.<a href="#section-7.9-4" class="pilcrow">¶</a></p>
+<p id="section-7.9-5">A consumer that relies on a digest binding in the Resource
+Authorization Server's Entity Configuration for Trust Policy integrity
+<span class="bcp14">MUST</span> fetch the Trust Policy from the well-known URI of
+<a href="#metadata-publication" class="auto internal xref">Section 4.1</a>, even if discovery metadata advertises a
+different URI. A Resource Authorization Server that binds its Trust
+Policy this way and also publishes <code>identity_assertion_trust_policy_uri</code>
+          <span class="bcp14">MUST</span> set that member to the well-known URI. The consumer <span class="bcp14">MUST</span> validate
+the binding through a trust chain to a locally trusted anchor and
+verify that the Entity Identifier and the policy's
+<code>resource_authorization_server</code> value both equal the Resource
+Authorization Server issuer identifier used to derive the well-known
+URI. Missing or unverifiable bindings
+are policy retrieval failures; consumers <span class="bcp14">MUST NOT</span> fall back to an
+unbound copy. These requirements are conditional on use of a supported
+extension; this document does not require implementation of any
+particular digest-binding mechanism. Consumers <span class="bcp14">MUST NOT</span> rely on a
+cached binding beyond the Entity Configuration's <code>exp</code> or the trust
+chain's expiry, even if the HTTP cache lifetime is longer.<a href="#section-7.9-5" class="pilcrow">¶</a></p>
+<p id="section-7.9-6">The proposed Well-Known Binding mechanism <span>[<a href="#OIDF-WKB" class="cite xref">OIDF-WKB</a>]</span> is an example:
+the Entity Configuration lists the Trust Policy's digest under the
+<code>identity-assertion-trust-policy</code> well-known suffix. Its integrity
+depends on preserving exact document octets. For a mechanism that
+binds exact octets, publishers <span class="bcp14">SHOULD</span> serve
+such documents with <code>Cache-Control: no-transform</code>. A transformation
+that causes a digest mismatch fails closed. During an update, overlap
+between old and new digests permits replay of the superseded policy
+for the overlap period plus the longest remaining lifetime of cached
+Entity Configurations containing the old digest.<a href="#section-7.9-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="downgrade">
@@ -3812,7 +3909,7 @@ would be ambiguous when methods are combined.<a href="#section-10.1.5-5" class="
                   <code>issuer_authentication</code>
 </td>
                 <td class="text-left" rowspan="1" colspan="1">
-                  <code>trust_anchors</code> (array of string, <span class="bcp14">REQUIRED</span>); <code>trust_marks</code> (array of object, <span class="bcp14">OPTIONAL</span>)</td>
+                  <code>trust_anchors</code> (array of string, <span class="bcp14">REQUIRED</span>); <code>trust_marks</code> (array of object, <span class="bcp14">OPTIONAL</span>; each object has <code>trust_mark_type</code> (string, <span class="bcp14">REQUIRED</span>) and <code>issuer</code> (string, <span class="bcp14">OPTIONAL</span>))</td>
                 <td class="text-left" rowspan="1" colspan="1">IETF</td>
                 <td class="text-left" rowspan="1" colspan="1">This document</td>
               </tr>
@@ -4032,7 +4129,11 @@ Subject Authorities and Resource Authorization Servers.<a href="#section-10.3-3"
 <dd class="break"></dd>
 <dt id="OIDF-FEDERATION">[OIDF-FEDERATION]</dt>
         <dd>
-<span class="refTitle">"OpenID Federation 1.0"</span>, <span>n.d.</span>, <span>&lt;<a href="https://openid.net/specs/openid-federation-1_0.html">https://openid.net/specs/openid-federation-1_0.html</a>&gt;</span>. </dd>
+<span class="refTitle">"OpenID Federation 1.1"</span>, <span>n.d.</span>, <span>&lt;<a href="https://openid.net/specs/openid-federation-1_1.html">https://openid.net/specs/openid-federation-1_1.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="OIDF-FEDERATION-CONNECT">[OIDF-FEDERATION-CONNECT]</dt>
+        <dd>
+<span class="refTitle">"OpenID Federation for OpenID Connect 1.1"</span>, <span>n.d.</span>, <span>&lt;<a href="https://openid.net/specs/openid-federation-connect-1_1.html">https://openid.net/specs/openid-federation-connect-1_1.html</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="PSL">[PSL]</dt>
         <dd>
@@ -4119,6 +4220,10 @@ Subject Authorities and Resource Authorization Servers.<a href="#section-10.3-3"
         <dd>
 <span class="refTitle">"OpenID Connect Discovery 1.0"</span>, <span>n.d.</span>, <span>&lt;<a href="https://openid.net/specs/openid-connect-discovery-1_0.html">https://openid.net/specs/openid-connect-discovery-1_0.html</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="OIDF-WKB">[OIDF-WKB]</dt>
+        <dd>
+<span class="refTitle">"OpenID Federation Well-Known Binding 1.0"</span>, <time datetime="2026-09-24" class="refDate">24 September 2026</time>, <span>&lt;<a href="https://dickhardt.github.io/well-known-binding/main.html">https://dickhardt.github.io/well-known-binding/main.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC5321">[RFC5321]</dt>
         <dd>
 <span class="refAuthor">Klensin, J.</span>, <span class="refTitle">"Simple Mail Transfer Protocol"</span>, <span class="seriesInfo">RFC 5321</span>, <span class="seriesInfo">DOI 10.17487/RFC5321</span>, <time datetime="2008-10" class="refDate">October 2008</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5321">https://www.rfc-editor.org/rfc/rfc5321</a>&gt;</span>. </dd>
@@ -4184,6 +4289,13 @@ authority comes from the orthogonal
 <code>subject_namespace_authorization</code> category. This document does
 not duplicate or replace federation mechanisms; it composes with
 them.<a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-2">The proposed Well-Known Binding mechanism <span>[<a href="#OIDF-WKB" class="cite xref">OIDF-WKB</a>]</span> lets a
+federation Entity authenticate existing well-known protocol metadata
+and keys by digest. It illustrates how an <span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span> authorization
+server can use the extension path in <a href="#trust-method-openid-federation" class="auto internal xref">Section 4.3.4.1</a>
+without moving its protocol metadata into Entity Statements. This
+changes how issuer-authentication evidence is bound, not who holds
+authority over a subject namespace.<a href="#appendix-A.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="why-bounded-depth-1-namespace-authorization">
@@ -4483,7 +4595,7 @@ holding a Level-of-Assurance-3 Trust Mark); end user
       "trust_anchors": ["https://federation.example.org"],
       "trust_marks": [
         {
-          "id": "https://federation.example.org/marks/loa3",
+          "trust_mark_type": "https://federation.example.org/marks/loa3",
           "issuer": "https://federation.example.org"
         }
       ]
@@ -4509,7 +4621,7 @@ illustrative) declares its authority hint and its Trust Mark:<a href="#appendix-
   },
   "trust_marks": [
     {
-      "id": "https://federation.example.org/marks/loa3",
+      "trust_mark_type": "https://federation.example.org/marks/loa3",
       "trust_mark": "eyJ...(JWT signed by federation.example.org)"
     }
   ]
@@ -4517,8 +4629,8 @@ illustrative) declares its authority hint and its Trust Mark:<a href="#appendix-
 </pre><a href="#appendix-E-6" class="pilcrow">¶</a>
 </div>
 <p id="appendix-E-7">The Federation Intermediate's Subordinate Statement about the leaf
-constrains <code>issuer</code> and required auth methods via <code>metadata_policy</code>
-(<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §6):<a href="#appendix-E-7" class="pilcrow">¶</a></p>
+constrains <code>issuer</code> and requires <code>jwks_uri</code> via <code>metadata_policy</code>
+(<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §6.1):<a href="#appendix-E-7" class="pilcrow">¶</a></p>
 <div class="lang-json sourcecode" id="appendix-E-8">
 <pre>
 {
@@ -4575,11 +4687,64 @@ the Resource Authorization Server issues an access token.<a href="#appendix-E-12
 <p id="appendix-E-13"><strong>Selected failure variants.</strong> A chain not terminating at the
 listed trust anchor → <code>invalid_grant</code>. A leaf without the required
 Trust Mark → <code>invalid_grant</code>. A federation-resolved JWKS that
-doesn't match the ID-JAG signing key → <code>invalid_grant</code> (a separate
-JWKS at <code>.well-known/oauth-authorization-server</code> is not consulted,
-preventing AS-metadata downgrade). <code>partner.example</code> not listing
+doesn't match the ID-JAG signing key → <code>invalid_grant</code> (the metadata
+key source takes precedence, so there is no fallback to a separate
+JWKS referenced by <code>.well-known/oauth-authorization-server</code>). Such a
+separate JWKS is eligible only when the policy-applied metadata has
+no key source and a supported extension authenticates its binding to
+the leaf, as in the variant below. <code>partner.example</code> not listing
 the Assertion Issuer in DAI → <code>invalid_grant</code> even though
 federation membership is valid.<a href="#appendix-E-13" class="pilcrow">¶</a></p>
+<div id="well-known-binding-variant">
+<section id="appendix-E.1">
+        <h3 id="name-well-known-binding-variant">
+<a href="#appendix-E.1" class="section-number selfRef">E.1. </a><a href="#name-well-known-binding-variant" class="section-name selfRef">Well-Known Binding Variant</a>
+        </h3>
+<p id="appendix-E.1-1">With the same cast and Trust Policy, a deployment implementing the
+proposed <span>[<a href="#OIDF-WKB" class="cite xref">OIDF-WKB</a>]</span> mechanism could instead publish the following
+leaf Entity Configuration excerpt. Digest strings are placeholders;
+the full Entity Configuration also contains the required timestamps,
+Federation Entity Keys, and the same Trust Mark as above.<a href="#appendix-E.1-1" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-E.1-2">
+<pre>
+{
+  "iss": "https://idp.partner.example",
+  "sub": "https://idp.partner.example",
+  "authority_hints": ["https://sector.example.org"],
+  "metadata": {
+    "oauth_authorization_server": {}
+  },
+  "well_known_bindings": {
+    "oauth-authorization-server": {
+      "digest_alg": "sha-256",
+      "digests": ["&lt;digest of authorization server metadata&gt;"],
+      "jwks_digests": ["&lt;digest of the referenced JWK Set&gt;"]
+    }
+  }
+}
+</pre><a href="#appendix-E.1-2" class="pilcrow">¶</a>
+</div>
+<p id="appendix-E.1-3">The covered <span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span> document at
+<code>https://idp.partner.example/.well-known/oauth-authorization-server</code>
+identifies <code>https://idp.partner.example</code> as its <code>issuer</code> and references
+<code>https://idp.partner.example/jwks</code> in <code>jwks_uri</code>. In this variant, the
+Intermediate does not supply a protocol key source or require one
+through <code>metadata_policy</code>; the <code>openid_provider</code> policy shown above
+does not apply to this variant's <code>oauth_authorization_server</code> type.
+Any applicable metadata validation still applies; the empty object
+demonstrates only the framework's type-declaration check.<a href="#appendix-E.1-3" class="pilcrow">¶</a></p>
+<p id="appendix-E.1-4">After validating the trust chain, the consumer verifies the covered
+metadata and JWK Set using the extension's digest rules and checks
+that the metadata's <code>issuer</code> equals the leaf's Entity Identifier.
+Item 3 then permits the bound JWK Set for assertion verification.
+The Trust Mark and DAI checks are unchanged. Metadata policy does
+not constrain the contents of the covered document. If policy-applied
+Entity Type metadata supplies a key source, item 3 selects that
+source instead; a key mismatch never authorizes fallback. An absent
+binding, digest mismatch, or unsupported extension with no other
+qualifying key source yields Indeterminate and <code>invalid_grant</code>.<a href="#appendix-E.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="document-history">
@@ -4588,10 +4753,30 @@ federation membership is valid.<a href="#appendix-E-13" class="pilcrow">¶</a></
 <a href="#appendix-F" class="section-number selfRef">Appendix F. </a><a href="#name-document-history" class="section-name selfRef">Document History</a>
       </h2>
 <p id="appendix-F-1">This appendix is non-normative and will be removed before publication.<a href="#appendix-F-1" class="pilcrow">¶</a></p>
-<p id="appendix-F-2">-00<a href="#appendix-F-2" class="pilcrow">¶</a></p>
+<p id="appendix-F-2">-01<a href="#appendix-F-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="appendix-F-3.1">
-          <p id="appendix-F-3.1.1">initial draft<a href="#appendix-F-3.1.1" class="pilcrow">¶</a></p>
+          <p id="appendix-F-3.1.1">Align federation references with OpenID Federation 1.1 and
+OpenID Federation for OpenID Connect 1.1; correct Trust Mark
+type and issuer matching and permit explicit trust anchor
+allowlists in place of a pinned Trust Mark issuer.<a href="#appendix-F-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-F-3.2">
+          <p id="appendix-F-3.2.1">Include <code>signed_jwks_uri</code> and an extension path for
+federation-bound key sources, with metadata precedence and
+fail-closed resolution. Well-Known Binding is the expected
+first extension, cited informatively.<a href="#appendix-F-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-F-3.3">
+          <p id="appendix-F-3.3.1">Clarify Trust Policy integrity, publication, caching, and
+discovery requirements for federation-authenticated digest
+bindings, and trust anchor compromise guidance.<a href="#appendix-F-3.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="appendix-F-4">-00<a href="#appendix-F-4" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-F-5.1">
+          <p id="appendix-F-5.1.1">initial draft<a href="#appendix-F-5.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>

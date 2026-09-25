@@ -29,7 +29,7 @@ specification owns the generic Trust Policy document, Trust Method
 category structure, cross-category combination rule, and Subject
 Authority Determination concept. 
     " name="description">
-<meta content="xml2rfc 3.34.0" name="generator">
+<meta content="xml2rfc 3.34.1" name="generator">
 <meta content="OAuth" name="keyword">
 <meta content="JWT authorization grants" name="keyword">
 <meta content="identity assertion" name="keyword">
@@ -37,19 +37,19 @@ Authority Determination concept.
 <meta content="DNS authority" name="keyword">
 <meta content="draft-mcguinness-oauth-domain-authorized-issuer-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.34.0
-    Python 3.14.5
-    ConfigArgParse 1.7.5
+  xml2rfc 3.34.1
+    Python 3.14.7
+    ConfigArgParse 1.7.7
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.10.0
+    platformdirs 4.11.10
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.8.2
+    wcwidth 0.8.4
 -->
 <link href="draft-mcguinness-oauth-domain-authorized-issuer.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -85,7 +85,6 @@ Authority Determination concept.
   src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
   unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
-
 @font-face {
   font-family: 'Lora';
   font-style: italic;
@@ -134,7 +133,6 @@ Authority Determination concept.
   src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
-
 @font-face {
   font-family: 'Lora';
   font-style: normal;
@@ -199,7 +197,6 @@ Authority Determination concept.
   font-display: swap;
   src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
 }
 
 @font-face {
@@ -1353,16 +1350,19 @@ Authority Determination concept.<a href="#section-abstract-3" class="pilcrow">¶
             <p id="section-toc.1-1.15.1"><a href="#appendix-B" class="auto internal xref">Appendix B</a>.  <a href="#name-future-extensions" class="internal xref">Future Extensions</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.1">
-                <p id="section-toc.1-1.15.2.1.1"><a href="#appendix-B.1" class="auto internal xref">B.1</a>.  <a href="#name-monitoring-reports" class="internal xref">Monitoring Reports</a></p>
+                <p id="section-toc.1-1.15.2.1.1"><a href="#appendix-B.1" class="auto internal xref">B.1</a>.  <a href="#name-federation-bound-issuer-aut" class="internal xref">Federation-Bound Issuer Authorization Policy</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.2">
-                <p id="section-toc.1-1.15.2.2.1"><a href="#appendix-B.2" class="auto internal xref">B.2</a>.  <a href="#name-audience-scoped-delegations" class="internal xref">Audience-Scoped Delegations</a></p>
+                <p id="section-toc.1-1.15.2.2.1"><a href="#appendix-B.2" class="auto internal xref">B.2</a>.  <a href="#name-monitoring-reports" class="internal xref">Monitoring Reports</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.3">
-                <p id="section-toc.1-1.15.2.3.1"><a href="#appendix-B.3" class="auto internal xref">B.3</a>.  <a href="#name-email-verification-protocol" class="internal xref">Email Verification Protocol Bridge</a></p>
+                <p id="section-toc.1-1.15.2.3.1"><a href="#appendix-B.3" class="auto internal xref">B.3</a>.  <a href="#name-audience-scoped-delegations" class="internal xref">Audience-Scoped Delegations</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.4">
-                <p id="section-toc.1-1.15.2.4.1"><a href="#appendix-B.4" class="auto internal xref">B.4</a>.  <a href="#name-assertion-issuer-discovery-" class="internal xref">Assertion Issuer Discovery (Client-Side)</a></p>
+                <p id="section-toc.1-1.15.2.4.1"><a href="#appendix-B.4" class="auto internal xref">B.4</a>.  <a href="#name-email-verification-protocol" class="internal xref">Email Verification Protocol Bridge</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15.2.5">
+                <p id="section-toc.1-1.15.2.5.1"><a href="#appendix-B.5" class="auto internal xref">B.5</a>.  <a href="#name-assertion-issuer-discovery-" class="internal xref">Assertion Issuer Discovery (Client-Side)</a></p>
 </li>
             </ul>
 </li>
@@ -3479,6 +3479,10 @@ Members).<a href="#section-12.5-3" class="pilcrow">¶</a></p>
         <dd>
 <span class="refTitle">"OpenID Connect Discovery 1.0"</span>, <span>n.d.</span>, <span>&lt;<a href="https://openid.net/specs/openid-connect-discovery-1_0.html">https://openid.net/specs/openid-connect-discovery-1_0.html</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="OIDF-WKB">[OIDF-WKB]</dt>
+        <dd>
+<span class="refTitle">"OpenID Federation Well-Known Binding 1.0"</span>, <time datetime="2026-09-24" class="refDate">24 September 2026</time>, <span>&lt;<a href="https://dickhardt.github.io/well-known-binding/main.html">https://dickhardt.github.io/well-known-binding/main.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC7033">[RFC7033]</dt>
         <dd>
 <span class="refAuthor">Jones, P.</span>, <span class="refAuthor">Salgueiro, G.</span>, <span class="refAuthor">Jones, M.</span>, and <span class="refAuthor">J. Smarr</span>, <span class="refTitle">"WebFinger"</span>, <span class="seriesInfo">RFC 7033</span>, <span class="seriesInfo">DOI 10.17487/RFC7033</span>, <time datetime="2013-09" class="refDate">September 2013</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7033">https://www.rfc-editor.org/rfc/rfc7033</a>&gt;</span>. </dd>
@@ -3544,7 +3548,7 @@ channel whose control establishes the authority binding, and it
 carries authorization semantics (validity windows, tenant binding,
 format restrictions) that a discovery record does not. A deployment
 could layer client-side discovery on top (see
-<a href="#assertion-issuer-discovery-client-side" class="auto internal xref">Appendix B.4</a>), but that is out of scope
+<a href="#assertion-issuer-discovery-client-side" class="auto internal xref">Appendix B.5</a>), but that is out of scope
 here.<a href="#appendix-A.1-3" class="pilcrow">¶</a></p>
 <p id="appendix-A.1-4">Relationship to the Email Verification Protocol. EVP
 <span>[<a href="#I-D.hardt-email-verification" class="cite xref">I-D.hardt-email-verification</a>]</span> also publishes, in DNS, issuers
@@ -3555,7 +3559,7 @@ in a namespace (a verification-time authorization question). The
 records differ accordingly: DAI uses full issuer identifiers
 (including path components) and PSL-normalized Subject Authorities, and
 carries authorization constraints. Convergence with EVP on a shared
-record or node name is possible future work; <a href="#email-verification-protocol-bridge" class="auto internal xref">Appendix B.3</a>
+record or node name is possible future work; <a href="#email-verification-protocol-bridge" class="auto internal xref">Appendix B.4</a>
 sketches a bridge.<a href="#appendix-A.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -3667,12 +3671,65 @@ accommodating deployment variations.<a href="#appendix-A.5-3" class="pilcrow">¶
       </h2>
 <p id="appendix-B-1">This appendix is non-normative. It sketches features intentionally
 deferred from this document; future specifications may register them.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
-<div id="monitoring-reports">
+<div id="federation-bound-issuer-authorization-policy">
 <section id="appendix-B.1">
-        <h3 id="name-monitoring-reports">
-<a href="#appendix-B.1" class="section-number selfRef">B.1. </a><a href="#name-monitoring-reports" class="section-name selfRef">Monitoring Reports</a>
+        <h3 id="name-federation-bound-issuer-aut">
+<a href="#appendix-B.1" class="section-number selfRef">B.1. </a><a href="#name-federation-bound-issuer-aut" class="section-name selfRef">Federation-Bound Issuer Authorization Policy</a>
         </h3>
-<p id="appendix-B.1-1">Monitor mode (<a href="#monitor-mode" class="auto internal xref">Section 6.1</a>) relies on consumer-side logging with
+<p id="appendix-B.1-1">For deployments where a Subject Authority is a federation Entity,
+a future extension could authenticate the Issuer Authorization Policy
+at <code>https://{A}/.well-known/oauth-issuer-policy</code> through a digest in
+the Subject Authority's Entity Configuration, using a mechanism such
+as the proposed Well-Known Binding specification <span>[<a href="#OIDF-WKB" class="cite xref">OIDF-WKB</a>]</span>. The
+Subject Authority would still author and publish the policy under
+<code>{A}</code>; federation would add integrity protection, not transfer
+namespace authority to a trust anchor. The added protection depends
+on federation enrollment and key control being independent of the
+domain publication channel.<a href="#appendix-B.1-1" class="pilcrow">¶</a></p>
+<p id="appendix-B.1-2">Such an extension would need to define all of the following:<a href="#appendix-B.1-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-B.1-3.1">
+            <p id="appendix-B.1-3.1.1">Coverage of the HTTPS-only lookup mode. Inline DNS TXT policies
+would not be covered; a <code>uri=</code> pointer would be covered only if it
+names the default well-known URL. Digest binding alone would not
+prevent forged Negative DNS answers in DNS-first mode.<a href="#appendix-B.1-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-B.1-3.2">
+            <p id="appendix-B.1-3.2.1">An exact mapping from Subject Authority <code>{A}</code> to Entity Identifier
+<code>https://{A}</code>, without a path or explicit port, so that a subdomain
+Entity cannot speak for the registrable domain.<a href="#appendix-B.1-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-B.1-3.3">
+            <p id="appendix-B.1-3.3.1">A separate trust-anchor parameter on <code>domain_authorized_issuer</code>,
+independent of any <code>openid_federation.trust_anchors</code> configuration
+for the issuer-authentication category.<a href="#appendix-B.1-3.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-B.1-3.4">
+            <p id="appendix-B.1-3.4.1">Indeterminate outcomes for a missing binding, digest mismatch, or
+trust-chain failure, with no fallback to an unbound policy.<a href="#appendix-B.1-3.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-B.1-3.5">
+            <p id="appendix-B.1-3.5.1">A cache lifetime bounded by the minimum of this document's caching
+limits, the Entity Configuration's <code>exp</code>, and the trust chain's
+expiry.<a href="#appendix-B.1-3.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-B.1-3.6">
+            <p id="appendix-B.1-3.6.1">Revocation handling: overlapping old and new digests lets an origin
+attacker replay a policy that still authorizes a revoked issuer.
+Emergency revocations should omit that overlap, while accounting
+for residual exposure from cached Entity Configurations.<a href="#appendix-B.1-3.6.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="appendix-B.1-4">This document does not define that extension or change DAI's lookup,
+authority binding, or integrity mechanisms to depend on federation.<a href="#appendix-B.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="monitoring-reports">
+<section id="appendix-B.2">
+        <h3 id="name-monitoring-reports">
+<a href="#appendix-B.2" class="section-number selfRef">B.2. </a><a href="#name-monitoring-reports" class="section-name selfRef">Monitoring Reports</a>
+        </h3>
+<p id="appendix-B.2-1">Monitor mode (<a href="#monitor-mode" class="auto internal xref">Section 6.1</a>) relies on consumer-side logging with
 out-of-band delivery to the Subject Authority. A future extension can
 define an aggregate reporting mechanism, analogous to DMARC's <code>rua</code>:
 a policy member naming a reporting endpoint, a report format
@@ -3681,15 +3738,15 @@ requirements. It is deferred because report formats and transport
 carry privacy and abuse considerations (a reporting endpoint learns
 which Resource Authorization Servers a namespace's users sign in to,
 concentrating the metadata discussed in <a href="#privacy" class="auto internal xref">Section 10</a>) that deserve
-their own document.<a href="#appendix-B.1-1" class="pilcrow">¶</a></p>
+their own document.<a href="#appendix-B.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="audience-scoped-delegations">
-<section id="appendix-B.2">
+<section id="appendix-B.3">
         <h3 id="name-audience-scoped-delegations">
-<a href="#appendix-B.2" class="section-number selfRef">B.2. </a><a href="#name-audience-scoped-delegations" class="section-name selfRef">Audience-Scoped Delegations</a>
+<a href="#appendix-B.3" class="section-number selfRef">B.3. </a><a href="#name-audience-scoped-delegations" class="section-name selfRef">Audience-Scoped Delegations</a>
         </h3>
-<p id="appendix-B.2-1">An <code>authorized_issuers</code> entry authorizes an issuer for a namespace
+<p id="appendix-B.3-1">An <code>authorized_issuers</code> entry authorizes an issuer for a namespace
 without constraining which Resource Authorization Servers may accept
 the resulting assertions; a compromised-but-listed issuer can assert
 the namespace's users to any consumer (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Scope of
@@ -3699,23 +3756,23 @@ enumerating or pattern-matching acceptable audiences. It is deferred
 because audience identifiers are grant-profile-specific and an
 enumerable audience set does not exist for the open-world deployments
 this mechanism targets; a workable design likely needs audience
-patterns and an interaction rule with the assertion's <code>aud</code> claim.<a href="#appendix-B.2-1" class="pilcrow">¶</a></p>
+patterns and an interaction rule with the assertion's <code>aud</code> claim.<a href="#appendix-B.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="email-verification-protocol-bridge">
-<section id="appendix-B.3">
+<section id="appendix-B.4">
         <h3 id="name-email-verification-protocol">
-<a href="#appendix-B.3" class="section-number selfRef">B.3. </a><a href="#name-email-verification-protocol" class="section-name selfRef">Email Verification Protocol Bridge</a>
+<a href="#appendix-B.4" class="section-number selfRef">B.4. </a><a href="#name-email-verification-protocol" class="section-name selfRef">Email Verification Protocol Bridge</a>
         </h3>
-<p id="appendix-B.3-1">The Email Verification Protocol <span>[<a href="#I-D.hardt-email-verification" class="cite xref">I-D.hardt-email-verification</a>]</span>
+<p id="appendix-B.4-1">The Email Verification Protocol <span>[<a href="#I-D.hardt-email-verification" class="cite xref">I-D.hardt-email-verification</a>]</span>
 defines a DNS TXT record at <code>_email-verification.{domain}</code> whose
 <code>iss=</code> value names an authorized issuer for the namespace, using
 a bare hostname rather than a full HTTPS issuer identifier. A
 future Trust Method (provisionally <code>email_verification_dns</code>)
 could let a Resource Authorization Server honor those records
 without requiring the Subject Authority to also publish an
-<code>_oauth-issuer-policy</code> record.<a href="#appendix-B.3-1" class="pilcrow">¶</a></p>
-<p id="appendix-B.3-2">The bridge is deferred because it forces the reader to learn a
+<code>_oauth-issuer-policy</code> record.<a href="#appendix-B.4-1" class="pilcrow">¶</a></p>
+<p id="appendix-B.4-2">The bridge is deferred because it forces the reader to learn a
 second record format, a different issuer-identifier shape
 (bare-origin only, no path component), and a different
 email-domain semantics (the Email Verification Protocol parses
@@ -3726,15 +3783,15 @@ on its own timeline independent of this document. Deployments wanting the bridge
 both records (an <code>_oauth-issuer-policy</code> record satisfying
 <code>domain_authorized_issuer</code> plus their existing
 <code>_email-verification</code> record for other consumers) or wait for the
-future Trust Method specification.<a href="#appendix-B.3-2" class="pilcrow">¶</a></p>
+future Trust Method specification.<a href="#appendix-B.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="assertion-issuer-discovery-client-side">
-<section id="appendix-B.4">
+<section id="appendix-B.5">
         <h3 id="name-assertion-issuer-discovery-">
-<a href="#appendix-B.4" class="section-number selfRef">B.4. </a><a href="#name-assertion-issuer-discovery-" class="section-name selfRef">Assertion Issuer Discovery (Client-Side)</a>
+<a href="#appendix-B.5" class="section-number selfRef">B.5. </a><a href="#name-assertion-issuer-discovery-" class="section-name selfRef">Assertion Issuer Discovery (Client-Side)</a>
         </h3>
-<p id="appendix-B.4-1">The same DAI records that let a Resource Authorization Server
+<p id="appendix-B.5-1">The same DAI records that let a Resource Authorization Server
 verify an assertion can also let a client discover which Assertion
 Issuer is authoritative for a subject identifier's namespace
 before any assertion exists: given <code>alice@acme.example</code>, a client
@@ -3742,8 +3799,8 @@ can query <code>_oauth-issuer-policy.acme.example</code>, retrieve the Issuer
 Authorization Policy, and resolve an authorized issuer's
 authorization server metadata to find its token endpoint (entry
 order carries no semantics, so issuer selection would need to be
-specified by the profiling document).<a href="#appendix-B.4-1" class="pilcrow">¶</a></p>
-<p id="appendix-B.4-2">This client-side use case is deferred from the first version of
+specified by the profiling document).<a href="#appendix-B.5-1" class="pilcrow">¶</a></p>
+<p id="appendix-B.5-2">This client-side use case is deferred from the first version of
 DAI because it adds a second mental model (back-channel discovery
 vs. verification at token exchange), introduces privacy concerns
 distinct from verification (the discovery query reveals the
@@ -3753,7 +3810,7 @@ Authorization Server implementer's critical path. A future
 specification can profile the discovery flow with appropriate
 privacy guidance and integration with OAuth Authorization Server
 Metadata <span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span> and OpenID Connect Discovery
-<span>[<a href="#OIDC-DISCOVERY" class="cite xref">OIDC-DISCOVERY</a>]</span>.<a href="#appendix-B.4-2" class="pilcrow">¶</a></p>
+<span>[<a href="#OIDC-DISCOVERY" class="cite xref">OIDC-DISCOVERY</a>]</span>.<a href="#appendix-B.5-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>

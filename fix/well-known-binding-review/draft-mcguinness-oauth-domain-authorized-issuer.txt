@@ -131,10 +131,11 @@ Table of Contents
      A.4.  Choosing Between DNS-Published and HTTPS-Only Authority
      A.5.  Why HTTPS Fallback
    Appendix B.  Future Extensions
-     B.1.  Monitoring Reports
-     B.2.  Audience-Scoped Delegations
-     B.3.  Email Verification Protocol Bridge
-     B.4.  Assertion Issuer Discovery (Client-Side)
+     B.1.  Federation-Bound Issuer Authorization Policy
+     B.2.  Monitoring Reports
+     B.3.  Audience-Scoped Delegations
+     B.4.  Email Verification Protocol Bridge
+     B.5.  Assertion Issuer Discovery (Client-Side)
    Appendix C.  DNS-Based Domain-Authorized Issuer End-to-End Example
      C.1.  Cast
      C.2.  Publication
@@ -1789,6 +1790,10 @@ Table of Contents
               <https://openid.net/specs/openid-connect-discovery-
               1_0.html>.
 
+   [OIDF-WKB] "OpenID Federation Well-Known Binding 1.0", 24 September
+              2026, <https://dickhardt.github.io/well-known-binding/
+              main.html>.
+
    [RFC7033]  Jones, P., Salgueiro, G., Jones, M., and J. Smarr,
               "WebFinger", RFC 7033, DOI 10.17487/RFC7033, September
               2013, <https://www.rfc-editor.org/rfc/rfc7033>.
@@ -1851,7 +1856,7 @@ A.1.  Following Existing DNS Authority Patterns
    channel whose control establishes the authority binding, and it
    carries authorization semantics (validity windows, tenant binding,
    format restrictions) that a discovery record does not.  A deployment
-   could layer client-side discovery on top (see Appendix B.4), but that
+   could layer client-side discovery on top (see Appendix B.5), but that
    is out of scope here.
 
    Relationship to the Email Verification Protocol.  EVP
@@ -1864,7 +1869,7 @@ A.1.  Following Existing DNS Authority Patterns
    identifiers (including path components) and PSL-normalized Subject
    Authorities, and carries authorization constraints.  Convergence with
    EVP on a shared record or node name is possible future work;
-   Appendix B.3 sketches a bridge.
+   Appendix B.4 sketches a bridge.
 
 A.2.  Why a Generic Record Name
 
@@ -1953,7 +1958,51 @@ Appendix B.  Future Extensions
    This appendix is non-normative.  It sketches features intentionally
    deferred from this document; future specifications may register them.
 
-B.1.  Monitoring Reports
+B.1.  Federation-Bound Issuer Authorization Policy
+
+   For deployments where a Subject Authority is a federation Entity, a
+   future extension could authenticate the Issuer Authorization Policy
+   at https://{A}/.well-known/oauth-issuer-policy through a digest in
+   the Subject Authority's Entity Configuration, using a mechanism such
+   as the proposed Well-Known Binding specification [OIDF-WKB].  The
+   Subject Authority would still author and publish the policy under
+   {A}; federation would add integrity protection, not transfer
+   namespace authority to a trust anchor.  The added protection depends
+   on federation enrollment and key control being independent of the
+   domain publication channel.
+
+   Such an extension would need to define all of the following:
+
+   *  Coverage of the HTTPS-only lookup mode.  Inline DNS TXT policies
+      would not be covered; a uri= pointer would be covered only if it
+      names the default well-known URL.  Digest binding alone would not
+      prevent forged Negative DNS answers in DNS-first mode.
+
+   *  An exact mapping from Subject Authority {A} to Entity Identifier
+      https://{A}, without a path or explicit port, so that a subdomain
+      Entity cannot speak for the registrable domain.
+
+   *  A separate trust-anchor parameter on domain_authorized_issuer,
+      independent of any openid_federation.trust_anchors configuration
+      for the issuer-authentication category.
+
+   *  Indeterminate outcomes for a missing binding, digest mismatch, or
+      trust-chain failure, with no fallback to an unbound policy.
+
+   *  A cache lifetime bounded by the minimum of this document's caching
+      limits, the Entity Configuration's exp, and the trust chain's
+      expiry.
+
+   *  Revocation handling: overlapping old and new digests lets an
+      origin attacker replay a policy that still authorizes a revoked
+      issuer.  Emergency revocations should omit that overlap, while
+      accounting for residual exposure from cached Entity
+      Configurations.
+
+   This document does not define that extension or change DAI's lookup,
+   authority binding, or integrity mechanisms to depend on federation.
+
+B.2.  Monitoring Reports
 
    Monitor mode (Section 6.1) relies on consumer-side logging with out-
    of-band delivery to the Subject Authority.  A future extension can
@@ -1966,7 +2015,7 @@ B.1.  Monitoring Reports
    concentrating the metadata discussed in Section 10) that deserve
    their own document.
 
-B.2.  Audience-Scoped Delegations
+B.3.  Audience-Scoped Delegations
 
    An authorized_issuers entry authorizes an issuer for a namespace
    without constraining which Resource Authorization Servers may accept
@@ -1980,7 +2029,7 @@ B.2.  Audience-Scoped Delegations
    this mechanism targets; a workable design likely needs audience
    patterns and an interaction rule with the assertion's aud claim.
 
-B.3.  Email Verification Protocol Bridge
+B.4.  Email Verification Protocol Bridge
 
    The Email Verification Protocol [I-D.hardt-email-verification]
    defines a DNS TXT record at _email-verification.{domain} whose iss=
@@ -2003,7 +2052,7 @@ B.3.  Email Verification Protocol Bridge
    verification record for other consumers) or wait for the future Trust
    Method specification.
 
-B.4.  Assertion Issuer Discovery (Client-Side)
+B.5.  Assertion Issuer Discovery (Client-Side)
 
    The same DAI records that let a Resource Authorization Server verify
    an assertion can also let a client discover which Assertion Issuer is

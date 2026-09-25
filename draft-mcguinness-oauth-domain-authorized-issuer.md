@@ -1940,6 +1940,12 @@ security properties and operational guidance for this case are in
 
 This appendix is non-normative and will be removed before publication.
 
+-01
+
+  * Sketch a federation-bound Issuer Authorization Policy as a
+    non-normative future extension; DAI's lookup, authority binding,
+    and integrity mechanisms are unchanged.
+
 -00
 
   * initial draft

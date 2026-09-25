@@ -881,7 +881,7 @@ the leaf holds the required Trust Marks.
   "trust_anchors": ["https://federation.example.org"],
   "trust_marks": [
     {
-      "trust_mark_type": "https://federation.example.org/marks/loa3",
+      "trust_mark_type": "https://federation.example.org/tm/loa3",
       "issuer": "https://federation.example.org"
     }
   ]
@@ -2506,7 +2506,7 @@ holding a Level-of-Assurance-3 Trust Mark); end user
       "trust_anchors": ["https://federation.example.org"],
       "trust_marks": [
         {
-          "trust_mark_type": "https://federation.example.org/marks/loa3",
+          "trust_mark_type": "https://federation.example.org/tm/loa3",
           "issuer": "https://federation.example.org"
         }
       ]
@@ -2532,7 +2532,7 @@ illustrative) declares its authority hint and its Trust Mark:
   },
   "trust_marks": [
     {
-      "trust_mark_type": "https://federation.example.org/marks/loa3",
+      "trust_mark_type": "https://federation.example.org/tm/loa3",
       "trust_mark": "eyJ...(JWT signed by federation.example.org)"
     }
   ]

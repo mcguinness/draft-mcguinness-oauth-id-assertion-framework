@@ -1790,9 +1790,9 @@ Table of Contents
               <https://openid.net/specs/openid-connect-discovery-
               1_0.html>.
 
-   [OIDF-WKB] "OpenID Federation Well-Known Binding 1.0", 24 September
-              2026, <https://dickhardt.github.io/well-known-binding/
-              main.html>.
+   [OIDF-WKB] Hardt, D., "OpenID Federation Well-Known Binding 1.0", 24
+              September 2026, <https://dickhardt.github.io/well-known-
+              binding/main.html>.
 
    [RFC7033]  Jones, P., Salgueiro, G., Jones, M., and J. Smarr,
               "WebFinger", RFC 7033, DOI 10.17487/RFC7033, September
@@ -2278,6 +2278,12 @@ Appendix D.  Document History
 
    This appendix is non-normative and will be removed before
    publication.
+
+   -01
+
+   *  Sketch a federation-bound Issuer Authorization Policy as a non-
+      normative future extension; DAI's lookup, authority binding, and
+      integrity mechanisms are unchanged.
 
    -00
 

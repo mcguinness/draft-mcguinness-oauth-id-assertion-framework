@@ -288,12 +288,6 @@ Table of Contents
    Background and positioning details are in Appendix A.1 and [DAI]
    §Following Existing DNS Authority Patterns.
 
-   The proposed Well-Known Binding mechanism [OIDF-WKB] offers an
-   extension path for an [RFC8414] authorization server to satisfy
-   openid_federation while continuing to publish its protocol metadata
-   at its well-known URI, without moving that metadata into Entity
-   Statements (Section 4.3.4.1).
-
    This framework is distinct from issuer _discovery_ mechanisms such as
    WebFinger [RFC7033] and OpenID Connect Discovery [OIDC-DISCOVERY],
    which answer "given a user identifier, which issuer should a client
@@ -713,10 +707,30 @@ Table of Contents
    issuer identifier.  For an issuer with no path component this yields
    https://{host}/.well-known/identity-assertion-trust-policy.  If both
    the metadata member and the well-known URI are available and identify
-   different documents, the metadata member is authoritative, except
-   when the consumer requires a federation-authenticated digest binding
-   to the well-known document (Section 7.9); in that case the well-known
-   URI governs.
+   different documents, the metadata member is authoritative, except as
+   follows.
+
+   A Resource Authorization Server that is an OpenID Federation Entity
+   can provide object-level integrity for its Trust Policy by listing
+   the policy's digest in its own Entity Configuration, using an
+   extension that defines such a binding (for example, [OIDF-WKB]).
+   This document does not require implementation of any particular
+   digest-binding mechanism; the following requirements apply when a
+   consumer relies on one for Trust Policy integrity.  The consumer MUST
+   fetch the Trust Policy from the well-known URI, even if discovery
+   metadata advertises a different URI.  A Resource Authorization Server
+   that binds its Trust Policy this way and also publishes
+   identity_assertion_trust_policy_uri MUST set that member to the well-
+   known URI.  The consumer MUST validate the binding through a trust
+   chain to a locally trusted anchor and verify that the Entity
+   Identifier and the policy's resource_authorization_server value both
+   equal the Resource Authorization Server issuer identifier used to
+   derive the well-known URI.  Missing or unverifiable bindings are
+   policy retrieval failures; consumers MUST NOT fall back to an unbound
+   copy.  Consumers MUST NOT rely on a cached binding beyond the Entity
+   Configuration's exp or the trust chain's expiry, even if the HTTP
+   cache lifetime is longer.  Section 7.9 discusses when such integrity
+   is required and its limits.
 
    A consumer retrieving a Trust Policy document (from either source)
    fetches it with an HTTP GET over HTTPS with TLS server
@@ -917,7 +931,7 @@ Table of Contents
      "trust_anchors": ["https://federation.example.org"],
      "trust_marks": [
        {
-         "trust_mark_type": "https://federation.example.org/marks/loa3",
+         "trust_mark_type": "https://federation.example.org/tm/loa3",
          "issuer": "https://federation.example.org"
        }
      ]
@@ -947,7 +961,7 @@ Table of Contents
 
    The Trust Policy governs Trust Mark requirements for identity
    assertions.  A Resource Authorization Server that also advertises
-   Trust Mark requirements through discovery metadata SHOULD keep those
+   Trust Mark requirements through discovery metadata should keep those
    advertisements consistent with this policy; discovery advertisements
    do not replace enforcement of its Trust Method requirements.
 
@@ -959,8 +973,7 @@ Table of Contents
    through an extension such as [OIDF-WKB].
 
    Lookup states (Section 3.4): a fully validated chain terminating at a
-   listed trust anchor and satisfying all the framework-specific
-   requirements below is Affirmative.  A chain that validates but
+   listed trust anchor is Affirmative.  A chain that validates but
    establishes non-membership (no path to any listed trust anchor, or an
    Entity Statement that authoritatively excludes the leaf) is Negative.
    Any retrieval or validation failure that prevents a definitive answer
@@ -970,7 +983,15 @@ Table of Contents
    and Indeterminate fail closed.  Entity Statement caching follows the
    statements' own exp values per [OIDF-FEDERATION], bounded by the
    consumer's local cache ceiling; a cached chain MUST NOT be used past
-   the earliest exp in the chain.
+   the earliest exp in the chain.  The framework-specific requirements
+   below are evaluated against an Affirmative chain.  A chain that fails
+   requirement 1 is Negative, as above.  A leaf that does not declare a
+   required entity type (requirement 2), whose assertion signature does
+   not verify under the permitted key source (requirement 3), or that
+   lacks a required Trust Mark (requirement 4) does not satisfy this
+   Trust Method; the lookup state is unchanged.  A key source or
+   required Trust Mark whose retrieval or validation cannot be completed
+   is Indeterminate.
 
    In addition to the procedures in [OIDF-FEDERATION], the Resource
    Authorization Server MUST apply the following framework-specific
@@ -990,28 +1011,28 @@ Table of Contents
        requirement.
 
    3.  *Federation-bound key resolution.* The signing key for the
-       identity assertion JWT MUST be taken from a key set whose binding
-       to the leaf's Entity Identifier is authenticated through the
-       validated trust chain.  The key sources defined in
-       [OIDF-FEDERATION] §5.2.1.1 satisfy this requirement: the jwks,
-       jwks_uri, or signed_jwks_uri value in the leaf's policy-applied
-       openid_provider or oauth_authorization_server metadata, processed
-       according to that specification.  Specifications that extend this
-       Trust Method MAY define additional key sources that satisfy it.
-       If the policy-applied metadata carries a key source, that source
-       is the only one permitted; an extension-defined source is used
-       only when the metadata carries none.  Failure to retrieve or
-       validate the metadata's key source MUST NOT trigger fallback to
-       an extension-defined source.  A JWK Set obtained any other way,
-       including from the jwks_uri of [RFC8414] metadata that no
-       qualifying source binds, MUST NOT be used.  This prevents a
-       downgrade to an independently discovered key source when the
-       Assertion Issuer's origin is compromised.  A jwks_uri source
-       still relies on the integrity of the referenced endpoint;
-       authenticating its URI does not authenticate the returned key set
-       independently of HTTPS.  If no qualifying key source is
-       available, or its binding cannot be verified, the outcome is
-       Indeterminate (Section 3.4).
+       identity assertion JWT MUST be taken from a key set that the
+       leaf's policy-applied metadata designates, or that is otherwise
+       bound to the leaf's Entity Identifier through the validated trust
+       chain.  The key sources defined in [OIDF-FEDERATION] §5.2.1.1
+       satisfy this requirement: the jwks, jwks_uri, or signed_jwks_uri
+       value in the leaf's policy-applied openid_provider or
+       oauth_authorization_server metadata, processed according to that
+       specification.  For jwks_uri, the trust chain authenticates the
+       URI, not the key set it returns, which relies on HTTPS to that
+       endpoint.  Specifications that extend this Trust Method MAY
+       define additional key sources that satisfy it.  If the policy-
+       applied metadata carries a key source, that source is the only
+       one permitted; an extension-defined source is used only when the
+       metadata carries none.  Failure to retrieve or validate the
+       metadata's key source MUST NOT trigger fallback to an extension-
+       defined source.  A JWK Set obtained any other way, including from
+       the jwks_uri of [RFC8414] metadata that no qualifying source
+       binds, MUST NOT be used.  This prevents a downgrade in which an
+       attacker who can alter the Assertion Issuer's [RFC8414] metadata,
+       but not its federation metadata, substitutes the key source.  If
+       no qualifying key source is available, or its binding cannot be
+       verified, the outcome is Indeterminate (Section 3.4).
 
    4.  *Trust Mark satisfaction.* If the Trust Method object contains
        trust_marks, each requirement object MUST be satisfied by at
@@ -1023,6 +1044,11 @@ Table of Contents
        definition above).  The type in the Entity Configuration entry
        MUST match the type in the validated Trust Mark JWT; the issuer
        is taken from the JWT's iss claim, not from the enclosing entry.
+       The trust in the Trust Mark Issuer that [OIDF-FEDERATION] §7.3
+       requires before validation MUST be established through a trust
+       chain terminating at the same trust anchor as the leaf's chain
+       (the trust anchor whose trust_mark_issuers claim applies when
+       issuer is absent).
 
    The proposed Well-Known Binding mechanism [OIDF-WKB] illustrates the
    additional key-source path in item 3: it binds a JWK Set to the
@@ -1266,7 +1292,11 @@ Table of Contents
       infrastructure trust model of Section 7.9, where the jwks_uri
       typically traverses the same shared edge as the policy document
       and the key MUST instead be resolved through a channel independent
-      of that edge (federation or local configuration).
+      of that edge: local configuration, or a federation key source
+      whose key set is integrity-protected independently of that edge
+      (jwks or signed_jwks_uri in policy-applied metadata, or an
+      extension-defined digest-bound key set).  A federation jwks_uri
+      fetched through the shared edge does not qualify.
 
    *  For an Issuer Authorization Policy document, the JWT payload MUST
       contain the member that identifies the Subject Authority in the
@@ -1510,10 +1540,7 @@ Table of Contents
    invalid_grant error unless another error is defined by the applicable
    grant profile.  Detailed trust-evaluation failure state MUST NOT be
    returned to public clients in the OAuth error response; it is a
-   reconnaissance target.  This framework does not adopt the
-   trust_mark_required error proposed in [OIDF-WKB] for the token
-   endpoint; the grant-profile error rule above also applies to
-   unsatisfied Trust Mark requirements.
+   reconnaissance target.
 
 6.  Grant Profile and Token Bindings
 
@@ -1724,9 +1751,10 @@ Table of Contents
    Transparency monitoring, federation key rotation).  Trust anchor key
    rollover in [OIDF-FEDERATION] §11.2 has no mandatory hold-down
    period: a compromised current key can introduce a replacement
-   immediately.  Operators SHOULD retrieve trust anchor keys through an
-   independent channel as recommended in [OIDF-FEDERATION] §11.3;
-   routine rollover alone does not provide recovery from trust anchor
+   immediately.  Resource Authorization Servers SHOULD obtain trust
+   anchor keys through an independent channel where the Federation
+   Operator provides one, as [OIDF-FEDERATION] §11.3 recommends; routine
+   rollover alone does not provide recovery from trust anchor
    compromise.  See [DAI] §Security Considerations for the DNS+HTTPS
    publication-channel compromise model.
 
@@ -1811,7 +1839,7 @@ Table of Contents
    authentication.  Deployments needing integrity beyond TLS use the
    signed_policy member (Section 4.5), with the signer binding rules
    defined there, or an extension-defined federation-authenticated
-   digest binding for the Trust Policy (Section 7.9).  Mirrored or
+   digest binding for the Trust Policy (Section 4.1).  Mirrored or
    cached copies MUST NOT be relied on beyond their HTTP cache lifetime
    (Section 7.11).
 
@@ -1843,14 +1871,12 @@ Table of Contents
    integrity for the policy document itself.  This can be the
    signed_policy member (Section 4.5) or, for a Trust Policy, an
    extension-defined digest binding authenticated through a validated
-   federation trust chain.  The key used to sign the policy or its
-   digest binding MUST be controlled by the Subject Authority or
-   Resource Authorization Server independently of CDN tenant
-   configuration, and MUST be resolvable through a channel independent
-   of the shared edge (see the key-resolution requirement in
-   Section 4.5).  A federation-authenticated jwks_uri alone is
-   insufficient if the JWK Set is fetched through that edge without
-   independent integrity protection.
+   federation trust chain (Section 4.1).  The key used to sign the
+   policy or its digest binding MUST be controlled by the Subject
+   Authority or Resource Authorization Server independently of CDN
+   tenant configuration, and MUST be resolvable through a channel
+   independent of the shared edge (see the key-resolution requirement in
+   Section 4.5).
 
    Because the crit member (Section 4.6) is itself carried in the
    unsigned document, an attacker who can strip signed_policy can strip
@@ -1866,33 +1892,17 @@ Table of Contents
    invalid, and MUST treat a valid TLS connection to a shared edge as
    insufficient by itself.
 
-   A consumer that relies on a digest binding in the Resource
-   Authorization Server's Entity Configuration for Trust Policy
-   integrity MUST fetch the Trust Policy from the well-known URI of
-   Section 4.1, even if discovery metadata advertises a different URI.
-   A Resource Authorization Server that binds its Trust Policy this way
-   and also publishes identity_assertion_trust_policy_uri MUST set that
-   member to the well-known URI.  The consumer MUST validate the binding
-   through a trust chain to a locally trusted anchor and verify that the
-   Entity Identifier and the policy's resource_authorization_server
-   value both equal the Resource Authorization Server issuer identifier
-   used to derive the well-known URI.  Missing or unverifiable bindings
-   are policy retrieval failures; consumers MUST NOT fall back to an
-   unbound copy.  These requirements are conditional on use of a
-   supported extension; this document does not require implementation of
-   any particular digest-binding mechanism.  Consumers MUST NOT rely on
-   a cached binding beyond the Entity Configuration's exp or the trust
-   chain's expiry, even if the HTTP cache lifetime is longer.
-
-   The proposed Well-Known Binding mechanism [OIDF-WKB] is an example:
-   the Entity Configuration lists the Trust Policy's digest under the
-   identity-assertion-trust-policy well-known suffix.  Its integrity
-   depends on preserving exact document octets.  For a mechanism that
-   binds exact octets, publishers SHOULD serve such documents with
-   Cache-Control: no-transform.  A transformation that causes a digest
-   mismatch fails closed.  During an update, overlap between old and new
-   digests permits replay of the superseded policy for the overlap
-   period plus the longest remaining lifetime of cached Entity
+   With a Trust Policy digest binding (Section 4.1), such as [OIDF-WKB]
+   listing the policy's digest under the identity-assertion-trust-policy
+   well-known suffix, an edge attacker can withhold the policy but
+   cannot substitute it: the Entity Configuration must verify under a
+   key that the Superior's Subordinate Statement binds
+   ([OIDF-FEDERATION] §3.1.1).  Such a binding depends on preserving
+   exact document octets, and a transformation that causes a digest
+   mismatch fails closed; publishers SHOULD serve bound documents with
+   Cache-Control: no-transform.  During an update, overlap between old
+   and new digests permits replay of the superseded policy for the
+   overlap period plus the longest remaining lifetime of cached Entity
    Configurations containing the old digest.
 
 7.10.  Downgrade Attacks
@@ -2108,25 +2118,21 @@ Table of Contents
 
    Initial entries:
 
-   +=================+=====================+===============+==========+=========+
-   |Identifier       |Categories           |Parameters     |Change    |Reference|
-   |                 |                     |               |Controller|         |
-   +=================+=====================+===============+==========+=========+
-   |openid_federation|issuer_authentication|trust_anchors  |IETF      |This     |
-   |                 |                     |(array of      |          |document |
-   |                 |                     |string,        |          |         |
-   |                 |                     |REQUIRED);     |          |         |
-   |                 |                     |trust_marks    |          |         |
-   |                 |                     |(array of      |          |         |
-   |                 |                     |object,        |          |         |
-   |                 |                     |OPTIONAL; each |          |         |
-   |                 |                     |object has     |          |         |
-   |                 |                     |trust_mark_type|          |         |
-   |                 |                     |(string,       |          |         |
-   |                 |                     |REQUIRED) and  |          |         |
-   |                 |                     |issuer (string,|          |         |
-   |                 |                     |OPTIONAL))     |          |         |
-   +-----------------+---------------------+---------------+----------+---------+
+   +=================+=====================+=============+==========+=========+
+   |Identifier       |Categories           |Parameters   |Change    |Reference|
+   |                 |                     |             |Controller|         |
+   +=================+=====================+=============+==========+=========+
+   |openid_federation|issuer_authentication|trust_anchors|IETF      |This     |
+   |                 |                     |(array of    |          |document |
+   |                 |                     |string,      |          |         |
+   |                 |                     |REQUIRED);   |          |         |
+   |                 |                     |trust_marks  |          |         |
+   |                 |                     |(array of    |          |         |
+   |                 |                     |object,      |          |         |
+   |                 |                     |OPTIONAL; see|          |         |
+   |                 |                     |Section      |          |         |
+   |                 |                     |4.3.4.1)     |          |         |
+   +-----------------+---------------------+-------------+----------+---------+
 
                                   Table 2
 
@@ -2279,11 +2285,11 @@ Table of Contents
               identity-assertion-authz-grant/>.
 
    [OIDF-FEDERATION]
-              "OpenID Federation 1.1", n.d.,
+              "OpenID Federation 1.1", 5 May 2026,
               <https://openid.net/specs/openid-federation-1_1.html>.
 
    [OIDF-FEDERATION-CONNECT]
-              "OpenID Federation for OpenID Connect 1.1", n.d.,
+              "OpenID Federation for OpenID Connect 1.1", 5 May 2026,
               <https://openid.net/specs/openid-federation-connect-
               1_1.html>.
 
@@ -2375,9 +2381,9 @@ Table of Contents
               <https://openid.net/specs/openid-connect-discovery-
               1_0.html>.
 
-   [OIDF-WKB] "OpenID Federation Well-Known Binding 1.0", 24 September
-              2026, <https://dickhardt.github.io/well-known-binding/
-              main.html>.
+   [OIDF-WKB] Hardt, D., "OpenID Federation Well-Known Binding 1.0", 24
+              September 2026, <https://dickhardt.github.io/well-known-
+              binding/main.html>.
 
    [RFC5321]  Klensin, J., "Simple Mail Transfer Protocol", RFC 5321,
               DOI 10.17487/RFC5321, October 2008,
@@ -2443,7 +2449,9 @@ A.1.  Relationship to OpenID Federation
    server can use the extension path in Section 4.3.4.1 without moving
    its protocol metadata into Entity Statements.  This changes how
    issuer-authentication evidence is bound, not who holds authority over
-   a subject namespace.
+   a subject namespace.  This framework does not adopt the
+   trust_mark_required error proposed in [OIDF-WKB]; an unsatisfied
+   Trust Mark requirement produces the error specified in Section 5.2.
 
 A.2.  Why Bounded-Depth-1 Namespace Authorization
 
@@ -2702,7 +2710,7 @@ Appendix E.  OpenID Federation Walkthrough
          "trust_anchors": ["https://federation.example.org"],
          "trust_marks": [
            {
-             "trust_mark_type": "https://federation.example.org/marks/loa3",
+             "trust_mark_type": "https://federation.example.org/tm/loa3",
              "issuer": "https://federation.example.org"
            }
          ]
@@ -2726,7 +2734,7 @@ Appendix E.  OpenID Federation Walkthrough
      },
      "trust_marks": [
        {
-         "trust_mark_type": "https://federation.example.org/marks/loa3",
+         "trust_mark_type": "https://federation.example.org/tm/loa3",
          "trust_mark": "eyJ...(JWT signed by federation.example.org)"
        }
      ]
@@ -2803,7 +2811,9 @@ E.1.  Well-Known Binding Variant
      "sub": "https://idp.partner.example",
      "authority_hints": ["https://sector.example.org"],
      "metadata": {
-       "oauth_authorization_server": {}
+       "oauth_authorization_server": {
+         "issuer": "https://idp.partner.example"
+       }
      },
      "well_known_bindings": {
        "oauth-authorization-server": {
@@ -2820,9 +2830,9 @@ E.1.  Well-Known Binding Variant
    https://idp.partner.example/jwks in jwks_uri.  In this variant, the
    Intermediate does not supply a protocol key source or require one
    through metadata_policy; the openid_provider policy shown above does
-   not apply to this variant's oauth_authorization_server type.  Any
-   applicable metadata validation still applies; the empty object
-   demonstrates only the framework's type-declaration check.
+   not apply to this variant's oauth_authorization_server type.  The
+   Entity Type metadata carries issuer but no key source, so item 3
+   selects the extension-defined source.
 
    After validating the trust chain, the consumer verifies the covered
    metadata and JWK Set using the extension's digest rules and checks

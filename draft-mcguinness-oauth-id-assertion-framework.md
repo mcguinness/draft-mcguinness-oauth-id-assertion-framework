@@ -940,7 +940,7 @@ requirement object has:
 
 The Trust Policy governs Trust Mark requirements for identity
 assertions. A Resource Authorization Server that also advertises
-Trust Mark requirements through discovery metadata SHOULD keep those
+Trust Mark requirements through discovery metadata should keep those
 advertisements consistent with this policy; discovery advertisements
 do not replace enforcement of its Trust Method requirements.
 
@@ -1752,10 +1752,11 @@ publication channel (DNSSEC, registry-lock, CAA records,
 Certificate Transparency monitoring, federation key rotation).
 Trust anchor key rollover in {{OIDF-FEDERATION}} §11.2 has no
 mandatory hold-down period: a compromised current key can introduce
-a replacement immediately. Operators SHOULD retrieve trust anchor
-keys through an independent channel as recommended in
-{{OIDF-FEDERATION}} §11.3; routine rollover alone does not provide
-recovery from trust anchor compromise.
+a replacement immediately. Resource Authorization Servers SHOULD
+obtain trust anchor keys through an independent channel where the
+Federation Operator provides one, as {{OIDF-FEDERATION}} §11.3
+recommends; routine rollover alone does not provide recovery from
+trust anchor compromise.
 See {{DAI}} §Security Considerations for the DNS+HTTPS
 publication-channel compromise model.
 
@@ -2118,7 +2119,7 @@ Initial entries:
 
 | Identifier | Categories | Parameters | Change Controller | Reference |
 |-|-|-|-|-|
-| `openid_federation` | `issuer_authentication` | `trust_anchors` (array of string, REQUIRED); `trust_marks` (array of object, OPTIONAL; each object has `trust_mark_type` (string, REQUIRED) and `issuer` (string, OPTIONAL)) | IETF | This document |
+| `openid_federation` | `issuer_authentication` | `trust_anchors` (array of string, REQUIRED); `trust_marks` (array of object, OPTIONAL; see {{trust-method-openid-federation}}) | IETF | This document |
 
 ### Trust Policy Members Registry {#iana-trust-policy-members-registry}
 

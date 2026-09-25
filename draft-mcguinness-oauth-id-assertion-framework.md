@@ -928,8 +928,7 @@ Entity Statements; it does not constrain the contents of documents
 bound by digest through an extension such as {{OIDF-WKB}}.
 
 Lookup states ({{exception-handling}}): a fully validated chain
-terminating at a listed trust anchor and satisfying all the
-framework-specific requirements below is Affirmative. A chain that
+terminating at a listed trust anchor is Affirmative. A chain that
 validates but establishes non-membership (no path to any listed
 trust anchor, or an Entity Statement that authoritatively excludes
 the leaf) is Negative. Any retrieval or validation failure that
@@ -940,7 +939,15 @@ Indeterminate; both Negative and Indeterminate fail closed. Entity
 Statement caching follows the statements' own `exp` values per
 {{OIDF-FEDERATION}}, bounded by the consumer's local cache ceiling;
 a cached chain MUST NOT be used past the earliest `exp` in the
-chain.
+chain. The framework-specific requirements below are evaluated
+against an Affirmative chain. A chain that fails requirement 1 is
+Negative, as above. A leaf that does not declare a required entity
+type (requirement 2), whose assertion signature does not verify
+under the permitted key source (requirement 3), or that lacks a
+required Trust Mark (requirement 4) does not satisfy this Trust
+Method; the lookup state is unchanged. A key source or required
+Trust Mark whose retrieval or validation cannot be completed is
+Indeterminate.
 
 In addition to the procedures in {{OIDF-FEDERATION}}, the Resource
 Authorization Server MUST apply the following framework-specific

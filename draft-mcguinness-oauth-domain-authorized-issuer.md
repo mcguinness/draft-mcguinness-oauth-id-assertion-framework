@@ -49,6 +49,10 @@ normative:
     date: false
 
 informative:
+  OIDF-WKB:
+    title: "OpenID Federation Well-Known Binding 1.0"
+    target: https://dickhardt.github.io/well-known-binding/main.html
+    date: 2026-09-24
   RFC7033:
   RFC7489:
   RFC7523:
@@ -1603,6 +1607,44 @@ accommodating deployment variations.
 
 This appendix is non-normative. It sketches features intentionally
 deferred from this document; future specifications may register them.
+
+## Federation-Bound Issuer Authorization Policy
+
+For deployments where a Subject Authority is a federation Entity,
+a future extension could authenticate the Issuer Authorization Policy
+at `https://{A}/.well-known/oauth-issuer-policy` through a digest in
+the Subject Authority's Entity Configuration, using a mechanism such
+as the proposed Well-Known Binding specification {{OIDF-WKB}}. The
+Subject Authority would still author and publish the policy under
+`{A}`; federation would add integrity protection, not transfer
+namespace authority to a trust anchor. The added protection depends
+on federation enrollment and key control being independent of the
+domain publication channel.
+
+Such an extension would need to define all of the following:
+
+- Coverage of the HTTPS-only lookup mode. Inline DNS TXT policies
+  would not be covered; a `uri=` pointer would be covered only if it
+  names the default well-known URL. Digest binding alone would not
+  prevent forged Negative DNS answers in DNS-first mode.
+- An exact mapping from Subject Authority `{A}` to Entity Identifier
+  `https://{A}`, without a path or explicit port, so that a subdomain
+  Entity cannot speak for the registrable domain.
+- A separate trust-anchor parameter on `domain_authorized_issuer`,
+  independent of any `openid_federation.trust_anchors` configuration
+  for the issuer-authentication category.
+- Indeterminate outcomes for a missing binding, digest mismatch, or
+  trust-chain failure, with no fallback to an unbound policy.
+- A cache lifetime bounded by the minimum of this document's caching
+  limits, the Entity Configuration's `exp`, and the trust chain's
+  expiry.
+- Revocation handling: overlapping old and new digests lets an origin
+  attacker replay a policy that still authorizes a revoked issuer.
+  Emergency revocations should omit that overlap, while accounting
+  for residual exposure from cached Entity Configurations.
+
+This document does not define that extension or change DAI's lookup,
+authority binding, or integrity mechanisms to depend on federation.
 
 ## Monitoring Reports
 

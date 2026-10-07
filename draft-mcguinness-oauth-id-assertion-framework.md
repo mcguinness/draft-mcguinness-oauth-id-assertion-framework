@@ -2665,16 +2665,20 @@ Intermediate does not supply a protocol key source or require one
 through `metadata_policy`; the `openid_provider` policy shown above
 does not apply to this variant's `oauth_authorization_server` type.
 The Entity Type metadata carries `issuer` but no key source, so
-item 3 selects the extension-defined source.
+item 3 selects the extension-defined source. {{OIDF-WKB}} permits
+`issuer` in both places because its value must equal the Entity
+Identifier.
 
 After validating the trust chain, the consumer verifies the covered
 metadata and JWK Set using the extension's digest rules and checks
 that the metadata's `issuer` equals the leaf's Entity Identifier.
 Item 3 then permits the bound JWK Set for assertion verification.
 The Trust Mark and DAI checks are unchanged. Metadata policy does
-not constrain the contents of the covered document. If policy-applied
-Entity Type metadata supplies a key source, item 3 selects that
-source instead; a key mismatch never authorizes fallback. An absent
+not constrain members carried only in the covered document. If the
+Intermediate's policy instead marked `jwks_uri` `essential`, the leaf
+would carry it in Entity Type metadata; item 3 would select that
+source, and the extension would still check the retrieved key set
+against `jwks_digests`. A key mismatch never authorizes fallback. An absent
 binding, digest mismatch, or unsupported extension with no other
 qualifying key source yields Indeterminate and `invalid_grant`.
 

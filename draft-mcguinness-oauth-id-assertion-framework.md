@@ -1291,9 +1291,11 @@ The acceptable signer depends on which policy document is signed:
   a channel independent of that edge: local configuration, or a
   federation key source whose key set is integrity-protected
   independently of that edge (`jwks` or `signed_jwks_uri` in
-  policy-applied metadata, or an extension-defined digest-bound key
-  set). A federation `jwks_uri` fetched through the shared edge does
-  not qualify.
+  policy-applied metadata, or a key set whose digest an extension
+  binds to the Entity Configuration, whether it is retrieved from a
+  metadata `jwks_uri` or from an extension-defined source). A
+  federation `jwks_uri` whose key set has no such binding does not
+  qualify.
 
 - For an Issuer Authorization Policy document, the JWT payload MUST
   contain the member that identifies the Subject Authority in the

@@ -1911,7 +1911,12 @@ publishers SHOULD serve bound documents with
 `Cache-Control: no-transform`. During an update, overlap between
 old and new digests permits replay of the superseded policy for the
 overlap period plus the longest remaining lifetime of cached Entity
-Configurations containing the old digest.
+Configurations containing the old digest. An update that tightens
+the policy, such as removing a trust anchor or adding a required
+Trust Method, is a revocation in the sense of {{OIDF-WKB}}
+§Protocol Key Compromise: the publisher lists only the new digest
+rather than overlapping, and consumers holding an earlier Entity
+Configuration cannot verify the new policy until they re-fetch it.
 
 ## Downgrade Attacks {#downgrade}
 

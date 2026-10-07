@@ -2657,6 +2657,42 @@ the leaf, as in the variant below. `partner.example` not listing
 the Assertion Issuer in DAI → `invalid_grant` even though
 federation membership is valid.
 
+## Trust Mark Requirement Without an Issuer
+
+With the same cast, the Trust Policy could omit `issuer` from the
+requirement object:
+
+~~~ json
+{
+  "method": "openid_federation",
+  "trust_anchors": ["https://federation.example.org"],
+  "trust_marks": [
+    { "trust_mark_type": "https://federation.example.org/tm/loa3" }
+  ]
+}
+~~~
+
+The acceptable issuers then come from the trust anchor's Entity
+Configuration, which includes (excerpt):
+
+~~~ json
+"trust_mark_issuers": {
+  "https://federation.example.org/tm/loa3": [
+    "https://federation.example.org",
+    "https://assurance.example.net"
+  ]
+}
+~~~
+
+The leaf's Trust Mark satisfies the requirement because its `iss`
+appears in that array. A Trust Mark of the same type issued by
+`https://assurance.example.net` would also satisfy it, provided that
+issuer's own trust chain terminates at the same trust anchor (item 4
+of {{trust-method-openid-federation}}). If the array for this type
+were empty, which {{OIDF-FEDERATION}} §3.1.2 reads as allowing any
+issuer, or if the type were absent from `trust_mark_issuers`, the
+requirement would not be satisfied.
+
 ## Well-Known Binding Variant
 
 With the same cast and Trust Policy, a deployment implementing the

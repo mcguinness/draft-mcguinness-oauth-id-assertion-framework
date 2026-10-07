@@ -986,7 +986,10 @@ requirements:
    §5.1.2 and §5.1.3). For this type-declaration check, a present
    Entity Type member whose value is an object declares that type,
    even when the object is empty. This does not waive metadata
-   validation required by the applicable federation specifications.
+   validation required by the applicable federation specifications,
+   as qualified by any extension in use: {{OIDF-WKB}}, for example,
+   lets Entity Type metadata omit members that a bound document
+   carries unless a metadata policy marks them `essential`.
    The presence of other entity types alone does not satisfy this
    requirement.
 

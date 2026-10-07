@@ -1632,7 +1632,9 @@ Such an extension would need to define all of the following:
   prevent forged Negative DNS answers in DNS-first mode.
 - An exact mapping from Subject Authority `{A}` to Entity Identifier
   `https://{A}`, without a path or explicit port, so that a subdomain
-  Entity cannot speak for the registrable domain.
+  Entity cannot speak for the registrable domain. {{OIDF-WKB}}
+  requires such a mapping from any protocol whose peer identifier is
+  not an `https` URL.
 - A separate trust-anchor parameter on `domain_authorized_issuer`,
   independent of any `openid_federation.trust_anchors` configuration
   for the issuer-authentication category.
@@ -1643,8 +1645,9 @@ Such an extension would need to define all of the following:
   expiry.
 - Revocation handling: overlapping old and new digests lets an origin
   attacker replay a policy that still authorizes a revoked issuer.
-  Emergency revocations should omit that overlap, while accounting
-  for residual exposure from cached Entity Configurations.
+  Emergency revocations should omit that overlap, as {{OIDF-WKB}}
+  specifies for any replacement that is a revocation, while
+  accounting for residual exposure from cached Entity Configurations.
 
 This document does not define that extension or change DAI's lookup,
 authority binding, or integrity mechanisms to depend on federation.

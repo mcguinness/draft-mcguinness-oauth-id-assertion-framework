@@ -2696,11 +2696,13 @@ This appendix is non-normative and will be removed before publication.
   * Align federation references with OpenID Federation 1.1 and
     OpenID Federation for OpenID Connect 1.1; correct Trust Mark
     type and issuer matching and permit explicit trust anchor
-    allowlists in place of a pinned Trust Mark issuer.
+    allowlists in place of a pinned Trust Mark issuer; require trust
+    in the Trust Mark Issuer to chain to the leaf's trust anchor.
   * Include `signed_jwks_uri` and an extension path for
     federation-bound key sources, with metadata precedence and
     fail-closed resolution. Well-Known Binding is the expected
-    first extension, cited informatively.
+    first extension, cited informatively; an extension's digest
+    check on a metadata `jwks_uri` key set validates that source.
   * Clarify Trust Policy integrity, publication, caching, and
     discovery requirements for federation-authenticated digest
     bindings, and trust anchor compromise guidance.

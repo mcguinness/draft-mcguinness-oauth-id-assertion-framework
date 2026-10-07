@@ -2574,6 +2574,26 @@ illustrative) declares its authority hint and its Trust Mark:
 }
 ~~~
 
+The `trust_mark` value is a JWT with JOSE header `typ`
+`trust-mark+jwt`. Its decoded payload (illustrative):
+
+~~~ json
+{
+  "iss": "https://federation.example.org",
+  "sub": "https://idp.partner.example",
+  "trust_mark_type": "https://federation.example.org/tm/loa3",
+  "iat": 1790236800,
+  "exp": 1821772800
+}
+~~~
+
+Item 4 of {{trust-method-openid-federation}} matches against this
+payload: its `trust_mark_type` equals both the enclosing entry's type
+and the requirement's, and its `iss` equals the requirement's
+`issuer`. The enclosing entry carries no issuer. {{OIDF-FEDERATION}}
+§7.3 separately requires `sub` to equal the leaf's Entity
+Identifier.
+
 The Federation Intermediate's Subordinate Statement about the leaf
 constrains `issuer` and requires `jwks_uri` via `metadata_policy`
 ({{OIDF-FEDERATION}} §6.1):

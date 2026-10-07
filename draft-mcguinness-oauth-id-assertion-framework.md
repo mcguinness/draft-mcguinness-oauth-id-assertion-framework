@@ -61,7 +61,7 @@ informative:
   OIDF-WKB:
     title: "OpenID Federation Well-Known Binding 1.0"
     target: https://dickhardt.github.io/well-known-binding/main.html
-    date: 2026-09-24
+    date: 2026-09-29
     author:
       - name: Dick Hardt
         ins: D. Hardt

@@ -163,7 +163,8 @@ Table of Contents
    Appendix C.  Frequently Asked Questions
    Appendix D.  Agent Platform IdP Walkthrough
    Appendix E.  OpenID Federation Walkthrough
-     E.1.  Well-Known Binding Variant
+     E.1.  Trust Mark Requirement Without an Issuer
+     E.2.  Well-Known Binding Variant
    Appendix F.  Document History
    Author's Address
 
@@ -1066,7 +1067,7 @@ Table of Contents
    Entity Identifier by listing its digest in the leaf's Entity
    Configuration.  Support for that mechanism is not required by this
    document; a consumer without a supported qualifying key source
-   returns Indeterminate.  See Appendix E for an illustrative variant.
+   returns Indeterminate.  See Appendix E.2 for an illustrative variant.
 
    For OpenID Federation deployments, this Trust Method is the primary
    integration point between the federation and this framework; see
@@ -1367,16 +1368,18 @@ Table of Contents
    and verify it, or for deployments where local policy requires signed
    policy processing.
 
-   If a consumer requires object-level integrity by local policy, the
-   consumer MUST verify the signed JWT before acting on the policy, and
-   the JWT payload MUST contain every recognized decision-affecting
-   member used by that consumer.  The consumer MUST NOT use unsigned
-   recognized decision-affecting members that are absent from the JWT
-   payload.  If signature verification fails, if the verification key is
-   unacceptable, if the JWT is malformed, if the required issuer binding
-   above is not satisfied, or if the JWT omits a recognized decision-
-   affecting member required for evaluation, the consumer MUST reject
-   the policy as malformed.
+   If a consumer's local policy requires object-level integrity through
+   signed_policy, the consumer MUST verify the signed JWT before acting
+   on the policy, and the JWT payload MUST contain every recognized
+   decision-affecting member used by that consumer.  The consumer MUST
+   NOT use unsigned recognized decision-affecting members that are
+   absent from the JWT payload.  If signature verification fails, if the
+   verification key is unacceptable, if the JWT is malformed, if the
+   required issuer binding above is not satisfied, or if the JWT omits a
+   recognized decision-affecting member required for evaluation, the
+   consumer MUST reject the policy as malformed.  A consumer that relies
+   instead on a Trust Policy digest binding applies the requirements of
+   Section 4.1, not this paragraph.
 
 4.6.  Critical Members
 
@@ -2758,6 +2761,23 @@ Appendix E.  OpenID Federation Walkthrough
      ]
    }
 
+   The trust_mark value is a JWT with JOSE header typ trust-mark+jwt.
+   Its decoded payload (illustrative):
+
+   {
+     "iss": "https://federation.example.org",
+     "sub": "https://idp.partner.example",
+     "trust_mark_type": "https://federation.example.org/tm/loa3",
+     "iat": 1790236800,
+     "exp": 1821772800
+   }
+
+   Item 4 of Section 4.3.4.1 matches against this payload: its
+   trust_mark_type equals both the enclosing entry's type and the
+   requirement's, and its iss equals the requirement's issuer.  The
+   enclosing entry carries no issuer.  [OIDF-FEDERATION] §7.3 separately
+   requires sub to equal the leaf's Entity Identifier.
+
    The Federation Intermediate's Subordinate Statement about the leaf
    constrains issuer and requires jwks_uri via metadata_policy
    ([OIDF-FEDERATION] §6.1):
@@ -2813,16 +2833,49 @@ _oauth-issuer-policy.partner.example. IN TXT ( "v=oauth-issuer-policy1;"
    .well-known/oauth-authorization-server).  Such a separate JWKS is
    eligible only when the policy-applied metadata has no key source and
    a supported extension authenticates its binding to the leaf, as in
-   the variant below. partner.example not listing the Assertion Issuer
-   in DAI → invalid_grant even though federation membership is valid.
+   Appendix E.2. partner.example not listing the Assertion Issuer in DAI
+   → invalid_grant even though federation membership is valid.
 
-E.1.  Well-Known Binding Variant
+E.1.  Trust Mark Requirement Without an Issuer
 
-   With the same cast and Trust Policy, a deployment implementing the
-   proposed [OIDF-WKB] mechanism could instead publish the following
-   leaf Entity Configuration excerpt.  Digest strings are placeholders;
-   the full Entity Configuration also contains the required timestamps,
-   Federation Entity Keys, and the same Trust Mark as above.
+   With the same cast, the Trust Policy could omit issuer from the
+   requirement object:
+
+   {
+     "method": "openid_federation",
+     "trust_anchors": ["https://federation.example.org"],
+     "trust_marks": [
+       { "trust_mark_type": "https://federation.example.org/tm/loa3" }
+     ]
+   }
+
+   The acceptable issuers then come from the trust anchor's Entity
+   Configuration, which includes (excerpt):
+
+   "trust_mark_issuers": {
+     "https://federation.example.org/tm/loa3": [
+       "https://federation.example.org",
+       "https://assurance.example.net"
+     ]
+   }
+
+   The leaf's Trust Mark satisfies the requirement because its iss
+   appears in that array.  A Trust Mark of the same type issued by
+   https://assurance.example.net would also satisfy it, provided that
+   issuer's own trust chain terminates at the same trust anchor (item 4
+   of Section 4.3.4.1).  If the array for this type were empty, which
+   [OIDF-FEDERATION] §3.1.2 reads as allowing any issuer, or if the type
+   were absent from trust_mark_issuers, the requirement would not be
+   satisfied.
+
+E.2.  Well-Known Binding Variant
+
+   With the same cast and the Trust Policy shown at the start of this
+   appendix, a deployment implementing the proposed [OIDF-WKB] mechanism
+   could instead publish the following leaf Entity Configuration
+   excerpt.  Digest strings are placeholders; the full Entity
+   Configuration also contains the required timestamps, Federation
+   Entity Keys, and the same Trust Mark as above.
 
    {
      "iss": "https://idp.partner.example",

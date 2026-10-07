@@ -1790,7 +1790,7 @@ Table of Contents
               <https://openid.net/specs/openid-connect-discovery-
               1_0.html>.
 
-   [OIDF-WKB] Hardt, D., "OpenID Federation Well-Known Binding 1.0", 24
+   [OIDF-WKB] Hardt, D., "OpenID Federation Well-Known Binding 1.0", 29
               September 2026, <https://dickhardt.github.io/well-known-
               binding/main.html>.
 
@@ -1980,7 +1980,9 @@ B.1.  Federation-Bound Issuer Authorization Policy
 
    *  An exact mapping from Subject Authority {A} to Entity Identifier
       https://{A}, without a path or explicit port, so that a subdomain
-      Entity cannot speak for the registrable domain.
+      Entity cannot speak for the registrable domain.  [OIDF-WKB]
+      requires such a mapping from any protocol whose peer identifier is
+      not an https URL.
 
    *  A separate trust-anchor parameter on domain_authorized_issuer,
       independent of any openid_federation.trust_anchors configuration
@@ -1995,8 +1997,9 @@ B.1.  Federation-Bound Issuer Authorization Policy
 
    *  Revocation handling: overlapping old and new digests lets an
       origin attacker replay a policy that still authorizes a revoked
-      issuer.  Emergency revocations should omit that overlap, while
-      accounting for residual exposure from cached Entity
+      issuer.  Emergency revocations should omit that overlap, as
+      [OIDF-WKB] specifies for any replacement that is a revocation,
+      while accounting for residual exposure from cached Entity
       Configurations.
 
    This document does not define that extension or change DAI's lookup,

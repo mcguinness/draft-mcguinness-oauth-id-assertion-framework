@@ -38,18 +38,18 @@ Authority Determination concept.
 <meta content="draft-mcguinness-oauth-domain-authorized-issuer-latest" name="ietf.draft">
 <!-- Generator version information:
   xml2rfc 3.34.1
-    Python 3.14.7
-    ConfigArgParse 1.7.7
+    Python 3.14.8
+    ConfigArgParse 1.8.0
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.11.10
+    platformdirs 4.12.2
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.8.4
+    wcwidth 0.9.1
 -->
 <link href="draft-mcguinness-oauth-domain-authorized-issuer.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -3481,7 +3481,7 @@ Members).<a href="#section-12.5-3" class="pilcrow">¶</a></p>
 <dd class="break"></dd>
 <dt id="OIDF-WKB">[OIDF-WKB]</dt>
         <dd>
-<span class="refAuthor">Hardt, D.</span>, <span class="refTitle">"OpenID Federation Well-Known Binding 1.0"</span>, <time datetime="2026-09-24" class="refDate">24 September 2026</time>, <span>&lt;<a href="https://dickhardt.github.io/well-known-binding/main.html">https://dickhardt.github.io/well-known-binding/main.html</a>&gt;</span>. </dd>
+<span class="refAuthor">Hardt, D.</span>, <span class="refTitle">"OpenID Federation Well-Known Binding 1.0"</span>, <time datetime="2026-09-29" class="refDate">29 September 2026</time>, <span>&lt;<a href="https://dickhardt.github.io/well-known-binding/main.html">https://dickhardt.github.io/well-known-binding/main.html</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC7033">[RFC7033]</dt>
         <dd>
@@ -3697,7 +3697,9 @@ prevent forged Negative DNS answers in DNS-first mode.<a href="#appendix-B.1-3.1
           <li class="normal" id="appendix-B.1-3.2">
             <p id="appendix-B.1-3.2.1">An exact mapping from Subject Authority <code>{A}</code> to Entity Identifier
 <code>https://{A}</code>, without a path or explicit port, so that a subdomain
-Entity cannot speak for the registrable domain.<a href="#appendix-B.1-3.2.1" class="pilcrow">¶</a></p>
+Entity cannot speak for the registrable domain. <span>[<a href="#OIDF-WKB" class="cite xref">OIDF-WKB</a>]</span>
+requires such a mapping from any protocol whose peer identifier is
+not an <code>https</code> URL.<a href="#appendix-B.1-3.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-B.1-3.3">
             <p id="appendix-B.1-3.3.1">A separate trust-anchor parameter on <code>domain_authorized_issuer</code>,
@@ -3716,8 +3718,9 @@ expiry.<a href="#appendix-B.1-3.5.1" class="pilcrow">¶</a></p>
           <li class="normal" id="appendix-B.1-3.6">
             <p id="appendix-B.1-3.6.1">Revocation handling: overlapping old and new digests lets an origin
 attacker replay a policy that still authorizes a revoked issuer.
-Emergency revocations should omit that overlap, while accounting
-for residual exposure from cached Entity Configurations.<a href="#appendix-B.1-3.6.1" class="pilcrow">¶</a></p>
+Emergency revocations should omit that overlap, as <span>[<a href="#OIDF-WKB" class="cite xref">OIDF-WKB</a>]</span>
+specifies for any replacement that is a revocation, while
+accounting for residual exposure from cached Entity Configurations.<a href="#appendix-B.1-3.6.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="appendix-B.1-4">This document does not define that extension or change DAI's lookup,

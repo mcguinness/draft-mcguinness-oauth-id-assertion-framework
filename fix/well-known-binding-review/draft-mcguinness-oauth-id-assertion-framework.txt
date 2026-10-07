@@ -969,8 +969,12 @@ Table of Contents
    chain, metadata policy, and Trust Marks per [OIDF-FEDERATION];
    failure of any is failure of this Trust Method.  Federation
    metadata_policy constrains Entity Type metadata in Entity Statements;
-   it does not constrain the contents of documents bound by digest
-   through an extension such as [OIDF-WKB].
+   it does not constrain members carried only in documents bound by
+   digest through an extension such as [OIDF-WKB].  A Superior that
+   needs to constrain such a member, such as jwks_uri, marks it
+   essential; [OIDF-WKB] then requires the leaf to carry it in Entity
+   Type metadata, where the policy applies.  For a key source, item 3
+   then selects that metadata value.
 
    Lookup states (Section 3.4): a fully validated chain terminating at a
    listed trust anchor is Affirmative.  A chain that validates but
@@ -1006,9 +1010,11 @@ Table of Contents
        §5.1.3).  For this type-declaration check, a present Entity Type
        member whose value is an object declares that type, even when the
        object is empty.  This does not waive metadata validation
-       required by the applicable federation specifications.  The
-       presence of other entity types alone does not satisfy this
-       requirement.
+       required by the applicable federation specifications, as
+       qualified by any extension in use: [OIDF-WKB], for example, lets
+       Entity Type metadata omit members that a bound document carries
+       unless a metadata policy marks them essential.  The presence of
+       other entity types alone does not satisfy this requirement.
 
    3.  *Federation-bound key resolution.* The signing key for the
        identity assertion JWT MUST be taken from a key set that the
@@ -1020,10 +1026,15 @@ Table of Contents
        oauth_authorization_server metadata, processed according to that
        specification.  For jwks_uri, the trust chain authenticates the
        URI, not the key set it returns, which relies on HTTPS to that
-       endpoint.  Specifications that extend this Trust Method MAY
-       define additional key sources that satisfy it.  If the policy-
-       applied metadata carries a key source, that source is the only
-       one permitted; an extension-defined source is used only when the
+       endpoint unless an extension also binds the key set; [OIDF-WKB],
+       for example, checks the key set retrieved from a metadata
+       jwks_uri against jwks_digests when the leaf binds a document that
+       references a JWK Set. A consumer that applies such a binding
+       treats its failure as failure to validate that key source.
+       Specifications that extend this Trust Method MAY define
+       additional key sources that satisfy it.  If the policy-applied
+       metadata carries a key source, that source is the only one
+       permitted; an extension-defined source is used only when the
        metadata carries none.  Failure to retrieve or validate the
        metadata's key source MUST NOT trigger fallback to an extension-
        defined source.  A JWK Set obtained any other way, including from
@@ -1294,9 +1305,11 @@ Table of Contents
       and the key MUST instead be resolved through a channel independent
       of that edge: local configuration, or a federation key source
       whose key set is integrity-protected independently of that edge
-      (jwks or signed_jwks_uri in policy-applied metadata, or an
-      extension-defined digest-bound key set).  A federation jwks_uri
-      fetched through the shared edge does not qualify.
+      (jwks or signed_jwks_uri in policy-applied metadata, or a key set
+      whose digest an extension binds to the Entity Configuration,
+      whether it is retrieved from a metadata jwks_uri or from an
+      extension-defined source).  A federation jwks_uri whose key set
+      has no such binding does not qualify.
 
    *  For an Issuer Authorization Policy document, the JWT payload MUST
       contain the member that identifies the Subject Authority in the
@@ -1903,7 +1916,12 @@ Table of Contents
    Cache-Control: no-transform.  During an update, overlap between old
    and new digests permits replay of the superseded policy for the
    overlap period plus the longest remaining lifetime of cached Entity
-   Configurations containing the old digest.
+   Configurations containing the old digest.  An update that tightens
+   the policy, such as removing a trust anchor or adding a required
+   Trust Method, is a revocation in the sense of [OIDF-WKB] §Protocol
+   Key Compromise: the publisher lists only the new digest rather than
+   overlapping, and consumers holding an earlier Entity Configuration
+   cannot verify the new policy until they re-fetch it.
 
 7.10.  Downgrade Attacks
 
@@ -2381,7 +2399,7 @@ Table of Contents
               <https://openid.net/specs/openid-connect-discovery-
               1_0.html>.
 
-   [OIDF-WKB] Hardt, D., "OpenID Federation Well-Known Binding 1.0", 24
+   [OIDF-WKB] Hardt, D., "OpenID Federation Well-Known Binding 1.0", 29
               September 2026, <https://dickhardt.github.io/well-known-
               binding/main.html>.
 
@@ -2832,18 +2850,21 @@ E.1.  Well-Known Binding Variant
    through metadata_policy; the openid_provider policy shown above does
    not apply to this variant's oauth_authorization_server type.  The
    Entity Type metadata carries issuer but no key source, so item 3
-   selects the extension-defined source.
+   selects the extension-defined source.  [OIDF-WKB] permits issuer in
+   both places because its value must equal the Entity Identifier.
 
    After validating the trust chain, the consumer verifies the covered
    metadata and JWK Set using the extension's digest rules and checks
    that the metadata's issuer equals the leaf's Entity Identifier.  Item
    3 then permits the bound JWK Set for assertion verification.  The
    Trust Mark and DAI checks are unchanged.  Metadata policy does not
-   constrain the contents of the covered document.  If policy-applied
-   Entity Type metadata supplies a key source, item 3 selects that
-   source instead; a key mismatch never authorizes fallback.  An absent
-   binding, digest mismatch, or unsupported extension with no other
-   qualifying key source yields Indeterminate and invalid_grant.
+   constrain members carried only in the covered document.  If the
+   Intermediate's policy instead marked jwks_uri essential, the leaf
+   would carry it in Entity Type metadata; item 3 would select that
+   source, and the extension would still check the retrieved key set
+   against jwks_digests.  A key mismatch never authorizes fallback.  An
+   absent binding, digest mismatch, or unsupported extension with no
+   other qualifying key source yields Indeterminate and invalid_grant.
 
 Appendix F.  Document History
 
@@ -2855,12 +2876,14 @@ Appendix F.  Document History
    *  Align federation references with OpenID Federation 1.1 and OpenID
       Federation for OpenID Connect 1.1; correct Trust Mark type and
       issuer matching and permit explicit trust anchor allowlists in
-      place of a pinned Trust Mark issuer.
+      place of a pinned Trust Mark issuer; require trust in the Trust
+      Mark Issuer to chain to the leaf's trust anchor.
 
    *  Include signed_jwks_uri and an extension path for federation-bound
       key sources, with metadata precedence and fail-closed resolution.
       Well-Known Binding is the expected first extension, cited
-      informatively.
+      informatively; an extension's digest check on a metadata jwks_uri
+      key set validates that source.
 
    *  Clarify Trust Policy integrity, publication, caching, and
       discovery requirements for federation-authenticated digest

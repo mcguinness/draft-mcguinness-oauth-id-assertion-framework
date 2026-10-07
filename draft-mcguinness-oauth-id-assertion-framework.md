@@ -1356,16 +1356,19 @@ of `signed_policy` provides integrity only for consumers that support
 and verify it, or for deployments where local policy requires signed
 policy processing.
 
-If a consumer requires object-level integrity by local policy, the
-consumer MUST verify the signed JWT before acting on the policy, and
-the JWT payload MUST contain every recognized decision-affecting
-member used by that consumer. The consumer MUST NOT use unsigned
+If a consumer's local policy requires object-level integrity through
+`signed_policy`, the consumer MUST verify the signed JWT before
+acting on the policy, and the JWT payload MUST contain every
+recognized decision-affecting member used by that consumer. The
+consumer MUST NOT use unsigned
 recognized decision-affecting members that are absent from the JWT
 payload. If signature verification fails, if the verification key is
 unacceptable, if the JWT is malformed, if the required issuer binding
 above is not satisfied, or if the JWT omits a recognized
 decision-affecting member required for evaluation, the consumer MUST
-reject the policy as malformed.
+reject the policy as malformed. A consumer that relies instead on a
+Trust Policy digest binding applies the requirements of
+{{metadata-publication}}, not this paragraph.
 
 ## Critical Members {#critical-members}
 

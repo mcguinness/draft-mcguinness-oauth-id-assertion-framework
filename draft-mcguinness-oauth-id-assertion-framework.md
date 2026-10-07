@@ -996,7 +996,12 @@ requirements:
    `openid_provider` or `oauth_authorization_server` metadata,
    processed according to that specification. For `jwks_uri`, the
    trust chain authenticates the URI, not the key set it returns,
-   which relies on HTTPS to that endpoint. Specifications that
+   which relies on HTTPS to that endpoint unless an extension also
+   binds the key set; {{OIDF-WKB}}, for example, checks the key set
+   retrieved from a metadata `jwks_uri` against `jwks_digests` when
+   the leaf binds a document that references a JWK Set. A consumer
+   that applies such a binding treats its failure as failure to
+   validate that key source. Specifications that
    extend this Trust Method MAY define additional key sources that
    satisfy it. If the policy-applied metadata carries a key source,
    that source is the only one permitted; an extension-defined source

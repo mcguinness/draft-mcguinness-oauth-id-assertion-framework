@@ -1044,8 +1044,8 @@ the additional key-source path in item 3: it binds a JWK Set to the
 Entity Identifier by listing its digest in the leaf's Entity
 Configuration. Support for that mechanism is not required by this
 document; a consumer without a supported qualifying key source
-returns Indeterminate. See {{example-federation-walkthrough}} for
-an illustrative variant.
+returns Indeterminate. See {{example-wkb-variant}} for an
+illustrative variant.
 
 For OpenID Federation deployments, this Trust Method is the primary
 integration point between the federation and this framework; see
@@ -2653,7 +2653,7 @@ key source takes precedence, so there is no fallback to a separate
 JWKS referenced by `.well-known/oauth-authorization-server`). Such a
 separate JWKS is eligible only when the policy-applied metadata has
 no key source and a supported extension authenticates its binding to
-the leaf, as in the variant below. `partner.example` not listing
+the leaf, as in {{example-wkb-variant}}. `partner.example` not listing
 the Assertion Issuer in DAI → `invalid_grant` even though
 federation membership is valid.
 
@@ -2693,9 +2693,10 @@ were empty, which {{OIDF-FEDERATION}} §3.1.2 reads as allowing any
 issuer, or if the type were absent from `trust_mark_issuers`, the
 requirement would not be satisfied.
 
-## Well-Known Binding Variant
+## Well-Known Binding Variant {#example-wkb-variant}
 
-With the same cast and Trust Policy, a deployment implementing the
+With the same cast and the Trust Policy shown at the start of this
+appendix, a deployment implementing the
 proposed {{OIDF-WKB}} mechanism could instead publish the following
 leaf Entity Configuration excerpt. Digest strings are placeholders;
 the full Entity Configuration also contains the required timestamps,

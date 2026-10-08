@@ -59,6 +59,7 @@ informative:
       - name: Dick Hardt
         ins: D. Hardt
   RFC7033:
+  RFC9989:
   RFC9990:
   RFC7523:
   RFC8461:
@@ -1490,10 +1491,12 @@ Verification Protocol {{I-D.hardt-email-verification}}. {{TRUST-FRAMEWORK}}
 §Authority Delegation Model covers the abstract pattern; this
 document chooses DNS at `_oauth-issuer-policy.{domain}` as the
 authoritative publication channel. The `name=value` record syntax is
-closest to DMARC's, and DMARC's operational experience with the Public
-Suffix List and the organizational-domain boundary informs the Subject
-Authority Determination approach in {{TRUST-FRAMEWORK}} §Subject
-Authority Determination (see also the DBOUND discussion there).
+closest to DMARC's, and DMARC's operational experience with the
+organizational-domain boundary informs the Subject Authority
+Determination approach in {{TRUST-FRAMEWORK}} §Subject Authority
+Determination. DMARC itself has since replaced its use of the Public
+Suffix List with a DNS tree walk ({{RFC9989}}); see the Public Suffix
+List discussion there.
 
 Unlike CAA (deployment-time), SPF/DKIM (spam-score signal), and
 MTA-STS (inbound mail), the `_oauth-issuer-policy` record is

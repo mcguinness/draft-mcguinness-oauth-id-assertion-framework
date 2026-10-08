@@ -36,7 +36,6 @@ normative:
   RFC8414:
   RFC8615:
   RFC8725:
-  RFC8785:
   RFC9493:
   RFC9728:
   RFC5891:
@@ -75,7 +74,8 @@ informative:
   RFC6530:
   RFC7009:
   RFC7033:
-  RFC7489:
+  RFC8785:
+  RFC9989:
   RFC7662:
   RFC9700:
   OIDC-DISCOVERY:
@@ -1249,10 +1249,13 @@ Subject Identifier format's extraction procedure.
 Deriving a registrable domain from a DNS name has no protocol
 solution: the IETF DBOUND working group examined the problem of
 determining administrative (organizational) boundaries in the DNS and
-concluded without a standard, and the Public Suffix List remains the
-de facto mechanism (it is used the same way by DMARC {{RFC7489}} organizational-
-domain discovery and by cookie same-site rules). This framework
-inherits the PSL's limitations knowingly.
+concluded without a standard. The Public Suffix List is the de facto
+mechanism (browsers use it for cookie same-site rules), although
+DMARC, which originally used it for organizational-domain discovery,
+replaced it with a DNS tree walk in {{RFC9989}} (Section 4.10). This
+framework inherits the PSL's limitations knowingly; whether a DNS
+tree walk suits Subject Authority determination is left to future
+work.
 
 The PSL {{PSL}} is updated continuously, and snapshots taken at
 different times can yield different registrable domains for the same

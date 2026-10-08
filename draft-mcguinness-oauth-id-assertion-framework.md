@@ -1211,7 +1211,8 @@ Initial extractions:
   `Transitional_Processing` (deprecated in UTS #46) and
   `IgnoreInvalidPunycode` false, and `UseSTD3ASCIIRules`,
   `CheckHyphens`, `CheckBidi`, `CheckJoiners`, and `VerifyDnsLength`
-  true; a domain for which `ToASCII` reports an error is rejected.
+  true. Consumers MUST reject a domain for which `ToASCII` reports an
+  error.
   `UseSTD3ASCIIRules` rejects characters, such as `_`, that are not
   valid in host names, which an email domain does not need.
   This pins one mapping, so that two consumers compute the same

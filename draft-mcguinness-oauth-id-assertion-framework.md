@@ -176,7 +176,8 @@ The smallest deployment has three moving parts:
    ({{trust-policy-document}}) saying which issuer-trust evidence it
    requires.
 
-2. A Subject Authority publishes a DAI policy ({{DAI}}) saying which
+2. A Subject Authority publishes an Issuer Authorization Policy
+   ({{DAI}}) saying which
    Assertion Issuers it authorizes for its namespace.
 
 3. At the token endpoint, the Resource Authorization Server validates
@@ -355,9 +356,9 @@ Validator:
 Delegation Artifact, validates the Assertion, applies the
 combination rules, and produces an accept-or-reject result. In
 this document the Validator is the Resource Authorization Server.
-The Validator and Relying Party are conceptually distinct,
-paralleling the analogous distinction in the RATS Architecture
-({{RFC9334}}).
+The Validator is conceptually distinct from the party that acts on
+its result, paralleling the Verifier and Relying Party distinction in
+the RATS Architecture ({{RFC9334}}).
 
 Authority Source:
 : A trust root, registry, publication channel, or configured source
@@ -367,6 +368,14 @@ the Authority Source and the Authority Holder are the same entity
 they differ (for example, a federation trust anchor as the
 Authority Source for Subordinate Statements issued by
 intermediates).
+
+Profile:
+: A specification that applies the Authority Delegation Model to a
+particular kind of evidence: this document's processing of OAuth
+identity assertions, or a Trust Method specification such as
+{{DAI}}. Requirements addressed to profiles apply to both. A grant
+profile ({{bindings}}) is a different thing: the OAuth
+assertion-grant specification under which an assertion arrives.
 
 The following terms are specific to OAuth identity assertions.
 
@@ -385,8 +394,9 @@ Discovery {{OIDC-DISCOVERY}}, and the federation entity identifier
 in {{OIDF-FEDERATION}}. The Assertion Issuer is the Delegate.
 
 Subject Authority:
-: The Authority Holder for a Subject Identifier namespace. For
-`email`, the registrable domain.
+: The Authority Holder for a Subject Identifier namespace. The term
+also names the identifier of that authority, which for `email` is
+the registrable domain.
 
 Trust Policy:
 : The JSON document defined in {{trust-policy-document}}, published
@@ -2423,14 +2433,14 @@ publishes its Trust Policy (via authorization server metadata or
 protected resource metadata) but assumes a client or peer that
 already knows the Resource Authorization Server's identity. In
 open-world deployments (agent runtimes, AI tools, cross-organization
-integrations), a peer may need to discover a Resource Owner's
+integrations), a peer may need to discover a resource operator's
 Trust Policy before any prior bilateral relationship exists.
 
-A future Trust Policy Discovery extension can let a Resource
-Owner publish a DNS-named pointer at
+A future Trust Policy Discovery extension can let a resource
+operator publish a DNS-named pointer at
 `_oauth-trust-policy.{resource-domain}` to its Trust Policy
 document, mirroring the DNS-authority pattern of {{DAI}} for the
-resource-side. The Resource Owner's domain becomes the
+resource-side. The resource operator's domain becomes the
 publication channel for "where do I trust assertions from?", the
 dual of DAI's "who do I authorize to assert about me?".
 

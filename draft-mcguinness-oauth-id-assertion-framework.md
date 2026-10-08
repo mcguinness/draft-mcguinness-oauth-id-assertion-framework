@@ -56,6 +56,12 @@ normative:
   PSL:
     title: "Public Suffix List"
     target: https://publicsuffix.org/
+  UTS46:
+    title: "Unicode IDNA Compatibility Processing"
+    target: https://www.unicode.org/reports/tr46/
+    author:
+      - org: Unicode Consortium
+    date: false
 
 informative:
   OIDF-WKB:
@@ -1184,10 +1190,16 @@ Initial extractions:
   grammar, and quoted local-parts or address forms that do not reduce
   to a single unquoted `@` are out of scope for the `email` extraction.
   The local-part is not used. A trailing dot on the domain, if present,
-  is removed. The domain is converted to A-label form per {{RFC5891}}
-  (applying IDNA processing, including Unicode normalization) before
-  any Public Suffix List matching, so that comparison operates on a
-  single canonical form.
+  is removed. The domain is converted to A-label form ({{RFC5891}})
+  by UTS #46 `ToASCII` processing {{UTS46}} with
+  `Transitional_Processing` false, and `UseSTD3ASCIIRules`,
+  `CheckHyphens`, `CheckBidi`, `CheckJoiners`, and `VerifyDnsLength`
+  true; a domain for which `ToASCII` reports an error is rejected.
+  This pins one mapping, so that two consumers compute the same
+  A-label: transitional processing or IDNA2003 maps some characters
+  (such as U+00DF) differently and would select a different Subject
+  Authority. Conversion happens before any Public Suffix List
+  matching, so that comparison operates on a single canonical form.
 
   The A-label domain is then normalized to its registrable domain
   ("eTLD+1") by applying the Public Suffix List matching algorithm
@@ -1942,18 +1954,21 @@ identifiers in policy URLs, query parameters, logs, or telemetry.
 # Internationalization Considerations
 
 The `email` Subject Identifier format carries an internationalized
-domain. Consumers convert the domain to A-label form per {{RFC5891}}
-(applying IDNA2008 processing, including Unicode normalization) before
-Public Suffix List matching and before comparison, and compare A-labels
-using case-insensitive ASCII comparison
-({{subject-authority-determination}}). Performing all comparison on the
+domain. Consumers convert the domain to A-label form by UTS #46
+nontransitional processing ({{subject-authority-determination}})
+before Public Suffix List matching and before comparison, and compare
+A-labels using case-insensitive ASCII comparison. Performing all
+comparison on the
 A-label form means two visually distinct Unicode domains that map to
 different A-labels are correctly treated as different Subject
 Authorities; conversely, this mechanism does not by itself defend
 against homograph confusion presented to a human at account-linking or
 display time, which is out of scope and left to the consuming
 application. Comparison operates on the mechanism level, not the visual
-level.
+level. Resource Authorization Servers that link accounts by email
+SHOULD compare the domain in this A-label form, so that a Unicode
+string that maps to a different Subject Authority cannot land on
+another user's account.
 
 The `email` extraction uses the simple single-`@` rule and does not
 implement the full {{RFC5321}} addr-spec grammar; internationalized

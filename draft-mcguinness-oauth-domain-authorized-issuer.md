@@ -406,7 +406,8 @@ lookup, the default, finds only DNS-published policies.
 The Subject Authority publishes one or more DNS TXT records at
 `_oauth-issuer-policy.{A}`, where `{A}` is the Subject
 Authority rendered as a DNS name. Internationalized names are converted
-to A-labels per {{RFC5891}} before the prefix is prepended. DNS lookup
+to A-labels by the procedure of {{TRUST-FRAMEWORK}} §Subject Authority
+Determination before the prefix is prepended. DNS lookup
 names are formed without a trailing dot for comparison purposes; the
 wire-format root label is not part of the Subject Authority value.
 

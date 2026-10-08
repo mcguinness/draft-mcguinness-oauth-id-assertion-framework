@@ -265,7 +265,8 @@ This document and {{DAI}} form a two-document set:
   Policy wire format it consumes.
 
 This document does not define the Issuer Authorization Policy
-wire format; that lives in {{DAI}}. This document defines what an
+wire format or its integrity protection; those live in {{DAI}}. This
+document defines what an
 Assertion Issuer must satisfy to be accepted; DAI defines one
 class of evidence supplying that satisfaction.
 
@@ -410,7 +411,8 @@ requires.
 Issuer Authorization Policy:
 : The Delegation Artifact by which a Subject Authority declares the
 Assertion Issuers it authorizes for its namespace. Concrete
-representations (wire format, publication channel) are supplied by
+representations (wire format, publication channel, integrity
+protection) are supplied by
 individual `subject_namespace_authorization` Trust Method specifications.
 
 Consumer:
@@ -902,6 +904,11 @@ that the deferral from this framework to the method is testable:
 - Cache-lifetime bounds for any retrieved evidence, including any
   bound on serving cached evidence during an Indeterminate state, or
   an explicit statement that the method caches nothing.
+- For a method whose evidence is signed, how the signer and the
+  verification key are bound to the Authority Holder through a
+  channel independent of the signed artifact, so that an attacker who
+  controls the artifact, or the channel that carries it, cannot
+  substitute either.
 - Any method-specific parameters, their JSON types, and whether each
   is REQUIRED or OPTIONAL.
 

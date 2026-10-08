@@ -1293,8 +1293,10 @@ of the one that carried the policy document. A profile that admits
 `signed_policy` MUST specify at least one of the following
 key-resolution mechanisms and state its trust assumptions:
 
-- a key published under DNSSEC-signed records for the Subject
-  Authority;
+- a key bound by a record the Subject Authority publishes in DNS
+  (for example, a key thumbprint), which protects against compromise
+  of the policy host but not of DNS unless the record is
+  DNSSEC-signed;
 - a key resolved through a federation or trust-anchor relationship
   established by an `issuer_authentication` Trust Method; or
 - a key configured out of band at the consumer.

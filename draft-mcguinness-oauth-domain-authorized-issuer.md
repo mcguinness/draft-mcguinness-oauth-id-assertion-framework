@@ -32,7 +32,9 @@ normative:
   RFC5234:
   RFC5891:
   RFC7405:
+  RFC7515:
   RFC7519:
+  RFC7638:
   RFC8414:
   RFC8126:
   RFC8552:
@@ -290,17 +292,16 @@ channel on encountering a denial. Each object has:
   that requires object-level integrity. A Subject Authority that needs
   to force signature processing lists `signed_policy` in `crit`.
   Per the key-resolution requirement of {{TRUST-FRAMEWORK}} §Signed
-  Policy Metadata, the verification key for this profile MUST be
-  resolved through one of: a key published under DNSSEC-signed
-  records for the Subject Authority, or a key configured out of
-  band at the consumer. Both channels are independent of the
-  DNS/HTTPS path that carries the policy document; the trust
-  assumption is, respectively, DNSSEC validation to the Subject
-  Authority's zone, or the consumer's own key-provisioning process.
-  This document does not define a DNS record format for key
-  publication; deployments using the DNSSEC-published-key option do
-  so via a mechanism agreed with their consumers until one is
-  standardized.
+  Policy Metadata, the verification key for this profile MUST be one
+  of: the key whose thumbprint the Subject Authority publishes in the
+  `key=` directive of its DNS pointer record ({{dii-dns-record}}), or
+  a key configured out of band at the consumer. A `key=` thumbprint
+  binds the document to what the consumer already trusts DNS for: it
+  defeats substitution by the policy host or a shared edge in front
+  of it, not compromise of DNS, which already selects the policy
+  host; DNSSEC raises that bound. An out-of-band key rests on the
+  consumer's own key-provisioning process. The HTTPS-only lookup
+  mode, which does not consult DNS, can use only an out-of-band key.
 
 `crit`
 : OPTIONAL. Array of member names a consumer MUST understand to process
@@ -486,6 +487,18 @@ the value MUST be an absolute HTTPS URL and MUST NOT contain a
 fragment component. MAY appear multiple times within a record and
 across records.
 
+`key=THUMBPRINT`
+: OPTIONAL. The JWK SHA-256 thumbprint {{RFC7638}}, base64url-encoded
+without padding, of the key that signs the `signed_policy` of the
+document named by `uri=`. Valid only in a record that carries
+`uri=`; in any other record it is malformed. More than one distinct
+`key=` value across the remaining records is malformed. When
+present, the fetched document MUST carry a `signed_policy` whose JWS
+header carries the signing key in its `jwk` parameter ({{RFC7515}}
+Section 4.1.3), the thumbprint of that key MUST equal this value, and
+the signature MUST verify with it ({{TRUST-FRAMEWORK}} §Signed Policy
+Metadata); a document that fails any of these checks is malformed.
+
 A recognized record MUST contain at least one `uri=` directive or at
 least one `issuer=` directive. Recognized records containing neither
 MUST be treated as malformed (see {{dii-failures}}).
@@ -609,7 +622,8 @@ fetches only from the dedicated policy host.
         policy, but the directive-validity rules of
         {{dii-dns-record}} were already applied in step 2a, so a
         record set malformed under those rules never reaches this
-        step.
+        step. If a `key=` directive is present, the document is
+        verified as that directive requires.
 
    c. Otherwise (no `uri=` present), construct a virtual Issuer
       Authorization Policy with `subject_authority` set to `A` and
@@ -672,11 +686,13 @@ The Indeterminate state covers:
 - **DNS record validation**: `authority=` missing from any recognized
   record; all recognized records discarded for `authority=` mismatch;
   more than one `authority=` in a record; a recognized record with
-  neither `uri=` nor `issuer=`; multiple distinct `uri=` values; an
-  empty or otherwise malformed directive.
+  neither `uri=` nor `issuer=`; multiple distinct `uri=` values; a
+  `key=` directive in a record without `uri=`, or more than one
+  distinct `key=` value; an empty or otherwise malformed directive.
 - **HTTPS document validation**: body that is not a syntactically
   valid Issuer Authorization Policy; `subject_authority` that does
-  not match `A`.
+  not match `A`; a document that fails the verification a `key=`
+  directive requires.
 
 Any outcome not explicitly mapped to Affirmative or Negative above
 MUST be treated as Indeterminate.
@@ -1115,6 +1131,9 @@ DAI-specific points:
 - The `uri=` pointer is a long-lived trust delegation. Subject
   Authorities SHOULD reduce DNS TTLs in advance of any planned
   change of policy host.
+- A Subject Authority whose policy host is shared infrastructure, or
+  is operated by a provider, can publish a `key=` thumbprint
+  ({{dii-dns-record}}) so that the host cannot alter the policy.
 
 ## Policy Conflicts and Determinism {#policy-conflicts}
 
@@ -1386,6 +1405,7 @@ Initial entries:
 | `v` | Version token; MUST appear first | IETF | This document |
 | `authority` | Subject Authority this record binds (A-label) | IETF | This document |
 | `uri` | HTTPS URL of an Issuer Authorization Policy document | IETF | This document |
+| `key` | Thumbprint of the `signed_policy` signing key (pointer records only) | IETF | This document |
 | `issuer` | An authorized Assertion Issuer identifier | IETF | This document |
 
 ## Issuer Authorization Policy Members Registry {#iana-dii-members}

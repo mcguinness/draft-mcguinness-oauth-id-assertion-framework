@@ -1979,25 +1979,9 @@ tenant takeover, cache poisoning, or origin authentication failures.
 Administrators SHOULD avoid delegating security-critical well-known
 paths to multi-tenant infrastructure unless they can ensure exclusive
 control over routing for those paths, authenticated origin access,
-cache invalidation, and tenant isolation. A Subject Authority that
-hosts its Issuer Authorization Policy on shared infrastructure it
-does not control end to end SHOULD publish `signed_policy`
-({{signed-policy-metadata}}) with a signing key held outside that
-infrastructure and resolvable through a channel independent of it
-(see the key-resolution requirement in {{signed-policy-metadata}}).
-
-Because the `crit` member ({{critical-members}}) is itself carried in
-the unsigned document, an attacker who can strip `signed_policy` can
-strip `crit` with it; publisher-side criticality therefore does not
-defend against stripping by an on-path or edge attacker. A
-signature is only effective against such an attacker if consumers
-are configured to require it: the attacker can otherwise serve an
-unsigned document, which a consumer not configured to require a
-signature would accept. A consumer configured to require
-`signed_policy` for a Subject Authority therefore MUST verify it
-before acting on that Subject Authority's policy, MUST reject a
-policy whose signature is missing or invalid, and MUST NOT treat a
-valid TLS connection to a shared edge as sufficient by itself.
+cache invalidation, and tenant isolation. Object-level integrity for
+an Issuer Authorization Policy hosted this way is defined by the
+Trust Method specification ({{DAI}} §Policy Hosts).
 
 ## Downgrade Attacks {#downgrade}
 

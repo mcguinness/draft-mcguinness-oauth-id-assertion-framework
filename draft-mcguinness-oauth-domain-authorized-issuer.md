@@ -1176,8 +1176,8 @@ from DNS into an HTTPS document. In this version, the pointed-to
 host is expected to be under the Subject Authority's operational
 control. General shared-infrastructure risks (multi-tenant CDNs,
 cache rules, dangling origins) are covered in {{TRUST-FRAMEWORK}}
-§Shared Infrastructure and Hosted Well-Known Paths. Three
-DAI-specific points:
+§Shared Infrastructure and Hosted Well-Known Paths. DAI-specific
+points:
 
 - The pointer target is trusted fully for the policy contents and
   is appropriate only when the host is operated for, or otherwise
@@ -1193,6 +1193,23 @@ DAI-specific points:
 - A Subject Authority whose policy host is shared infrastructure, or
   is operated by a provider, can publish a `key=` thumbprint
   ({{dii-dns-record}}) so that the host cannot alter the policy.
+
+A Subject Authority that hosts its Issuer Authorization Policy on
+shared infrastructure it does not control end to end SHOULD publish
+`signed_policy` with a signing key held outside that infrastructure
+and resolvable through a channel independent of it, such as a `key=`
+thumbprint ({{TRUST-FRAMEWORK}} §Signed Policy Metadata).
+
+Because the `crit` member is itself carried in the unsigned document,
+an attacker who can strip `signed_policy` can strip `crit` with it;
+publisher-side criticality therefore does not defend against
+stripping by an on-path or edge attacker. A signature is effective
+against such an attacker only if consumers require it, through local
+configuration or a `key=` directive. A consumer configured to require
+`signed_policy` for a Subject Authority MUST verify it before acting
+on that Subject Authority's policy, MUST reject a policy whose
+signature is missing or invalid, and MUST NOT treat a valid TLS
+connection to a shared edge as sufficient by itself.
 
 ## Policy Conflicts and Determinism {#policy-conflicts}
 

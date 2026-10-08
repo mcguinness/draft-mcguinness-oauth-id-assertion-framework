@@ -1492,28 +1492,49 @@ conditions under which an Assertion Issuer is acceptable: for example,
 whether the Assertion Issuer is a member of a recognized federation, or
 whether the Assertion Issuer has authority for the subject namespace
 being asserted.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3">This is an open-world issuer-trust problem: the Resource Authorization
+<p id="section-1-3">Today a Resource Authorization Server typically answers the namespace
+question through bilateral setup: each customer proves control of its
+domain, configures its Identity Provider with the Resource
+Authorization Server, and repeats both steps at every other Resource
+Authorization Server it uses. That configuration is held separately
+at each Resource Authorization Server, so it goes stale when the
+customer changes Identity Providers, and it does not extend to
+issuers, such as agent platforms, that have no prior relationship
+with each customer. Where it is missing, a Resource Authorization
+Server that trusts a multi-tenant issuer can accept an assertion
+about a subject from a tenant with no authority over the subject's
+domain. The nOAuth disclosure <span>[<a href="#NOAUTH" class="cite xref">NOAUTH</a>]</span> showed account takeover by
+that path: an application linked accounts by an email address that
+an attacker had set on a user in the attacker's own tenant.
+Namespace authorization lets the domain owner state once which
+issuers and tenants may assert about its subjects, for every
+Resource Authorization Server to check. It complements, and does
+not replace, the defenses on the Resource Authorization Server's
+side: keying accounts on immutable issuer-scoped identifiers, and
+linking accounts by email only under explicit account-linking rules
+(<a href="#scope-of-namespace-authorization" class="auto internal xref">Section 7.7</a>).<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">This is an open-world issuer-trust problem: the Resource Authorization
 Server may receive identity assertions from issuers that were not
 individually configured in advance, but whose acceptability can be
 evaluated from published evidence at request time. The purpose of this
 framework is not to remove policy from the Resource Authorization
 Server, but to give it a standard way to express which evidence it
-requires and how that evidence is evaluated.<a href="#section-1-3" class="pilcrow">¶</a></p>
-<p id="section-1-4">This document defines an Identity Assertion Issuer Trust Policy
+requires and how that evidence is evaluated.<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-5">This document defines an Identity Assertion Issuer Trust Policy
 that a Resource Authorization Server publishes to describe its trust
 criteria. The Resource Authorization Server does not say "these are
 all the Assertion Issuers I trust"; it says "these are the conditions
 an Assertion Issuer must satisfy." Conditions are evaluated by
 validating concrete evidence (a federation trust chain or a
-domain-authorized issuer record) when an assertion is presented.<a href="#section-1-4" class="pilcrow">¶</a></p>
-<p id="section-1-5">This document defines the Authority Delegation Model
+domain-authorized issuer record) when an assertion is presented.<a href="#section-1-5" class="pilcrow">¶</a></p>
+<p id="section-1-6">This document defines the Authority Delegation Model
 (<a href="#delegation-model" class="auto internal xref">Section 3</a>) and uses it to profile OAuth identity
 assertions. It is consumed by <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>, which defines one
 Subject-Authority publication mechanism. The two documents together
 are described in <a href="#family" class="auto internal xref">Section 1.5</a>. The assertion-bearer grant and chaining
 mechanics of <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> and <span>[<a href="#I-D.ietf-oauth-identity-chaining" class="cite xref">I-D.ietf-oauth-identity-chaining</a>]</span>
 remain unchanged; this document adds only the issuer-trust
-evaluation layer.<a href="#section-1-5" class="pilcrow">¶</a></p>
+evaluation layer.<a href="#section-1-6" class="pilcrow">¶</a></p>
 <div id="minimal-deployment">
 <section id="section-1.1">
         <h3 id="name-minimal-deployment">
@@ -1623,7 +1644,9 @@ use?" before authentication. This framework answers the verifier-side
 question "may this issuer, having already produced an assertion, be
 trusted for this subject's namespace?" Its answer is published per
 namespace, expresses authorization rather than routing, and is
-consumed at verification time. See <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Following Existing DNS
+consumed at verification time. It also differs from scope
+attestation by a federation operator and from per-relationship domain
+verification at setup time. See <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Following Existing DNS
 Authority Patterns.<a href="#section-1.4-2" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -3181,25 +3204,36 @@ for ID-JAG is the top-level <code>email</code> claim, accompanied by
 When the Trust Policy contains a <code>subject_namespace_authorization</code>
 method, <a href="#rasp" class="auto internal xref">Section 5.2</a> step 5c requires the ID-JAG to carry that Subject
 Identifier and requires rejection if it is absent or unresolvable.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
-<p id="section-6.1-2">In addition to the processing in <a href="#rasp" class="auto internal xref">Section 5.2</a>, the Resource Authorization
-Server <span class="bcp14">MUST</span>:<a href="#section-6.1-2" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-6.1-3">
-<li id="section-6.1-3.1">
-            <p id="section-6.1-3.1.1">Validate the ID-JAG per <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>.<a href="#section-6.1-3.1.1" class="pilcrow">¶</a></p>
+<p id="section-6.1-2"><span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §6.1 requires a multi-tenant issuer to include the
+<code>tenant</code> claim when the tenant context is relevant to the Resource
+Authorization Server. Under this binding, the tenant context is
+relevant whenever the Resource Authorization Server's Trust Policy
+lists a <code>subject_namespace_authorization</code> method, because such a
+method can bind authorization to a tenant (for example, <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>
+§Single-Issuer Multi-Tenant Identity Providers) and cannot tell an
+issuer's tenants apart without the claim. An Assertion Issuer that
+serves more than one tenant under a single issuer identifier
+therefore <span class="bcp14">MUST</span> include the <code>tenant</code> claim in every ID-JAG it issues
+for such a Resource Authorization Server.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
+<p id="section-6.1-3">In addition to the processing in <a href="#rasp" class="auto internal xref">Section 5.2</a>, the Resource Authorization
+Server <span class="bcp14">MUST</span>:<a href="#section-6.1-3" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-6.1-4">
+<li id="section-6.1-4.1">
+            <p id="section-6.1-4.1.1">Validate the ID-JAG per <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>.<a href="#section-6.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-6.1-3.2">
-            <p id="section-6.1-3.2.1">Verify that the <code>email</code> Subject Identifier, when the assertion
+          <li id="section-6.1-4.2">
+            <p id="section-6.1-4.2.1">Verify that the <code>email</code> Subject Identifier, when the assertion
 carries one, uses a format listed in
 <code>subject_identifier_formats_supported</code>, if that trust policy member
 is present. (Whether the assertion is required to carry the Subject
-Identifier at all is governed by <a href="#rasp" class="auto internal xref">Section 5.2</a> step 5c.)<a href="#section-6.1-3.2.1" class="pilcrow">¶</a></p>
+Identifier at all is governed by <a href="#rasp" class="auto internal xref">Section 5.2</a> step 5c.)<a href="#section-6.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-6.1-3.3">
-            <p id="section-6.1-3.3.1">Use the email attribution only for subject resolution and Subject
+          <li id="section-6.1-4.3">
+            <p id="section-6.1-4.3.1">Use the email attribution only for subject resolution and Subject
 Authority evaluation. The Resource Authorization Server <span class="bcp14">MUST NOT</span>
 treat the mere presence or value of the email claim as proof
 that the ID-JAG issuer is authoritative for the subject; issuer
-acceptability is established only by evaluating the Trust Methods.<a href="#section-6.1-3.3.1" class="pilcrow">¶</a></p>
+acceptability is established only by evaluating the Trust Methods.<a href="#section-6.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 </section>
@@ -4195,6 +4229,10 @@ have a well-defined namespace authority.<a href="#section-10.2-6" class="pilcrow
         <dd>
 <span class="refTitle">"OAuth Identity and Authorization Chaining Across Domains"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-chaining/">https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-chaining/</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="NOAUTH">[NOAUTH]</dt>
+        <dd>
+<span class="refAuthor">Descope</span>, <span class="refTitle">"nOAuth: How Microsoft OAuth Misconfiguration Can Lead to Full Account Takeover"</span>, <time datetime="2023-06-20" class="refDate">20 June 2023</time>, <span>&lt;<a href="https://www.descope.com/blog/post/noauth">https://www.descope.com/blog/post/noauth</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="OIDC-DISCOVERY">[OIDC-DISCOVERY]</dt>
         <dd>
 <span class="refTitle">"OpenID Connect Discovery 1.0"</span>, <span>n.d.</span>, <span>&lt;<a href="https://openid.net/specs/openid-connect-discovery-1_0.html">https://openid.net/specs/openid-connect-discovery-1_0.html</a>&gt;</span>. </dd>
@@ -4413,10 +4451,11 @@ document, mirroring the DNS-authority pattern of <span>[<a href="#DAI" class="ci
 resource-side. The resource operator's domain becomes the
 publication channel for "where do I trust assertions from?", the
 dual of DAI's "who do I authorize to assert about me?".<a href="#appendix-B.4-2" class="pilcrow">¶</a></p>
-<p id="appendix-B.4-3">The extension is deferred because the open-world first-contact
-case is not yet a deployed need for the namespace and federation
-profiles defined here; bilateral configuration plus the metadata
-endpoints suffice for the current target deployments.<a href="#appendix-B.4-3" class="pilcrow">¶</a></p>
+<p id="appendix-B.4-3">The extension is deferred because first contact with a Resource
+Authorization Server whose identity the client does not already know
+is not yet a deployed need. A client that knows the Resource
+Authorization Server reads its Trust Policy through the metadata
+endpoints (<a href="#client-processing" class="auto internal xref">Section 5.1</a>).<a href="#appendix-B.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4823,6 +4862,14 @@ rule, and the <code>issuer-authorization-policy+jwt</code> media type to
 <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>; keep Trust Policy <code>crit</code> handling here and define
 decision-affecting members in the Terminology; add a Trust Method
 checklist item for signer and key binding.<a href="#appendix-F-3.6.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-F-3.7">
+          <p id="appendix-F-3.7.1">Open the Introduction with the cost of per-relationship issuer
+configuration and the nOAuth attack class; require an Assertion
+Issuer that serves several tenants under one issuer identifier to
+send <code>tenant</code> in every ID-JAG for a Resource Authorization Server
+whose Trust Policy lists a namespace method; reword the Trust
+Policy Discovery deferral.<a href="#appendix-F-3.7.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="appendix-F-4">-00<a href="#appendix-F-4" class="pilcrow">¶</a></p>

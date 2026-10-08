@@ -190,6 +190,27 @@ Table of Contents
    federation, or whether the Assertion Issuer has authority for the
    subject namespace being asserted.
 
+   Today a Resource Authorization Server typically answers the namespace
+   question through bilateral setup: each customer proves control of its
+   domain, configures its Identity Provider with the Resource
+   Authorization Server, and repeats both steps at every other Resource
+   Authorization Server it uses.  That configuration is held separately
+   at each Resource Authorization Server, so it goes stale when the
+   customer changes Identity Providers, and it does not extend to
+   issuers, such as agent platforms, that have no prior relationship
+   with each customer.  Where it is missing, a Resource Authorization
+   Server that trusts a multi-tenant issuer can accept an assertion
+   about a subject from a tenant with no authority over the subject's
+   domain.  The nOAuth disclosure [NOAUTH] showed account takeover by
+   that path: an application linked accounts by an email address that an
+   attacker had set on a user in the attacker's own tenant.  Namespace
+   authorization lets the domain owner state once which issuers and
+   tenants may assert about its subjects, for every Resource
+   Authorization Server to check.  It complements, and does not replace,
+   the defenses on the Resource Authorization Server's side: keying
+   accounts on immutable issuer-scoped identifiers, and linking accounts
+   by email only under explicit account-linking rules (Section 7.7).
+
    This is an open-world issuer-trust problem: the Resource
    Authorization Server may receive identity assertions from issuers
    that were not individually configured in advance, but whose
@@ -296,7 +317,9 @@ Table of Contents
    side question "may this issuer, having already produced an assertion,
    be trusted for this subject's namespace?"  Its answer is published
    per namespace, expresses authorization rather than routing, and is
-   consumed at verification time.  See [DAI] §Following Existing DNS
+   consumed at verification time.  It also differs from scope
+   attestation by a federation operator and from per-relationship domain
+   verification at setup time.  See [DAI] §Following Existing DNS
    Authority Patterns.
 
 1.5.  Documents in the Family
@@ -1542,6 +1565,18 @@ Table of Contents
    step 5c requires the ID-JAG to carry that Subject Identifier and
    requires rejection if it is absent or unresolvable.
 
+   [ID-JAG] §6.1 requires a multi-tenant issuer to include the tenant
+   claim when the tenant context is relevant to the Resource
+   Authorization Server.  Under this binding, the tenant context is
+   relevant whenever the Resource Authorization Server's Trust Policy
+   lists a subject_namespace_authorization method, because such a method
+   can bind authorization to a tenant (for example, [DAI] §Single-Issuer
+   Multi-Tenant Identity Providers) and cannot tell an issuer's tenants
+   apart without the claim.  An Assertion Issuer that serves more than
+   one tenant under a single issuer identifier therefore MUST include
+   the tenant claim in every ID-JAG it issues for such a Resource
+   Authorization Server.
+
    In addition to the processing in Section 5.2, the Resource
    Authorization Server MUST:
 
@@ -2322,6 +2357,10 @@ Table of Contents
               Domains", <https://datatracker.ietf.org/doc/draft-ietf-
               oauth-identity-chaining/>.
 
+   [NOAUTH]   Descope, "nOAuth: How Microsoft OAuth Misconfiguration Can
+              Lead to Full Account Takeover", 20 June 2023,
+              <https://www.descope.com/blog/post/noauth>.
+
    [OIDC-DISCOVERY]
               "OpenID Connect Discovery 1.0", n.d.,
               <https://openid.net/specs/openid-connect-discovery-
@@ -2503,10 +2542,11 @@ B.4.  Trust Policy Discovery
    the publication channel for "where do I trust assertions from?", the
    dual of DAI's "who do I authorize to assert about me?".
 
-   The extension is deferred because the open-world first-contact case
-   is not yet a deployed need for the namespace and federation profiles
-   defined here; bilateral configuration plus the metadata endpoints
-   suffice for the current target deployments.
+   The extension is deferred because first contact with a Resource
+   Authorization Server whose identity the client does not already know
+   is not yet a deployed need.  A client that knows the Resource
+   Authorization Server reads its Trust Policy through the metadata
+   endpoints (Section 5.1).
 
 Appendix C.  Frequently Asked Questions
 
@@ -2869,6 +2909,13 @@ Appendix F.  Document History
       keep Trust Policy crit handling here and define decision-affecting
       members in the Terminology; add a Trust Method checklist item for
       signer and key binding.
+
+   *  Open the Introduction with the cost of per-relationship issuer
+      configuration and the nOAuth attack class; require an Assertion
+      Issuer that serves several tenants under one issuer identifier to
+      send tenant in every ID-JAG for a Resource Authorization Server
+      whose Trust Policy lists a namespace method; reword the Trust
+      Policy Discovery deferral.
 
    -00
 

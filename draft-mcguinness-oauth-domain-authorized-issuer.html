@@ -2754,6 +2754,18 @@ this document. The registrable-domain default contains
 subdomain-takeover impact (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Subject Authority
 Determination); identity binding beyond DNS control (legal-entity
 verification) requires out-of-band mechanisms.<a href="#section-9.1-1" class="pilcrow">¶</a></p>
+<p id="section-9.1-2">DNS control is also, in practice, control of the domain's mail:
+whoever controls the zone can change its MX records and receive
+password-reset and account-recovery messages for its addresses.
+Where email-based recovery alone is enough to take over an account
+at a Resource Authorization Server, an attacker who controls the
+domain's DNS gains little from this Trust Method that it did not
+already have; <span>[<a href="#I-D.hardt-email-verification" class="cite xref">I-D.hardt-email-verification</a>]</span> makes the same
+observation about its own DNS delegation. Where accounts are
+protected by stronger recovery (for example, phishing-resistant
+authenticators or administrator-approved recovery), DNS control is
+not equivalent to account takeover, and this Trust Method makes DNS
+control a direct route to asserting identities in the namespace.<a href="#section-9.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="transport-integrity">
@@ -3026,11 +3038,13 @@ so listing a shared issuer without <code>tenant</code>, including in the inline
 DNS form, authorizes none of its tenants; a Subject Authority
 authorizes a tenant by listing the
 (issuer, tenant) pair. This relies on the Identity Provider
-sending the <code>tenant</code> claim whenever it is multi-tenant. <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>
-§6.1 requires that only when the tenant context is relevant to the
-Resource Authorization Server, so a shared issuer that omits the
-claim would again match an entry without <code>tenant</code>; Subject
-Authorities <span class="bcp14">SHOULD</span> list a shared issuer only with <code>tenant</code>.<a href="#section-9.9-2.1.1" class="pilcrow">¶</a></p>
+sending the <code>tenant</code> claim whenever it is multi-tenant, which
+<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §ID-JAG requires of a shared issuer whenever
+the Resource Authorization Server's Trust Policy lists a namespace
+method. A shared
+issuer that omits the claim anyway would again match an entry
+without <code>tenant</code>, so Subject Authorities <span class="bcp14">SHOULD</span> list a shared
+issuer only with <code>tenant</code>.<a href="#section-9.9-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.9-2.2">
             <p id="section-9.9-2.2.1"><strong>Tenant-isolation dependency.</strong> The <code>tenant</code> binding is a
@@ -3244,6 +3258,14 @@ at <code>partner.example</code> signing in through the host organization's
 Identity Provider) is accepted only if <code>partner.example</code> authorizes
 that Identity Provider. This follows from namespace authorization
 and is not a defect.<a href="#section-11-2.10.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-11-2.11">
+          <p id="section-11-2.11.1"><strong>Consumer mail domains.</strong> This Trust Method is designed for
+organizational namespaces. A consumer mail provider is unlikely to
+authorize the Identity Providers its users sign in with elsewhere,
+so under a Trust Policy whose only namespace method is
+<code>domain_authorized_issuer</code>, assertions about those users are
+rejected.<a href="#section-11-2.11.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
@@ -3664,9 +3686,21 @@ Change controller IETF.<a href="#section-12.6-2" class="pilcrow">¶</a></p>
 <a href="#section-13.2" class="section-number selfRef">13.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
+<dt id="EDUGAIN">[EDUGAIN]</dt>
+        <dd>
+<span class="refAuthor">GEANT</span>, <span class="refTitle">"What is eduGAIN"</span>, <span>&lt;<a href="https://edugain.org/about-edugain/what-is-edugain/">https://edugain.org/about-edugain/what-is-edugain/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="FASTFED">[FASTFED]</dt>
+        <dd>
+<span class="refAuthor">OpenID Foundation</span>, <span class="refTitle">"FastFed Core 1.0"</span>, <span>&lt;<a href="https://openid.net/specs/fastfed-core-1_0.html">https://openid.net/specs/fastfed-core-1_0.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="I-D.hardt-email-verification">[I-D.hardt-email-verification]</dt>
         <dd>
 <span class="refTitle">"Email Verification Protocol"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-hardt-email-verification/">https://datatracker.ietf.org/doc/draft-hardt-email-verification/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.sanz-openid-dns-discovery">[I-D.sanz-openid-dns-discovery]</dt>
+        <dd>
+<span class="refAuthor">Bertola, V.</span> and <span class="refAuthor">M. Sanz</span>, <span class="refTitle">"OpenID Connect DNS-based Discovery"</span>, <time datetime="2018-04-16" class="refDate">16 April 2018</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-sanz-openid-dns-discovery/">https://datatracker.ietf.org/doc/draft-sanz-openid-dns-discovery/</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="OIDC-DISCOVERY">[OIDC-DISCOVERY]</dt>
         <dd>
@@ -3713,8 +3747,12 @@ Change controller IETF.<a href="#section-12.6-2" class="pilcrow">¶</a></p>
 <span class="refAuthor">Herr, T., Ed.</span> and <span class="refAuthor">J. Levine, Ed.</span>, <span class="refTitle">"Domain-Based Message Authentication, Reporting, and Conformance (DMARC)"</span>, <span class="seriesInfo">RFC 9989</span>, <span class="seriesInfo">DOI 10.17487/RFC9989</span>, <time datetime="2026-05" class="refDate">May 2026</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9989">https://www.rfc-editor.org/rfc/rfc9989</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC9990">[RFC9990]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Brotman, A., Ed.</span>, <span class="refTitle">"Domain-Based Message Authentication, Reporting, and Conformance (DMARC) Aggregate Reporting"</span>, <span class="seriesInfo">RFC 9990</span>, <span class="seriesInfo">DOI 10.17487/RFC9990</span>, <time datetime="2026-05" class="refDate">May 2026</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9990">https://www.rfc-editor.org/rfc/rfc9990</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="SHIBMD">[SHIBMD]</dt>
+      <dd>
+<span class="refAuthor">Shibboleth Consortium</span>, <span class="refTitle">"ShibMetaExt V1.0"</span>, <span>&lt;<a href="https://shibboleth.atlassian.net/wiki/spaces/SC/pages/1843887946/ShibMetaExt+V1.0">https://shibboleth.atlassian.net/wiki/spaces/SC/pages/1843887946/ShibMetaExt+V1.0</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -3757,21 +3795,44 @@ assertion already in hand, is its issuer authorized for the subject's
 namespace? DAI is published per namespace (not per user), over a DNS
 channel whose control establishes the authority binding, and it
 carries authorization semantics (validity windows, tenant binding,
-format restrictions) that a discovery record does not. A deployment
-could layer client-side discovery on top (see
-<a href="#assertion-issuer-discovery-client-side" class="auto internal xref">Appendix B.6</a>), but that is out of scope
-here.<a href="#appendix-A.1-3" class="pilcrow">¶</a></p>
-<p id="appendix-A.1-4">Relationship to the Email Verification Protocol. EVP
-<span>[<a href="#I-D.hardt-email-verification" class="cite xref">I-D.hardt-email-verification</a>]</span> also publishes, in DNS, issuers
-associated with an email domain, but for a different purpose: it names
-issuers that can <em>verify control</em> of an email address (an issuance-time
-question), whereas DAI names issuers <em>authorized to assert</em> identities
-in a namespace (a verification-time authorization question). The
-records differ accordingly: DAI uses full issuer identifiers
-(including path components) and PSL-normalized Subject Authorities, and
-carries authorization constraints. Convergence with EVP on a shared
-record or node name is possible future work; <a href="#email-verification-protocol-bridge" class="auto internal xref">Appendix B.5</a>
-sketches a bridge.<a href="#appendix-A.1-4" class="pilcrow">¶</a></p>
+format restrictions) that a discovery record does not. An earlier
+proposal, <span>[<a href="#I-D.sanz-openid-dns-discovery" class="cite xref">I-D.sanz-openid-dns-discovery</a>]</span>, published a domain's
+OpenID issuer in a DNS TXT record of similar shape, also for
+discovery. A deployment could layer client-side discovery on top
+(see <a href="#assertion-issuer-discovery-client-side" class="auto internal xref">Appendix B.6</a>), but that is out of
+scope here.<a href="#appendix-A.1-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-4">Relationship to federation-scoped and bilateral mechanisms. SAML
+federations such as InCommon constrain the namespaces an Identity
+Provider may assert with the scope metadata extension <span>[<a href="#SHIBMD" class="cite xref">SHIBMD</a>]</span>, and
+interfederation services such as eduGAIN <span>[<a href="#EDUGAIN" class="cite xref">EDUGAIN</a>]</span> carry that
+metadata between federations. There, scope is attested by the
+federation operator and distributed in trusted federation metadata;
+DAI's authorization is published by the namespace owner, where any
+verifier can retrieve it. Software-as-a-service providers commonly
+have a customer prove control of its domain with a one-time DNS
+challenge and then configure the customer's Identity Provider.
+FastFed <span>[<a href="#FASTFED" class="cite xref">FASTFED</a>]</span> automates establishing and maintaining such a
+federation relationship between an Identity Provider and an
+application provider, with administrator approval on both sides.
+Both are bilateral configuration, held by the parties to one
+relationship, not an authorization that any verifier can retrieve.<a href="#appendix-A.1-4" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-5">Relationship to the Email Verification Protocol. EVP
+<span>[<a href="#I-D.hardt-email-verification" class="cite xref">I-D.hardt-email-verification</a>]</span> also publishes, in DNS, the issuer
+for an email domain, and its relying party also checks that record at
+verification time: it resolves <code>_email-verification.{domain}</code> itself
+and rejects a token whose <code>iss</code> does not match. The two records
+differ in role and in scope. In role, EVP names the issuer that
+verifies <em>control of an email address</em>, while DAI names the issuers
+<em>authorized to assert identities</em> in a namespace; a domain that uses
+one provider for mail and another for single sign-on can rightly
+give different answers to the two questions. In scope, EVP allows
+exactly one issuer, identified by an HTTPS origin with no path, for
+the raw email domain and for EVP tokens only. DAI allows several
+issuers with full issuer identifiers (including path components),
+binds them to tenants, carries authorization constraints, and
+normalizes to the registrable domain. Convergence with EVP on a
+shared record or node name is possible future work;
+<a href="#email-verification-protocol-bridge" class="auto internal xref">Appendix B.5</a> sketches a bridge.<a href="#appendix-A.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="rationale-generic-name">
@@ -4365,6 +4426,15 @@ non-normative future extension.<a href="#appendix-D-3.6.1" class="pilcrow">¶</a
 (moved from the framework); describe how a spoofed negative
 answer can suppress a published denial when another namespace
 method is configured.<a href="#appendix-D-3.7.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-D-3.8">
+          <p id="appendix-D-3.8.1">Correct the relationship to the Email Verification Protocol,
+whose relying party also checks its record at verification time;
+add SAML scope metadata, bilateral domain verification, FastFed,
+and DNS-based OpenID discovery to the related mechanisms; bound
+the comparison between DNS control and control of email
+recovery; state that the Trust Method targets organizational
+namespaces.<a href="#appendix-D-3.8.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="appendix-D-4">-00<a href="#appendix-D-4" class="pilcrow">¶</a></p>

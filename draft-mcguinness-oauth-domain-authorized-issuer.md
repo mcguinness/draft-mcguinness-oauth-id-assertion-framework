@@ -532,9 +532,9 @@ A URL obtained from a DNS `uri=` directive is fetched the same way;
 the host serving the URL is responsible for TLS server authentication
 of itself, not of `A`.
 
-For every policy fetch defined here (the default URL and a `uri=`
-target), the consumer MUST NOT connect to a host that resolves to a
-non-globally-routable address; see {{dos-ssrf}}.
+Every policy fetch defined here (the default URL and a `uri=`
+target) is an outbound fetch subject to {{TRUST-FRAMEWORK}}
+§Outbound Fetches; see also {{dos-ssrf}}.
 
 Consumers MUST NOT follow HTTP redirects when fetching a policy, as
 in MTA-STS ({{RFC8461}} Section 3.3): a 3xx response other than a 304
@@ -559,9 +559,10 @@ Bounds (a response exceeding any bound is classified per
 {{dii-failures}}): consumers MUST accept a policy document of at least
 64 KiB and MAY reject one larger; publishers MUST keep the document
 within 64 KiB. Consumers MUST accept at least 100 `authorized_issuers`
-entries and MAY reject more. Consumers SHOULD apply an overall fetch
-timeout and SHOULD limit JSON nesting depth (the defined document has a
-fixed shallow structure). Consumers SHOULD send a conditional request
+entries and MAY reject more. Consumers SHOULD limit JSON nesting
+depth (the defined document has a fixed shallow structure); fetch
+timeouts follow {{TRUST-FRAMEWORK}} §Outbound Fetches. Consumers
+SHOULD send a conditional request
 (for example, `If-None-Match`) when they hold a cached policy, treating
 a 304 response per {{dii-failures}}.
 
@@ -1249,20 +1250,18 @@ drive lookups at will, creating three risks:
   whose namespace is a domain it owns, then points the host's A/AAAA
   records at an internal address). The fetch occurs regardless of
   whether the body validates, enabling blind internal probing
-  through timing and error differentials. For every such fetch,
-  consumers MUST NOT connect to a host that resolves to a
-  private-use, loopback, link-local, unique-local, or otherwise
-  non-globally-routable IPv4 or IPv6 address, MUST cap response
-  size ({{https-policy-document-contract}}), and SHOULD apply a
-  fetch timeout. Because redirects are not followed
+  through timing and error differentials. Every such fetch follows
+  {{TRUST-FRAMEWORK}} §Outbound Fetches, which forbids connecting to
+  addresses that are not globally routable and requires timeouts and
+  size bounds. Because redirects are not followed
   ({{dii-https-url}}), the target is always the host the lookup
   named.
 - **Cost asymmetry.** A single small assertion can cause a full
   DNS+HTTPS round trip. Consumers SHOULD prefer cached results and
-  SHOULD NOT perform a live lookup until the assertion has passed the
-  cheaper grant-profile validation checks (signature, audience,
-  expiry; {{TRUST-FRAMEWORK}} §Resource Authorization Server
-  Processing step 2).
+  SHOULD NOT perform a live lookup until the client is authenticated
+  and the assertion has passed the cheaper grant-profile validation
+  checks (signature, audience, expiry; {{TRUST-FRAMEWORK}}
+  §Resource Authorization Server Processing).
 
 # Privacy Considerations {#privacy}
 

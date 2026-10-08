@@ -1548,12 +1548,42 @@ request, the Resource Authorization Server MUST:
    risk) and the applicable grant profile's client authentication
    and sender-constraining; this document does not specify either.
 
+Client authentication that the grant profile requires SHOULD be
+completed before step 5, so that unauthenticated requests cannot
+cause the lookups that step performs. Fetches made in step 5 follow
+{{outbound-fetches}}.
+
 Failure to satisfy issuer trust, subject identifier, or assertion
 claim requirements in the Trust Policy MUST result in an OAuth
 `invalid_grant` error unless another error is defined by the
 applicable grant profile. Detailed trust-evaluation failure state
 MUST NOT be returned to public clients in the OAuth error response;
 it is a reconnaissance target.
+
+## Outbound Fetches {#outbound-fetches}
+
+Evaluating Trust Methods makes the Resource Authorization Server
+fetch resources at locations an attacker can choose: the Assertion
+Issuer's metadata and key sets, Entity Statements reached through a
+leaf's `authority_hints`, a Trust Mark Issuer's chain, and policy
+documents named by a Subject Authority that the attacker controls.
+For every such fetch, the Resource Authorization Server:
+
+- MUST NOT connect to an address that is private-use, loopback,
+  link-local, unique-local, or otherwise not globally routable,
+  unless local configuration explicitly permits that address range
+  (for example, for a deployment whose internal resolver maps public
+  names to private addresses);
+- MUST connect to the address it checked rather than resolving the
+  name again, so that a DNS answer that changes between the check
+  and the connection cannot redirect the fetch;
+- MUST apply a timeout to each fetch and MUST bound response sizes;
+  and
+- MUST bound the number of fetches one assertion can cause
+  (recommended: no more than 20).
+
+Trust Method specifications MAY add requirements; for example,
+{{DAI}} forbids following redirects for policy fetches.
 
 # Grant Profile and Token Bindings {#bindings}
 

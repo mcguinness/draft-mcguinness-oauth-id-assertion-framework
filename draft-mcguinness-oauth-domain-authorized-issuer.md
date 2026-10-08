@@ -1708,16 +1708,22 @@ could layer client-side discovery on top (see
 here.
 
 Relationship to the Email Verification Protocol. EVP
-{{I-D.hardt-email-verification}} also publishes, in DNS, issuers
-associated with an email domain, but for a different purpose: it names
-issuers that can *verify control* of an email address (an issuance-time
-question), whereas DAI names issuers *authorized to assert* identities
-in a namespace (a verification-time authorization question). The
-records differ accordingly: DAI uses full issuer identifiers
-(including path components) and PSL-normalized Subject Authorities, and
-carries authorization constraints. Convergence with EVP on a shared
-record or node name is possible future work; {{email-verification-protocol-bridge}}
-sketches a bridge.
+{{I-D.hardt-email-verification}} also publishes, in DNS, the issuer
+for an email domain, and its relying party also checks that record at
+verification time: it resolves `_email-verification.{domain}` itself
+and rejects a token whose `iss` does not match. The two records
+differ in role and in scope. In role, EVP names the issuer that
+verifies *control of an email address*, while DAI names the issuers
+*authorized to assert identities* in a namespace; a domain that uses
+one provider for mail and another for single sign-on can rightly
+give different answers to the two questions. In scope, EVP allows
+exactly one issuer, identified by an HTTPS origin with no path, for
+the raw email domain and for EVP tokens only. DAI allows several
+issuers with full issuer identifiers (including path components),
+binds them to tenants, carries authorization constraints, and
+normalizes to the registrable domain. Convergence with EVP on a
+shared record or node name is possible future work;
+{{email-verification-protocol-bridge}} sketches a bridge.
 
 ## Why a Generic Record Name {#rationale-generic-name}
 

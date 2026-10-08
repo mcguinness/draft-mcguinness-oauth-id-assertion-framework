@@ -1417,10 +1417,11 @@ reject the policy as malformed.
 
 ## Critical Members {#critical-members}
 
-The Trust Policy and Issuer Authorization Policy documents MAY include
-a `crit` member: a JSON array of strings naming other members of the
-same document whose correct processing is REQUIRED for safe
-interpretation. A consumer that does not recognize, or does not
+The Trust Policy MAY include a `crit` member: a JSON array of strings
+naming other members of the same document whose correct processing is
+REQUIRED for safe interpretation. A Trust Method specification MAY
+adopt this mechanism, with the rules of this section, for the policy
+documents it defines (for example, {{DAI}}). A consumer that does not recognize, or does not
 implement processing for, any member named in `crit` MUST reject the
 document as malformed rather than ignoring the unrecognized member.
 Members not named in `crit` retain the default handling: unrecognized
@@ -1434,18 +1435,11 @@ non-empty array of strings, and MUST reject if `crit` names `crit`
 itself. This is the same fail-closed pattern JWS ({{RFC7515}}
 Section 4.1.11) uses for critical header parameters.
 
-Publishers MUST place `crit` in the outer (unsigned) document: a
-`crit` present only in a `signed_policy` JWT payload is invisible to
-consumers that do not process signatures and therefore has no effect
-on them. It MAY additionally be duplicated as a claim in the signed
-JWT so that its value is integrity-protected.
-
 This mechanism is defined in the base specification, with no member
 named critical by default, so that a future extension can mark a new
 decision-affecting member critical and have already-deployed
 consumers honor it; an extension that omitted it from the base could
-not retrofit fail-closed behavior onto the deployed base. The DNS
-record form does not carry `crit`; see {{crit-dns-form}}.
+not retrofit fail-closed behavior onto the deployed base.
 
 # Trust Policy Processing
 
@@ -2406,21 +2400,6 @@ carried in-band, satisfy the checklist in
 methods under the combination rule. It is deferred as an
 assurance-tier extension for deployments whose requirements justify
 the operational cost.
-
-## Critical Directives for the DNS Record Form {#crit-dns-form}
-
-The JSON document forms carry a `crit` member defined in the base
-specification ({{critical-members}}), so an extension that adds a
-decision-affecting member to the Trust Policy or Issuer Authorization
-Policy can mark it critical and have already-deployed consumers honor
-it. The DNS record form has no analogous per-directive criticality
-mechanism today; its version token ({{DAI}}) prevents
-misinterpretation of incompatible future syntax by making
-unrecognized versions ignored, so a Subject Authority that publishes
-only an unrecognized version is Negative to an older consumer. A future
-extension that needs true per-directive fail-closed semantics in the
-DNS form would define a `crit=` directive and its recognition rules
-at that time.
 
 ## Actor Identity Trust Evaluation
 

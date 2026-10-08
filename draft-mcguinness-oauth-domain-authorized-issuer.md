@@ -317,7 +317,12 @@ channel on encountering a denial. Each object has:
   the policy safely, as defined in {{TRUST-FRAMEWORK}} §Critical
   Members. A consumer that fails to recognize, or does not implement
   processing for, one or more listed members MUST treat the policy as
-  malformed.
+  malformed. Publishers MUST place `crit` in the outer (unsigned)
+  document: a `crit` present only in a `signed_policy` JWT payload is
+  invisible to consumers that do not process signatures and therefore
+  has no effect on them. It MAY additionally be duplicated as a claim
+  in the signed JWT so that its value is integrity-protected. The DNS
+  record form does not carry `crit` ({{crit-dns-form}}).
 
 Consumers MUST ignore unrecognized members, except those named in
 `crit`. A document containing duplicate member names (at the top level
@@ -1735,6 +1740,20 @@ Such an extension would need to define all of the following:
 
 This document does not define that extension or change DAI's lookup,
 authority binding, or integrity mechanisms to depend on federation.
+
+## Critical Directives for the DNS Record Form {#crit-dns-form}
+
+The JSON document carries a `crit` member ({{dii-document}}), so an
+extension that adds a decision-affecting member to the Issuer
+Authorization Policy can mark it critical and have already-deployed
+consumers honor it. The DNS record form has no analogous
+per-directive criticality mechanism today; its version token
+({{dii-dns-record}}) prevents misinterpretation of incompatible future
+syntax by making unrecognized versions ignored, so a Subject Authority
+that publishes only an unrecognized version is Negative to an older
+consumer. A future extension that needs true per-directive
+fail-closed semantics in the DNS form would define a `crit=` directive
+and its recognition rules at that time.
 
 ## Evaluation Reports
 

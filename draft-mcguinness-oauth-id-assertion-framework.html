@@ -1293,10 +1293,7 @@ subject-namespace authorization profile usable by this framework.<a href="#secti
                 </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5">
-                <p id="section-toc.1-1.4.2.5.1"><a href="#section-4.5" class="auto internal xref">4.5</a>.  <a href="#name-signed-policy-metadata" class="internal xref">Signed Policy Metadata</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.6">
-                <p id="section-toc.1-1.4.2.6.1"><a href="#section-4.6" class="auto internal xref">4.6</a>.  <a href="#name-critical-members" class="internal xref">Critical Members</a></p>
+                <p id="section-toc.1-1.4.2.5.1"><a href="#section-4.5" class="auto internal xref">4.5</a>.  <a href="#name-critical-members" class="internal xref">Critical Members</a></p>
 </li>
             </ul>
 </li>
@@ -1404,9 +1401,6 @@ subject-namespace authorization profile usable by this framework.<a href="#secti
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2">
                 <p id="section-toc.1-1.10.2.2.1"><a href="#section-10.2" class="auto internal xref">10.2</a>.  <a href="#name-subject-authority-extractio" class="internal xref">Subject Authority Extraction Procedures Registry</a></p>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.3">
-                <p id="section-toc.1-1.10.2.3.1"><a href="#section-10.3" class="auto internal xref">10.3</a>.  <a href="#name-media-type-registrations" class="internal xref">Media Type Registrations</a></p>
-</li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
@@ -1441,13 +1435,10 @@ subject-namespace authorization profile usable by this framework.<a href="#secti
                 <p id="section-toc.1-1.13.2.2.1"><a href="#appendix-B.2" class="auto internal xref">B.2</a>.  <a href="#name-presented-delegation-creden" class="internal xref">Presented Delegation Credentials</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.3">
-                <p id="section-toc.1-1.13.2.3.1"><a href="#appendix-B.3" class="auto internal xref">B.3</a>.  <a href="#name-critical-directives-for-the" class="internal xref">Critical Directives for the DNS Record Form</a></p>
+                <p id="section-toc.1-1.13.2.3.1"><a href="#appendix-B.3" class="auto internal xref">B.3</a>.  <a href="#name-actor-identity-trust-evalua" class="internal xref">Actor Identity Trust Evaluation</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.4">
-                <p id="section-toc.1-1.13.2.4.1"><a href="#appendix-B.4" class="auto internal xref">B.4</a>.  <a href="#name-actor-identity-trust-evalua" class="internal xref">Actor Identity Trust Evaluation</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.5">
-                <p id="section-toc.1-1.13.2.5.1"><a href="#appendix-B.5" class="auto internal xref">B.5</a>.  <a href="#name-trust-policy-discovery" class="internal xref">Trust Policy Discovery</a></p>
+                <p id="section-toc.1-1.13.2.4.1"><a href="#appendix-B.4" class="auto internal xref">B.4</a>.  <a href="#name-trust-policy-discovery" class="internal xref">Trust Policy Discovery</a></p>
 </li>
             </ul>
 </li>
@@ -1658,7 +1649,8 @@ Policy wire format it consumes.<a href="#section-1.5-2.2.1" class="pilcrow">¶</
 </li>
         </ul>
 <p id="section-1.5-3">This document does not define the Issuer Authorization Policy
-wire format; that lives in <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>. This document defines what an
+wire format or its integrity protection; those live in <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>. This
+document defines what an
 Assertion Issuer must satisfy to be accepted; DAI defines one
 class of evidence supplying that satisfaction.<a href="#section-1.5-3" class="pilcrow">¶</a></p>
 </section>
@@ -1855,7 +1847,8 @@ requires.<a href="#section-2-5.10.1" class="pilcrow">¶</a></p>
         <dd style="margin-left: 1.5em" id="section-2-5.12">
           <p id="section-2-5.12.1">The Delegation Artifact by which a Subject Authority declares the
 Assertion Issuers it authorizes for its namespace. Concrete
-representations (wire format, publication channel) are supplied by
+representations (wire format, publication channel, integrity
+protection) are supplied by
 individual <code>subject_namespace_authorization</code> Trust Method specifications.<a href="#section-2-5.12.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
@@ -1866,6 +1859,16 @@ Policy or Issuer Authorization Policy): a Resource Authorization
 Server evaluating an assertion, or a client reading a Trust Policy
 for capability discovery. Requirements addressed to consumers apply
 to both roles unless a narrower role is named.<a href="#section-2-5.14.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-5.15">Decision-affecting member:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-5.16">
+          <p id="section-2-5.16.1">A member of a policy document whose value can change whether a
+consumer accepts an assertion. Every member that this document or a
+Trust Method specification registers for a policy document is
+decision-affecting, except a member that only records when the
+document was published, a member that carries a signature over other
+members, and any member whose registration says otherwise.<a href="#section-2-5.16.1" class="pilcrow">¶</a></p>
 </dd>
       <dd class="break"></dd>
 </dl>
@@ -2274,9 +2277,9 @@ over HTTPS with media type <code>application/json</code> (or a media type using
 the structured <code>+json</code> suffix). Consumers <span class="bcp14">MUST</span> reject a policy whose
 required members are absent or wrong-typed, <span class="bcp14">MUST</span> reject a document
 containing duplicate member names at any object level, and <span class="bcp14">MUST</span> ignore
-unrecognized members except those named in <code>crit</code> (<a href="#critical-members" class="auto internal xref">Section 4.6</a>).
-The policy <span class="bcp14">MAY</span> include a <code>crit</code> member (<a href="#critical-members" class="auto internal xref">Section 4.6</a>). It does
-not carry <code>signed_policy</code> (<a href="#signed-policy-metadata" class="auto internal xref">Section 4.5</a>). Members are
+unrecognized members except those named in <code>crit</code> (<a href="#critical-members" class="auto internal xref">Section 4.5</a>).
+The policy <span class="bcp14">MAY</span> include a <code>crit</code> member (<a href="#critical-members" class="auto internal xref">Section 4.5</a>). It
+carries no signature (<a href="#integrity" class="auto internal xref">Section 7.9</a>). Members are
 registered in <a href="#iana-trust-policy-members-registry" class="auto internal xref">Section 10.1.6</a>.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
 <p id="section-4.2-2">Example:<a href="#section-4.2-2" class="pilcrow">¶</a></p>
 <div class="lang-json sourcecode" id="section-4.2-3">
@@ -2446,8 +2449,15 @@ bound on serving cached evidence during an Indeterminate state, or
 an explicit statement that the method caches nothing.<a href="#section-4.3.3-2.5.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-4.3.3-2.6">
-              <p id="section-4.3.3-2.6.1">Any method-specific parameters, their JSON types, and whether each
-is <span class="bcp14">REQUIRED</span> or <span class="bcp14">OPTIONAL</span>.<a href="#section-4.3.3-2.6.1" class="pilcrow">¶</a></p>
+              <p id="section-4.3.3-2.6.1">For a method whose evidence is signed, how the signer and the
+verification key are bound to the Authority Holder through a
+channel independent of the signed artifact, so that an attacker who
+controls the artifact, or the channel that carries it, cannot
+substitute either.<a href="#section-4.3.3-2.6.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-4.3.3-2.7">
+              <p id="section-4.3.3-2.7.1">Any method-specific parameters, their JSON types, and whether each
+is <span class="bcp14">REQUIRED</span> or <span class="bcp14">OPTIONAL</span>.<a href="#section-4.3.3-2.7.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
@@ -2895,156 +2905,32 @@ subdomain.<a href="#section-4.4.2-1" class="pilcrow">¶</a></p>
 </div>
 </section>
 </div>
-<div id="signed-policy-metadata">
-<section id="section-4.5">
-        <h3 id="name-signed-policy-metadata">
-<a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-signed-policy-metadata" class="section-name selfRef">Signed Policy Metadata</a>
-        </h3>
-<p id="section-4.5-1">The Issuer Authorization Policy document <span class="bcp14">MAY</span> include a
-<code>signed_policy</code> member that provides cryptographic integrity for
-signed policy claims. When the signed JWT contains all recognized
-decision-affecting policy members, <code>signed_policy</code> can provide
-object-level integrity for the policy document. This member follows
-the signed metadata pattern defined for authorization server metadata
-in <span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span> and protected resource metadata in <span>[<a href="#RFC9728" class="cite xref">RFC9728</a>]</span>.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
-<p id="section-4.5-2">A decision-affecting member is a policy member whose value can change
-whether a consumer accepts an assertion. Every member that this
-document or a Trust Method specification registers for a policy
-document is decision-affecting, except <code>last_updated</code>,
-<code>signed_policy</code> itself, and any member whose registration says
-otherwise.<a href="#section-4.5-2" class="pilcrow">¶</a></p>
-<p id="section-4.5-3">The Trust Policy does not carry <code>signed_policy</code>. A Resource
-Authorization Server enforces its Trust Policy from its own
-configuration, and a client uses the published copy only for
-discovery (<a href="#client-processing" class="auto internal xref">Section 5.1</a>), so a substituted Trust Policy can
-mislead a client's choice of Assertion Issuer but cannot change what
-the Resource Authorization Server accepts; its integrity rests on
-TLS (<a href="#integrity" class="auto internal xref">Section 7.9</a>).<a href="#section-4.5-3" class="pilcrow">¶</a></p>
-<p id="section-4.5-4">The <code>signed_policy</code> value is a JWT <span>[<a href="#RFC7519" class="cite xref">RFC7519</a>]</span> in JWS Compact
-Serialization <span>[<a href="#RFC7515" class="cite xref">RFC7515</a>]</span> containing policy members as claims. The
-JWT <span class="bcp14">MUST</span> be digitally signed using an asymmetric algorithm, <span class="bcp14">MUST</span>
-contain an <code>iss</code> claim identifying the party attesting to the signed
-policy claims, and <span class="bcp14">MUST</span> contain <code>iat</code>. It <span class="bcp14">MUST</span> contain <code>exp</code>, so that
-a superseded signed policy cannot be replayed indefinitely (relevant
-in the shared-infrastructure scenario for which signing is
-recommended, <a href="#shared-infrastructure" class="auto internal xref">Section 7.10</a>); consumers <span class="bcp14">MUST</span> reject an expired
-<code>signed_policy</code>. A consumer that holds a cached signed policy for the
-same Subject Authority <span class="bcp14">MUST</span> reject a <code>signed_policy</code> whose <code>iat</code> is
-earlier than the cached one's, so that an older signed policy cannot
-be replayed within its validity period. The JOSE header <span class="bcp14">SHOULD</span>
-contain a <code>kid</code> identifying
-the signing key. The JWT payload <span class="bcp14">SHOULD NOT</span> contain a <code>signed_policy</code>
-claim.<a href="#section-4.5-4" class="pilcrow">¶</a></p>
-<p id="section-4.5-5">Algorithms: <span>[<a href="#RFC8725" class="cite xref">RFC8725</a>]</span> (JWT Best Current Practices) applies
-unchanged. In addition, the JWT <span class="bcp14">MUST NOT</span> use a MAC algorithm
-(HS256/384/512); verification keys are widely distributed and a
-MAC scheme would require sharing the signing key with every
-Validator, defeating the authority binding. Implementations <span class="bcp14">MUST</span>
-support ES256 and <span class="bcp14">SHOULD</span> support EdDSA and ES384; RS256 with
-&gt;=2048-bit keys <span class="bcp14">MAY</span> be supported for compatibility.<a href="#section-4.5-5" class="pilcrow">¶</a></p>
-<p id="section-4.5-6">Per <span>[<a href="#RFC8725" class="cite xref">RFC8725</a>]</span> §3.11 (cross-context confusion), the JWT <code>typ</code>
-header <span class="bcp14">MUST</span> be <code>issuer-authorization-policy+jwt</code>. This is the
-registered media subtype with the <code>application/</code> prefix omitted, per
-the <span>[<a href="#RFC8725" class="cite xref">RFC8725</a>]</span> §3.11 convention; the corresponding media type is
-registered in <a href="#iana-media-types" class="auto internal xref">Section 10.3</a>.<a href="#section-4.5-6" class="pilcrow">¶</a></p>
-<p id="section-4.5-7">The JWT payload <span class="bcp14">MUST</span> contain the member that identifies the Subject
-Authority in the profile's wire format (<code>subject_authority</code> in
-<span>[<a href="#DAI" class="cite xref">DAI</a>]</span>). The JWT <code>iss</code> claim <span class="bcp14">MUST</span> either equal that Subject
-Authority identifier or identify a signing authority that local
-policy or an applicable Trust Method establishes as controlled by the
-Subject Authority. Consumers <span class="bcp14">MUST NOT</span> treat a signature by an
-Assertion Issuer the policy authorizes as proof of Subject Authority
-authorization unless such a relationship is explicitly established.<a href="#section-4.5-7" class="pilcrow">¶</a></p>
-<p id="section-4.5-8">The verification key <span class="bcp14">MUST</span> be resolved through a channel independent
-of the one that carried the policy document. A profile that admits
-<code>signed_policy</code> <span class="bcp14">MUST</span> specify at least one of the following
-key-resolution mechanisms and state its trust assumptions:<a href="#section-4.5-8" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-4.5-9.1">
-            <p id="section-4.5-9.1.1">a key bound by a record the Subject Authority publishes in DNS
-(for example, a key thumbprint), which protects against compromise
-of the policy host but not of DNS unless the record is
-DNSSEC-signed;<a href="#section-4.5-9.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-4.5-9.2">
-            <p id="section-4.5-9.2.1">a key resolved through a federation or trust-anchor relationship
-established by an <code>issuer_authentication</code> Trust Method; or<a href="#section-4.5-9.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-4.5-9.3">
-            <p id="section-4.5-9.3.1">a key configured out of band at the consumer.<a href="#section-4.5-9.3.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-4.5-10">Rationale: an attacker who controls the publication channel can
-substitute both the policy and, if the key is fetched over that same
-channel, the key. Absent an independent channel, the signature
-provides integrity no stronger than channel control (which already
-establishes authority), and consumers <span class="bcp14">MUST NOT</span> rely on it to defend
-against compromise of that channel.<a href="#section-4.5-10" class="pilcrow">¶</a></p>
-<p id="section-4.5-11">If both unsigned policy members and <code>signed_policy</code> are present, the
-signed policy claims <span class="bcp14">MUST</span> be used as the policy values for all claims
-present in the JWT. Unsigned members that are not represented as claims
-in the JWT <span class="bcp14">MAY</span> be used subject to the normal processing rules for
-unrecognized members. A conflict exists when a member name appears in
-both the unsigned outer document and the signed JWT payload AND the
-two values are not equal when compared as parsed JSON values (member
-order and insignificant whitespace ignored; equivalently, their JCS
-<span>[<a href="#RFC8785" class="cite xref">RFC8785</a>]</span> serializations differ). Consumers <span class="bcp14">MUST</span> reject a policy
-that contains any such conflict; an attacker who can modify the outer
-document but not the signed JWT otherwise has a lever to inject
-visible-but-ignored members that may mislead operators or downstream
-tooling.<a href="#section-4.5-11" class="pilcrow">¶</a></p>
-<p id="section-4.5-12">A publisher that needs to require <code>signed_policy</code> processing by all
-conforming consumers lists <code>signed_policy</code> in the document's <code>crit</code>
-member (<a href="#critical-members" class="auto internal xref">Section 4.6</a>); a consumer that does not implement
-<code>signed_policy</code> processing then rejects the document rather than
-silently ignoring the signature. Absent a <code>crit</code> entry, the presence
-of <code>signed_policy</code> provides integrity only for consumers that support
-and verify it, or for deployments where local policy requires signed
-policy processing.<a href="#section-4.5-12" class="pilcrow">¶</a></p>
-<p id="section-4.5-13">If a consumer's local policy requires object-level integrity through
-<code>signed_policy</code>, the consumer <span class="bcp14">MUST</span> verify the signed JWT before
-acting on the policy, and the JWT payload <span class="bcp14">MUST</span> contain every
-recognized decision-affecting member used by that consumer. The
-consumer <span class="bcp14">MUST NOT</span> use unsigned
-recognized decision-affecting members that are absent from the JWT
-payload. If signature verification fails, if the verification key is
-unacceptable, if the JWT is malformed, if the required issuer binding
-above is not satisfied, or if the JWT omits a recognized
-decision-affecting member required for evaluation, the consumer <span class="bcp14">MUST</span>
-reject the policy as malformed.<a href="#section-4.5-13" class="pilcrow">¶</a></p>
-</section>
-</div>
 <div id="critical-members">
-<section id="section-4.6">
+<section id="section-4.5">
         <h3 id="name-critical-members">
-<a href="#section-4.6" class="section-number selfRef">4.6. </a><a href="#name-critical-members" class="section-name selfRef">Critical Members</a>
+<a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-critical-members" class="section-name selfRef">Critical Members</a>
         </h3>
-<p id="section-4.6-1">The Trust Policy and Issuer Authorization Policy documents <span class="bcp14">MAY</span> include
-a <code>crit</code> member: a JSON array of strings naming other members of the
-same document whose correct processing is <span class="bcp14">REQUIRED</span> for safe
-interpretation. A consumer that does not recognize, or does not
+<p id="section-4.5-1">The Trust Policy <span class="bcp14">MAY</span> include a <code>crit</code> member: a JSON array of strings
+naming other members of the same document whose correct processing is
+<span class="bcp14">REQUIRED</span> for safe interpretation. A Trust Method specification <span class="bcp14">MAY</span>
+adopt this mechanism, with the rules of this section, for the policy
+documents it defines (for example, <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>). A consumer that does not recognize, or does not
 implement processing for, any member named in <code>crit</code> <span class="bcp14">MUST</span> reject the
 document as malformed rather than ignoring the unrecognized member.
 Members not named in <code>crit</code> retain the default handling: unrecognized
 members are ignored. <code>crit</code> names members of the object that carries
-it; it does not reach members of nested objects.<a href="#section-4.6-1" class="pilcrow">¶</a></p>
-<p id="section-4.6-2"><code>crit</code>, when present, <span class="bcp14">MUST</span> be a non-empty array of strings; each string
+it; it does not reach members of nested objects.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
+<p id="section-4.5-2"><code>crit</code>, when present, <span class="bcp14">MUST</span> be a non-empty array of strings; each string
 <span class="bcp14">SHOULD</span> name a member that is actually present in the document. A
 consumer <span class="bcp14">MUST</span> reject the document if <code>crit</code> is present but not a
 non-empty array of strings, and <span class="bcp14">MUST</span> reject if <code>crit</code> names <code>crit</code>
 itself. This is the same fail-closed pattern JWS (<span>[<a href="#RFC7515" class="cite xref">RFC7515</a>]</span>
-Section 4.1.11) uses for critical header parameters.<a href="#section-4.6-2" class="pilcrow">¶</a></p>
-<p id="section-4.6-3">Publishers <span class="bcp14">MUST</span> place <code>crit</code> in the outer (unsigned) document: a
-<code>crit</code> present only in a <code>signed_policy</code> JWT payload is invisible to
-consumers that do not process signatures and therefore has no effect
-on them. It <span class="bcp14">MAY</span> additionally be duplicated as a claim in the signed
-JWT so that its value is integrity-protected.<a href="#section-4.6-3" class="pilcrow">¶</a></p>
-<p id="section-4.6-4">This mechanism is defined in the base specification, with no member
+Section 4.1.11) uses for critical header parameters.<a href="#section-4.5-2" class="pilcrow">¶</a></p>
+<p id="section-4.5-3">This mechanism is defined in the base specification, with no member
 named critical by default, so that a future extension can mark a new
 decision-affecting member critical and have already-deployed
 consumers honor it; an extension that omitted it from the base could
-not retrofit fail-closed behavior onto the deployed base. The DNS
-record form does not carry <code>crit</code>; see <a href="#crit-dns-form" class="auto internal xref">Appendix B.3</a>.<a href="#section-4.6-4" class="pilcrow">¶</a></p>
+not retrofit fail-closed behavior onto the deployed base.<a href="#section-4.5-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3656,12 +3542,16 @@ or short assertion lifetimes at the grant-profile layer.<a href="#section-7.8-1"
 <a href="#section-7.9" class="section-number selfRef">7.9. </a><a href="#name-policy-document-integrity" class="section-name selfRef">Policy Document Integrity</a>
         </h3>
 <p id="section-7.9-1">The Trust Policy <span class="bcp14">MUST</span> be served over HTTPS with TLS server
-authentication, and its integrity rests on TLS: the Resource
-Authorization Server enforces its requirements from its own
-configuration, so a substituted copy can mislead only a client's
-discovery (<a href="#signed-policy-metadata" class="auto internal xref">Section 4.5</a>). The Issuer Authorization
-Policy, which decides acceptance, can carry <code>signed_policy</code> with the
-signer binding rules defined there. Mirrored or cached copies of a
+authentication, and its integrity rests on TLS. It carries no
+signature: a Resource Authorization Server enforces its Trust Policy
+from its own configuration, and a client uses the published copy
+only for discovery (<a href="#client-processing" class="auto internal xref">Section 5.1</a>), so a substituted Trust
+Policy can mislead a client's choice of Assertion Issuer but cannot
+change what the Resource Authorization Server accepts. Integrity
+protection for an Issuer Authorization Policy, which decides
+acceptance, is defined by the Trust Method specification that defines
+the policy (for example, <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Signed Policy). Mirrored or cached
+copies of a
 Trust Policy <span class="bcp14">MUST NOT</span> be relied on beyond their HTTP cache lifetime
 (<a href="#caching" class="auto internal xref">Section 7.12</a>); cache and stale-use bounds for an Issuer Authorization
 Policy are set by the applicable Trust Method specification
@@ -3690,24 +3580,9 @@ tenant takeover, cache poisoning, or origin authentication failures.<a href="#se
 <p id="section-7.10-3">Administrators <span class="bcp14">SHOULD</span> avoid delegating security-critical well-known
 paths to multi-tenant infrastructure unless they can ensure exclusive
 control over routing for those paths, authenticated origin access,
-cache invalidation, and tenant isolation. A Subject Authority that
-hosts its Issuer Authorization Policy on shared infrastructure it
-does not control end to end <span class="bcp14">SHOULD</span> publish <code>signed_policy</code>
-(<a href="#signed-policy-metadata" class="auto internal xref">Section 4.5</a>) with a signing key held outside that
-infrastructure and resolvable through a channel independent of it
-(see the key-resolution requirement in <a href="#signed-policy-metadata" class="auto internal xref">Section 4.5</a>).<a href="#section-7.10-3" class="pilcrow">¶</a></p>
-<p id="section-7.10-4">Because the <code>crit</code> member (<a href="#critical-members" class="auto internal xref">Section 4.6</a>) is itself carried in
-the unsigned document, an attacker who can strip <code>signed_policy</code> can
-strip <code>crit</code> with it; publisher-side criticality therefore does not
-defend against stripping by an on-path or edge attacker. A
-signature is only effective against such an attacker if consumers
-are configured to require it: the attacker can otherwise serve an
-unsigned document, which a consumer not configured to require a
-signature would accept. A consumer configured to require
-<code>signed_policy</code> for a Subject Authority therefore <span class="bcp14">MUST</span> verify it
-before acting on that Subject Authority's policy, <span class="bcp14">MUST</span> reject a
-policy whose signature is missing or invalid, and <span class="bcp14">MUST NOT</span> treat a
-valid TLS connection to a shared edge as sufficient by itself.<a href="#section-7.10-4" class="pilcrow">¶</a></p>
+cache invalidation, and tenant isolation. Object-level integrity for
+an Issuer Authorization Policy hosted this way is defined by the
+Trust Method specification (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Policy Hosts).<a href="#section-7.10-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="downgrade">
@@ -4089,11 +3964,11 @@ registry group.<a href="#section-10.1.6-1" class="pilcrow">¶</a></p>
 <p id="section-10.1.6-5">Designated Expert instructions: the expert verifies that the member
 name does not collide with an existing member, that its semantics and
 JSON type are specified, that the registration states whether the
-member is decision-affecting (<a href="#signed-policy-metadata" class="auto internal xref">Section 4.5</a>), and that
+member is decision-affecting (<a href="#terminology" class="auto internal xref">Section 2</a>), and that
 any decision-affecting member states
 how a consumer that does not recognize it behaves (the default is that
 unrecognized members are ignored; a member requiring fail-closed
-handling needs the criticality mechanism of <a href="#critical-members" class="auto internal xref">Section 4.6</a>).<a href="#section-10.1.6-5" class="pilcrow">¶</a></p>
+handling needs the criticality mechanism of <a href="#critical-members" class="auto internal xref">Section 4.5</a>).<a href="#section-10.1.6-5" class="pilcrow">¶</a></p>
 <p id="section-10.1.6-6">Initial entries:<a href="#section-10.1.6-6" class="pilcrow">¶</a></p>
 <table class="center" id="table-3">
             <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
@@ -4212,30 +4087,6 @@ have a well-defined namespace authority.<a href="#section-10.2-6" class="pilcrow
             </tr>
           </tbody>
         </table>
-</section>
-</div>
-<div id="iana-media-types">
-<section id="section-10.3">
-        <h3 id="name-media-type-registrations">
-<a href="#section-10.3" class="section-number selfRef">10.3. </a><a href="#name-media-type-registrations" class="section-name selfRef">Media Type Registrations</a>
-        </h3>
-<p id="section-10.3-1">IANA is requested to register the following media type in the "Media
-Types" registry for the signed Issuer Authorization Policy
-(<a href="#signed-policy-metadata" class="auto internal xref">Section 4.5</a>). Following <span>[<a href="#RFC8725" class="cite xref">RFC8725</a>]</span> §3.11, the JWT
-<code>typ</code> header value is the media subtype with the <code>application/</code>
-prefix omitted (<code>issuer-authorization-policy+jwt</code>), as required in
-<a href="#signed-policy-metadata" class="auto internal xref">Section 4.5</a>.<a href="#section-10.3-1" class="pilcrow">¶</a></p>
-<p id="section-10.3-2">For <code>application/issuer-authorization-policy+jwt</code>: Type name
-<code>application</code>; Subtype name <code>issuer-authorization-policy+jwt</code>;
-Required parameters none; Optional parameters none; Encoding
-considerations 8bit (the value is a JWT in JWS Compact
-Serialization, a sequence of base64url-encoded values separated by
-periods, per <span>[<a href="#RFC7519" class="cite xref">RFC7519</a>]</span> Section 10.3.1); Security considerations
-<a href="#signed-policy-metadata" class="auto internal xref">Section 4.5</a> and the Security Considerations of this
-document; Interoperability considerations none; Published
-specification this document; Applications OAuth Subject Authorities
-and Resource Authorization Servers; Fragment identifier
-considerations none; Change controller IETF.<a href="#section-10.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4371,10 +4222,6 @@ considerations none; Change controller IETF.<a href="#section-10.3-2" class="pil
 <dt id="RFC7662">[RFC7662]</dt>
         <dd>
 <span class="refAuthor">Richer, J., Ed.</span>, <span class="refTitle">"OAuth 2.0 Token Introspection"</span>, <span class="seriesInfo">RFC 7662</span>, <span class="seriesInfo">DOI 10.17487/RFC7662</span>, <time datetime="2015-10" class="refDate">October 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7662">https://www.rfc-editor.org/rfc/rfc7662</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="RFC8785">[RFC8785]</dt>
-        <dd>
-<span class="refAuthor">Rundgren, A.</span>, <span class="refAuthor">Jordan, B.</span>, and <span class="refAuthor">S. Erdtman</span>, <span class="refTitle">"JSON Canonicalization Scheme (JCS)"</span>, <span class="seriesInfo">RFC 8785</span>, <span class="seriesInfo">DOI 10.17487/RFC8785</span>, <time datetime="2020-06" class="refDate">June 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8785">https://www.rfc-editor.org/rfc/rfc8785</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC9111">[RFC9111]</dt>
         <dd>
@@ -4528,31 +4375,12 @@ assurance-tier extension for deployments whose requirements justify
 the operational cost.<a href="#appendix-B.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="crit-dns-form">
-<section id="appendix-B.3">
-        <h3 id="name-critical-directives-for-the">
-<a href="#appendix-B.3" class="section-number selfRef">B.3. </a><a href="#name-critical-directives-for-the" class="section-name selfRef">Critical Directives for the DNS Record Form</a>
-        </h3>
-<p id="appendix-B.3-1">The JSON document forms carry a <code>crit</code> member defined in the base
-specification (<a href="#critical-members" class="auto internal xref">Section 4.6</a>), so an extension that adds a
-decision-affecting member to the Trust Policy or Issuer Authorization
-Policy can mark it critical and have already-deployed consumers honor
-it. The DNS record form has no analogous per-directive criticality
-mechanism today; its version token (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span>) prevents
-misinterpretation of incompatible future syntax by making
-unrecognized versions ignored, so a Subject Authority that publishes
-only an unrecognized version is Negative to an older consumer. A future
-extension that needs true per-directive fail-closed semantics in the
-DNS form would define a <code>crit=</code> directive and its recognition rules
-at that time.<a href="#appendix-B.3-1" class="pilcrow">¶</a></p>
-</section>
-</div>
 <div id="actor-identity-trust-evaluation">
-<section id="appendix-B.4">
+<section id="appendix-B.3">
         <h3 id="name-actor-identity-trust-evalua">
-<a href="#appendix-B.4" class="section-number selfRef">B.4. </a><a href="#name-actor-identity-trust-evalua" class="section-name selfRef">Actor Identity Trust Evaluation</a>
+<a href="#appendix-B.3" class="section-number selfRef">B.3. </a><a href="#name-actor-identity-trust-evalua" class="section-name selfRef">Actor Identity Trust Evaluation</a>
         </h3>
-<p id="appendix-B.4-1">OAuth assertions can carry an <code>act</code> object expressing actor
+<p id="appendix-B.3-1">OAuth assertions can carry an <code>act</code> object expressing actor
 delegation (a service acting on behalf of a user). A future
 extension can apply the trust-evaluation categories of
 <a href="#delegation-model" class="auto internal xref">Section 3</a> to actor identities: a Resource Authorization
@@ -4563,32 +4391,32 @@ Authority extraction procedure applicable to actor-carried
 Subject Identifiers and is therefore tied to the OAuth Actor
 Profile being progressed separately. Until that extension lands,
 trust evaluation of actor identities is governed by local policy
-at the Resource Authorization Server.<a href="#appendix-B.4-1" class="pilcrow">¶</a></p>
+at the Resource Authorization Server.<a href="#appendix-B.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="trust-policy-discovery">
-<section id="appendix-B.5">
+<section id="appendix-B.4">
         <h3 id="name-trust-policy-discovery">
-<a href="#appendix-B.5" class="section-number selfRef">B.5. </a><a href="#name-trust-policy-discovery" class="section-name selfRef">Trust Policy Discovery</a>
+<a href="#appendix-B.4" class="section-number selfRef">B.4. </a><a href="#name-trust-policy-discovery" class="section-name selfRef">Trust Policy Discovery</a>
         </h3>
-<p id="appendix-B.5-1">This document specifies how a Resource Authorization Server
+<p id="appendix-B.4-1">This document specifies how a Resource Authorization Server
 publishes its Trust Policy (via authorization server metadata or
 protected resource metadata) but assumes a client or peer that
 already knows the Resource Authorization Server's identity. In
 open-world deployments (agent runtimes, AI tools, cross-organization
 integrations), a peer may need to discover a resource operator's
-Trust Policy before any prior bilateral relationship exists.<a href="#appendix-B.5-1" class="pilcrow">¶</a></p>
-<p id="appendix-B.5-2">A future Trust Policy Discovery extension can let a resource
+Trust Policy before any prior bilateral relationship exists.<a href="#appendix-B.4-1" class="pilcrow">¶</a></p>
+<p id="appendix-B.4-2">A future Trust Policy Discovery extension can let a resource
 operator publish a DNS-named pointer at
 <code>_oauth-trust-policy.{resource-domain}</code> to its Trust Policy
 document, mirroring the DNS-authority pattern of <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> for the
 resource-side. The resource operator's domain becomes the
 publication channel for "where do I trust assertions from?", the
-dual of DAI's "who do I authorize to assert about me?".<a href="#appendix-B.5-2" class="pilcrow">¶</a></p>
-<p id="appendix-B.5-3">The extension is deferred because the open-world first-contact
+dual of DAI's "who do I authorize to assert about me?".<a href="#appendix-B.4-2" class="pilcrow">¶</a></p>
+<p id="appendix-B.4-3">The extension is deferred because the open-world first-contact
 case is not yet a deployed need for the namespace and federation
 profiles defined here; bilateral configuration plus the metadata
-endpoints suffice for the current target deployments.<a href="#appendix-B.5-3" class="pilcrow">¶</a></p>
+endpoints suffice for the current target deployments.<a href="#appendix-B.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4988,6 +4816,13 @@ Authority's published decision final for its namespace; map
 domains; add outbound-fetch requirements and a security
 consideration on key binding; define decision-affecting members
 and a signed-policy rollback rule.<a href="#appendix-F-3.5.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-F-3.6">
+          <p id="appendix-F-3.6.1">Move signed-policy processing, the issuer-policy <code>crit</code> placement
+rule, and the <code>issuer-authorization-policy+jwt</code> media type to
+<span>[<a href="#DAI" class="cite xref">DAI</a>]</span>; keep Trust Policy <code>crit</code> handling here and define
+decision-affecting members in the Terminology; add a Trust Method
+checklist item for signer and key binding.<a href="#appendix-F-3.6.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="appendix-F-4">-00<a href="#appendix-F-4" class="pilcrow">¶</a></p>

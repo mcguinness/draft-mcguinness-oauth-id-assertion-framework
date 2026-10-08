@@ -292,15 +292,16 @@ Table of Contents
          using case-sensitive string comparison; an assertion that lacks
          the tenant claim or carries a different value does not match
          this entry.  When absent, the entry matches only assertions
-         that carry no top-level tenant claim, so listing a shared
-         issuer without tenant authorizes none of its tenants.  Grant
-         profiles that do not carry a tenant claim (e.g., the generic
-         JWT-bearer grant of [RFC7523]) match only entries that omit
-         tenant.  Tenant values are issuer-specific and MUST NOT be
-         compared across issuers.  To authorize multiple tenants of the
-         same shared issuer, publish one entry per (issuer, tenant)
-         pair.  Guidance for shared-issuer multi-tenant Identity
-         Providers is in Section 9.9.
+         that carry no top-level tenant claim, so under a grant profile
+         that carries tenant, listing a shared issuer without tenant
+         authorizes none of its tenants (Section 9.9 covers grant
+         profiles that do not).  Grant profiles that do not carry a
+         tenant claim (e.g., the generic JWT-bearer grant of [RFC7523])
+         match only entries that omit tenant.  Tenant values are issuer-
+         specific and MUST NOT be compared across issuers.  To authorize
+         multiple tenants of the same shared issuer, publish one entry
+         per (issuer, tenant) pair.  Guidance for shared-issuer multi-
+         tenant Identity Providers is in Section 9.9.
 
       subject_identifier_formats  OPTIONAL.  JSON array of Subject
          Identifier format names ([RFC9493]) this Assertion Issuer is
@@ -1078,7 +1079,9 @@ Table of Contents
        URL https://oauth-issuer-policy.{A}/.well-known/oauth-issuer-
        policy per Section 4.4.  The Resource Authorization Server MUST
        NOT query _oauth-issuer-policy.{A} as part of this Trust Method
-       and MUST NOT use a DNS uri= pointer.
+       and MUST NOT use a DNS uri= pointer.  A dedicated host name that
+       does not exist (NXDOMAIN, or no address records) is Negative: the
+       Subject Authority has not opted in (Section 5.1).
 
    3.  Classify HTTPS retrieval and document validation outcomes per
        Section 5.1.  Negative and Indeterminate states MUST result in
@@ -1305,7 +1308,8 @@ Table of Contents
       MUST use the HTTPS or DNS pointer form; a recognized inline record
       with no issuer= is malformed, so the inline form cannot publish an
       empty delegation set.  An inline record that names a shared multi-
-      tenant issuer authorizes none of its tenants (Section 9.9).
+      tenant issuer authorizes none of its tenants under a grant profile
+      that carries tenant (Section 9.9).
 
 9.8.  Email Local-Part Is Not Authenticated
 
@@ -1327,17 +1331,18 @@ Table of Contents
    Shared Issuer Variant of the End-to-End Example.  The following
    security points apply:
 
-   *  *Tenant binding is required for shared issuers.* An entry without
-      tenant matches only assertions that carry no tenant claim
-      (Section 6), so listing a shared issuer without tenant, including
-      in the inline DNS form, authorizes none of its tenants; a Subject
-      Authority authorizes a tenant by listing the (issuer, tenant)
-      pair.  This relies on the Identity Provider sending the tenant
-      claim whenever it is multi-tenant.  [ID-JAG] §6.1 requires that
-      only when the tenant context is relevant to the Resource
-      Authorization Server, so a shared issuer that omits the claim
-      would again match an entry without tenant; Subject Authorities
-      SHOULD list a shared issuer only with tenant.
+   *  *Tenant binding is required for shared issuers.* Under a grant
+      profile that carries tenant, an entry without tenant matches only
+      assertions that carry no tenant claim (Section 6), so listing a
+      shared issuer without tenant, including in the inline DNS form,
+      authorizes none of its tenants; a Subject Authority authorizes a
+      tenant by listing the (issuer, tenant) pair.  This relies on the
+      Identity Provider sending the tenant claim whenever it is multi-
+      tenant.  [ID-JAG] §6.1 requires that only when the tenant context
+      is relevant to the Resource Authorization Server, so a shared
+      issuer that omits the claim would again match an entry without
+      tenant; Subject Authorities SHOULD list a shared issuer only with
+      tenant.
 
    *  *Tenant-isolation dependency.* The tenant binding is a wire-format
       expression of trust, not a cryptographic guarantee.  The Resource
@@ -1354,9 +1359,13 @@ Table of Contents
       that carries no tenant claim (e.g., the generic JWT-bearer grant,
       [TRUST-FRAMEWORK] §Generic JWT-Bearer Assertion Grant), only
       entries that omit tenant can match, so tenant-scoped authorization
-      is not expressible.  A Subject Authority relying on a shared
-      multi-tenant Assertion Issuer SHOULD NOT authorize that issuer for
-      such a grant unless per-tenant issuer identifiers are used.
+      is not expressible.  Any tenant claim in such an assertion is
+      ignored for matching (it is not attested by the grant profile), so
+      an entry without tenant for a shared issuer matches assertions
+      from every one of its tenants; the default above does not help
+      here.  A Subject Authority relying on a shared multi-tenant
+      Assertion Issuer SHOULD NOT authorize that issuer for such a grant
+      unless per-tenant issuer identifiers are used.
 
 9.10.  Denial of Service, Amplification, and SSRF
 

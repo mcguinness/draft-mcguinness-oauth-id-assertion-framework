@@ -1570,8 +1570,10 @@ present and <span class="bcp14">MUST</span> exactly match this value using case-
 string comparison; an assertion that lacks the <code>tenant</code> claim or
 carries a different value does not match this entry. When absent,
 the entry matches only assertions that carry no top-level <code>tenant</code>
-claim, so listing a shared issuer without <code>tenant</code> authorizes none
-of its tenants. Grant profiles that do not carry a
+claim, so under a grant profile that carries <code>tenant</code>, listing a
+shared issuer without <code>tenant</code> authorizes none of its tenants
+(<a href="#dii-multi-tenant" class="auto internal xref">Section 9.9</a> covers grant profiles that do not). Grant
+profiles that do not carry a
 <code>tenant</code> claim (e.g., the generic JWT-bearer grant of <span>[<a href="#RFC7523" class="cite xref">RFC7523</a>]</span>)
 match only entries that omit <code>tenant</code>. Tenant values are
 issuer-specific and <span class="bcp14">MUST NOT</span> be compared across issuers. To
@@ -2518,7 +2520,9 @@ Identifier per <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWO
 URL <code>https://oauth-issuer-policy.{A}/.well-known/oauth-issuer-policy</code>
 per <a href="#dii-https-url" class="auto internal xref">Section 4.4</a>. The Resource Authorization Server <span class="bcp14">MUST NOT</span>
 query <code>_oauth-issuer-policy.{A}</code> as part of this Trust Method and
-<span class="bcp14">MUST NOT</span> use a DNS <code>uri=</code> pointer.<a href="#section-8.2-6.2.1" class="pilcrow">¶</a></p>
+<span class="bcp14">MUST NOT</span> use a DNS <code>uri=</code> pointer. A dedicated host name that does
+not exist (NXDOMAIN, or no address records) is Negative: the
+Subject Authority has not opted in (<a href="#dii-failures" class="auto internal xref">Section 5.1</a>).<a href="#section-8.2-6.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-8.2-6.3">
             <p id="section-8.2-6.3.1">Classify HTTPS retrieval and document validation outcomes per
@@ -2815,7 +2819,8 @@ array, <a href="#dii-document" class="auto internal xref">Section 3</a>) <span c
 a recognized inline record with no <code>issuer=</code> is malformed, so the
 inline form cannot publish an empty delegation set. An inline
 record that names a shared multi-tenant issuer authorizes none of
-its tenants (<a href="#dii-multi-tenant" class="auto internal xref">Section 9.9</a>).<a href="#section-9.7-1.3.1" class="pilcrow">¶</a></p>
+its tenants under a grant profile that carries <code>tenant</code>
+(<a href="#dii-multi-tenant" class="auto internal xref">Section 9.9</a>).<a href="#section-9.7-1.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -2848,11 +2853,12 @@ in the Shared Issuer Variant of the End-to-End Example. The
 following security points apply:<a href="#section-9.9-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-9.9-2.1">
-            <p id="section-9.9-2.1.1"><strong>Tenant binding is required for shared issuers.</strong> An entry
-without <code>tenant</code> matches only assertions that carry no <code>tenant</code>
-claim (<a href="#dii-verification" class="auto internal xref">Section 6</a>), so listing a shared issuer without
-<code>tenant</code>, including in the inline DNS form, authorizes none of its
-tenants; a Subject Authority authorizes a tenant by listing the
+            <p id="section-9.9-2.1.1"><strong>Tenant binding is required for shared issuers.</strong> Under a grant
+profile that carries <code>tenant</code>, an entry without <code>tenant</code> matches
+only assertions that carry no <code>tenant</code> claim (<a href="#dii-verification" class="auto internal xref">Section 6</a>),
+so listing a shared issuer without <code>tenant</code>, including in the inline
+DNS form, authorizes none of its tenants; a Subject Authority
+authorizes a tenant by listing the
 (issuer, tenant) pair. This relies on the Identity Provider
 sending the <code>tenant</code> claim whenever it is multi-tenant. <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>
 §6.1 requires that only when the tenant context is relevant to the
@@ -2878,7 +2884,11 @@ tenant-isolation guarantees.<a href="#section-9.9-2.2.1" class="pilcrow">¶</a><
 profile that carries no <code>tenant</code> claim (e.g., the generic
 JWT-bearer grant, <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Generic JWT-Bearer
 Assertion Grant), only entries that omit <code>tenant</code> can match, so
-tenant-scoped authorization is not expressible. A Subject
+tenant-scoped authorization is not expressible. Any <code>tenant</code> claim
+in such an assertion is ignored for matching (it is not attested
+by the grant profile), so an entry without <code>tenant</code> for a shared
+issuer matches assertions from every one of its tenants; the
+default above does not help here. A Subject
 Authority relying on a shared multi-tenant Assertion Issuer
 <span class="bcp14">SHOULD NOT</span> authorize that issuer for such a grant unless
 per-tenant issuer identifiers are used.<a href="#section-9.9-2.3.1" class="pilcrow">¶</a></p>

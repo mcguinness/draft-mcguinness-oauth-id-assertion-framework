@@ -2800,9 +2800,13 @@ to a single unquoted <code>@</code> are out of scope for the <code>email</code> 
 The local-part is not used. A trailing dot on the domain, if present,
 is removed. The domain is converted to A-label form (<span>[<a href="#RFC5891" class="cite xref">RFC5891</a>]</span>)
 by UTS #46 <code>ToASCII</code> processing <span>[<a href="#UTS46" class="cite xref">UTS46</a>]</span> with
-<code>Transitional_Processing</code> false, and <code>UseSTD3ASCIIRules</code>,
+<code>Transitional_Processing</code> (deprecated in UTS #46) and
+<code>IgnoreInvalidPunycode</code> false, and <code>UseSTD3ASCIIRules</code>,
 <code>CheckHyphens</code>, <code>CheckBidi</code>, <code>CheckJoiners</code>, and <code>VerifyDnsLength</code>
-true; a domain for which <code>ToASCII</code> reports an error is rejected.
+true. Consumers <span class="bcp14">MUST</span> reject a domain for which <code>ToASCII</code> reports an
+error.
+<code>UseSTD3ASCIIRules</code> rejects characters, such as <code>_</code>, that are not
+valid in host names, which an email domain does not need.
 This pins one mapping, so that two consumers compute the same
 A-label: transitional processing or IDNA2003 maps some characters
 (such as U+00DF) differently and would select a different Subject
@@ -2820,8 +2824,7 @@ only the ICANN division would compute a coarser Subject Authority
 and query a different name). The result is compared using
 case-insensitive ASCII comparison of A-labels. Consumers <span class="bcp14">MUST</span>
 reject an email whose domain is itself a public suffix (no
-registrable domain exists) and <span class="bcp14">MUST</span> reject a domain that is not a
-valid A-label or U-label sequence. Registrable-domain
+registrable domain exists). Registrable-domain
 normalization prevents an attacker who controls a subdomain (for
 example, via subdomain takeover) from overriding the legitimate
 record at the registrable domain.<a href="#section-4.4-4.2.3" class="pilcrow">¶</a></p>

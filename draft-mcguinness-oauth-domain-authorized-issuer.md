@@ -1393,11 +1393,13 @@ following security points apply:
   DNS form, authorizes none of its tenants; a Subject Authority
   authorizes a tenant by listing the
   (issuer, tenant) pair. This relies on the Identity Provider
-  sending the `tenant` claim whenever it is multi-tenant. {{ID-JAG}}
-  §6.1 requires that only when the tenant context is relevant to the
-  Resource Authorization Server, so a shared issuer that omits the
-  claim would again match an entry without `tenant`; Subject
-  Authorities SHOULD list a shared issuer only with `tenant`.
+  sending the `tenant` claim whenever it is multi-tenant, which
+  {{TRUST-FRAMEWORK}} §ID-JAG requires of a shared issuer whenever
+  the Resource Authorization Server's Trust Policy lists a namespace
+  method. A shared
+  issuer that omits the claim anyway would again match an entry
+  without `tenant`, so Subject Authorities SHOULD list a shared
+  issuer only with `tenant`.
 
 - **Tenant-isolation dependency.** The `tenant` binding is a
   wire-format expression of trust, not a cryptographic guarantee.

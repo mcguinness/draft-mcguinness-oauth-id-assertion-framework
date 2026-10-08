@@ -1572,6 +1572,18 @@ When the Trust Policy contains a `subject_namespace_authorization`
 method, {{rasp}} step 5c requires the ID-JAG to carry that Subject
 Identifier and requires rejection if it is absent or unresolvable.
 
+{{ID-JAG}} §6.1 requires a multi-tenant issuer to include the
+`tenant` claim when the tenant context is relevant to the Resource
+Authorization Server. Under this binding, the tenant context is
+relevant whenever the Resource Authorization Server's Trust Policy
+lists a `subject_namespace_authorization` method, because such a
+method can bind authorization to a tenant (for example, {{DAI}}
+§Single-Issuer Multi-Tenant Identity Providers) and cannot tell an
+issuer's tenants apart without the claim. An Assertion Issuer that
+serves more than one tenant under a single issuer identifier
+therefore MUST include the `tenant` claim in every ID-JAG it issues
+for such a Resource Authorization Server.
+
 In addition to the processing in {{rasp}}, the Resource Authorization
 Server MUST:
 

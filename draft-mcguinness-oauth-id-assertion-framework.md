@@ -1906,7 +1906,7 @@ stateless and remain valid until `exp` regardless of session
 termination, credential revocation at the Assertion Issuer, or
 Subject Authority withdrawal of the issuer's authorization via
 DAI (which prevents NEW assertions but does not invalidate
-already-issued ones). Deployments requiring synchronous revocation MUST use OAuth
+already-issued ones). Deployments requiring synchronous revocation need OAuth
 2.0 Token Revocation {{RFC7009}}, Token Introspection {{RFC7662}},
 or short assertion lifetimes at the grant-profile layer.
 

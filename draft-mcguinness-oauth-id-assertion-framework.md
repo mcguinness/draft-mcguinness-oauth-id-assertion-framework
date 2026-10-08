@@ -568,10 +568,16 @@ Delegation Artifact from the Subject Authority and that artifact
 does not authorize the Assertion Issuer (including an explicit
 denial), the category is not satisfied, whatever any other method in
 the category yields: the Subject Authority's published decision is
-final for its namespace. A Negative state, in which the Subject
+final for its namespace. An Indeterminate state from a
+`subject_namespace_authorization` method that consults the Subject
+Authority's own publication has the same effect, because it may hide
+that published decision. A Negative state, in which the Subject
 Authority has published nothing through that method's channel, does
 not have this effect; other methods in the category can still
-supply evidence.
+supply evidence. Where that channel's negative answers are not
+authenticated (for example, DNS without DNSSEC), an attacker who
+forges one can turn a published denial into a Negative and let
+another method decide ({{authority-source-compromise}}).
 
 ## Open-World Delegation and Bounded Transitivity {#open-world}
 
@@ -654,7 +660,10 @@ decision. Profiles MUST enumerate the concrete signals on their
 publication channel that map to each state.
 
 A Validator MUST fail closed on both Negative and Indeterminate
-states: the access decision MUST be reject. Profiles MUST NOT
+states: neither state satisfies the Trust Method that produced it,
+and the access decision MUST be reject unless another Trust Method
+satisfies the same category as {{multiple-sources}} permits.
+Profiles MUST NOT
 permit any condition under which an Indeterminate state is
 treated as Affirmative; doing so converts the fail-closed
 property into an availability-driven downgrade attack surface.
@@ -974,7 +983,8 @@ Lookup states ({{exception-handling}}):
   signature that cannot be verified because key material is
   unavailable, or an expired statement that cannot be refreshed.
 
-Both Negative and Indeterminate fail closed. Entity Statement caching
+Neither Negative nor Indeterminate satisfies this Trust Method
+({{fail-closed-requirements}}). Entity Statement caching
 follows the statements' own `exp` values per {{OIDF-FEDERATION}},
 bounded by the consumer's local cache ceiling; a cached chain MUST
 NOT be used past the earliest `exp` in the chain. A Trust Mark that

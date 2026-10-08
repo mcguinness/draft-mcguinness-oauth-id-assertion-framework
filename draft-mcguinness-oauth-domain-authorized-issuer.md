@@ -749,10 +749,15 @@ The following deterministic conflict rules apply:
 - If the assertion's claims conflict with the matched policy entry, the
   assertion fails the Trust Method.
 
-Consumers MUST treat both Negative and Indeterminate as
-assertion rejection, except that a cached Affirmative policy MAY
-be used during an Indeterminate live retrieval within the
-stale-if-error bound of {{dii-caching}}.
+Consumers MUST NOT treat a Negative or Indeterminate outcome as
+satisfying the Trust Method, except that a cached Affirmative policy
+MAY be used during an Indeterminate live retrieval within the
+stale-if-error bound of {{dii-caching}}. Whether the assertion is
+then rejected follows {{TRUST-FRAMEWORK}} §Fail-Closed Requirements:
+an Indeterminate outcome, like a policy that does not authorize the
+issuer, leaves the `subject_namespace_authorization` category
+unsatisfied whatever other methods yield, while a Negative outcome
+lets another method in that category supply evidence.
 
 # Verification {#dii-verification}
 
@@ -765,9 +770,9 @@ Resource Authorization Server MUST:
 
 2. Retrieve the Issuer Authorization Policy by applying the
    procedure in {{dii-lookup}}. Negative and Indeterminate
-   outcomes ({{dii-failures}}) MUST result in rejection, except as
-   {{dii-caching}} permits for a cached Affirmative policy during an
-   Indeterminate live retrieval.
+   outcomes ({{dii-failures}}) MUST NOT satisfy the Trust Method,
+   except as {{dii-caching}} permits for a cached Affirmative policy
+   during an Indeterminate live retrieval.
 
 3. Verify the policy's `subject_authority` matches the computed
    Subject Authority. (Virtual policies satisfy this by
@@ -804,9 +809,11 @@ Resource Authorization Server MUST:
    same result regardless of array order or of which matching entry
    they examine first.
 
-Steps 1 and 2 are prerequisites; their failure causes assertion
-rejection per {{dii-failures}} unconditionally and is not classified
-as a Trust Method satisfaction outcome. When the Trust Method is not
+If step 1 fails, the assertion is rejected ({{TRUST-FRAMEWORK}}
+§Resource Authorization Server Processing, step 5c). If step 2 does
+not yield a policy, the Trust Method is not satisfied, with the
+category-level effect stated in {{dii-failures}}. When the Trust
+Method is not
 satisfied and, as a result, the cross-category combination rule
 ({{TRUST-FRAMEWORK}} §Cross-Category Combination Rule) is not met,
 the Resource Authorization Server MUST reject the assertion with an
@@ -816,10 +823,9 @@ OAuth `invalid_grant` error.
 
 This document defines no mode in which a published policy is
 evaluated without being enforced. Under fail-closed evaluation, a
-namespace with no policy is already rejected by every Resource
-Authorization Server that requires this Trust Method
-({{dii-failures}}), so a Subject Authority's first publication breaks
-no sign-in at such a server. A mode that accepted assertions despite
+namespace with no policy gets no authorization from this Trust
+Method ({{dii-failures}}), so a Subject Authority's first publication
+withdraws nothing that this method granted. A mode that accepted assertions despite
 a mismatch would instead admit more issuers than publishing nothing.
 
 A Resource Authorization Server introducing `domain_authorized_issuer`
@@ -983,9 +989,9 @@ When evaluated, the Resource Authorization Server MUST:
    records) is Negative ({{dii-failures}}).
 
 4. Classify HTTPS retrieval and document validation outcomes per
-   {{dii-failures}}. Negative and Indeterminate states MUST result
-   in rejection, except as {{dii-caching}} permits for a cached
-   Affirmative policy during an Indeterminate live retrieval.
+   {{dii-failures}}. Negative and Indeterminate states MUST NOT
+   satisfy the Trust Method, except as {{dii-caching}} permits for a
+   cached Affirmative policy during an Indeterminate live retrieval.
 
 5. Verify the fetched policy and match the Assertion Issuer against
    `authorized_issuers` using steps 3 and 4 of {{dii-verification}}.
@@ -1352,10 +1358,14 @@ can authorize an attacker. Subject Authorities SHOULD operate the
 record and any policy host with the same rigor as other sign-in-path
 infrastructure. Specific guidance:
 
-- **Rollout.** A first publication rejects nothing that a Resource
-  Authorization Server requiring this Trust Method accepted before,
-  since a namespace without a policy is Negative ({{dii-failures}}).
-  Check the issuer list for completeness before publishing; forgotten
+- **Rollout.** A first publication withdraws no acceptance that this
+  Trust Method granted, since a namespace without a policy is
+  Negative ({{dii-failures}}). At a Resource Authorization Server
+  that also lists another namespace method, however, the new policy
+  becomes final for the namespace ({{TRUST-FRAMEWORK}} §Multiple
+  Authority Sources Within a Category), so it needs to list every
+  issuer that method accepted. Check the issuer list for
+  completeness before publishing; forgotten
   regional tenants and departing Identity Providers are the usual
   omissions, and they surface as rejections at such servers. Subject
   Authorities SHOULD sign the zone with DNSSEC or publish via the

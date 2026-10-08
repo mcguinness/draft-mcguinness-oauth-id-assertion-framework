@@ -247,7 +247,9 @@ channel on encountering a denial. Each object has:
   present and MUST exactly match this value using case-sensitive
   string comparison; an assertion that lacks the `tenant` claim or
   carries a different value does not match this entry. When absent,
-  no tenant constraint applies. Grant profiles that do not carry a
+  the entry matches only assertions that carry no top-level `tenant`
+  claim, so listing a shared issuer without `tenant` authorizes none
+  of its tenants. Grant profiles that do not carry a
   `tenant` claim (e.g., the generic JWT-bearer grant of {{RFC7523}})
   match only entries that omit `tenant`. Tenant values are
   issuer-specific and MUST NOT be compared across issuers. To
@@ -743,8 +745,8 @@ Resource Authorization Server MUST:
       matches the assertion's top-level `tenant` claim (in ID-JAG,
       {{ID-JAG}} §6.1) under case-sensitive string comparison. An
       entry with `tenant` does not match an assertion that lacks the
-      `tenant` claim; an entry without `tenant` matches regardless of
-      any `tenant` claim in the assertion. Under a grant profile that
+      `tenant` claim; an entry without `tenant` does not match an
+      assertion that carries a `tenant` claim. Under a grant profile that
       carries no `tenant` claim, any `tenant` claim physically present
       in the assertion MUST be ignored for entry matching.
 
@@ -1137,7 +1139,9 @@ specified in {{dii-failures}}.
   `valid_until`, or explicit denial (an empty `authorized_issuers`
   array, {{dii-document}}) MUST use the HTTPS or DNS pointer form;
   a recognized inline record with no `issuer=` is malformed, so the
-  inline form cannot publish an empty delegation set.
+  inline form cannot publish an empty delegation set. An inline
+  record that names a shared multi-tenant issuer authorizes none of
+  its tenants ({{dii-multi-tenant}}).
 
 ## Email Local-Part Is Not Authenticated {#email-local-part}
 
@@ -1156,16 +1160,20 @@ through a mechanism outside this document. See also
 ## Single-Issuer Multi-Tenant Identity Providers {#dii-multi-tenant}
 
 The shared-issuer case and its `tenant` binding are demonstrated
-in the Shared Issuer Variant of the End-to-End Example. Two
-security points apply:
+in the Shared Issuer Variant of the End-to-End Example. The
+following security points apply:
 
-- **Unconstrained-listing risk.** A Subject Authority that lists
-  a shared issuer with no `tenant` value authorizes every tenant
-  of that Identity Provider, almost never the intent. Subject
-  Authorities listing a shared issuer SHOULD include `tenant`.
-  Resource Authorization Servers SHOULD log a warning when
-  accepting under an unconstrained entry and SHOULD consider
-  rejecting as a matter of local policy.
+- **Tenant binding is required for shared issuers.** An entry
+  without `tenant` matches only assertions that carry no `tenant`
+  claim ({{dii-verification}}), so listing a shared issuer without
+  `tenant`, including in the inline DNS form, authorizes none of its
+  tenants; a Subject Authority authorizes a tenant by listing the
+  (issuer, tenant) pair. This relies on the Identity Provider
+  sending the `tenant` claim whenever it is multi-tenant. {{ID-JAG}}
+  §6.1 requires that only when the tenant context is relevant to the
+  Resource Authorization Server, so a shared issuer that omits the
+  claim would again match an entry without `tenant`; Subject
+  Authorities SHOULD list a shared issuer only with `tenant`.
 
 - **Tenant-isolation dependency.** The `tenant` binding is a
   wire-format expression of trust, not a cryptographic guarantee.
@@ -1484,7 +1492,8 @@ serve many customer tenants under a single issuer URL. The
 deployment reality is that these Identity Providers are common;
 authorizing them without tenant binding effectively authorizes
 every tenant of the Identity Provider for the namespace, which is
-almost never the intent.
+almost never the intent. An entry without `tenant` therefore
+matches only assertions that carry no `tenant` claim.
 
 The `tenant` member on `authorized_issuers[]` entries binds
 authorization to the specific tenant identifier the Identity

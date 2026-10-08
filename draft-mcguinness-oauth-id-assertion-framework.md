@@ -621,10 +621,10 @@ permit any condition under which an Indeterminate state is
 treated as Affirmative; doing so converts the fail-closed
 property into an availability-driven downgrade attack surface.
 
-A Validator MAY rely on a fresh cached Affirmative Delegation
-Artifact during a transient Indeterminate state on the live
-publication channel, but only if the cached artifact is within
-the cache lifetime bound the profile specifies. Repeated
+A Validator MAY rely on a cached Affirmative Delegation Artifact
+during a transient Indeterminate state on the live publication
+channel, but only within the stale-serving bound the profile
+specifies. Repeated
 Indeterminate states across consecutive lookups MUST NOT extend
 the effective cache lifetime beyond the profile's stated maximum;
 if the cache expires while the live channel remains
@@ -871,8 +871,9 @@ that the deferral from this framework to the method is testable:
   binding from the assertion's Subject Identifier to the Subject
   Authority whose evidence is consulted, consistent with the
   single-source-selection rule ({{multiple-sources}}).
-- Cache-lifetime bounds for any retrieved evidence, or an explicit
-  statement that the method caches nothing.
+- Cache-lifetime bounds for any retrieved evidence, including any
+  bound on serving cached evidence during an Indeterminate state, or
+  an explicit statement that the method caches nothing.
 - Any method-specific parameters, their JSON types, and whether each
   is REQUIRED or OPTIONAL.
 

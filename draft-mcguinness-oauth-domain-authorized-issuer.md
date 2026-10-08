@@ -62,6 +62,8 @@ informative:
   RFC8461:
   RFC8659:
   RFC9728:
+  RFC2308:
+  RFC9111:
   OIDC-DISCOVERY:
     title: "OpenID Connect Discovery 1.0"
     target: https://openid.net/specs/openid-connect-discovery-1_0.html
@@ -707,10 +709,9 @@ The following deterministic conflict rules apply:
   assertion fails the Trust Method.
 
 Consumers MUST treat both Negative and Indeterminate as
-assertion rejection. A fresh cached Affirmative policy MAY be
-used during transient Indeterminate on the live channel, subject
-to {{dii-caching}}; the cache lifetime MUST NOT be extended by
-repeated Indeterminate retrievals.
+assertion rejection, except that a cached Affirmative policy MAY
+be used during an Indeterminate live retrieval within the
+stale-if-error bound of {{dii-caching}}.
 
 # Verification {#dii-verification}
 
@@ -723,9 +724,9 @@ Resource Authorization Server MUST:
 
 2. Retrieve the Issuer Authorization Policy by applying the
    procedure in {{dii-lookup}}. Negative and Indeterminate
-   outcomes ({{dii-failures}}) MUST result in rejection, except
-   that a fresh cached policy MAY be used when the live retrieval
-   is Indeterminate.
+   outcomes ({{dii-failures}}) MUST result in rejection, except as
+   {{dii-caching}} permits for a cached Affirmative policy during an
+   Indeterminate live retrieval.
 
 3. Verify the policy's `subject_authority` matches the computed
    Subject Authority. (Virtual policies satisfy this by
@@ -792,41 +793,48 @@ reporting mechanism is sketched in {{future-extensions}}.
 
 # Caching {#dii-caching}
 
-Cache lifetimes for the Issuer Authorization Policy:
+Freshness and cache limits for the Issuer Authorization Policy:
 
-- Consumers SHOULD respect HTTP `Cache-Control` on HTTPS documents
-  and DNS TTL on records. The DNS inline form's virtual-policy
-  lifetime is the minimum TTL of the constructing records. For
-  the DNS pointer form, the effective lifetime is the lesser of
-  the pointer's DNS TTL and the fetched document's HTTP cache
-  lifetime.
-- Subject Authorities SHOULD publish records and HTTPS policies
-  with a steady-state TTL of at most 1 hour, reducing further
-  during an active revocation.
-- Consumers MUST enforce an absolute local cache ceiling on the age
-  of any cached policy entry (recommended: 24 hours) regardless of TTL
-  or `Cache-Control`. A cached entry older than the ceiling MUST NOT be
-  used and MUST be re-fetched.
-- Serving stale cache during outages is separately bounded. Consumers
-  MAY serve a fresh cached Affirmative policy (one within its normal
-  TTL/`Cache-Control` lifetime) when a live retrieval is
-  Indeterminate. Independently of the absolute ceiling above,
-  consumers MUST NOT serve a cached policy across a continuous run of
-  Indeterminate live results lasting longer than 1 hour: once the
-  most recent successful (Affirmative or Negative) live retrieval is
-  more than 1 hour old, the consumer MUST stop serving the cached
-  policy and treat the lookup as Indeterminate (reject). Any successful
-  live retrieval resets this 1-hour outage window. This bound prevents
-  an attacker who can sustain denial of service against the policy
-  endpoint from extending revocation latency up to the 24-hour ceiling.
-- Negative results SHOULD be cached, subject to the same ceiling,
-  to bound lookup work under load ({{dos-ssrf}}). Consumers whose
-  threat model includes brief publication-channel takeover SHOULD
-  cap negative-cache lifetime at a shorter value (recommended: 5
-  minutes) so that a Negative cached during a takeover does not
-  hide the legitimate Authority Holder's later publication; the
-  same shorter cap SHOULD apply to a cached explicit-denial policy
-  ({{dii-document}}).
+- **Freshness lifetime.** The inline form's virtual policy is fresh
+  for the minimum TTL of the records that construct it. A policy
+  fetched through a `uri=` pointer is fresh for the lesser of the
+  pointer record's TTL and the document's HTTP freshness lifetime
+  ({{RFC9111}}). A policy fetched from the dedicated host under the
+  HTTPS-only lookup mode is fresh for its HTTP freshness lifetime. A
+  document without explicit freshness information (no `max-age` and
+  no `Expires`) is fresh for a local default that MUST NOT exceed 1
+  hour. Consumers SHOULD respect these lifetimes, and MAY apply a
+  minimum freshness lifetime of up to 5 minutes even when a TTL or
+  HTTP lifetime is shorter, to coarsen the timing signal discussed
+  in {{privacy}}.
+- **Unvalidated DNS.** Consumers MUST NOT treat a DNS result that was
+  not DNSSEC-validated as fresh for more than 1 hour, whatever its
+  TTL: a spoofed answer chooses its own TTL
+  ({{dns-integrity-and-compromise}}).
+- **Steady-state lifetimes.** Subject Authorities SHOULD publish
+  records and HTTPS policies with a freshness lifetime of at most 1
+  hour, reducing it further during an active revocation.
+- **Absolute ceiling.** Consumers MUST enforce an absolute local
+  ceiling on the age of any cached policy entry (recommended: 24
+  hours), regardless of TTL or `Cache-Control`. A cached entry older
+  than the ceiling MUST NOT be used and MUST be re-fetched with an
+  unconditional request.
+- **Stale-if-error.** When a live retrieval is Indeterminate, a
+  consumer MAY continue to use a cached Affirmative policy for at
+  most 1 hour after its freshness lifetime ended, and never past the
+  absolute ceiling. Repeated Indeterminate retrievals MUST NOT extend
+  this window; a successful live retrieval (Affirmative or Negative)
+  replaces the cached entry. The bound keeps an attacker who can
+  sustain denial of service against the publication channel from
+  extending revocation latency toward the absolute ceiling.
+- **Negative results** SHOULD be cached, to bound lookup work under
+  load ({{dos-ssrf}}), for no longer than the lesser of their
+  negative-caching lifetime (the DNS negative TTL {{RFC2308}}, or the
+  HTTP freshness lifetime of a 404 or 410 response) and 1 hour
+  (recommended: 5 minutes). The short cap makes a Subject Authority's
+  first publication, and its recovery from a brief publication-channel
+  takeover, visible promptly. The same cap SHOULD apply to a cached
+  explicit-denial policy ({{dii-document}}).
 - Indeterminate outcomes MAY be cached for a short period
   (recommended: no more than 5 minutes) to absorb retry storms;
   an Indeterminate cache entry MUST NOT be treated as a policy and
@@ -924,8 +932,8 @@ When evaluated, the Resource Authorization Server MUST:
 
 3. Classify HTTPS retrieval and document validation outcomes per
    {{dii-failures}}. Negative and Indeterminate states MUST result
-   in rejection, except that a fresh cached policy MAY be used
-   when the live retrieval is Indeterminate.
+   in rejection, except as {{dii-caching}} permits for a cached
+   Affirmative policy during an Indeterminate live retrieval.
 
 4. Verify the fetched policy and match the Assertion Issuer against
    `authorized_issuers` using steps 3 and 4 of {{dii-verification}}.
@@ -1056,8 +1064,10 @@ Required framework defenses:
   because consumers reject records lacking the matching
   `authority=` directive.
 - Consumers MUST verify TLS for any host named by `uri=`.
-- Consumers MUST bound cache lifetimes ({{dii-caching}};
-  recommended absolute ceiling 24 hours).
+- Consumers MUST bound cache lifetimes ({{dii-caching}}). A spoofed
+  answer that was not DNSSEC-validated stays fresh for at most 1
+  hour, and can be served for at most 1 more hour while the live
+  channel is Indeterminate.
 - Consumers performing DNSSEC validation MUST treat validation
   failure as `indeterminate`, not `negative-authoritative`, so that a
   stripped or broken signature produces a retryable failure rather
@@ -1246,7 +1256,9 @@ in two directions:
   obtain a near-real-time signal of where employees sign in. Caching
   ({{dii-caching}}) is the primary mitigation: it coarsens timing and
   collapses repeated lookups, so consumers SHOULD cache to the bounds
-  permitted rather than re-fetching per verification.
+  permitted rather than re-fetching per verification. The minimum
+  freshness lifetime of {{dii-caching}} keeps a Subject Authority
+  from observing every sign-in by publishing a very short TTL.
 
 # Operational Considerations {#operational}
 

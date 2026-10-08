@@ -2179,6 +2179,11 @@ This appendix is non-normative and will be removed before publication.
     on Negative caching.
   * Sketch a federation-bound Issuer Authorization Policy as a
     non-normative future extension.
+  * Define signed-policy processing and register the
+    `issuer-authorization-policy+jwt` media type in this document
+    (moved from the framework); describe how a spoofed negative
+    answer can suppress a published denial when another namespace
+    method is configured.
 
 -00
 

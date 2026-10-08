@@ -2694,6 +2694,11 @@ This appendix is non-normative and will be removed before publication.
     domains; add outbound-fetch requirements and a security
     consideration on key binding; define decision-affecting members
     and a signed-policy rollback rule.
+  * Move signed-policy processing, the issuer-policy `crit` placement
+    rule, and the `issuer-authorization-policy+jwt` media type to
+    {{DAI}}; keep Trust Policy `crit` handling here and define
+    decision-affecting members in the Terminology; add a Trust Method
+    checklist item for signer and key binding.
 
 -00
 

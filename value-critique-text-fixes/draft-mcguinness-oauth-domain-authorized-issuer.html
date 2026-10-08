@@ -3696,7 +3696,7 @@ Change controller IETF.<a href="#section-12.6-2" class="pilcrow">¶</a></p>
 <dd class="break"></dd>
 <dt id="I-D.hardt-email-verification">[I-D.hardt-email-verification]</dt>
         <dd>
-<span class="refTitle">"Email Verification Protocol"</span>, <span>n.d.</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-hardt-email-verification/">https://datatracker.ietf.org/doc/draft-hardt-email-verification/</a>&gt;</span>. </dd>
+<span class="refTitle">"Email Verification Protocol"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-hardt-email-verification/">https://datatracker.ietf.org/doc/draft-hardt-email-verification/</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="I-D.sanz-openid-dns-discovery">[I-D.sanz-openid-dns-discovery]</dt>
         <dd>
@@ -3804,17 +3804,18 @@ scope here.<a href="#appendix-A.1-3" class="pilcrow">¶</a></p>
 <p id="appendix-A.1-4">Relationship to federation-scoped and bilateral mechanisms. SAML
 federations such as InCommon constrain the namespaces an Identity
 Provider may assert with the scope metadata extension <span>[<a href="#SHIBMD" class="cite xref">SHIBMD</a>]</span>, and
-interfederation
-services such as eduGAIN <span>[<a href="#EDUGAIN" class="cite xref">EDUGAIN</a>]</span> carry that metadata between
-federations. There, scope is attested by the federation operator and
-distributed in trusted federation metadata; DAI's authorization is
-published by the namespace owner, where any verifier can retrieve it.
-Software-as-a-service providers commonly have a customer prove
-control of its domain with a one-time DNS challenge and then
-configure the customer's Identity Provider, and FastFed <span>[<a href="#FASTFED" class="cite xref">FASTFED</a>]</span>
-automates that bilateral setup. Both bind a domain to an issuer for
-one relationship, at setup time; DAI makes the binding available to
-every verifier at verification time.<a href="#appendix-A.1-4" class="pilcrow">¶</a></p>
+interfederation services such as eduGAIN <span>[<a href="#EDUGAIN" class="cite xref">EDUGAIN</a>]</span> carry that
+metadata between federations. There, scope is attested by the
+federation operator and distributed in trusted federation metadata;
+DAI's authorization is published by the namespace owner, where any
+verifier can retrieve it. Software-as-a-service providers commonly
+have a customer prove control of its domain with a one-time DNS
+challenge and then configure the customer's Identity Provider.
+FastFed <span>[<a href="#FASTFED" class="cite xref">FASTFED</a>]</span> automates establishing and maintaining such a
+federation relationship between an Identity Provider and an
+application provider, with administrator approval on both sides.
+Both are bilateral configuration, held by the parties to one
+relationship, not an authorization that any verifier can retrieve.<a href="#appendix-A.1-4" class="pilcrow">¶</a></p>
 <p id="appendix-A.1-5">Relationship to the Email Verification Protocol. EVP
 <span>[<a href="#I-D.hardt-email-verification" class="cite xref">I-D.hardt-email-verification</a>]</span> also publishes, in DNS, the issuer
 for an email domain, and its relying party also checks that record at

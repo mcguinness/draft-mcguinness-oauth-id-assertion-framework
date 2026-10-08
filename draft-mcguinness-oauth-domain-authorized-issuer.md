@@ -76,6 +76,33 @@ informative:
     title: "Email Verification Protocol"
     target: https://datatracker.ietf.org/doc/draft-hardt-email-verification/
     date: false
+  I-D.sanz-openid-dns-discovery:
+    title: "OpenID Connect DNS-based Discovery"
+    target: https://datatracker.ietf.org/doc/draft-sanz-openid-dns-discovery/
+    date: 2018-04-16
+    author:
+      - name: Vittorio Bertola
+        ins: V. Bertola
+      - name: Marcos Sanz
+        ins: M. Sanz
+  SHIBMD:
+    title: "ShibMetaExt V1.0"
+    target: https://shibboleth.atlassian.net/wiki/spaces/SC/pages/1843887946/ShibMetaExt+V1.0
+    author:
+      - org: Shibboleth Consortium
+    date: false
+  FASTFED:
+    title: "FastFed Core 1.0"
+    target: https://openid.net/specs/fastfed-core-1_0.html
+    author:
+      - org: OpenID Foundation
+    date: false
+  EDUGAIN:
+    title: "What is eduGAIN"
+    target: https://edugain.org/about-edugain/what-is-edugain/
+    author:
+      - org: GEANT
+    date: false
 
 ---
 
@@ -1159,6 +1186,19 @@ subdomain-takeover impact ({{TRUST-FRAMEWORK}} §Subject Authority
 Determination); identity binding beyond DNS control (legal-entity
 verification) requires out-of-band mechanisms.
 
+DNS control is also, in practice, control of the domain's mail:
+whoever controls the zone can change its MX records and receive
+password-reset and account-recovery messages for its addresses.
+Where email-based recovery alone is enough to take over an account
+at a Resource Authorization Server, an attacker who controls the
+domain's DNS gains little from this Trust Method that it did not
+already have; {{I-D.hardt-email-verification}} makes the same
+observation about its own DNS delegation. Where accounts are
+protected by stronger recovery (for example, phishing-resistant
+authenticators or administrator-approved recovery), DNS control is
+not equivalent to account takeover, and this Trust Method makes DNS
+control a direct route to asserting identities in the namespace.
+
 ## Transport Integrity {#transport-integrity}
 
 HTTPS retrieval integrity rests on TLS server authentication of
@@ -1366,11 +1406,13 @@ following security points apply:
   DNS form, authorizes none of its tenants; a Subject Authority
   authorizes a tenant by listing the
   (issuer, tenant) pair. This relies on the Identity Provider
-  sending the `tenant` claim whenever it is multi-tenant. {{ID-JAG}}
-  §6.1 requires that only when the tenant context is relevant to the
-  Resource Authorization Server, so a shared issuer that omits the
-  claim would again match an entry without `tenant`; Subject
-  Authorities SHOULD list a shared issuer only with `tenant`.
+  sending the `tenant` claim whenever it is multi-tenant, which
+  {{TRUST-FRAMEWORK}} §ID-JAG requires of a shared issuer whenever
+  the Resource Authorization Server's Trust Policy lists a namespace
+  method. A shared
+  issuer that omits the claim anyway would again match an entry
+  without `tenant`, so Subject Authorities SHOULD list a shared
+  issuer only with `tenant`.
 
 - **Tenant-isolation dependency.** The `tenant` binding is a
   wire-format expression of trust, not a cryptographic guarantee.
@@ -1533,6 +1575,12 @@ infrastructure. Specific guidance:
   Identity Provider) is accepted only if `partner.example` authorizes
   that Identity Provider. This follows from namespace authorization
   and is not a defect.
+- **Consumer mail domains.** This Trust Method is designed for
+  organizational namespaces. A consumer mail provider is unlikely to
+  authorize the Identity Providers its users sign in with elsewhere,
+  so under a Trust Policy whose only namespace method is
+  `domain_authorized_issuer`, assertions about those users are
+  rejected.
 
 # IANA Considerations
 
@@ -1702,22 +1750,46 @@ assertion already in hand, is its issuer authorized for the subject's
 namespace? DAI is published per namespace (not per user), over a DNS
 channel whose control establishes the authority binding, and it
 carries authorization semantics (validity windows, tenant binding,
-format restrictions) that a discovery record does not. A deployment
-could layer client-side discovery on top (see
-{{assertion-issuer-discovery-client-side}}), but that is out of scope
-here.
+format restrictions) that a discovery record does not. An earlier
+proposal, {{I-D.sanz-openid-dns-discovery}}, published a domain's
+OpenID issuer in a DNS TXT record of similar shape, also for
+discovery. A deployment could layer client-side discovery on top
+(see {{assertion-issuer-discovery-client-side}}), but that is out of
+scope here.
+
+Relationship to federation-scoped and bilateral mechanisms. SAML
+federations such as InCommon constrain the namespaces an Identity
+Provider may assert with the scope metadata extension {{SHIBMD}}, and
+interfederation services such as eduGAIN {{EDUGAIN}} carry that
+metadata between federations. There, scope is attested by the
+federation operator and distributed in trusted federation metadata;
+DAI's authorization is published by the namespace owner, where any
+verifier can retrieve it. Software-as-a-service providers commonly
+have a customer prove control of its domain with a one-time DNS
+challenge and then configure the customer's Identity Provider.
+FastFed {{FASTFED}} automates establishing and maintaining such a
+federation relationship between an Identity Provider and an
+application provider, with administrator approval on both sides.
+Both are bilateral configuration, held by the parties to one
+relationship, not an authorization that any verifier can retrieve.
 
 Relationship to the Email Verification Protocol. EVP
-{{I-D.hardt-email-verification}} also publishes, in DNS, issuers
-associated with an email domain, but for a different purpose: it names
-issuers that can *verify control* of an email address (an issuance-time
-question), whereas DAI names issuers *authorized to assert* identities
-in a namespace (a verification-time authorization question). The
-records differ accordingly: DAI uses full issuer identifiers
-(including path components) and PSL-normalized Subject Authorities, and
-carries authorization constraints. Convergence with EVP on a shared
-record or node name is possible future work; {{email-verification-protocol-bridge}}
-sketches a bridge.
+{{I-D.hardt-email-verification}} also publishes, in DNS, the issuer
+for an email domain, and its relying party also checks that record at
+verification time: it resolves `_email-verification.{domain}` itself
+and rejects a token whose `iss` does not match. The two records
+differ in role and in scope. In role, EVP names the issuer that
+verifies *control of an email address*, while DAI names the issuers
+*authorized to assert identities* in a namespace; a domain that uses
+one provider for mail and another for single sign-on can rightly
+give different answers to the two questions. In scope, EVP allows
+exactly one issuer, identified by an HTTPS origin with no path, for
+the raw email domain and for EVP tokens only. DAI allows several
+issuers with full issuer identifiers (including path components),
+binds them to tenants, carries authorization constraints, and
+normalizes to the registrable domain. Convergence with EVP on a
+shared record or node name is possible future work;
+{{email-verification-protocol-bridge}} sketches a bridge.
 
 ## Why a Generic Record Name {#rationale-generic-name}
 
@@ -2184,6 +2256,13 @@ This appendix is non-normative and will be removed before publication.
     (moved from the framework); describe how a spoofed negative
     answer can suppress a published denial when another namespace
     method is configured.
+  * Correct the relationship to the Email Verification Protocol,
+    whose relying party also checks its record at verification time;
+    add SAML scope metadata, bilateral domain verification, FastFed,
+    and DNS-based OpenID discovery to the related mechanisms; bound
+    the comparison between DNS control and control of email
+    recovery; state that the Trust Method targets organizational
+    namespaces.
 
 -00
 

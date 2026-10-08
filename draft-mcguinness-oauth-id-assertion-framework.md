@@ -2353,10 +2353,11 @@ resource-side. The resource operator's domain becomes the
 publication channel for "where do I trust assertions from?", the
 dual of DAI's "who do I authorize to assert about me?".
 
-The extension is deferred because the open-world first-contact
-case is not yet a deployed need for the namespace and federation
-profiles defined here; bilateral configuration plus the metadata
-endpoints suffice for the current target deployments.
+The extension is deferred because first contact with a Resource
+Authorization Server whose identity the client does not already know
+is not yet a deployed need. A client that knows the Resource
+Authorization Server reads its Trust Policy through the metadata
+endpoints ({{client-processing}}).
 
 # Frequently Asked Questions
 

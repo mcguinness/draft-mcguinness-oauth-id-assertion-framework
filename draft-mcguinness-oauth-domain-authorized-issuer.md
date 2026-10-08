@@ -1575,6 +1575,12 @@ infrastructure. Specific guidance:
   Identity Provider) is accepted only if `partner.example` authorizes
   that Identity Provider. This follows from namespace authorization
   and is not a defect.
+- **Consumer mail domains.** This Trust Method is designed for
+  organizational namespaces. A consumer mail provider is unlikely to
+  authorize the Identity Providers its users sign in with elsewhere,
+  so under a Trust Policy whose only namespace method is
+  `domain_authorized_issuer`, assertions about those users are
+  rejected.
 
 # IANA Considerations
 

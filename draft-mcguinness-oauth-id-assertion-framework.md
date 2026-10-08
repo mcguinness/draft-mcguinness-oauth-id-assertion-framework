@@ -505,7 +505,10 @@ Assertion under evaluation. This prohibition is directional:
 assertion properties may never *relax* what the policy requires;
 rejection rules keyed on assertion properties (such as the
 federation-only rule in {{rasp}} step 5e) only tighten it and are
-permitted.
+permitted. Nor can a published Delegation Artifact waive the
+category: a profile MUST NOT define a published state, such as a
+monitoring mode, under which an Assertion whose issuer the artifact
+does not authorize satisfies the category.
 
 A `subject_namespace_authorization` method therefore does not
 become inapplicable merely because an Assertion omits a Subject
@@ -872,13 +875,6 @@ that the deferral from this framework to the method is testable:
   statement that the method caches nothing.
 - Any method-specific parameters, their JSON types, and whether each
   is REQUIRED or OPTIONAL.
-
-A Trust Method specification MAY define provisional (monitoring)
-enforcement semantics under which the Authority Holder's own
-published policy directs Validators to log rather than reject a
-mismatch (see, for example, {{DAI}} §Monitor Mode). Because the waiver is
-published by the Authority Holder, not carried by the Assertion,
-this does not conflict with {{category-applicability}}.
 
 ### Issuer Authentication Methods {#issuer-authentication-methods}
 
@@ -2510,7 +2506,7 @@ The attacker's `email_verified: true` self-claim has no force;
 trust derives from the `iss`-vs-policy check, not from the
 assertion's own statements. `attacker.example` has no path to
 impersonate users in `example.com` unless the customer publishes
-them in DAI (the policy shown being in enforce mode, the default).
+them in DAI.
 
 # OpenID Federation Walkthrough {#example-federation-walkthrough}
 

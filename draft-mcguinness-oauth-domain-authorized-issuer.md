@@ -57,7 +57,7 @@ informative:
       - name: Dick Hardt
         ins: D. Hardt
   RFC7033:
-  RFC7489:
+  RFC9990:
   RFC7523:
   RFC8461:
   RFC8659:
@@ -218,8 +218,8 @@ consumers additionally accept any media type using the structured
 empty. An empty array is an explicit denial: the Subject Authority
 authoritatively authorizes no issuer. The retrieval of such a policy
 is Affirmative ({{dii-failures}}); the denial takes effect at
-verification, where no entry can match ({{dii-verification}}),
-subject to `mode`. Consumers MUST NOT fall through to any other
+verification, where no entry can match ({{dii-verification}}).
+Consumers MUST NOT fall through to any other
 channel on encountering a denial. Each object has:
 
   `issuer`
@@ -272,14 +272,6 @@ channel on encountering a denial. Each object has:
   as valid at or after this time. No clock-skew tolerance is permitted
   on this bound.
 
-`mode`
-: OPTIONAL. String, either `enforce` or `monitor`; default `enforce`
-when absent. In monitor mode the policy is provisional: consumers
-evaluate it and log the outcome but do not reject assertions on the
-basis of a mismatch ({{monitor-mode}}). A policy whose `mode` value
-is any other string is malformed; an unrecognized future mode MUST
-NOT be silently treated as either defined value.
-
 `last_updated`
 : OPTIONAL. {{RFC3339}} date-time at which the policy was last published.
 
@@ -327,7 +319,6 @@ any of them is malformed:
 | `tenant` | string, optional | non-empty (see member definition) |
 | `subject_identifier_formats` | array of strings, optional | |
 | `valid_from`, `valid_until`, `last_updated` | {{RFC3339}} date-time, optional | |
-| `mode` | string, optional | exactly `enforce` or `monitor`; any other value is malformed |
 | `signed_policy` | string, optional | signed JWT as defined in {{TRUST-FRAMEWORK}} §Signed Policy Metadata |
 | `crit` | array of strings, optional | non-empty; every listed member recognized and implemented, else malformed ({{TRUST-FRAMEWORK}} §Critical Members) |
 
@@ -491,15 +482,6 @@ the value MUST be an absolute HTTPS URL and MUST NOT contain a
 fragment component. MAY appear multiple times within a record and
 across records.
 
-`mode=MODE`
-: OPTIONAL. Either `enforce` or `monitor`; default `enforce` when
-absent ({{monitor-mode}}). At most one `mode=` directive per record;
-a second is malformed. If any remaining record after `authority=`
-filtering carries `mode=`, all remaining records MUST carry `mode=`
-with the same value; a mix of differing or partially present `mode=`
-directives across records is malformed. A `mode=` value other than
-the two defined values is malformed.
-
 A recognized record MUST contain at least one `uri=` directive or at
 least one `issuer=` directive. Recognized records containing neither
 MUST be treated as malformed (see {{dii-failures}}).
@@ -618,11 +600,10 @@ fetches only from the dedicated policy host.
 
       - Otherwise fetch the JSON policy from that URL per
         {{dii-https-url}}. The fetched document is the Issuer
-        Authorization Policy, including its `mode`. All `issuer=`
-        and `mode=` directives across all records are ignored:
-        their values do not contribute to the policy, but the
-        directive-validity rules of {{dii-dns-record}} (including
-        `mode=` consistency) were already applied in step 2a, so a
+        Authorization Policy. All `issuer=` directives across all
+        records are ignored: their values do not contribute to the
+        policy, but the directive-validity rules of
+        {{dii-dns-record}} were already applied in step 2a, so a
         record set malformed under those rules never reaches this
         step.
 
@@ -631,9 +612,7 @@ fetches only from the dedicated policy host.
       one entry in `authorized_issuers` for each distinct `issuer=`
       value across the remaining records. Entry order carries no
       semantics ({{dii-verification}}); the deduplicated values form
-      a set. The virtual policy's `mode` is the common `mode=` value
-      of the remaining records, or `enforce` when none carries
-      `mode=` ({{dii-dns-record}}). Entries have no `tenant`,
+      a set. Entries have no `tenant`,
       `subject_identifier_formats`, `valid_from`, or `valid_until`.
       The virtual policy is processed identically to one fetched over
       HTTPS, except that its cache lifetime is derived from DNS TTLs
@@ -688,14 +667,11 @@ The Indeterminate state covers:
   the consumer's entry limit ({{https-policy-document-contract}}).
 - **DNS record validation**: `authority=` missing from any recognized
   record; all recognized records discarded for `authority=` mismatch;
-  more than one `authority=` or `mode=` in a record; differing or
-  partially present `mode=` values across remaining records; a
-  `mode=` value other than `enforce` or `monitor`; a recognized
-  record with neither `uri=` nor `issuer=`; multiple distinct `uri=`
-  values; an empty or otherwise malformed directive.
+  more than one `authority=` in a record; a recognized record with
+  neither `uri=` nor `issuer=`; multiple distinct `uri=` values; an
+  empty or otherwise malformed directive.
 - **HTTPS document validation**: body that is not a syntactically
-  valid Issuer Authorization Policy; a `mode` value other than
-  `enforce` or `monitor`; `subject_authority` that does
+  valid Issuer Authorization Policy; `subject_authority` that does
   not match `A`.
 
 Any outcome not explicitly mapped to Affirmative or Negative above
@@ -778,10 +754,9 @@ Resource Authorization Server MUST:
       is within the validity window (with the skew rules of
       {{dii-document}}).
 
-   Under a policy whose `mode` is `enforce` (the default), the Trust
-   Method is satisfied when step 3 succeeds and at least one entry
-   matches under (a)-(d); under `monitor`, see {{monitor-mode}}.
-   Entry order in `authorized_issuers` carries no semantics: the
+   The Trust Method is satisfied when step 3 succeeds and at least
+   one entry matches under (a)-(d). Entry order in
+   `authorized_issuers` carries no semantics: the
    outcome is the boolean "does any entry match," so two consumers
    evaluating the same policy against the same assertion reach the
    same result regardless of array order or of which matching entry
@@ -795,41 +770,25 @@ satisfied and, as a result, the cross-category combination rule
 the Resource Authorization Server MUST reject the assertion with an
 OAuth `invalid_grant` error.
 
-## Monitor Mode {#monitor-mode}
+## Observing Before Enforcing {#observe-before-enforce}
 
-A Subject Authority deploying its first policy cannot easily know
-whether its issuer list is complete; an omission breaks sign-in for
-its users. Monitor mode, following the deployment pattern of the
-DMARC {{RFC7489}} `p=none` policy, lets the Subject Authority
-publish, observe, and then enforce.
+This document defines no mode in which a published policy is
+evaluated without being enforced. Under fail-closed evaluation, a
+namespace with no policy is already rejected by every Resource
+Authorization Server that requires this Trust Method
+({{dii-failures}}), so a Subject Authority's first publication breaks
+no sign-in at such a server. A mode that accepted assertions despite
+a mismatch would instead admit more issuers than publishing nothing.
 
-When the retrieved policy's `mode` is `monitor` ({{dii-document}}):
-
-- The consumer MUST evaluate steps 3 and 4 normally, and SHOULD log
-  every evaluation under the monitored policy (Subject Authority,
-  assertion issuer, matched or mismatched, timestamp) so the Subject
-  Authority can be informed out of band.
-- If no entry matches (including the empty-array explicit-denial
-  case), the Trust Method is nevertheless satisfied: the consumer
-  MUST NOT reject the assertion on the basis of the mismatch.
-- If an entry matches, the outcome is identical to enforce mode.
-
-Monitor mode affects only the evaluation of a successfully retrieved
-policy. It does not alter lookup-state classification: Indeterminate
-outcomes still fail closed (the consumer cannot know the mode of a
-policy it could not retrieve), and Negative outcomes are unchanged.
-
-Monitor mode provides no protection: while it is in effect, any
-authenticated issuer is accepted for the namespace exactly as if no
-policy were enforced, with logging as the only difference. It is a
-transitional state; Subject Authorities SHOULD move to enforce mode
-promptly once the observed mismatches are resolved (see
-{{operational}} for the rollout sequence and {{monitor-security}}
-for the downgrade risk).
-
-An aggregate reporting mechanism by which consumers deliver
-monitored-mismatch reports to the Subject Authority (analogous to
-DMARC's `rua`) is deferred; see {{future-extensions}}.
+A Resource Authorization Server introducing `domain_authorized_issuer`
+can observe before it enforces: it evaluates the Trust Method for
+incoming assertions and logs the outcome (Subject Authority,
+Assertion Issuer, matched or not) while its Trust Policy does not yet
+list the method. Because only listed methods are applicable
+({{TRUST-FRAMEWORK}} §Category Applicability), observation does not
+affect acceptance. The Resource Authorization Server can share what
+it observes with affected Subject Authorities out of band; a
+reporting mechanism is sketched in {{future-extensions}}.
 
 # Caching {#dii-caching}
 
@@ -969,8 +928,7 @@ When evaluated, the Resource Authorization Server MUST:
    when the live retrieval is Indeterminate.
 
 4. Verify the fetched policy and match the Assertion Issuer against
-   `authorized_issuers` using steps 3 and 4 of {{dii-verification}},
-   including {{monitor-mode}} when the policy's `mode` is `monitor`.
+   `authorized_issuers` using steps 3 and 4 of {{dii-verification}}.
 
 A Resource Authorization Server uses this variant when it requires
 authority publication via HTTPS only and explicitly does not accept
@@ -1142,27 +1100,6 @@ DAI-specific points:
   Authorities SHOULD reduce DNS TTLs in advance of any planned
   change of policy host.
 
-## Monitor-Mode Downgrade {#monitor-security}
-
-An attacker who can modify the published policy has a stealthier
-option than adding their own issuer: flipping `mode` from `enforce`
-to `monitor`. The policy remains present and superficially intact,
-but enforcement is silently off ({{monitor-mode}}). A variant
-targets signed policies: because unsigned members absent from the
-signed JWT are not conflict-checked ({{TRUST-FRAMEWORK}} §Signed
-Policy Metadata), an attacker who can edit the outer document but
-not the JWT can inject an unsigned `mode: monitor` beside an intact
-signature. Subject Authorities publishing `signed_policy` SHOULD
-therefore include `mode` among the signed claims, so that an
-injected outer value is rejected as a conflict. Consumers SHOULD
-surface mode transitions for a given Subject Authority in their
-logs, and Subject Authorities SHOULD monitor their published records
-for unexpected `mode` changes with the same rigor as for issuer-list
-changes ({{operational}}). Because monitor mode accepts any
-authenticated issuer for the namespace, a policy observed in monitor
-mode for an extended period SHOULD be treated by operators on both
-sides as a misconfiguration signal.
-
 ## Policy Conflicts and Determinism {#policy-conflicts}
 
 The lookup procedure ({{dii-lookup}}) is deterministic across the
@@ -1320,14 +1257,16 @@ can authorize an attacker. Subject Authorities SHOULD operate the
 record and any policy host with the same rigor as other sign-in-path
 infrastructure. Specific guidance:
 
-- **Rollout.** Deploy in three phases: publish with `mode=monitor`
-  ({{monitor-mode}}); observe logged mismatches until the issuer
-  list is known complete (forgotten regional tenants and departing
-  Identity Providers surface here rather than as sign-in outages);
-  then switch to `enforce`. Before enforcing, Subject Authorities
-  SHOULD sign the zone with DNSSEC or publish via the HTTPS document
-  form, since enforce-mode decisions carry the full weight of the
-  publication channel's integrity ({{dns-integrity-and-compromise}}).
+- **Rollout.** A first publication rejects nothing that a Resource
+  Authorization Server requiring this Trust Method accepted before,
+  since a namespace without a policy is Negative ({{dii-failures}}).
+  Check the issuer list for completeness before publishing; forgotten
+  regional tenants and departing Identity Providers are the usual
+  omissions, and they surface as rejections at such servers. Subject
+  Authorities SHOULD sign the zone with DNSSEC or publish via the
+  HTTPS document form, since every published decision carries the
+  full weight of the publication channel's integrity
+  ({{dns-integrity-and-compromise}}).
 - **Change management and TTLs.** Reduce DNS TTLs in advance of any
   planned change to the record or `uri=` pointer ({{third-party-policy-hosts}}),
   and choose steady-state TTLs balancing propagation speed against
@@ -1424,7 +1363,6 @@ Initial entries:
 | `authority` | Subject Authority this record binds (A-label) | IETF | This document |
 | `uri` | HTTPS URL of an Issuer Authorization Policy document | IETF | This document |
 | `issuer` | An authorized Assertion Issuer identifier | IETF | This document |
-| `mode` | Enforcement mode: `enforce` (default) or `monitor` | IETF | This document |
 
 ## Issuer Authorization Policy Members Registry {#iana-dii-members}
 
@@ -1455,7 +1393,6 @@ Initial entries:
 | `subject_identifier_formats` | Permitted Subject Identifier formats (within an entry) | IETF | This document |
 | `valid_from` | Delegation start time (within an entry) | IETF | This document |
 | `valid_until` | Delegation end time (within an entry) | IETF | This document |
-| `mode` | Enforcement mode: `enforce` (default) or `monitor` | IETF | This document |
 | `last_updated` | Policy publication time | IETF | This document |
 | `signed_policy` | Signed JWT of the policy members | IETF | This document; {{TRUST-FRAMEWORK}} §Signed Policy Metadata |
 | `crit` | Names decision-affecting members a consumer MUST understand or reject the document | IETF | This document; {{TRUST-FRAMEWORK}} §Critical Members |
@@ -1638,14 +1575,15 @@ Such an extension would need to define all of the following:
 This document does not define that extension or change DAI's lookup,
 authority binding, or integrity mechanisms to depend on federation.
 
-## Monitoring Reports
+## Evaluation Reports
 
-Monitor mode ({{monitor-mode}}) relies on consumer-side logging with
-out-of-band delivery to the Subject Authority. A future extension can
-define an aggregate reporting mechanism, analogous to DMARC's `rua`:
-a policy member naming a reporting endpoint, a report format
-(observed issuers, match/mismatch counts, time window), and delivery
-requirements. It is deferred because report formats and transport
+A Subject Authority learns which assertions Resource Authorization
+Servers reject for its namespace only out of band
+({{observe-before-enforce}}). A future extension can define an
+aggregate reporting mechanism, analogous to DMARC aggregate reports
+{{RFC9990}}: a policy member naming a reporting endpoint, a report
+format (observed issuers, match and mismatch counts, time window),
+and delivery requirements. It is deferred because report formats and transport
 carry privacy and abuse considerations (a reporting endpoint learns
 which Resource Authorization Servers a namespace's users sign in to,
 concentrating the metadata discussed in {{privacy}}) that deserve

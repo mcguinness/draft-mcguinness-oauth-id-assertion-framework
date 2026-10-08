@@ -581,7 +581,7 @@ outcome of the lookup operation onto exactly one of these states.
   origin. A profile with multiple publication channels for the
   same Authority Source reaches Negative only when the channels
   its lookup procedure consults authoritatively report no
-  delegation (see, for example, {{DAI}}). A profile MAY additionally
+  delegation. A profile MAY additionally
   define an explicitly published denial; whether it maps to
   Negative or to an Affirmative retrieval whose evaluation yields
   no matching delegation is the profile's choice under its state
@@ -2353,8 +2353,8 @@ Policy can mark it critical and have already-deployed consumers honor
 it. The DNS record form has no analogous per-directive criticality
 mechanism today; its version token ({{DAI}}) prevents
 misinterpretation of incompatible future syntax by making
-unrecognized versions ignored (which steers the lookup to the HTTPS
-channel or a Negative outcome, not to a hard rejection). A future
+unrecognized versions ignored, so a Subject Authority that publishes
+only an unrecognized version is Negative to an older consumer. A future
 extension that needs true per-directive fail-closed semantics in the
 DNS form would define a `crit=` directive and its recognition rules
 at that time.
@@ -2417,9 +2417,10 @@ Trust Policy is what a **Resource Authorization Server** publishes
 to declare what evidence it requires of an Assertion Issuer
 (metadata at `/.well-known/identity-assertion-trust-policy`). DAI
 is what a **Subject Authority** publishes to declare which
-Assertion Issuers it authorizes for its namespace (records at
-`_oauth-issuer-policy.{domain}` and the corresponding HTTPS
-well-known URL). RAS-published vs Subject-Authority-published.
+Assertion Issuers it authorizes for its namespace (a record at
+`_oauth-issuer-policy.{domain}`, or a document on the dedicated host
+`oauth-issuer-policy.{domain}`). RAS-published vs
+Subject-Authority-published.
 
 **Q: Why two independent trust categories?**
 
@@ -2432,13 +2433,13 @@ configured. Conflating them is the bug
 
 **Q: What if my Subject Authority cannot publish DNS TXT records?**
 
-Publish only the HTTPS well-known document at
-`https://{authority}/.well-known/oauth-issuer-policy`: the canonical
-lookup finds it when DNS authoritatively reports no record ({{DAI}}
-§Lookup Procedure). Deployments that must avoid DNS on the verifier
-side instead select the HTTPS-only lookup mode in the Trust Policy
-({{DAI}} §HTTPS-Only Deployment Variant). A Subject Authority with
-no DNS-named authority at all cannot participate in DAI.
+Canonical lookup requires the TXT record, which is the Subject
+Authority's opt-in ({{DAI}} §Lookup Procedure). A Subject Authority
+that can provision the dedicated host `oauth-issuer-policy.{authority}`
+but not TXT records can serve Resource Authorization Servers that
+select the HTTPS-only lookup mode ({{DAI}} §HTTPS-Only Deployment
+Variant). A Subject Authority with no DNS control at all cannot
+participate in DAI.
 
 **Q: Does this work for path-bearing issuer identifiers
 (`https://login.example.com/{tenant}/v2.0`)?**

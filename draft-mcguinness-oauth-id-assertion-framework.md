@@ -1275,6 +1275,13 @@ object-level integrity for the policy document. This member follows
 the signed metadata pattern defined for authorization server metadata
 in {{RFC8414}} and protected resource metadata in {{RFC9728}}.
 
+A decision-affecting member is a policy member whose value can change
+whether a consumer accepts an assertion. Every member that this
+document or a Trust Method specification registers for a policy
+document is decision-affecting, except `last_updated`,
+`signed_policy` itself, and any member whose registration says
+otherwise.
+
 The Trust Policy does not carry `signed_policy`. A Resource
 Authorization Server enforces its Trust Policy from its own
 configuration, and a client uses the published copy only for
@@ -1291,7 +1298,11 @@ policy claims, and MUST contain `iat`. It MUST contain `exp`, so that
 a superseded signed policy cannot be replayed indefinitely (relevant
 in the shared-infrastructure scenario for which signing is
 recommended, {{shared-infrastructure}}); consumers MUST reject an expired
-`signed_policy`. The JOSE header SHOULD contain a `kid` identifying
+`signed_policy`. A consumer that holds a cached signed policy for the
+same Subject Authority MUST reject a `signed_policy` whose `iat` is
+earlier than the cached one's, so that an older signed policy cannot
+be replayed within its validity period. The JOSE header SHOULD
+contain a `kid` identifying
 the signing key. The JWT payload SHOULD NOT contain a `signed_policy`
 claim.
 
@@ -2191,7 +2202,9 @@ Specification Document:
 
 Designated Expert instructions: the expert verifies that the member
 name does not collide with an existing member, that its semantics and
-JSON type are specified, and that any decision-affecting member states
+JSON type are specified, that the registration states whether the
+member is decision-affecting ({{signed-policy-metadata}}), and that
+any decision-affecting member states
 how a consumer that does not recognize it behaves (the default is that
 unrecognized members are ignored; a member requiring fail-closed
 handling needs the criticality mechanism of {{critical-members}}).

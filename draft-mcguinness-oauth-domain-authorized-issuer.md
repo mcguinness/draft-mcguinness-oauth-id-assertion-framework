@@ -1420,7 +1420,9 @@ Registration policy: Specification Required {{RFC8126}}.
 Each entry contains a Member Name, a Description, a Change Controller,
 and a Reference. Designated Expert instructions: the expert verifies
 the member name does not collide with an existing member, its JSON
-type and semantics are specified, and any decision-affecting member
+type and semantics are specified, the registration states whether
+the member is decision-affecting ({{TRUST-FRAMEWORK}} §Signed Policy
+Metadata), and any decision-affecting member
 states how a consumer that does not recognize it behaves (the default
 is to ignore unrecognized members; a member requiring fail-closed
 handling uses the `crit` mechanism of {{TRUST-FRAMEWORK}} §Critical

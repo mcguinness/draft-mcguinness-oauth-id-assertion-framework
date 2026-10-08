@@ -251,8 +251,10 @@ channel on encountering a denial. Each object has:
   string comparison; an assertion that lacks the `tenant` claim or
   carries a different value does not match this entry. When absent,
   the entry matches only assertions that carry no top-level `tenant`
-  claim, so listing a shared issuer without `tenant` authorizes none
-  of its tenants. Grant profiles that do not carry a
+  claim, so under a grant profile that carries `tenant`, listing a
+  shared issuer without `tenant` authorizes none of its tenants
+  ({{dii-multi-tenant}} covers grant profiles that do not). Grant
+  profiles that do not carry a
   `tenant` claim (e.g., the generic JWT-bearer grant of {{RFC7523}})
   match only entries that omit `tenant`. Tenant values are
   issuer-specific and MUST NOT be compared across issuers. To
@@ -1176,7 +1178,8 @@ specified in {{dii-failures}}.
   a recognized inline record with no `issuer=` is malformed, so the
   inline form cannot publish an empty delegation set. An inline
   record that names a shared multi-tenant issuer authorizes none of
-  its tenants ({{dii-multi-tenant}}).
+  its tenants under a grant profile that carries `tenant`
+  ({{dii-multi-tenant}}).
 
 ## Email Local-Part Is Not Authenticated {#email-local-part}
 
@@ -1198,11 +1201,12 @@ The shared-issuer case and its `tenant` binding are demonstrated
 in the Shared Issuer Variant of the End-to-End Example. The
 following security points apply:
 
-- **Tenant binding is required for shared issuers.** An entry
-  without `tenant` matches only assertions that carry no `tenant`
-  claim ({{dii-verification}}), so listing a shared issuer without
-  `tenant`, including in the inline DNS form, authorizes none of its
-  tenants; a Subject Authority authorizes a tenant by listing the
+- **Tenant binding is required for shared issuers.** Under a grant
+  profile that carries `tenant`, an entry without `tenant` matches
+  only assertions that carry no `tenant` claim ({{dii-verification}}),
+  so listing a shared issuer without `tenant`, including in the inline
+  DNS form, authorizes none of its tenants; a Subject Authority
+  authorizes a tenant by listing the
   (issuer, tenant) pair. This relies on the Identity Provider
   sending the `tenant` claim whenever it is multi-tenant. {{ID-JAG}}
   §6.1 requires that only when the tenant context is relevant to the
@@ -1226,7 +1230,11 @@ following security points apply:
   profile that carries no `tenant` claim (e.g., the generic
   JWT-bearer grant, {{TRUST-FRAMEWORK}} §Generic JWT-Bearer
   Assertion Grant), only entries that omit `tenant` can match, so
-  tenant-scoped authorization is not expressible. A Subject
+  tenant-scoped authorization is not expressible. Any `tenant` claim
+  in such an assertion is ignored for matching (it is not attested
+  by the grant profile), so an entry without `tenant` for a shared
+  issuer matches assertions from every one of its tenants; the
+  default above does not help here. A Subject
   Authority relying on a shared multi-tenant Assertion Issuer
   SHOULD NOT authorize that issuer for such a grant unless
   per-tenant issuer identifiers are used.

@@ -635,8 +635,10 @@ outcome of the lookup operation onto exactly one of these states.
   resolver timeout, network partition, HTTPS 5xx, TLS handshake
   failure, malformed publication-channel response, and structural
   validation failure on a retrieved artifact (invalid signature,
-  unparseable payload, validity bounds outside the acceptable
-  window). An Indeterminate state carries no information about
+  unparseable payload, validity bounds of the artifact as a whole
+  outside the acceptable window; bounds on individual entries inside
+  an artifact are evaluated by the profile). An Indeterminate state
+  carries no information about
   the Authority Holder's intent.
 
 The Affirmative / Negative / Indeterminate taxonomy is
@@ -727,7 +729,8 @@ an assertion.
   `application/json` or a `+json`-suffixed type.
 - Consumers MUST follow HTTPS redirects up to a limit of 5 hops;
   every redirect target MUST use the `https` scheme and MUST remain
-  within the issuer's origin. A redirect to a different origin, or
+  within the origin of the URI being fetched. A redirect to a
+  different origin, or
   exceeding the hop limit, is a retrieval failure.
 - Any other status, a TLS failure, an unparseable body, or a body
   exceeding a consumer-chosen limit (which MUST allow at least
@@ -828,7 +831,8 @@ A Trust Method object is a JSON object with a string-valued `method`
 member naming a Trust Method identifier registered in
 {{iana-trust-methods-registry}} plus any members required by that
 identifier. An object whose required members are absent, wrong-typed,
-or out-of-constraint is malformed. How an unrecognized or malformed
+or out-of-constraint is malformed; unrecognized members of a
+recognized object are ignored. How an unrecognized or malformed
 object is handled depends on the consumer's role: a client reading the
 policy for capability discovery MAY skip objects it does not recognize
 (it cannot satisfy them), but a Resource Authorization Server
@@ -1403,7 +1407,8 @@ interpretation. A consumer that does not recognize, or does not
 implement processing for, any member named in `crit` MUST reject the
 document as malformed rather than ignoring the unrecognized member.
 Members not named in `crit` retain the default handling: unrecognized
-members are ignored.
+members are ignored. `crit` names members of the object that carries
+it; it does not reach members of nested objects.
 
 `crit`, when present, MUST be a non-empty array of strings; each string
 SHOULD name a member that is actually present in the document. A
@@ -1664,7 +1669,9 @@ JWT-bearer assertion grants advertises
 identifier, so this framework reuses that grant-type URN as the
 grant-profile identifier; a deployment accepting this grant MUST list
 it in `authorization_grant_profiles_supported` so {{rasp}} step 3
-applies uniformly.
+applies uniformly. A Resource Authorization Server SHOULD reject a
+JWT-bearer assertion whose `typ` header identifies a different JWT
+application ({{RFC8725}} §3.11).
 
 As with ID-JAG, the Subject Identifier for this binding is the
 top-level `email` claim, accompanied by `email_verified=true`,
@@ -2481,7 +2488,7 @@ To stop "federation member" from being silently treated as
 different question and the cross-category combination rule
 ({{combination-rule}}) requires evidence from both when both are
 configured. Conflating them is the bug
-({{applicability-bypass}}, {{unverified-claim}}).
+({{combination-rule}}, {{transitive-authz-bounded}}).
 
 **Q: What if my Subject Authority cannot publish DNS TXT records?**
 

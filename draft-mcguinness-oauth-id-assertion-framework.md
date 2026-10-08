@@ -480,10 +480,12 @@ decision layer ({{rasp}} step 6).
 
 When more than one category is applicable to a request, the
 Validator MUST require at least one satisfying evidence item from
-each applicable category. Within a single category, or-semantics
-apply: satisfying any one applicable evidence item is sufficient.
-The rule is: *and* across independent categories, *or* within a
-category.
+each applicable category. An evidence item is the outcome of
+evaluating one Trust Method that the Trust Policy lists. Within a
+single category, or-semantics apply: satisfying any one applicable
+evidence item is sufficient, subject to the finality rule of
+{{multiple-sources}}. The rule is: *and* across independent
+categories, *or* within a category.
 
 Satisfying one category MUST NOT be treated as satisfying
 another. A signer authenticated by federation membership has not
@@ -524,19 +526,36 @@ prevents).
 A Validator MAY accept Delegation Artifacts from multiple
 Authority Sources within the same category (multiple Subject
 Authorities for different namespaces, multiple federation trust
-anchors). Selection of which Authority Source applies to a given
-Assertion happens before the Assertion is authenticated against
-any delegation, so a profile MUST define deterministic source
-selection: a binding function from Assertion + request context to
-exactly one Authority Source (or deterministic failure), invariant
-under attacker-controlled inputs outside the binding function. The
-attack against ad-hoc or fallback selection logic and the
-deterministic-selection requirement are detailed in
-{{unverified-claim}}.
+anchors). For `subject_namespace_authorization`, the Authority
+Source is chosen from the Assertion's own claims before the
+Assertion is authenticated against any delegation, so a profile
+MUST define deterministic source selection: a binding function from
+Assertion + request context to exactly one Authority Source (or
+deterministic failure), invariant under attacker-controlled inputs
+outside the binding function. The attack against ad-hoc or fallback
+selection logic and the deterministic-selection requirement are
+detailed in {{unverified-claim}}. For `issuer_authentication`, every
+Authority Source the Trust Policy lists is equally trusted by the
+Validator, so a profile MAY accept evidence from any of them (for
+`openid_federation`, a chain to any listed trust anchor,
+{{trust-method-openid-federation}}).
 
-A Validator MUST NOT fall through to a different Authority Source
-if the originally-applicable Authority Source's evaluation fails
-or is indeterminate ({{exception-handling}}).
+Within one Trust Method's evaluation, a Validator MUST NOT fall
+through to a different Authority Source if the originally-applicable
+Authority Source's evaluation fails or is indeterminate
+({{exception-handling}}).
+
+Across Trust Methods in the same category, or-semantics apply
+({{combination-rule}}), with one exception. When a
+`subject_namespace_authorization` method retrieves an Affirmative
+Delegation Artifact from the Subject Authority and that artifact
+does not authorize the Assertion Issuer (including an explicit
+denial), the category is not satisfied, whatever any other method in
+the category yields: the Subject Authority's published decision is
+final for its namespace. A Negative state, in which the Subject
+Authority has published nothing through that method's channel, does
+not have this effect; other methods in the category can still
+supply evidence.
 
 ## Open-World Delegation and Bounded Transitivity {#open-world}
 
@@ -588,11 +607,10 @@ outcome of the lookup operation onto exactly one of these states.
   define an explicitly published denial; whether it maps to
   Negative or to an Affirmative retrieval whose evaluation yields
   no matching delegation is the profile's choice under its state
-  mapping. A
-  Negative state is itself a decision by the Authority Holder
-  (the namespace exists but no delegation is in effect) and
-  carries the same normative weight as any other published
-  decision.
+  mapping. Within the profile's evaluation, a Negative state is
+  the Authority Holder's decision that no delegation is in effect
+  through that channel, and it is final for that Trust Method
+  ({{multiple-sources}} states its effect on other methods).
 
 - **Indeterminate**: the lookup did not produce an authoritative
   Affirmative or Negative result. Examples include DNS SERVFAIL,
@@ -631,9 +649,10 @@ if the cache expires while the live channel remains
 Indeterminate, the Validator MUST transition to a reject
 decision.
 
-A Validator MUST NOT fall through to a different Authority Source
-on Negative or Indeterminate states from the
-originally-applicable Authority Source ({{multiple-sources}}).
+Within one Trust Method's evaluation, a Validator MUST NOT fall
+through to a different Authority Source on Negative or
+Indeterminate states from the originally-applicable Authority
+Source ({{multiple-sources}}).
 Fallthrough on non-Affirmative states is the same downgrade as
 extended-cache-on-Indeterminate: both convert a hard denial into
 a soft one driven by adversary-controllable availability of the
@@ -975,7 +994,10 @@ requirements:
 
 1. **Trust anchor match.** The terminal trust anchor of the
    validated chain MUST exactly match one of the listed
-   `trust_anchors` values.
+   `trust_anchors` values. A chain to any listed trust anchor
+   satisfies this requirement; failure to build a chain to one
+   listed trust anchor does not prevent evaluating chains to the
+   others ({{multiple-sources}}).
 
 2. **Entity type constraint.** The leaf's policy-applied federation
    metadata MUST declare one of the entity types `openid_provider`
@@ -1507,7 +1529,8 @@ request, the Resource Authorization Server MUST:
       every assertion evaluated under this policy; applicability is a
       property of the policy, not the assertion ({{category-applicability}}).
       For each present category, the Assertion Issuer MUST satisfy at
-      least one Trust Method from that category.
+      least one Trust Method from that category, subject to the
+      finality rule of {{multiple-sources}}.
 
    c. When the policy contains a `subject_namespace_authorization`
       Trust Method, the assertion MUST carry a Subject Identifier from

@@ -976,6 +976,10 @@ selects one lookup mode:
   requires authority retrieval over TLS-authenticated HTTPS only.
   Inline DNS records and DNS pointer forms are rejected.
 
+A Trust Policy MUST NOT list more than one `domain_authorized_issuer`
+object; a Resource Authorization Server treats a policy that does as
+listing a malformed Trust Method object ({{TRUST-FRAMEWORK}}
+§Resource Authorization Server Processing, step 5a) and rejects.
 Resource Authorization Servers MUST NOT evaluate both lookup modes
 as alternatives for the same assertion. Doing so creates an
 availability-driven fallback: an attacker who can drive the DNS

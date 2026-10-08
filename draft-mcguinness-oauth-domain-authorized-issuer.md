@@ -1760,17 +1760,18 @@ scope here.
 Relationship to federation-scoped and bilateral mechanisms. SAML
 federations such as InCommon constrain the namespaces an Identity
 Provider may assert with the scope metadata extension {{SHIBMD}}, and
-interfederation
-services such as eduGAIN {{EDUGAIN}} carry that metadata between
-federations. There, scope is attested by the federation operator and
-distributed in trusted federation metadata; DAI's authorization is
-published by the namespace owner, where any verifier can retrieve it.
-Software-as-a-service providers commonly have a customer prove
-control of its domain with a one-time DNS challenge and then
-configure the customer's Identity Provider, and FastFed {{FASTFED}}
-automates that bilateral setup. Both bind a domain to an issuer for
-one relationship, at setup time; DAI makes the binding available to
-every verifier at verification time.
+interfederation services such as eduGAIN {{EDUGAIN}} carry that
+metadata between federations. There, scope is attested by the
+federation operator and distributed in trusted federation metadata;
+DAI's authorization is published by the namespace owner, where any
+verifier can retrieve it. Software-as-a-service providers commonly
+have a customer prove control of its domain with a one-time DNS
+challenge and then configure the customer's Identity Provider.
+FastFed {{FASTFED}} automates establishing and maintaining such a
+federation relationship between an Identity Provider and an
+application provider, with administrator approval on both sides.
+Both are bilateral configuration, held by the parties to one
+relationship, not an authorization that any verifier can retrieve.
 
 Relationship to the Email Verification Protocol. EVP
 {{I-D.hardt-email-verification}} also publishes, in DNS, the issuer

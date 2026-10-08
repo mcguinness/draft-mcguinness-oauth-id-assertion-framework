@@ -89,6 +89,12 @@ informative:
     target: https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-chaining/
     date: false
   RFC9334:
+  NOAUTH:
+    title: "nOAuth: How Microsoft OAuth Misconfiguration Can Lead to Full Account Takeover"
+    target: https://www.descope.com/blog/post/noauth
+    author:
+      - org: Descope
+    date: 2023-06-20
 
 ---
 
@@ -141,6 +147,28 @@ conditions under which an Assertion Issuer is acceptable: for example,
 whether the Assertion Issuer is a member of a recognized federation, or
 whether the Assertion Issuer has authority for the subject namespace
 being asserted.
+
+Today a Resource Authorization Server typically answers the namespace
+question through bilateral setup: each customer proves control of its
+domain, configures its Identity Provider with the Resource
+Authorization Server, and repeats both steps at every other Resource
+Authorization Server it uses. That configuration is held separately
+at each Resource Authorization Server, so it goes stale when the
+customer changes Identity Providers, and it does not extend to
+issuers, such as agent platforms, that have no prior relationship
+with each customer. Where it is missing, a Resource Authorization
+Server that trusts a multi-tenant issuer can accept an assertion
+about a subject from a tenant with no authority over the subject's
+domain. The nOAuth disclosure {{NOAUTH}} showed account takeover by
+that path: an application linked accounts by an email address that
+an attacker had set on a user in the attacker's own tenant.
+Namespace authorization lets the domain owner state once which
+issuers and tenants may assert about its subjects, for every
+Resource Authorization Server to check. It complements, and does
+not replace, the defenses on the Resource Authorization Server's
+side: keying accounts on immutable issuer-scoped identifiers, and
+linking accounts by email only under explicit account-linking rules
+({{scope-of-namespace-authorization}}).
 
 This is an open-world issuer-trust problem: the Resource Authorization
 Server may receive identity assertions from issuers that were not

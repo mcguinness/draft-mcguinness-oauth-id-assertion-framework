@@ -1330,6 +1330,25 @@ infrastructure. Specific guidance:
   in this mechanism ({{dns-integrity-and-compromise}}); a wildcard
   with a non-matching `authority=` causes recognized-but-discarded
   records and can push a lookup to Indeterminate.
+- **Media type.** Serve the policy document with
+  `Content-Type: application/json`. Static hosts often label a file
+  without an extension `application/octet-stream`, which consumers
+  treat as Indeterminate ({{dii-failures}}).
+- **Stable issuer identifiers.** Issuer comparison is octet-for-octet
+  ({{dii-document}}), so an Identity Provider operator that changes an
+  issuer identifier breaks every Subject Authority that lists it
+  until each republishes. Identity Provider operators keep issuer
+  identifiers stable and announce changes ahead of time.
+- **Many domains.** Each registrable domain is its own Subject
+  Authority with its own policy (`subject_authority` names exactly
+  one). An organization with many domains publishes a record, and
+  for the pointer form a document, for each.
+- **Users from other namespaces.** An assertion about a user whose
+  email is in another organization's namespace (for example, a guest
+  at `partner.example` signing in through the host organization's
+  Identity Provider) is accepted only if `partner.example` authorizes
+  that Identity Provider. This follows from namespace authorization
+  and is not a defect.
 
 # IANA Considerations
 

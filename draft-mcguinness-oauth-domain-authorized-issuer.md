@@ -75,6 +75,7 @@ informative:
   I-D.hardt-email-verification:
     title: "Email Verification Protocol"
     target: https://datatracker.ietf.org/doc/draft-hardt-email-verification/
+    date: false
   I-D.sanz-openid-dns-discovery:
     title: "OpenID Connect DNS-based Discovery"
     target: https://datatracker.ietf.org/doc/draft-sanz-openid-dns-discovery/
@@ -101,7 +102,6 @@ informative:
     target: https://edugain.org/about-edugain/what-is-edugain/
     author:
       - org: GEANT
-    date: false
     date: false
 
 ---

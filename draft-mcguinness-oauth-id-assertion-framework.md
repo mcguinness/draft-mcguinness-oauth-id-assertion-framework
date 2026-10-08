@@ -247,7 +247,9 @@ use?" before authentication. This framework answers the verifier-side
 question "may this issuer, having already produced an assertion, be
 trusted for this subject's namespace?" Its answer is published per
 namespace, expresses authorization rather than routing, and is
-consumed at verification time. See {{DAI}} §Following Existing DNS
+consumed at verification time. It also differs from scope
+attestation by a federation operator and from per-relationship domain
+verification at setup time. See {{DAI}} §Following Existing DNS
 Authority Patterns.
 
 ## Documents in the Family {#family}

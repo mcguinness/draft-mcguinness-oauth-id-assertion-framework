@@ -75,6 +75,33 @@ informative:
   I-D.hardt-email-verification:
     title: "Email Verification Protocol"
     target: https://datatracker.ietf.org/doc/draft-hardt-email-verification/
+  I-D.sanz-openid-dns-discovery:
+    title: "OpenID Connect DNS-based Discovery"
+    target: https://datatracker.ietf.org/doc/draft-sanz-openid-dns-discovery/
+    date: 2018-04-16
+    author:
+      - name: Vittorio Bertola
+        ins: V. Bertola
+      - name: Marcos Sanz
+        ins: M. Sanz
+  SHIBMD:
+    title: "ShibMetaExt V1.0"
+    target: https://shibboleth.atlassian.net/wiki/spaces/SC/pages/1843887946/ShibMetaExt+V1.0
+    author:
+      - org: Shibboleth Consortium
+    date: false
+  FASTFED:
+    title: "FastFed Core 1.0"
+    target: https://openid.net/specs/fastfed-core-1_0.html
+    author:
+      - org: OpenID Foundation
+    date: false
+  EDUGAIN:
+    title: "What is eduGAIN"
+    target: https://edugain.org/about-edugain/what-is-edugain/
+    author:
+      - org: GEANT
+    date: false
     date: false
 
 ---
@@ -1702,10 +1729,27 @@ assertion already in hand, is its issuer authorized for the subject's
 namespace? DAI is published per namespace (not per user), over a DNS
 channel whose control establishes the authority binding, and it
 carries authorization semantics (validity windows, tenant binding,
-format restrictions) that a discovery record does not. A deployment
-could layer client-side discovery on top (see
-{{assertion-issuer-discovery-client-side}}), but that is out of scope
-here.
+format restrictions) that a discovery record does not. An earlier
+proposal, {{I-D.sanz-openid-dns-discovery}}, published a domain's
+OpenID issuer in a DNS TXT record of similar shape, also for
+discovery. A deployment could layer client-side discovery on top
+(see {{assertion-issuer-discovery-client-side}}), but that is out of
+scope here.
+
+Relationship to federation-scoped and bilateral mechanisms. SAML
+federations such as InCommon constrain the namespaces an Identity
+Provider may assert with the scope metadata extension {{SHIBMD}}, and
+interfederation
+services such as eduGAIN {{EDUGAIN}} carry that metadata between
+federations. There, scope is attested by the federation operator and
+distributed in trusted federation metadata; DAI's authorization is
+published by the namespace owner, where any verifier can retrieve it.
+Software-as-a-service providers commonly have a customer prove
+control of its domain with a one-time DNS challenge and then
+configure the customer's Identity Provider, and FastFed {{FASTFED}}
+automates that bilateral setup. Both bind a domain to an issuer for
+one relationship, at setup time; DAI makes the binding available to
+every verifier at verification time.
 
 Relationship to the Email Verification Protocol. EVP
 {{I-D.hardt-email-verification}} also publishes, in DNS, the issuer

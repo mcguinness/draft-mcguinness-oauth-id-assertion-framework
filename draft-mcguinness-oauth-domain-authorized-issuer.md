@@ -1146,10 +1146,21 @@ Required framework defenses:
   trustworthy resolver path (DoH/DoT to a vetted resolver).
 
 Forged negative answers: a `negative-authoritative` DNS result is
-Negative and rejects ({{dii-lookup}}), so an attacker who spoofs one
-can deny service for the namespace but cannot substitute a policy.
-Negative caching is capped ({{dii-caching}}), so the denial ends
-soon after the spoofing does.
+Negative ({{dii-lookup}}). When `domain_authorized_issuer` is the only
+`subject_namespace_authorization` method the Trust Policy lists, an
+attacker who spoofs one can deny service for the namespace but cannot
+substitute a policy, and because Negative caching is capped
+({{dii-caching}}) the denial ends soon after the spoofing does. When
+the Trust Policy also lists another namespace method, a Negative lets
+that method supply evidence ({{TRUST-FRAMEWORK}} §Multiple Authority
+Sources Within a Category). A spoofed negative answer can then
+suppress a published policy that does not authorize the issuer and
+let the other method authorize it. In that configuration a consumer
+protects the Subject Authority's denial only if it authenticates the
+absence, for example by validating DNSSEC. Signing the zone does not
+help a consumer that accepts unvalidated negative answers, and the
+cache cap limits reuse of one forged answer, not an attacker who
+keeps forging fresh ones.
 
 Operational defenses Subject Authorities are encouraged to apply:
 registrar account lock; monitoring of the record set and policy

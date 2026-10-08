@@ -2255,6 +2255,13 @@ This appendix is non-normative and will be removed before publication.
     (moved from the framework); describe how a spoofed negative
     answer can suppress a published denial when another namespace
     method is configured.
+  * Correct the relationship to the Email Verification Protocol,
+    whose relying party also checks its record at verification time;
+    add SAML scope metadata, bilateral domain verification, FastFed,
+    and DNS-based OpenID discovery to the related mechanisms; bound
+    the comparison between DNS control and control of email
+    recovery; state that the Trust Method targets organizational
+    namespaces.
 
 -00
 

@@ -2742,6 +2742,12 @@ This appendix is non-normative and will be removed before publication.
     {{DAI}}; keep Trust Policy `crit` handling here and define
     decision-affecting members in the Terminology; add a Trust Method
     checklist item for signer and key binding.
+  * Open the Introduction with the cost of per-relationship issuer
+    configuration and the nOAuth attack class; require an Assertion
+    Issuer that serves several tenants under one issuer identifier to
+    send `tenant` in every ID-JAG for a Resource Authorization Server
+    whose Trust Policy lists a namespace method; reword the Trust
+    Policy Discovery deferral.
 
 -00
 

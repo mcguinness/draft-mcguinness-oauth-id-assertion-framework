@@ -957,7 +957,9 @@ When evaluated, the Resource Authorization Server MUST:
    URL `https://oauth-issuer-policy.{A}/.well-known/oauth-issuer-policy`
    per {{dii-https-url}}. The Resource Authorization Server MUST NOT
    query `_oauth-issuer-policy.{A}` as part of this Trust Method and
-   MUST NOT use a DNS `uri=` pointer.
+   MUST NOT use a DNS `uri=` pointer. A dedicated host name that does
+   not exist (NXDOMAIN, or no address records) is Negative: the
+   Subject Authority has not opted in ({{dii-failures}}).
 
 3. Classify HTTPS retrieval and document validation outcomes per
    {{dii-failures}}. Negative and Indeterminate states MUST result

@@ -263,7 +263,10 @@ channel on encountering a denial. Each object has:
   : OPTIONAL. JSON array of Subject Identifier format names
   ({{RFC9493}}) this Assertion Issuer is authorized for. If omitted,
   the Assertion Issuer is authorized for any format that resolves to
-  this Subject Authority.
+  this Subject Authority, including formats whose extraction
+  procedures are registered after the policy is published; a Subject
+  Authority that wants to exclude future formats lists the formats it
+  authorizes.
 
   `valid_from`
   : OPTIONAL. {{RFC3339}} date-time. The delegation MUST NOT be treated
@@ -438,7 +441,8 @@ directives separated by `;`. Parsing rules:
 - Directive names are case-insensitive ASCII. Values are
   case-sensitive and preserved as written.
 - A directive splits into name and value at the first `=`. Subsequent
-  `=` characters are part of the value.
+  `=` characters are part of the value. A directive with no `=` makes
+  the record malformed ({{dii-failures}}).
 - The value runs to the next `;` or end of record. The character `;`
   MUST NOT appear in a value (see the issuer-identifier constraint in
   {{dii-document}}).
@@ -605,6 +609,8 @@ fetches only from the dedicated policy host.
       all recognized records are discarded because of `authority=`
       mismatch, treat the response as `malformed`. (A `malformed`
       outcome is classified as Indeterminate, {{dii-failures}}.)
+      Records discarded for `authority=` mismatch are not otherwise
+      validated.
 
       Before continuing, validate the remaining recognized records
       against the directive rules in {{dii-dns-record}}. This includes
@@ -1142,8 +1148,11 @@ DAI-specific points:
 The lookup procedure ({{dii-lookup}}) is deterministic across the
 common conflict scenarios that arise when multiple records or
 sources coexist. Determinism is a security property: two verifiers
-receiving the same DNS and HTTPS responses MUST reach the same
-conclusion about what (if any) policy applies. An attacker with
+receiving the same DNS and HTTPS responses, using the same Public
+Suffix List snapshot ({{TRUST-FRAMEWORK}} §Public Suffix List
+Versioning), and within the limits of
+{{https-policy-document-contract}}, MUST reach the same conclusion
+about what (if any) policy applies. An attacker with
 partial control of one publication channel cannot exploit
 interpretive ambiguity at the consumer.
 
@@ -1266,7 +1275,7 @@ drive lookups at will, creating three risks:
 # Privacy Considerations {#privacy}
 
 The lookup is verifier-side and per-verification, so it leaks metadata
-in two directions:
+in two directions, and the policy itself is public:
 
 - **To the resolver path.** A DNS query for
   `_oauth-issuer-policy.{A}` exposes the Subject Authority `{A}` being
@@ -1290,6 +1299,10 @@ in two directions:
   permitted rather than re-fetching per verification. The minimum
   freshness lifetime of {{dii-caching}} keeps a Subject Authority
   from observing every sign-in by publishing a very short TTL.
+- **Policy contents.** A published policy is public. It reveals the
+  Subject Authority's Identity Providers, tenant identifiers, and,
+  through `valid_until`, when its contracts end. Subject Authorities
+  that consider these sensitive publish only what verification needs.
 
 # Operational Considerations {#operational}
 

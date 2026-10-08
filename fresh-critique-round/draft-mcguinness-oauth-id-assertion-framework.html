@@ -2034,10 +2034,16 @@ Delegation Artifact from the Subject Authority and that artifact
 does not authorize the Assertion Issuer (including an explicit
 denial), the category is not satisfied, whatever any other method in
 the category yields: the Subject Authority's published decision is
-final for its namespace. A Negative state, in which the Subject
+final for its namespace. An Indeterminate state from a
+<code>subject_namespace_authorization</code> method that consults the Subject
+Authority's own publication has the same effect, because it may hide
+that published decision. A Negative state, in which the Subject
 Authority has published nothing through that method's channel, does
 not have this effect; other methods in the category can still
-supply evidence.<a href="#section-3.2.2-3" class="pilcrow">¶</a></p>
+supply evidence. Where that channel's negative answers are not
+authenticated (for example, DNS without DNSSEC), an attacker who
+forges one can turn a published denial into a Negative and let
+another method decide (<a href="#authority-source-compromise" class="auto internal xref">Section 7.4</a>).<a href="#section-3.2.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2139,7 +2145,10 @@ of the three states above before producing an accept-or-reject
 decision. Profiles <span class="bcp14">MUST</span> enumerate the concrete signals on their
 publication channel that map to each state.<a href="#section-3.4.2-1" class="pilcrow">¶</a></p>
 <p id="section-3.4.2-2">A Validator <span class="bcp14">MUST</span> fail closed on both Negative and Indeterminate
-states: the access decision <span class="bcp14">MUST</span> be reject. Profiles <span class="bcp14">MUST NOT</span>
+states: neither state satisfies the Trust Method that produced it,
+and the access decision <span class="bcp14">MUST</span> be reject unless another Trust Method
+satisfies the same category as <a href="#multiple-sources" class="auto internal xref">Section 3.2.2</a> permits.
+Profiles <span class="bcp14">MUST NOT</span>
 permit any condition under which an Indeterminate state is
 treated as Affirmative; doing so converts the fail-closed
 property into an availability-driven downgrade attack surface.<a href="#section-3.4.2-2" class="pilcrow">¶</a></p>
@@ -2549,7 +2558,8 @@ signature that cannot be verified because key material is
 unavailable, or an expired statement that cannot be refreshed.<a href="#section-4.3.4.1-7.3.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
-<p id="section-4.3.4.1-8">Both Negative and Indeterminate fail closed. Entity Statement caching
+<p id="section-4.3.4.1-8">Neither Negative nor Indeterminate satisfies this Trust Method
+(<a href="#fail-closed-requirements" class="auto internal xref">Section 3.4.2</a>). Entity Statement caching
 follows the statements' own <code>exp</code> values per <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span>,
 bounded by the consumer's local cache ceiling; a cached chain <span class="bcp14">MUST NOT</span> be used past the earliest <code>exp</code> in the chain. A Trust Mark that
 requirement 4 relies on is re-validated whenever the chain is, and
@@ -3651,7 +3661,11 @@ Authorization Server enforces its requirements from its own
 configuration, so a substituted copy can mislead only a client's
 discovery (<a href="#signed-policy-metadata" class="auto internal xref">Section 4.5</a>). The Issuer Authorization
 Policy, which decides acceptance, can carry <code>signed_policy</code> with the
-signer binding rules defined there. Mirrored or cached copies <span class="bcp14">MUST NOT</span> be relied on beyond their HTTP cache lifetime (<a href="#caching" class="auto internal xref">Section 7.12</a>).<a href="#section-7.9-1" class="pilcrow">¶</a></p>
+signer binding rules defined there. Mirrored or cached copies of a
+Trust Policy <span class="bcp14">MUST NOT</span> be relied on beyond their HTTP cache lifetime
+(<a href="#caching" class="auto internal xref">Section 7.12</a>); cache and stale-use bounds for an Issuer Authorization
+Policy are set by the applicable Trust Method specification
+(<a href="#trust-method-spec-requirements" class="auto internal xref">Section 4.3.3</a>).<a href="#section-7.9-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="shared-infrastructure">
@@ -4599,8 +4613,8 @@ to declare what evidence it requires of an Assertion Issuer
 (metadata at <code>/.well-known/identity-assertion-trust-policy</code>). DAI
 is what a <strong>Subject Authority</strong> publishes to declare which
 Assertion Issuers it authorizes for its namespace (a record at
-<code>_oauth-issuer-policy.{domain}</code>, or a document on the dedicated host
-<code>oauth-issuer-policy.{domain}</code>). RAS-published vs
+<code>_oauth-issuer-policy.{domain}</code>, optionally with a document on the
+dedicated host <code>oauth-issuer-policy.{domain}</code>). RAS-published vs
 Subject-Authority-published.<a href="#appendix-C-5" class="pilcrow">¶</a></p>
 <p id="appendix-C-6"><strong>Q: Why two independent trust categories?</strong><a href="#appendix-C-6" class="pilcrow">¶</a></p>
 <p id="appendix-C-7">To stop "federation member" from being silently treated as
@@ -4610,12 +4624,10 @@ different question and the cross-category combination rule
 configured. Conflating them is the bug
 (<a href="#combination-rule" class="auto internal xref">Section 3.2.1</a>, <a href="#transitive-authz-bounded" class="auto internal xref">Section 7.5</a>).<a href="#appendix-C-7" class="pilcrow">¶</a></p>
 <p id="appendix-C-8"><strong>Q: What if my Subject Authority cannot publish DNS TXT records?</strong><a href="#appendix-C-8" class="pilcrow">¶</a></p>
-<p id="appendix-C-9">Canonical lookup requires the TXT record, which is the Subject
-Authority's opt-in (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Lookup Procedure). A Subject Authority
-that can provision the dedicated host <code>oauth-issuer-policy.{authority}</code>
-but not TXT records can serve Resource Authorization Servers that
-select the HTTPS-only lookup mode (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §HTTPS-Only Deployment
-Variant). A Subject Authority with no DNS control at all cannot
+<p id="appendix-C-9">Both lookup modes require the TXT record at
+<code>_oauth-issuer-policy.{authority}</code>, which is the Subject Authority's
+opt-in (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Lookup Procedure and §HTTPS-Only Deployment
+Variant). A Subject Authority that cannot publish TXT records cannot
 participate in DAI.<a href="#appendix-C-9" class="pilcrow">¶</a></p>
 <p id="appendix-C-10"><strong>Q: Does this work for path-bearing issuer identifiers
 (<code>https://login.example.com/{tenant}/v2.0</code>)?</strong><a href="#appendix-C-10" class="pilcrow">¶</a></p>

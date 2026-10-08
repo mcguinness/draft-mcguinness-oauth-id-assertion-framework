@@ -1417,10 +1417,11 @@ Issuers it authorizes for its namespace. The DNS record can carry
 the authorized issuers inline (for simple deployments) or point at
 an HTTPS-hosted JSON document containing richer policy (validity
 windows, format restrictions, tenant binding, multiple issuers).
-A Resource Authorization Server that does not accept DNS-published
-authority can instead fetch the policy from a dedicated HTTPS host,
-<code>oauth-issuer-policy.{domain}</code>. Publishing is an explicit opt-in: a
-namespace that publishes nothing is not covered.
+A Resource Authorization Server that does not take policy content
+from DNS can instead fetch the policy from a dedicated HTTPS host,
+<code>oauth-issuer-policy.{domain}</code>. In both cases the DNS record is the
+Subject Authority's explicit opt-in: a namespace that publishes no
+record is not covered.
 Authority is established by control of the publication channel:
 whoever can publish at <code>_oauth-issuer-policy.{domain}</code> is itself
 the Subject Authority for <code>{domain}</code>. The pattern follows CAA
@@ -1639,7 +1640,8 @@ defeats substitution by the policy host or a shared edge in front
 of it, not compromise of DNS, which already selects the policy
 host; DNSSEC raises that bound. An out-of-band key rests on the
 consumer's own key-provisioning process. The HTTPS-only lookup
-mode, which does not consult DNS, can use only an out-of-band key.<a href="#section-3-3.8.1" class="pilcrow">¶</a></p>
+mode, which takes no policy content from DNS, can use only an
+out-of-band key.<a href="#section-3-3.8.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-3-3.9"><code>crit</code></dt>
@@ -1764,9 +1766,11 @@ through one of the publication channels defined in
 the Subject Authority rendered as a DNS name (A-label form,
 <a href="#dii-dns-record" class="auto internal xref">Section 4.3</a>). DNS publication uses the TXT record at
 <code>_oauth-issuer-policy.{A}</code>, following the pattern of CAA, MTA-STS,
-SPF, and DKIM (<a href="#dns-authority-patterns" class="auto internal xref">Appendix A.1</a>). HTTPS publication without
-DNS uses the default URL on a dedicated policy host,
-<code>oauth-issuer-policy.{A}</code> (<a href="#dii-https-url" class="auto internal xref">Section 4.4</a>).<a href="#section-4-1" class="pilcrow">¶</a></p>
+SPF, and DKIM (<a href="#dns-authority-patterns" class="auto internal xref">Appendix A.1</a>). For Resource
+Authorization Servers that take no policy content from DNS, the
+policy is also served at the default URL on a dedicated policy host,
+<code>oauth-issuer-policy.{A}</code> (<a href="#dii-https-url" class="auto internal xref">Section 4.4</a>); the TXT record
+remains the opt-in.<a href="#section-4-1" class="pilcrow">¶</a></p>
 <div id="publication-profiles">
 <section id="section-4.1">
         <h3 id="name-publication-channels">
@@ -1810,10 +1814,10 @@ only by the HTTPS-only lookup mode
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">3: Dedicated Policy Host</td>
-              <td class="text-left" rowspan="1" colspan="1">None</td>
+              <td class="text-left" rowspan="1" colspan="1">TXT record as opt-in only</td>
               <td class="text-left" rowspan="1" colspan="1">HTTPS-hosted JSON at <code>https://oauth-issuer-policy.{A}/.well-known/oauth-issuer-policy</code>
 </td>
-              <td class="text-left" rowspan="1" colspan="1">DNS control of <code>oauth-issuer-policy.{A}</code> AND TLS on that host</td>
+              <td class="text-left" rowspan="1" colspan="1">DNS control of <code>{A}</code> (opt-in record) AND of <code>oauth-issuer-policy.{A}</code>, AND TLS on that host</td>
               <td class="text-left" rowspan="1" colspan="1">Serving Resource Authorization Servers that use the HTTPS-only lookup mode</td>
             </tr>
           </tbody>
@@ -1828,19 +1832,20 @@ only by the HTTPS-only lookup mode
 <p id="section-4.2-1">A Subject Authority that serves Resource Authorization Servers using
 the HTTPS-only lookup mode publishes the policy at the default URL
 on the dedicated policy host <code>oauth-issuer-policy.{A}</code>
-(<a href="#dii-https-url" class="auto internal xref">Section 4.4</a>). That host name exists only because the Subject
-Authority provisions it, so its presence is an explicit opt-in, as
-the <code>mta-sts</code> host is in MTA-STS <span>[<a href="#RFC8461" class="cite xref">RFC8461</a>]</span>. Unlike the apex, it can
+(<a href="#dii-https-url" class="auto internal xref">Section 4.4</a>). The host name alone is not an opt-in: some
+domains let untrusted users claim subdomains or serve content on
+them, and an attacker could claim <code>oauth-issuer-policy</code> (<span>[<a href="#RFC8461" class="cite xref">RFC8461</a>]</span>
+Section 10.3). As in MTA-STS, the opt-in is the TXT record at
+<code>_oauth-issuer-policy.{A}</code> (<a href="#dii-dns-record" class="auto internal xref">Section 4.3</a>), which the HTTPS-only
+lookup mode requires before it fetches from the dedicated host
+(<a href="#trust-method-https-authorized-issuer" class="auto internal xref">Section 8.2</a>). Subject Authorities whose
+domains let others claim subdomains <span class="bcp14">SHOULD</span> also reserve the
+<code>oauth-issuer-policy</code> label. Unlike the apex, the dedicated host can
 be delegated to a hosting provider (for example, by a CNAME record)
 without giving that provider control of the Subject Authority's web
-origin. A Subject Authority that publishes both a DNS record and a
-policy on the dedicated host <span class="bcp14">SHOULD</span> keep them equivalent; canonical
-lookup does not consult the dedicated host unless a <code>uri=</code> directive
-names it.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
-<p id="section-4.2-2">Operators are encouraged to publish the DNS record where
-practical: it matches the operational model of the prior-art
-mechanisms in <a href="#dns-authority-patterns" class="auto internal xref">Appendix A.1</a>, and canonical DNS-first
-lookup, the default, finds only DNS-published policies.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
+origin. A Subject Authority <span class="bcp14">SHOULD</span> make its record a pointer whose
+<code>uri=</code> names the default URL, so that canonical and HTTPS-only
+lookups retrieve the same document.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="dii-dns-record">
@@ -1962,7 +1967,13 @@ present, the fetched document <span class="bcp14">MUST</span> carry a <code>sign
 header carries the signing key in its <code>jwk</code> parameter (<span>[<a href="#RFC7515" class="cite xref">RFC7515</a>]</span>
 Section 4.1.3), the thumbprint of that key <span class="bcp14">MUST</span> equal this value, and
 the signature <span class="bcp14">MUST</span> verify with it (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Signed Policy
-Metadata); a document that fails any of these checks is malformed.<a href="#section-4.3-9.8.1" class="pilcrow">¶</a></p>
+Metadata); a document that fails any of these checks is malformed.
+A <code>key=</code> directive also makes the consumer process the document as one
+whose object-level integrity its local policy requires
+(<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Signed Policy Metadata): the signed JWT <span class="bcp14">MUST</span>
+contain every decision-affecting member the consumer uses, and the
+consumer <span class="bcp14">MUST NOT</span> use unsigned decision-affecting members that are
+absent from it.<a href="#section-4.3-9.8.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -2052,8 +2063,9 @@ names. The TXT record is the Subject Authority's opt-in: its absence
 is Negative, and no other channel is consulted.<a href="#section-5-1" class="pilcrow">¶</a></p>
 <p id="section-5-2">This is the canonical procedure used by the
 <code>domain_authorized_issuer</code> Trust Method. The HTTPS-only lookup mode
-defined in <a href="#trust-method-https-authorized-issuer" class="auto internal xref">Section 8.2</a> skips DNS and
-fetches only from the dedicated policy host.<a href="#section-5-2" class="pilcrow">¶</a></p>
+defined in <a href="#trust-method-https-authorized-issuer" class="auto internal xref">Section 8.2</a> uses the DNS
+record only as an opt-in and fetches the policy only from the
+dedicated policy host.<a href="#section-5-2" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-5-3">
 <li id="section-5-3.1">
           <p id="section-5-3.1.1">Query the DNS TXT resource record set at
@@ -2141,10 +2153,9 @@ force the consumer onto a path the attacker has compromised
 separately.<a href="#section-5-3.4.1" class="pilcrow">¶</a></p>
 </li>
       </ol>
-<p id="section-5-4">A Subject Authority that publishes only DNS records is not found
-under the HTTPS-only lookup mode, and one that publishes only on the
-dedicated host is not found under canonical lookup
-(<a href="#combining-dai-methods" class="auto internal xref">Section 8.3</a>). A Resource Authorization Server that
+<p id="section-5-4">Under the HTTPS-only lookup mode, a Subject Authority is found only
+if it publishes both the DNS record and a policy on the dedicated
+host (<a href="#combining-dai-methods" class="auto internal xref">Section 8.3</a>). A Resource Authorization Server that
 cannot resolve DNS (resolver failure, untrusted resolution path)
 treats the lookup as <code>indeterminate</code> and rejects the assertion.<a href="#section-5-4" class="pilcrow">¶</a></p>
 <div id="dii-failures">
@@ -2174,7 +2185,7 @@ concrete DAI outcomes onto those states.<a href="#section-5.1-1" class="pilcrow"
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">Negative</td>
-              <td class="text-left" rowspan="1" colspan="1">Under canonical lookup, DNS <code>negative-authoritative</code>, or HTTPS 404 or 410 from the target of a DNS <code>uri=</code> pointer. Under the HTTPS-only lookup mode (<a href="#trust-method-https-authorized-issuer" class="auto internal xref">Section 8.2</a>), a dedicated host name for which DNS returns NXDOMAIN or no address records, or HTTPS 404 or 410 from the dedicated host. No policy is published at the location the lookup consults.</td>
+              <td class="text-left" rowspan="1" colspan="1">Under canonical lookup, DNS <code>negative-authoritative</code>, or HTTPS 404 or 410 from the target of a DNS <code>uri=</code> pointer. Under the HTTPS-only lookup mode (<a href="#trust-method-https-authorized-issuer" class="auto internal xref">Section 8.2</a>), DNS <code>negative-authoritative</code> for the opt-in record, a dedicated host name for which DNS returns NXDOMAIN or no address records, or HTTPS 404 or 410 from the dedicated host. No policy is published at the location the lookup consults.</td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">Indeterminate</td>
@@ -2234,10 +2245,12 @@ records are ignored (<a href="#dii-lookup" class="auto internal xref">Section 5<
 <code>uri=</code> value is <code>malformed</code>.<a href="#section-5.1-7.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-7.3">
-            <p id="section-5.1-7.3.1">Canonical lookup never consults the dedicated host, and the
-HTTPS-only lookup mode never consults DNS, so a policy published
-through both is never reconciled: each mode sees only its own
-channel (<a href="#combining-dai-methods" class="auto internal xref">Section 8.3</a>).<a href="#section-5.1-7.3.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-7.3.1">Canonical lookup takes the policy from the DNS record and the
+<code>uri=</code> target it names; the HTTPS-only lookup mode uses the record
+only as an opt-in and takes the policy from the dedicated host. The
+two are never reconciled; a Subject Authority whose record points
+at the default URL gives both modes the same document
+(<a href="#dedicated-policy-host" class="auto internal xref">Section 4.2</a>).<a href="#section-5.1-7.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-7.4">
             <p id="section-5.1-7.4.1">Multiple <code>authorized_issuers</code> entries for the same <code>issuer</code> value but
@@ -2254,10 +2267,15 @@ policy cannot grant authority over that subject.<a href="#section-5.1-7.5.1" cla
 assertion fails the Trust Method.<a href="#section-5.1-7.6.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-5.1-8">Consumers <span class="bcp14">MUST</span> treat both Negative and Indeterminate as
-assertion rejection, except that a cached Affirmative policy <span class="bcp14">MAY</span>
-be used during an Indeterminate live retrieval within the
-stale-if-error bound of <a href="#dii-caching" class="auto internal xref">Section 7</a>.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
+<p id="section-5.1-8">Consumers <span class="bcp14">MUST NOT</span> treat a Negative or Indeterminate outcome as
+satisfying the Trust Method, except that a cached Affirmative policy
+<span class="bcp14">MAY</span> be used during an Indeterminate live retrieval within the
+stale-if-error bound of <a href="#dii-caching" class="auto internal xref">Section 7</a>. Whether the assertion is
+then rejected follows <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Fail-Closed Requirements:
+an Indeterminate outcome, like a policy that does not authorize the
+issuer, leaves the <code>subject_namespace_authorization</code> category
+unsatisfied whatever other methods yield, while a Negative outcome
+lets another method in that category supply evidence.<a href="#section-5.1-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2278,9 +2296,9 @@ in <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</spa
         <li id="section-6-2.2">
           <p id="section-6-2.2.1">Retrieve the Issuer Authorization Policy by applying the
 procedure in <a href="#dii-lookup" class="auto internal xref">Section 5</a>. Negative and Indeterminate
-outcomes (<a href="#dii-failures" class="auto internal xref">Section 5.1</a>) <span class="bcp14">MUST</span> result in rejection, except as
-<a href="#dii-caching" class="auto internal xref">Section 7</a> permits for a cached Affirmative policy during an
-Indeterminate live retrieval.<a href="#section-6-2.2.1" class="pilcrow">¶</a></p>
+outcomes (<a href="#dii-failures" class="auto internal xref">Section 5.1</a>) <span class="bcp14">MUST NOT</span> satisfy the Trust Method,
+except as <a href="#dii-caching" class="auto internal xref">Section 7</a> permits for a cached Affirmative policy
+during an Indeterminate live retrieval.<a href="#section-6-2.2.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-6-2.3">
           <p id="section-6-2.3.1">Verify the policy's <code>subject_authority</code> matches the computed
@@ -2320,9 +2338,11 @@ same result regardless of array order or of which matching entry
 they examine first.<a href="#section-6-2.4.6" class="pilcrow">¶</a></p>
 </li>
       </ol>
-<p id="section-6-3">Steps 1 and 2 are prerequisites; their failure causes assertion
-rejection per <a href="#dii-failures" class="auto internal xref">Section 5.1</a> unconditionally and is not classified
-as a Trust Method satisfaction outcome. When the Trust Method is not
+<p id="section-6-3">If step 1 fails, the assertion is rejected (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>
+§Resource Authorization Server Processing, step 5c). If step 2 does
+not yield a policy, the Trust Method is not satisfied, with the
+category-level effect stated in <a href="#dii-failures" class="auto internal xref">Section 5.1</a>. When the Trust
+Method is not
 satisfied and, as a result, the cross-category combination rule
 (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Cross-Category Combination Rule) is not met,
 the Resource Authorization Server <span class="bcp14">MUST</span> reject the assertion with an
@@ -2334,10 +2354,9 @@ OAuth <code>invalid_grant</code> error.<a href="#section-6-3" class="pilcrow">¶
         </h3>
 <p id="section-6.1-1">This document defines no mode in which a published policy is
 evaluated without being enforced. Under fail-closed evaluation, a
-namespace with no policy is already rejected by every Resource
-Authorization Server that requires this Trust Method
-(<a href="#dii-failures" class="auto internal xref">Section 5.1</a>), so a Subject Authority's first publication breaks
-no sign-in at such a server. A mode that accepted assertions despite
+namespace with no policy gets no authorization from this Trust
+Method (<a href="#dii-failures" class="auto internal xref">Section 5.1</a>), so a Subject Authority's first publication
+withdraws nothing that this method granted. A mode that accepted assertions despite
 a mismatch would instead admit more issuers than publishing nothing.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
 <p id="section-6.1-2">A Resource Authorization Server introducing <code>domain_authorized_issuer</code>
 can observe before it enforces: it evaluates the Trust Method for
@@ -2365,7 +2384,8 @@ for the minimum TTL of the records that construct it. A policy
 fetched through a <code>uri=</code> pointer is fresh for the lesser of the
 pointer record's TTL and the document's HTTP freshness lifetime
 (<span>[<a href="#RFC9111" class="cite xref">RFC9111</a>]</span>). A policy fetched from the dedicated host under the
-HTTPS-only lookup mode is fresh for its HTTP freshness lifetime. A
+HTTPS-only lookup mode is fresh for the lesser of the opt-in
+record's TTL and its HTTP freshness lifetime. A
 document without explicit freshness information (no <code>max-age</code> and
 no <code>Expires</code>) is fresh for a local default that <span class="bcp14">MUST NOT</span> exceed 1
 hour. Consumers <span class="bcp14">SHOULD</span> respect these lifetimes, and <span class="bcp14">MAY</span> apply a
@@ -2428,8 +2448,9 @@ never satisfies the Trust Method.<a href="#section-7-2.7.1" class="pilcrow">¶</
 <p id="section-8-1">This document defines <code>domain_authorized_issuer</code> as a
 <code>subject_namespace_authorization</code> Trust Method of <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>.
 DNS at <code>_oauth-issuer-policy.{authority}</code> is the publication channel
-for canonical lookup; a dedicated HTTPS host serves the HTTPS-only
-lookup mode. The Trust Method
+for canonical lookup; under the HTTPS-only lookup mode the record
+is an opt-in and a dedicated HTTPS host serves the policy. The Trust
+Method
 registers in the Identity Assertion Issuer Trust Methods registry
 (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Identity Assertion Issuer Trust Methods Registry).<a href="#section-8-1" class="pilcrow">¶</a></p>
 <div id="trust-method-domain-authorized-issuer">
@@ -2483,16 +2504,17 @@ member is used only for the HTTPS-only deployment variant in
         <h3 id="name-https-only-deployment-varia">
 <a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-https-only-deployment-varia" class="section-name selfRef">HTTPS-Only Deployment Variant</a>
         </h3>
-<p id="section-8.2-1">Some deployments cannot or will not depend on DNS-published
-authority. Those deployments can use the same Issuer Authorization
-Policy document format with direct HTTPS retrieval from the Subject
-Authority's dedicated policy host (<a href="#dedicated-policy-host" class="auto internal xref">Section 4.2</a>). This
+<p id="section-8.2-1">Some deployments will not take policy content from DNS. Those
+deployments can use the same Issuer Authorization Policy document
+format, retrieved over HTTPS from the Subject Authority's dedicated
+policy host (<a href="#dedicated-policy-host" class="auto internal xref">Section 4.2</a>), with the DNS record serving
+only as the Subject Authority's opt-in. This
 is a deployment variant of the DAI
 mechanism, not a second Trust Method registered by this document.<a href="#section-8.2-1" class="pilcrow">¶</a></p>
 <p id="section-8.2-2">Under this variant, the Assertion Issuer is acceptable if the Subject
 Authority identified by the assertion's Subject Identifier publishes
-an Issuer Authorization Policy on its dedicated policy host
-authorizing the Assertion Issuer.<a href="#section-8.2-2" class="pilcrow">¶</a></p>
+the opt-in record and an Issuer Authorization Policy on its
+dedicated policy host authorizing the Assertion Issuer.<a href="#section-8.2-2" class="pilcrow">¶</a></p>
 <div class="lang-json sourcecode" id="section-8.2-3">
 <pre>
 {
@@ -2506,8 +2528,9 @@ authorizing the Assertion Issuer.<a href="#section-8.2-2" class="pilcrow">¶</a>
 document format (<a href="#dii-document" class="auto internal xref">Section 3</a>), Subject Authority determination
 rules (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Subject Authority Determination), HTTPS
 document URL (<a href="#dii-https-url" class="auto internal xref">Section 4.4</a>), verification rules
-(<a href="#dii-verification" class="auto internal xref">Section 6</a>), and caching rules (<a href="#dii-caching" class="auto internal xref">Section 7</a>), but it
-does not perform the DNS lookup defined in <a href="#dii-lookup" class="auto internal xref">Section 5</a>.<a href="#section-8.2-4" class="pilcrow">¶</a></p>
+(<a href="#dii-verification" class="auto internal xref">Section 6</a>), and caching rules (<a href="#dii-caching" class="auto internal xref">Section 7</a>), and
+the DNS query of <a href="#dii-lookup" class="auto internal xref">Section 5</a> for the opt-in, but it takes no
+policy content from DNS.<a href="#section-8.2-4" class="pilcrow">¶</a></p>
 <p id="section-8.2-5">When evaluated, the Resource Authorization Server <span class="bcp14">MUST</span>:<a href="#section-8.2-5" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-8.2-6">
 <li id="section-8.2-6.1">
@@ -2516,32 +2539,39 @@ Identifier per <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWO
 <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Subject Authority Extraction Procedures Registry, reject the assertion.<a href="#section-8.2-6.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-8.2-6.2">
-            <p id="section-8.2-6.2.1">Fetch the Issuer Authorization Policy directly from the default
-URL <code>https://oauth-issuer-policy.{A}/.well-known/oauth-issuer-policy</code>
-per <a href="#dii-https-url" class="auto internal xref">Section 4.4</a>. The Resource Authorization Server <span class="bcp14">MUST NOT</span>
-query <code>_oauth-issuer-policy.{A}</code> as part of this Trust Method and
-<span class="bcp14">MUST NOT</span> use a DNS <code>uri=</code> pointer. A dedicated host name that does
-not exist (NXDOMAIN, or no address records) is Negative: the
-Subject Authority has not opted in (<a href="#dii-failures" class="auto internal xref">Section 5.1</a>).<a href="#section-8.2-6.2.1" class="pilcrow">¶</a></p>
+            <p id="section-8.2-6.2.1">Query <code>_oauth-issuer-policy.{A}</code> and classify the response as in
+steps 1 and 2a of <a href="#dii-lookup" class="auto internal xref">Section 5</a>. A <code>negative-authoritative</code>
+response is Negative: the Subject Authority has not opted in. An
+<code>indeterminate</code> or <code>malformed</code> response is Indeterminate. The
+records' <code>issuer=</code>, <code>uri=</code>, and <code>key=</code> values are not used.<a href="#section-8.2-6.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-8.2-6.3">
-            <p id="section-8.2-6.3.1">Classify HTTPS retrieval and document validation outcomes per
-<a href="#dii-failures" class="auto internal xref">Section 5.1</a>. Negative and Indeterminate states <span class="bcp14">MUST</span> result
-in rejection, except as <a href="#dii-caching" class="auto internal xref">Section 7</a> permits for a cached
-Affirmative policy during an Indeterminate live retrieval.<a href="#section-8.2-6.3.1" class="pilcrow">¶</a></p>
+            <p id="section-8.2-6.3.1">Fetch the Issuer Authorization Policy from the default URL
+<code>https://oauth-issuer-policy.{A}/.well-known/oauth-issuer-policy</code>
+per <a href="#dii-https-url" class="auto internal xref">Section 4.4</a>. The Resource Authorization Server <span class="bcp14">MUST NOT</span>
+take issuers or a policy location from the DNS records. A
+dedicated host name that does not exist (NXDOMAIN, or no address
+records) is Negative (<a href="#dii-failures" class="auto internal xref">Section 5.1</a>).<a href="#section-8.2-6.3.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-8.2-6.4">
-            <p id="section-8.2-6.4.1">Verify the fetched policy and match the Assertion Issuer against
-<code>authorized_issuers</code> using steps 3 and 4 of <a href="#dii-verification" class="auto internal xref">Section 6</a>.<a href="#section-8.2-6.4.1" class="pilcrow">¶</a></p>
+            <p id="section-8.2-6.4.1">Classify HTTPS retrieval and document validation outcomes per
+<a href="#dii-failures" class="auto internal xref">Section 5.1</a>. Negative and Indeterminate states <span class="bcp14">MUST NOT</span>
+satisfy the Trust Method, except as <a href="#dii-caching" class="auto internal xref">Section 7</a> permits for a
+cached Affirmative policy during an Indeterminate live retrieval.<a href="#section-8.2-6.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-8.2-6.5">
+            <p id="section-8.2-6.5.1">Verify the fetched policy and match the Assertion Issuer against
+<code>authorized_issuers</code> using steps 3 and 4 of <a href="#dii-verification" class="auto internal xref">Section 6</a>.<a href="#section-8.2-6.5.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 <p id="section-8.2-7">A Resource Authorization Server uses this variant when it requires
-authority publication via HTTPS only and explicitly does not accept
-DNS-published authority (inline or DNS pointer). Compared to
+the policy itself to come over HTTPS and does not accept policy
+content published in DNS (inline or DNS pointer). Compared to
 canonical DNS-first lookup, this mode:<a href="#section-8.2-7" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-8.2-8.1">
-            <p id="section-8.2-8.1.1">Removes the TXT record from the trust path. The dedicated host is
+            <p id="section-8.2-8.1.1">Removes the TXT record's contents from the trust path; the record
+remains the opt-in. The dedicated host is
 still located through DNS, and issuance of its TLS certificate
 typically relies on DNS-based validation, so DNS integrity still
 matters; what changes is that an attacker must also obtain a
@@ -2573,14 +2603,14 @@ selects one lookup mode:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
             <p id="section-8.3-2.1.1"><strong>Canonical DNS-first lookup</strong> is the default. The Resource
 Authorization Server queries <code>_oauth-issuer-policy.{A}</code> and
 consults nothing else except the <code>uri=</code> target that record names
-(<a href="#dii-lookup" class="auto internal xref">Section 5</a>). A Subject Authority that publishes only on the
-dedicated host is not found under this mode.<a href="#section-8.3-2.1.1" class="pilcrow">¶</a></p>
+(<a href="#dii-lookup" class="auto internal xref">Section 5</a>).<a href="#section-8.3-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.3-2.2">
             <p id="section-8.3-2.2.1"><strong>HTTPS-only lookup</strong> is an explicit deployment variant. Use it
-when local policy distrusts DNS-published authority entirely and
-requires authority retrieval over TLS-authenticated HTTPS only.
-Inline DNS records and DNS pointer forms are rejected.<a href="#section-8.3-2.2.1" class="pilcrow">¶</a></p>
+when local policy distrusts policy content published in DNS and
+requires the policy itself to come over TLS-authenticated HTTPS
+from the dedicated host. The DNS record is still required, as the
+opt-in; its inline issuers and pointer are not used.<a href="#section-8.3-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-8.3-3">A Trust Policy <span class="bcp14">MUST NOT</span> list more than one <code>domain_authorized_issuer</code>
@@ -2611,7 +2641,8 @@ the Subject Authority's namespace.<a href="#section-9-1" class="pilcrow">¶</a><
 <a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-namespace-authority-bootstr" class="section-name selfRef">Namespace Authority Bootstrap</a>
         </h3>
 <p id="section-9.1-1">DAI's authority binding is DNS control of the registrable domain
-(or of the dedicated policy host name under it). This follows the
+and, under the HTTPS-only lookup mode, of the dedicated policy host
+name under it. This follows the
 bootstrap model of CAA <span>[<a href="#RFC8659" class="cite xref">RFC8659</a>]</span> and MTA-STS <span>[<a href="#RFC8461" class="cite xref">RFC8461</a>]</span>: an
 explicit DNS opt-in, a dedicated policy host, and no redirects.
 Pre-existing DNS
@@ -2648,25 +2679,32 @@ differ from the canonical DNS-first lookup of
 <code>domain_authorized_issuer</code>:<a href="#section-9.3-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-9.3-2.1">
-            <p id="section-9.3-2.1.1">DNS-record attacks (<a href="#dns-integrity-and-compromise" class="auto internal xref">Section 9.4</a>) do NOT
-affect authority retrieval; the TXT record is not fetched.<a href="#section-9.3-2.1.1" class="pilcrow">¶</a></p>
+            <p id="section-9.3-2.1.1">DNS-record attacks (<a href="#dns-integrity-and-compromise" class="auto internal xref">Section 9.4</a>) can create
+or remove the opt-in but cannot choose the policy or its host,
+since the record's contents are not used.<a href="#section-9.3-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.3-2.2">
-            <p id="section-9.3-2.2.1">Resolution of the dedicated host still uses DNS. A DNS redirect
-of that host combined with TLS misissuance substitutes the
-policy; CAA records and Certificate Transparency monitoring are
-the primary defenses (<a href="#transport-integrity" class="auto internal xref">Section 9.2</a>).<a href="#section-9.3-2.2.1" class="pilcrow">¶</a></p>
+            <p id="section-9.3-2.2.1">A domain that lets untrusted users claim subdomains could lose
+the dedicated host name to an attacker; the opt-in record defeats
+that unless the attacker can also publish TXT records under the
+domain (<span>[<a href="#RFC8461" class="cite xref">RFC8461</a>]</span> Section 10.3).<a href="#section-9.3-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.3-2.3">
-            <p id="section-9.3-2.3.1">The policy is served from the Subject Authority's dedicated
-host, so the risk is that of whoever operates that host
-(<a href="#third-party-policy-hosts" class="auto internal xref">Section 9.5</a>).<a href="#section-9.3-2.3.1" class="pilcrow">¶</a></p>
+            <p id="section-9.3-2.3.1">Resolution of the dedicated host still uses DNS. A DNS redirect
+of that host combined with TLS misissuance substitutes the
+policy; CAA records and Certificate Transparency monitoring are
+the primary defenses (<a href="#transport-integrity" class="auto internal xref">Section 9.2</a>).<a href="#section-9.3-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.3-2.4">
-            <p id="section-9.3-2.4.1">Because the dedicated host is a separate name, a Subject
+            <p id="section-9.3-2.4.1">The policy is served from the Subject Authority's dedicated
+host, so the risk is that of whoever operates that host
+(<a href="#third-party-policy-hosts" class="auto internal xref">Section 9.5</a>).<a href="#section-9.3-2.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.3-2.5">
+            <p id="section-9.3-2.5.1">Because the dedicated host is a separate name, a Subject
 Authority whose apex is hosted on a marketing site or CDN it does
 not control can still participate, by provisioning or delegating
-that name.<a href="#section-9.3-2.4.1" class="pilcrow">¶</a></p>
+that name.<a href="#section-9.3-2.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-9.3-3">The trade-off between the two lookup modes is discussed in
@@ -3007,10 +3045,14 @@ record and any policy host with the same rigor as other sign-in-path
 infrastructure. Specific guidance:<a href="#section-11-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-11-2.1">
-          <p id="section-11-2.1.1"><strong>Rollout.</strong> A first publication rejects nothing that a Resource
-Authorization Server requiring this Trust Method accepted before,
-since a namespace without a policy is Negative (<a href="#dii-failures" class="auto internal xref">Section 5.1</a>).
-Check the issuer list for completeness before publishing; forgotten
+          <p id="section-11-2.1.1"><strong>Rollout.</strong> A first publication withdraws no acceptance that this
+Trust Method granted, since a namespace without a policy is
+Negative (<a href="#dii-failures" class="auto internal xref">Section 5.1</a>). At a Resource Authorization Server
+that also lists another namespace method, however, the new policy
+becomes final for the namespace (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Multiple
+Authority Sources Within a Category), so it needs to list every
+issuer that method accepted. Check the issuer list for
+completeness before publishing; forgotten
 regional tenants and departing Identity Providers are the usual
 omissions, and they surface as rejections at such servers. Subject
 Authorities <span class="bcp14">SHOULD</span> sign the zone with DNSSEC or publish via the
@@ -3629,7 +3671,8 @@ generic claim-matching object.<a href="#appendix-A.3-3" class="pilcrow">¶</a></
         </h3>
 <p id="appendix-A.4-1">Canonical DNS-first lookup and HTTPS-only lookup are not strictly
 ordered by security strength; they trade different risks.
-HTTPS-only lookup is resilient to TXT-record attacks but depends on
+HTTPS-only lookup is resilient to attacks on the TXT record's
+contents but depends on
 resolution of the dedicated host plus the public CA trust system; a
 DNS redirect combined with TLS misissuance defeats it.
 <code>domain_authorized_issuer</code> in the inline form is resilient to TLS
@@ -3656,12 +3699,13 @@ files at arbitrary paths, or a takeover of a host the apex redirects
 to) could publish a policy for a domain that never adopted DAI, with
 no DNS forgery at all.<a href="#appendix-A.5-1" class="pilcrow">¶</a></p>
 <p id="appendix-A.5-2">This document follows MTA-STS <span>[<a href="#RFC8461" class="cite xref">RFC8461</a>]</span> instead. The TXT record is
-the opt-in; an HTTPS policy without DNS lives on a dedicated host
-name that exists only because the Subject Authority created it; and
-redirects are not followed. The cost is that a Subject Authority
-with no control of its DNS cannot participate, since provisioning
-the dedicated host also requires DNS. The full JSON policy remains
-available to every Subject Authority through the <code>uri=</code> pointer.<a href="#appendix-A.5-2" class="pilcrow">¶</a></p>
+the opt-in in both lookup modes; a policy for the HTTPS-only lookup
+mode lives on a dedicated host; and redirects are not followed. A
+host name alone would not be an opt-in, since domains that let users
+claim subdomains could lose it (<span>[<a href="#RFC8461" class="cite xref">RFC8461</a>]</span> Section 10.3). The cost
+is that a Subject Authority with no control of its DNS cannot
+participate. The full JSON policy remains available to every Subject
+Authority through the <code>uri=</code> pointer.<a href="#appendix-A.5-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4110,10 +4154,11 @@ enforce a local cache ceiling per <a href="#dii-caching" class="auto internal xr
 <ul class="normal">
 <li class="normal" id="appendix-D-3.1">
           <p id="appendix-D-3.1.1">Make the DNS TXT record an explicit opt-in: a namespace with no
-record is Negative, with no HTTPS fallback. HTTPS publication
-without DNS moves from the apex to a dedicated host,
-<code>oauth-issuer-policy.{A}</code>, used only by the HTTPS-only lookup
-mode. Policy fetches no longer follow redirects.<a href="#appendix-D-3.1.1" class="pilcrow">¶</a></p>
+record is Negative, with no HTTPS fallback, in both lookup modes.
+The HTTPS-only lookup mode fetches from a dedicated host,
+<code>oauth-issuer-policy.{A}</code>, instead of the apex, and uses the TXT
+record only as the opt-in. Policy fetches no longer follow
+redirects.<a href="#appendix-D-3.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.2">
           <p id="appendix-D-3.2.1">Remove the <code>mode</code> member and <code>mode=</code> directive (monitor mode),

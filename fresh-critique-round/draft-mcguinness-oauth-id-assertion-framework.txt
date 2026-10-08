@@ -607,9 +607,16 @@ Table of Contents
    not authorize the Assertion Issuer (including an explicit denial),
    the category is not satisfied, whatever any other method in the
    category yields: the Subject Authority's published decision is final
-   for its namespace.  A Negative state, in which the Subject Authority
-   has published nothing through that method's channel, does not have
-   this effect; other methods in the category can still supply evidence.
+   for its namespace.  An Indeterminate state from a
+   subject_namespace_authorization method that consults the Subject
+   Authority's own publication has the same effect, because it may hide
+   that published decision.  A Negative state, in which the Subject
+   Authority has published nothing through that method's channel, does
+   not have this effect; other methods in the category can still supply
+   evidence.  Where that channel's negative answers are not
+   authenticated (for example, DNS without DNSSEC), an attacker who
+   forges one can turn a published denial into a Negative and let
+   another method decide (Section 7.4).
 
 3.3.  Open-World Delegation and Bounded Transitivity
 
@@ -687,10 +694,12 @@ Table of Contents
    channel that map to each state.
 
    A Validator MUST fail closed on both Negative and Indeterminate
-   states: the access decision MUST be reject.  Profiles MUST NOT permit
-   any condition under which an Indeterminate state is treated as
-   Affirmative; doing so converts the fail-closed property into an
-   availability-driven downgrade attack surface.
+   states: neither state satisfies the Trust Method that produced it,
+   and the access decision MUST be reject unless another Trust Method
+   satisfies the same category as Section 3.2.2 permits.  Profiles MUST
+   NOT permit any condition under which an Indeterminate state is
+   treated as Affirmative; doing so converts the fail-closed property
+   into an availability-driven downgrade attack surface.
 
    A Validator MAY rely on a cached Affirmative Delegation Artifact
    during a transient Indeterminate state on the live publication
@@ -997,12 +1006,12 @@ Table of Contents
       a signature that cannot be verified because key material is
       unavailable, or an expired statement that cannot be refreshed.
 
-   Both Negative and Indeterminate fail closed.  Entity Statement
-   caching follows the statements' own exp values per [OIDF-FEDERATION],
-   bounded by the consumer's local cache ceiling; a cached chain MUST
-   NOT be used past the earliest exp in the chain.  A Trust Mark that
-   requirement 4 relies on is re-validated whenever the chain is, and is
-   not used past its own exp.
+   Neither Negative nor Indeterminate satisfies this Trust Method
+   (Section 3.4.2).  Entity Statement caching follows the statements'
+   own exp values per [OIDF-FEDERATION], bounded by the consumer's local
+   cache ceiling; a cached chain MUST NOT be used past the earliest exp
+   in the chain.  A Trust Mark that requirement 4 relies on is re-
+   validated whenever the chain is, and is not used past its own exp.
 
    The framework-specific requirements below are evaluated against an
    Affirmative chain.  A chain that fails requirement 1 is Negative, as
@@ -1946,8 +1955,11 @@ Table of Contents
    configuration, so a substituted copy can mislead only a client's
    discovery (Section 4.5).  The Issuer Authorization Policy, which
    decides acceptance, can carry signed_policy with the signer binding
-   rules defined there.  Mirrored or cached copies MUST NOT be relied on
-   beyond their HTTP cache lifetime (Section 7.12).
+   rules defined there.  Mirrored or cached copies of a Trust Policy
+   MUST NOT be relied on beyond their HTTP cache lifetime
+   (Section 7.12); cache and stale-use bounds for an Issuer
+   Authorization Policy are set by the applicable Trust Method
+   specification (Section 4.3.3).
 
 7.10.  Shared Infrastructure and Hosted Well-Known Paths
 
@@ -2680,8 +2692,9 @@ Appendix C.  Frequently Asked Questions
    /.well-known/identity-assertion-trust-policy).  DAI is what a
    *Subject Authority* publishes to declare which Assertion Issuers it
    authorizes for its namespace (a record at _oauth-issuer-
-   policy.{domain}, or a document on the dedicated host oauth-issuer-
-   policy.{domain}).  RAS-published vs Subject-Authority-published.
+   policy.{domain}, optionally with a document on the dedicated host
+   oauth-issuer-policy.{domain}).  RAS-published vs Subject-Authority-
+   published.
 
    *Q: Why two independent trust categories?*
 
@@ -2693,13 +2706,10 @@ Appendix C.  Frequently Asked Questions
 
    *Q: What if my Subject Authority cannot publish DNS TXT records?*
 
-   Canonical lookup requires the TXT record, which is the Subject
-   Authority's opt-in ([DAI] §Lookup Procedure).  A Subject Authority
-   that can provision the dedicated host oauth-issuer-policy.{authority}
-   but not TXT records can serve Resource Authorization Servers that
-   select the HTTPS-only lookup mode ([DAI] §HTTPS-Only Deployment
-   Variant).  A Subject Authority with no DNS control at all cannot
-   participate in DAI.
+   Both lookup modes require the TXT record at _oauth-issuer-
+   policy.{authority}, which is the Subject Authority's opt-in ([DAI]
+   §Lookup Procedure and §HTTPS-Only Deployment Variant).  A Subject
+   Authority that cannot publish TXT records cannot participate in DAI.
 
    *Q: Does this work for path-bearing issuer identifiers
    (https://login.example.com/{tenant}/v2.0)?*

@@ -287,6 +287,7 @@ channel on encountering a denial. Each object has:
 
 `last_updated`
 : OPTIONAL. {{RFC3339}} date-time at which the policy was last published.
+  It is not decision-affecting ({{TRUST-FRAMEWORK}} §Terminology).
 
 `signed_policy`
 : OPTIONAL. Signed JWT containing policy members as claims, using the
@@ -1513,8 +1514,8 @@ Each entry contains a Member Name, a Description, a Change Controller,
 and a Reference. Designated Expert instructions: the expert verifies
 the member name does not collide with an existing member, its JSON
 type and semantics are specified, the registration states whether
-the member is decision-affecting ({{TRUST-FRAMEWORK}} §Signed Policy
-Metadata), and any decision-affecting member
+the member is decision-affecting ({{TRUST-FRAMEWORK}}
+§Terminology), and any decision-affecting member
 states how a consumer that does not recognize it behaves (the default
 is to ignore unrecognized members; a member requiring fail-closed
 handling uses the `crit` mechanism of {{TRUST-FRAMEWORK}} §Critical

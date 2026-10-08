@@ -1208,9 +1208,12 @@ Initial extractions:
   The local-part is not used. A trailing dot on the domain, if present,
   is removed. The domain is converted to A-label form ({{RFC5891}})
   by UTS #46 `ToASCII` processing {{UTS46}} with
-  `Transitional_Processing` false, and `UseSTD3ASCIIRules`,
+  `Transitional_Processing` (deprecated in UTS #46) and
+  `IgnoreInvalidPunycode` false, and `UseSTD3ASCIIRules`,
   `CheckHyphens`, `CheckBidi`, `CheckJoiners`, and `VerifyDnsLength`
   true; a domain for which `ToASCII` reports an error is rejected.
+  `UseSTD3ASCIIRules` rejects characters, such as `_`, that are not
+  valid in host names, which an email domain does not need.
   This pins one mapping, so that two consumers compute the same
   A-label: transitional processing or IDNA2003 maps some characters
   (such as U+00DF) differently and would select a different Subject
@@ -1229,8 +1232,7 @@ Initial extractions:
   and query a different name). The result is compared using
   case-insensitive ASCII comparison of A-labels. Consumers MUST
   reject an email whose domain is itself a public suffix (no
-  registrable domain exists) and MUST reject a domain that is not a
-  valid A-label or U-label sequence. Registrable-domain
+  registrable domain exists). Registrable-domain
   normalization prevents an attacker who controls a subdomain (for
   example, via subdomain takeover) from overriding the legitimate
   record at the registrable domain.

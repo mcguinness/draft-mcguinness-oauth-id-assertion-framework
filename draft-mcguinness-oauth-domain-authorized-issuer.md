@@ -35,6 +35,7 @@ normative:
   RFC7515:
   RFC7519:
   RFC7638:
+  RFC8725:
   RFC8414:
   RFC8126:
   RFC8552:
@@ -66,6 +67,7 @@ informative:
   RFC8659:
   RFC9728:
   RFC2308:
+  RFC8785:
   RFC9111:
   OIDC-DISCOVERY:
     title: "OpenID Connect Discovery 1.0"
@@ -287,36 +289,28 @@ channel on encountering a denial. Each object has:
 
 `last_updated`
 : OPTIONAL. {{RFC3339}} date-time at which the policy was last published.
+  It is not decision-affecting ({{TRUST-FRAMEWORK}} §Terminology).
 
 `signed_policy`
-: OPTIONAL. Signed JWT containing policy members as claims, using the
-  representation defined in {{TRUST-FRAMEWORK}} §Signed Policy Metadata. This member
-  follows the signed metadata pattern used by {{RFC8414}} and
-  {{RFC9728}}.
-  Its presence does not by itself require all consumers to support
-  signed policy processing; consumers apply the requirements in
-  {{TRUST-FRAMEWORK}} §Signed Policy Metadata and any local policy
-  that requires object-level integrity. A Subject Authority that needs
-  to force signature processing lists `signed_policy` in `crit`.
-  Per the key-resolution requirement of {{TRUST-FRAMEWORK}} §Signed
-  Policy Metadata, the verification key for this profile MUST be one
-  of: the key whose thumbprint the Subject Authority publishes in the
-  `key=` directive of its DNS pointer record ({{dii-dns-record}}), or
-  a key configured out of band at the consumer. A `key=` thumbprint
-  binds the document to what the consumer already trusts DNS for: it
-  defeats substitution by the policy host or a shared edge in front
-  of it, not compromise of DNS, which already selects the policy
-  host; DNSSEC raises that bound. An out-of-band key rests on the
-  consumer's own key-provisioning process. The HTTPS-only lookup
-  mode, which takes no policy content from DNS, can use only an
-  out-of-band key.
+: OPTIONAL. Signed JWT containing policy members as claims
+  ({{signed-policy}}). This member follows the signed metadata pattern
+  used by {{RFC8414}} and {{RFC9728}}. Its presence does not by itself
+  require all consumers to support signed policy processing;
+  consumers apply {{signed-policy}} and any local policy that requires
+  object-level integrity. A Subject Authority that needs to force
+  signature processing lists `signed_policy` in `crit`.
 
 `crit`
 : OPTIONAL. Array of member names a consumer MUST understand to process
   the policy safely, as defined in {{TRUST-FRAMEWORK}} §Critical
   Members. A consumer that fails to recognize, or does not implement
   processing for, one or more listed members MUST treat the policy as
-  malformed.
+  malformed. Publishers MUST place `crit` in the outer (unsigned)
+  document: a `crit` present only in a `signed_policy` JWT payload is
+  invisible to consumers that do not process signatures and therefore
+  has no effect on them. It MAY additionally be duplicated as a claim
+  in the signed JWT so that its value is integrity-protected. The DNS
+  record form does not carry `crit` ({{crit-dns-form}}).
 
 Consumers MUST ignore unrecognized members, except those named in
 `crit`. A document containing duplicate member names (at the top level
@@ -332,7 +326,7 @@ any of them is malformed:
 | `tenant` | string, optional | non-empty (see member definition) |
 | `subject_identifier_formats` | array of strings, optional | |
 | `valid_from`, `valid_until`, `last_updated` | {{RFC3339}} date-time, optional | |
-| `signed_policy` | string, optional | signed JWT as defined in {{TRUST-FRAMEWORK}} §Signed Policy Metadata |
+| `signed_policy` | string, optional | signed JWT as defined in {{signed-policy}} |
 | `crit` | array of strings, optional | non-empty; every listed member recognized and implemented, else malformed ({{TRUST-FRAMEWORK}} §Critical Members) |
 
 For OAuth authorization server issuer identifiers, a non-HTTPS URL,
@@ -359,6 +353,106 @@ Example:
   "last_updated": "2026-05-01T00:00:00Z"
 }
 ~~~
+
+## Signed Policy {#signed-policy}
+
+The `signed_policy` member provides cryptographic integrity for the
+policy members it carries as claims. When the signed JWT contains
+every decision-affecting member ({{TRUST-FRAMEWORK}} §Terminology), it
+provides object-level integrity for the whole document. It follows
+the signed metadata pattern defined for authorization server metadata
+in {{RFC8414}} and protected resource metadata in {{RFC9728}}.
+
+The `signed_policy` value is a JWT {{RFC7519}} in JWS Compact
+Serialization {{RFC7515}} containing policy members as claims. The
+JWT MUST be digitally signed using an asymmetric algorithm, MUST
+contain an `iss` claim identifying the party attesting to the signed
+policy claims, and MUST contain `iat`. It MUST contain `exp`, so that
+a superseded signed policy cannot be replayed indefinitely (relevant
+when the policy is hosted on shared infrastructure,
+{{third-party-policy-hosts}}); consumers MUST reject an expired
+`signed_policy`. A consumer that holds a cached signed policy for the
+same Subject Authority MUST reject a `signed_policy` whose `iat` is
+earlier than the cached one's, so that an older signed policy cannot
+be replayed within its validity period. The JOSE header SHOULD
+contain a `kid` identifying the signing key. The JWT payload SHOULD
+NOT contain a `signed_policy` claim.
+
+Algorithms: {{RFC8725}} (JWT Best Current Practices) applies
+unchanged. In addition, the JWT MUST NOT use a MAC algorithm
+(HS256/384/512); verification keys are widely distributed and a MAC
+scheme would require sharing the signing key with every Validator,
+defeating the authority binding. Implementations MUST support ES256
+and SHOULD support EdDSA and ES384; RS256 with >=2048-bit keys MAY be
+supported for compatibility.
+
+Per {{RFC8725}} §3.11 (cross-context confusion), the JWT `typ`
+header MUST be `issuer-authorization-policy+jwt`. This is the
+registered media subtype with the `application/` prefix omitted, per
+the {{RFC8725}} §3.11 convention; the corresponding media type is
+registered in {{iana-dii-media-type}}.
+
+The JWT payload MUST contain `subject_authority`. The JWT `iss` claim
+MUST either equal that Subject Authority identifier or identify a
+signing authority that local policy or an applicable Trust Method
+establishes as controlled by the Subject Authority. Consumers MUST
+NOT treat a signature by an Assertion Issuer the policy authorizes as
+proof of Subject Authority authorization unless such a relationship
+is explicitly established.
+
+The verification key MUST be resolved through a channel independent
+of the one that carried the policy document, and MUST be one of:
+
+- the key whose thumbprint the Subject Authority publishes in the
+  `key=` directive of its DNS pointer record ({{dii-dns-record}}). A
+  `key=` thumbprint binds the document to what the consumer already
+  trusts DNS for: it defeats substitution by the policy host or a
+  shared edge in front of it, not compromise of DNS, which already
+  selects the policy host; DNSSEC raises that bound.
+- a key configured out of band at the consumer, which rests on the
+  consumer's own key-provisioning process.
+
+The HTTPS-only lookup mode, which takes no policy content from DNS,
+can use only an out-of-band key. An attacker who controls the
+publication channel can substitute both the policy and, if the key
+is fetched over that same channel, the key. Absent an independent
+channel, the signature provides integrity no stronger than channel
+control (which already establishes authority), and consumers MUST NOT
+rely on it to defend against compromise of that channel.
+
+If both unsigned policy members and `signed_policy` are present, the
+signed policy claims MUST be used as the policy values for all claims
+present in the JWT. Unsigned members that are not represented as
+claims in the JWT MAY be used subject to the normal processing rules
+for unrecognized members. A conflict exists when a member name
+appears in both the unsigned outer document and the signed JWT
+payload AND the two values are not equal when compared as parsed
+JSON values (member order and insignificant whitespace ignored;
+equivalently, their JCS {{RFC8785}} serializations differ). Consumers
+MUST reject a policy that contains any such conflict; an attacker who
+can modify the outer document but not the signed JWT otherwise has a
+lever to inject visible-but-ignored members that may mislead
+operators or downstream tooling.
+
+A Subject Authority that needs to require `signed_policy` processing
+by all conforming consumers lists `signed_policy` in `crit`; a
+consumer that does not implement `signed_policy` processing then
+rejects the document rather than silently ignoring the signature.
+Absent a `crit` entry, the presence of `signed_policy` provides
+integrity only for consumers that support and verify it, for
+deployments where local policy requires signed policy processing, or
+where a `key=` directive requires it ({{dii-dns-record}}).
+
+If a consumer's local policy requires object-level integrity through
+`signed_policy`, the consumer MUST verify the signed JWT before
+acting on the policy, and the JWT payload MUST contain every
+recognized decision-affecting member used by that consumer. The
+consumer MUST NOT use unsigned recognized decision-affecting members
+that are absent from the JWT payload. If signature verification
+fails, if the verification key is unacceptable, if the JWT is
+malformed, if the required issuer binding above is not satisfied, or
+if the JWT omits a recognized decision-affecting member required for
+evaluation, the consumer MUST reject the policy as malformed.
 
 # Publication
 
@@ -508,11 +602,11 @@ document named by `uri=`. Valid only in a record that carries
 present, the fetched document MUST carry a `signed_policy` whose JWS
 header carries the signing key in its `jwk` parameter ({{RFC7515}}
 Section 4.1.3), the thumbprint of that key MUST equal this value, and
-the signature MUST verify with it ({{TRUST-FRAMEWORK}} §Signed Policy
-Metadata); a document that fails any of these checks is malformed.
-A `key=` directive also makes the consumer process the document as one
-whose object-level integrity its local policy requires
-({{TRUST-FRAMEWORK}} §Signed Policy Metadata): the signed JWT MUST
+the signature MUST verify with it ({{signed-policy}}); a document
+that fails any of these checks is malformed. A `key=` directive also
+makes the consumer process the document as one whose object-level
+integrity its local policy requires ({{signed-policy}}): the signed
+JWT MUST
 contain every decision-affecting member the consumer uses, and the
 consumer MUST NOT use unsigned decision-affecting members that are
 absent from it.
@@ -1146,10 +1240,21 @@ Required framework defenses:
   trustworthy resolver path (DoH/DoT to a vetted resolver).
 
 Forged negative answers: a `negative-authoritative` DNS result is
-Negative and rejects ({{dii-lookup}}), so an attacker who spoofs one
-can deny service for the namespace but cannot substitute a policy.
-Negative caching is capped ({{dii-caching}}), so the denial ends
-soon after the spoofing does.
+Negative ({{dii-lookup}}). When `domain_authorized_issuer` is the only
+`subject_namespace_authorization` method the Trust Policy lists, an
+attacker who spoofs one can deny service for the namespace but cannot
+substitute a policy, and because Negative caching is capped
+({{dii-caching}}) the denial ends soon after the spoofing does. When
+the Trust Policy also lists another namespace method, a Negative lets
+that method supply evidence ({{TRUST-FRAMEWORK}} §Multiple Authority
+Sources Within a Category). A spoofed negative answer can then
+suppress a published policy that does not authorize the issuer and
+let the other method authorize it. In that configuration a consumer
+protects the Subject Authority's denial only if it authenticates the
+absence, for example by validating DNSSEC. Signing the zone does not
+help a consumer that accepts unvalidated negative answers, and the
+cache cap limits reuse of one forged answer, not an attacker who
+keeps forging fresh ones.
 
 Operational defenses Subject Authorities are encouraged to apply:
 registrar account lock; monitoring of the record set and policy
@@ -1164,8 +1269,8 @@ from DNS into an HTTPS document. In this version, the pointed-to
 host is expected to be under the Subject Authority's operational
 control. General shared-infrastructure risks (multi-tenant CDNs,
 cache rules, dangling origins) are covered in {{TRUST-FRAMEWORK}}
-§Shared Infrastructure and Hosted Well-Known Paths. Three
-DAI-specific points:
+§Shared Infrastructure and Hosted Well-Known Paths. DAI-specific
+points:
 
 - The pointer target is trusted fully for the policy contents and
   is appropriate only when the host is operated for, or otherwise
@@ -1181,6 +1286,23 @@ DAI-specific points:
 - A Subject Authority whose policy host is shared infrastructure, or
   is operated by a provider, can publish a `key=` thumbprint
   ({{dii-dns-record}}) so that the host cannot alter the policy.
+
+A Subject Authority that hosts its Issuer Authorization Policy on
+shared infrastructure it does not control end to end SHOULD publish
+`signed_policy` with a signing key held outside that infrastructure
+and resolvable through a channel independent of it, such as a `key=`
+thumbprint ({{signed-policy}}).
+
+Because the `crit` member is itself carried in the unsigned document,
+an attacker who can strip `signed_policy` can strip `crit` with it;
+publisher-side criticality therefore does not defend against
+stripping by an on-path or edge attacker. A signature is effective
+against such an attacker only if consumers require it, through local
+configuration or a `key=` directive. A consumer configured to require
+`signed_policy` for a Subject Authority MUST verify it before acting
+on that Subject Authority's policy, MUST reject a policy whose
+signature is missing or invalid, and MUST NOT treat a valid TLS
+connection to a shared edge as sufficient by itself.
 
 ## Policy Conflicts and Determinism {#policy-conflicts}
 
@@ -1502,8 +1624,8 @@ Each entry contains a Member Name, a Description, a Change Controller,
 and a Reference. Designated Expert instructions: the expert verifies
 the member name does not collide with an existing member, its JSON
 type and semantics are specified, the registration states whether
-the member is decision-affecting ({{TRUST-FRAMEWORK}} §Signed Policy
-Metadata), and any decision-affecting member
+the member is decision-affecting ({{TRUST-FRAMEWORK}}
+§Terminology), and any decision-affecting member
 states how a consumer that does not recognize it behaves (the default
 is to ignore unrecognized members; a member requiring fail-closed
 handling uses the `crit` mechanism of {{TRUST-FRAMEWORK}} §Critical
@@ -1521,8 +1643,29 @@ Initial entries:
 | `valid_from` | Delegation start time (within an entry) | IETF | This document |
 | `valid_until` | Delegation end time (within an entry) | IETF | This document |
 | `last_updated` | Policy publication time | IETF | This document |
-| `signed_policy` | Signed JWT of the policy members | IETF | This document; {{TRUST-FRAMEWORK}} §Signed Policy Metadata |
+| `signed_policy` | Signed JWT of the policy members | IETF | This document |
 | `crit` | Names decision-affecting members a consumer MUST understand or reject the document | IETF | This document; {{TRUST-FRAMEWORK}} §Critical Members |
+
+## Media Type Registration {#iana-dii-media-type}
+
+IANA is requested to register the following media type in the "Media
+Types" registry for the signed Issuer Authorization Policy
+({{signed-policy}}). Following {{RFC8725}} §3.11, the JWT `typ`
+header value is the media subtype with the `application/` prefix
+omitted (`issuer-authorization-policy+jwt`), as required in
+{{signed-policy}}.
+
+For `application/issuer-authorization-policy+jwt`: Type name
+`application`; Subtype name `issuer-authorization-policy+jwt`;
+Required parameters none; Optional parameters none; Encoding
+considerations 8bit (the value is a JWT in JWS Compact
+Serialization, a sequence of base64url-encoded values separated by
+periods, per {{RFC7519}} Section 10.3.1); Security considerations
+{{signed-policy}} and the Security Considerations of this document;
+Interoperability considerations none; Published specification this
+document; Applications OAuth Subject Authorities and Resource
+Authorization Servers; Fragment identifier considerations none;
+Change controller IETF.
 
 --- back
 
@@ -1706,6 +1849,20 @@ Such an extension would need to define all of the following:
 
 This document does not define that extension or change DAI's lookup,
 authority binding, or integrity mechanisms to depend on federation.
+
+## Critical Directives for the DNS Record Form {#crit-dns-form}
+
+The JSON document carries a `crit` member ({{dii-document}}), so an
+extension that adds a decision-affecting member to the Issuer
+Authorization Policy can mark it critical and have already-deployed
+consumers honor it. The DNS record form has no analogous
+per-directive criticality mechanism today; its version token
+({{dii-dns-record}}) prevents misinterpretation of incompatible future
+syntax by making unrecognized versions ignored, so a Subject Authority
+that publishes only an unrecognized version is Negative to an older
+consumer. A future extension that needs true per-directive
+fail-closed semantics in the DNS form would define a `crit=` directive
+and its recognition rules at that time.
 
 ## Evaluation Reports
 
@@ -2022,6 +2179,11 @@ This appendix is non-normative and will be removed before publication.
     on Negative caching.
   * Sketch a federation-bound Issuer Authorization Policy as a
     non-normative future extension.
+  * Define signed-policy processing and register the
+    `issuer-authorization-policy+jwt` media type in this document
+    (moved from the framework); describe how a spoofed negative
+    answer can suppress a published denial when another namespace
+    method is configured.
 
 -00
 

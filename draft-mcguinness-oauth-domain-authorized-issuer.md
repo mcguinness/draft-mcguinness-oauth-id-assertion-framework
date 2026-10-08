@@ -1186,6 +1186,19 @@ subdomain-takeover impact ({{TRUST-FRAMEWORK}} §Subject Authority
 Determination); identity binding beyond DNS control (legal-entity
 verification) requires out-of-band mechanisms.
 
+DNS control is also, in practice, control of the domain's mail:
+whoever controls the zone can change its MX records and receive
+password-reset and account-recovery messages for its addresses.
+Where email-based recovery alone is enough to take over an account
+at a Resource Authorization Server, an attacker who controls the
+domain's DNS gains little from this Trust Method that it did not
+already have; {{I-D.hardt-email-verification}} makes the same
+observation about its own DNS delegation. Where accounts are
+protected by stronger recovery (for example, phishing-resistant
+authenticators or administrator-approved recovery), DNS control is
+not equivalent to account takeover, and this Trust Method makes DNS
+control a direct route to asserting identities in the namespace.
+
 ## Transport Integrity {#transport-integrity}
 
 HTTPS retrieval integrity rests on TLS server authentication of

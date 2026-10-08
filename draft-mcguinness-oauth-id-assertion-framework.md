@@ -74,7 +74,6 @@ informative:
   RFC6530:
   RFC7009:
   RFC7033:
-  RFC8785:
   RFC9989:
   RFC7662:
   RFC9700:
@@ -778,8 +777,8 @@ the structured `+json` suffix). Consumers MUST reject a policy whose
 required members are absent or wrong-typed, MUST reject a document
 containing duplicate member names at any object level, and MUST ignore
 unrecognized members except those named in `crit` ({{critical-members}}).
-The policy MAY include a `crit` member ({{critical-members}}). It does
-not carry `signed_policy` ({{signed-policy-metadata}}). Members are
+The policy MAY include a `crit` member ({{critical-members}}). It
+carries no signature ({{integrity}}). Members are
 registered in {{iana-trust-policy-members-registry}}.
 
 Example:
@@ -1302,118 +1301,6 @@ capturing parent-domain authority. A subdomain-exact variant is
 sketched in {{future-extensions}} and would require the parent
 registrable-domain authority to explicitly delegate to the
 subdomain.
-
-## Signed Policy Metadata {#signed-policy-metadata}
-
-The Issuer Authorization Policy document MAY include a
-`signed_policy` member that provides cryptographic integrity for
-signed policy claims. When the signed JWT contains all recognized
-decision-affecting policy members, `signed_policy` can provide
-object-level integrity for the policy document. This member follows
-the signed metadata pattern defined for authorization server metadata
-in {{RFC8414}} and protected resource metadata in {{RFC9728}}.
-
-The Trust Policy does not carry `signed_policy`. A Resource
-Authorization Server enforces its Trust Policy from its own
-configuration, and a client uses the published copy only for
-discovery ({{client-processing}}), so a substituted Trust Policy can
-mislead a client's choice of Assertion Issuer but cannot change what
-the Resource Authorization Server accepts; its integrity rests on
-TLS ({{integrity}}).
-
-The `signed_policy` value is a JWT {{RFC7519}} in JWS Compact
-Serialization {{RFC7515}} containing policy members as claims. The
-JWT MUST be digitally signed using an asymmetric algorithm, MUST
-contain an `iss` claim identifying the party attesting to the signed
-policy claims, and MUST contain `iat`. It MUST contain `exp`, so that
-a superseded signed policy cannot be replayed indefinitely (relevant
-in the shared-infrastructure scenario for which signing is
-recommended, {{shared-infrastructure}}); consumers MUST reject an expired
-`signed_policy`. A consumer that holds a cached signed policy for the
-same Subject Authority MUST reject a `signed_policy` whose `iat` is
-earlier than the cached one's, so that an older signed policy cannot
-be replayed within its validity period. The JOSE header SHOULD
-contain a `kid` identifying
-the signing key. The JWT payload SHOULD NOT contain a `signed_policy`
-claim.
-
-Algorithms: {{RFC8725}} (JWT Best Current Practices) applies
-unchanged. In addition, the JWT MUST NOT use a MAC algorithm
-(HS256/384/512); verification keys are widely distributed and a
-MAC scheme would require sharing the signing key with every
-Validator, defeating the authority binding. Implementations MUST
-support ES256 and SHOULD support EdDSA and ES384; RS256 with
->=2048-bit keys MAY be supported for compatibility.
-
-Per {{RFC8725}} §3.11 (cross-context confusion), the JWT `typ`
-header MUST be `issuer-authorization-policy+jwt`. This is the
-registered media subtype with the `application/` prefix omitted, per
-the {{RFC8725}} §3.11 convention; the corresponding media type is
-registered in {{iana-media-types}}.
-
-The JWT payload MUST contain the member that identifies the Subject
-Authority in the profile's wire format (`subject_authority` in
-{{DAI}}). The JWT `iss` claim MUST either equal that Subject
-Authority identifier or identify a signing authority that local
-policy or an applicable Trust Method establishes as controlled by the
-Subject Authority. Consumers MUST NOT treat a signature by an
-Assertion Issuer the policy authorizes as proof of Subject Authority
-authorization unless such a relationship is explicitly established.
-
-The verification key MUST be resolved through a channel independent
-of the one that carried the policy document. A profile that admits
-`signed_policy` MUST specify at least one of the following
-key-resolution mechanisms and state its trust assumptions:
-
-- a key bound by a record the Subject Authority publishes in DNS
-  (for example, a key thumbprint), which protects against compromise
-  of the policy host but not of DNS unless the record is
-  DNSSEC-signed;
-- a key resolved through a federation or trust-anchor relationship
-  established by an `issuer_authentication` Trust Method; or
-- a key configured out of band at the consumer.
-
-Rationale: an attacker who controls the publication channel can
-substitute both the policy and, if the key is fetched over that same
-channel, the key. Absent an independent channel, the signature
-provides integrity no stronger than channel control (which already
-establishes authority), and consumers MUST NOT rely on it to defend
-against compromise of that channel.
-
-If both unsigned policy members and `signed_policy` are present, the
-signed policy claims MUST be used as the policy values for all claims
-present in the JWT. Unsigned members that are not represented as claims
-in the JWT MAY be used subject to the normal processing rules for
-unrecognized members. A conflict exists when a member name appears in
-both the unsigned outer document and the signed JWT payload AND the
-two values are not equal when compared as parsed JSON values (member
-order and insignificant whitespace ignored; equivalently, their JCS
-{{RFC8785}} serializations differ). Consumers MUST reject a policy
-that contains any such conflict; an attacker who can modify the outer
-document but not the signed JWT otherwise has a lever to inject
-visible-but-ignored members that may mislead operators or downstream
-tooling.
-
-A publisher that needs to require `signed_policy` processing by all
-conforming consumers lists `signed_policy` in the document's `crit`
-member ({{critical-members}}); a consumer that does not implement
-`signed_policy` processing then rejects the document rather than
-silently ignoring the signature. Absent a `crit` entry, the presence
-of `signed_policy` provides integrity only for consumers that support
-and verify it, or for deployments where local policy requires signed
-policy processing.
-
-If a consumer's local policy requires object-level integrity through
-`signed_policy`, the consumer MUST verify the signed JWT before
-acting on the policy, and the JWT payload MUST contain every
-recognized decision-affecting member used by that consumer. The
-consumer MUST NOT use unsigned
-recognized decision-affecting members that are absent from the JWT
-payload. If signature verification fails, if the verification key is
-unacceptable, if the JWT is malformed, if the required issuer binding
-above is not satisfied, or if the JWT omits a recognized
-decision-affecting member required for evaluation, the consumer MUST
-reject the policy as malformed.
 
 ## Critical Members {#critical-members}
 
@@ -1941,12 +1828,16 @@ or short assertion lifetimes at the grant-profile layer.
 ## Policy Document Integrity {#integrity}
 
 The Trust Policy MUST be served over HTTPS with TLS server
-authentication, and its integrity rests on TLS: the Resource
-Authorization Server enforces its requirements from its own
-configuration, so a substituted copy can mislead only a client's
-discovery ({{signed-policy-metadata}}). The Issuer Authorization
-Policy, which decides acceptance, can carry `signed_policy` with the
-signer binding rules defined there. Mirrored or cached copies of a
+authentication, and its integrity rests on TLS. It carries no
+signature: a Resource Authorization Server enforces its Trust Policy
+from its own configuration, and a client uses the published copy
+only for discovery ({{client-processing}}), so a substituted Trust
+Policy can mislead a client's choice of Assertion Issuer but cannot
+change what the Resource Authorization Server accepts. Integrity
+protection for an Issuer Authorization Policy, which decides
+acceptance, is defined by the Trust Method specification that defines
+the policy (for example, {{DAI}} §Signed Policy). Mirrored or cached
+copies of a
 Trust Policy MUST NOT be relied on beyond their HTTP cache lifetime
 ({{caching}}); cache and stale-use bounds for an Issuer Authorization
 Policy are set by the applicable Trust Method specification
@@ -2272,27 +2163,6 @@ Initial entries:
 | Subject Identifier Format | Subject Authority Form | Extraction Procedure |
 |-|-|-|
 | `email` | DNS domain | {{subject-authority-determination}} of this document |
-
-## Media Type Registrations {#iana-media-types}
-
-IANA is requested to register the following media type in the "Media
-Types" registry for the signed Issuer Authorization Policy
-({{signed-policy-metadata}}). Following {{RFC8725}} §3.11, the JWT
-`typ` header value is the media subtype with the `application/`
-prefix omitted (`issuer-authorization-policy+jwt`), as required in
-{{signed-policy-metadata}}.
-
-For `application/issuer-authorization-policy+jwt`: Type name
-`application`; Subtype name `issuer-authorization-policy+jwt`;
-Required parameters none; Optional parameters none; Encoding
-considerations 8bit (the value is a JWT in JWS Compact
-Serialization, a sequence of base64url-encoded values separated by
-periods, per {{RFC7519}} Section 10.3.1); Security considerations
-{{signed-policy-metadata}} and the Security Considerations of this
-document; Interoperability considerations none; Published
-specification this document; Applications OAuth Subject Authorities
-and Resource Authorization Servers; Fragment identifier
-considerations none; Change controller IETF.
 
 --- back
 

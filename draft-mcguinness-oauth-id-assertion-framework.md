@@ -2483,8 +2483,8 @@ to declare what evidence it requires of an Assertion Issuer
 (metadata at `/.well-known/identity-assertion-trust-policy`). DAI
 is what a **Subject Authority** publishes to declare which
 Assertion Issuers it authorizes for its namespace (a record at
-`_oauth-issuer-policy.{domain}`, or a document on the dedicated host
-`oauth-issuer-policy.{domain}`). RAS-published vs
+`_oauth-issuer-policy.{domain}`, optionally with a document on the
+dedicated host `oauth-issuer-policy.{domain}`). RAS-published vs
 Subject-Authority-published.
 
 **Q: Why two independent trust categories?**
@@ -2498,12 +2498,10 @@ configured. Conflating them is the bug
 
 **Q: What if my Subject Authority cannot publish DNS TXT records?**
 
-Canonical lookup requires the TXT record, which is the Subject
-Authority's opt-in ({{DAI}} §Lookup Procedure). A Subject Authority
-that can provision the dedicated host `oauth-issuer-policy.{authority}`
-but not TXT records can serve Resource Authorization Servers that
-select the HTTPS-only lookup mode ({{DAI}} §HTTPS-Only Deployment
-Variant). A Subject Authority with no DNS control at all cannot
+Both lookup modes require the TXT record at
+`_oauth-issuer-policy.{authority}`, which is the Subject Authority's
+opt-in ({{DAI}} §Lookup Procedure and §HTTPS-Only Deployment
+Variant). A Subject Authority that cannot publish TXT records cannot
 participate in DAI.
 
 **Q: Does this work for path-bearing issuer identifiers

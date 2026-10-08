@@ -121,10 +121,11 @@ Issuers it authorizes for its namespace. The DNS record can carry
 the authorized issuers inline (for simple deployments) or point at
 an HTTPS-hosted JSON document containing richer policy (validity
 windows, format restrictions, tenant binding, multiple issuers).
-A Resource Authorization Server that does not accept DNS-published
-authority can instead fetch the policy from a dedicated HTTPS host,
-`oauth-issuer-policy.{domain}`. Publishing is an explicit opt-in: a
-namespace that publishes nothing is not covered.
+A Resource Authorization Server that does not take policy content
+from DNS can instead fetch the policy from a dedicated HTTPS host,
+`oauth-issuer-policy.{domain}`. In both cases the DNS record is the
+Subject Authority's explicit opt-in: a namespace that publishes no
+record is not covered.
 Authority is established by control of the publication channel:
 whoever can publish at `_oauth-issuer-policy.{domain}` is itself
 the Subject Authority for `{domain}`. The pattern follows CAA
@@ -307,7 +308,8 @@ channel on encountering a denial. Each object has:
   of it, not compromise of DNS, which already selects the policy
   host; DNSSEC raises that bound. An out-of-band key rests on the
   consumer's own key-provisioning process. The HTTPS-only lookup
-  mode, which does not consult DNS, can use only an out-of-band key.
+  mode, which takes no policy content from DNS, can use only an
+  out-of-band key.
 
 `crit`
 : OPTIONAL. Array of member names a consumer MUST understand to process
@@ -366,9 +368,11 @@ through one of the publication channels defined in
 the Subject Authority rendered as a DNS name (A-label form,
 {{dii-dns-record}}). DNS publication uses the TXT record at
 `_oauth-issuer-policy.{A}`, following the pattern of CAA, MTA-STS,
-SPF, and DKIM ({{dns-authority-patterns}}). HTTPS publication without
-DNS uses the default URL on a dedicated policy host,
-`oauth-issuer-policy.{A}` ({{dii-https-url}}).
+SPF, and DKIM ({{dns-authority-patterns}}). For Resource
+Authorization Servers that take no policy content from DNS, the
+policy is also served at the default URL on a dedicated policy host,
+`oauth-issuer-policy.{A}` ({{dii-https-url}}); the TXT record
+remains the opt-in.
 
 ## Publication Channels {#publication-profiles}
 
@@ -385,27 +389,27 @@ only by the HTTPS-only lookup mode
 |-|-|-|-|-|
 | 1: DNS-Inline | TXT with `issuer=` ({{dii-dns-record}}) | None (carried in TXT) | DNS control of `{A}` | Common case: authorize an issuer for a namespace with no rich policy |
 | 2: Authority-Hosted HTTPS | TXT with `uri=` | HTTPS-hosted JSON under Subject Authority's operational control | DNS control of `{A}` AND TLS on the authority-operated host | Rich policy (validity windows, format restrictions, tenant binding) at a controlled origin |
-| 3: Dedicated Policy Host | None | HTTPS-hosted JSON at `https://oauth-issuer-policy.{A}/.well-known/oauth-issuer-policy` | DNS control of `oauth-issuer-policy.{A}` AND TLS on that host | Serving Resource Authorization Servers that use the HTTPS-only lookup mode |
+| 3: Dedicated Policy Host | TXT record as opt-in only | HTTPS-hosted JSON at `https://oauth-issuer-policy.{A}/.well-known/oauth-issuer-policy` | DNS control of `{A}` (opt-in record) AND of `oauth-issuer-policy.{A}`, AND TLS on that host | Serving Resource Authorization Servers that use the HTTPS-only lookup mode |
 
 ## Dedicated Policy Host {#dedicated-policy-host}
 
 A Subject Authority that serves Resource Authorization Servers using
 the HTTPS-only lookup mode publishes the policy at the default URL
 on the dedicated policy host `oauth-issuer-policy.{A}`
-({{dii-https-url}}). That host name exists only because the Subject
-Authority provisions it, so its presence is an explicit opt-in, as
-the `mta-sts` host is in MTA-STS {{RFC8461}}. Unlike the apex, it can
+({{dii-https-url}}). The host name alone is not an opt-in: some
+domains let untrusted users claim subdomains or serve content on
+them, and an attacker could claim `oauth-issuer-policy` ({{RFC8461}}
+Section 10.3). As in MTA-STS, the opt-in is the TXT record at
+`_oauth-issuer-policy.{A}` ({{dii-dns-record}}), which the HTTPS-only
+lookup mode requires before it fetches from the dedicated host
+({{trust-method-https-authorized-issuer}}). Subject Authorities whose
+domains let others claim subdomains SHOULD also reserve the
+`oauth-issuer-policy` label. Unlike the apex, the dedicated host can
 be delegated to a hosting provider (for example, by a CNAME record)
 without giving that provider control of the Subject Authority's web
-origin. A Subject Authority that publishes both a DNS record and a
-policy on the dedicated host SHOULD keep them equivalent; canonical
-lookup does not consult the dedicated host unless a `uri=` directive
-names it.
-
-Operators are encouraged to publish the DNS record where
-practical: it matches the operational model of the prior-art
-mechanisms in {{dns-authority-patterns}}, and canonical DNS-first
-lookup, the default, finds only DNS-published policies.
+origin. A Subject Authority SHOULD make its record a pointer whose
+`uri=` names the default URL, so that canonical and HTTPS-only
+lookups retrieve the same document.
 
 ## DNS Record {#dii-dns-record}
 
@@ -592,8 +596,9 @@ is Negative, and no other channel is consulted.
 
 This is the canonical procedure used by the
 `domain_authorized_issuer` Trust Method. The HTTPS-only lookup mode
-defined in {{trust-method-https-authorized-issuer}} skips DNS and
-fetches only from the dedicated policy host.
+defined in {{trust-method-https-authorized-issuer}} uses the DNS
+record only as an opt-in and fetches the policy only from the
+dedicated policy host.
 
 1. Query the DNS TXT resource record set at
    `_oauth-issuer-policy.{A}`. Classify the response as:
@@ -664,10 +669,9 @@ fetches only from the dedicated policy host.
    force the consumer onto a path the attacker has compromised
    separately.
 
-A Subject Authority that publishes only DNS records is not found
-under the HTTPS-only lookup mode, and one that publishes only on the
-dedicated host is not found under canonical lookup
-({{combining-dai-methods}}). A Resource Authorization Server that
+Under the HTTPS-only lookup mode, a Subject Authority is found only
+if it publishes both the DNS record and a policy on the dedicated
+host ({{combining-dai-methods}}). A Resource Authorization Server that
 cannot resolve DNS (resolver failure, untrusted resolution path)
 treats the lookup as `indeterminate` and rejects the assertion.
 
@@ -684,7 +688,7 @@ concrete DAI outcomes onto those states.
 | State | DAI outcomes |
 |-|-|
 | Affirmative | A well-formed Issuer Authorization Policy was retrieved (inline DNS, DNS pointer plus HTTPS fetch, or the dedicated host under the HTTPS-only lookup mode), its `subject_authority` matches `A`, and its structural validation succeeds; this includes a policy whose `authorized_issuers` array is empty (explicit denial, evaluated in {{dii-verification}}). HTTPS responses, when applicable, are 200 OK with a media type of `application/json` or a `+json`-suffixed type. A 304 (Not Modified) response to a conditional request validating a held cached policy within the absolute ceiling of {{dii-caching}} renews its freshness and is classified as the held policy's state; it does not reset the absolute cache-entry age. |
-| Negative | Under canonical lookup, DNS `negative-authoritative`, or HTTPS 404 or 410 from the target of a DNS `uri=` pointer. Under the HTTPS-only lookup mode ({{trust-method-https-authorized-issuer}}), a dedicated host name for which DNS returns NXDOMAIN or no address records, or HTTPS 404 or 410 from the dedicated host. No policy is published at the location the lookup consults. |
+| Negative | Under canonical lookup, DNS `negative-authoritative`, or HTTPS 404 or 410 from the target of a DNS `uri=` pointer. Under the HTTPS-only lookup mode ({{trust-method-https-authorized-issuer}}), DNS `negative-authoritative` for the opt-in record, a dedicated host name for which DNS returns NXDOMAIN or no address records, or HTTPS 404 or 410 from the dedicated host. No policy is published at the location the lookup consults. |
 | Indeterminate | Any other outcome, fail-closed by default. See enumeration below. |
 
 The Indeterminate state covers:
@@ -727,10 +731,12 @@ The following deterministic conflict rules apply:
   records are ignored ({{dii-lookup}}, step 2b). More than one distinct
   `uri=` value is `malformed`.
 
-- Canonical lookup never consults the dedicated host, and the
-  HTTPS-only lookup mode never consults DNS, so a policy published
-  through both is never reconciled: each mode sees only its own
-  channel ({{combining-dai-methods}}).
+- Canonical lookup takes the policy from the DNS record and the
+  `uri=` target it names; the HTTPS-only lookup mode uses the record
+  only as an opt-in and takes the policy from the dedicated host. The
+  two are never reconciled; a Subject Authority whose record points
+  at the default URL gives both modes the same document
+  ({{dedicated-policy-host}}).
 
 - Multiple `authorized_issuers` entries for the same `issuer` value but
   different `tenant` values are independent authorizations. Entries with
@@ -835,7 +841,8 @@ Freshness and cache limits for the Issuer Authorization Policy:
   fetched through a `uri=` pointer is fresh for the lesser of the
   pointer record's TTL and the document's HTTP freshness lifetime
   ({{RFC9111}}). A policy fetched from the dedicated host under the
-  HTTPS-only lookup mode is fresh for its HTTP freshness lifetime. A
+  HTTPS-only lookup mode is fresh for the lesser of the opt-in
+  record's TTL and its HTTP freshness lifetime. A
   document without explicit freshness information (no `max-age` and
   no `Expires`) is fresh for a local default that MUST NOT exceed 1
   hour. Consumers SHOULD respect these lifetimes, and MAY apply a
@@ -880,8 +887,9 @@ Freshness and cache limits for the Issuer Authorization Policy:
 This document defines `domain_authorized_issuer` as a
 `subject_namespace_authorization` Trust Method of {{TRUST-FRAMEWORK}}.
 DNS at `_oauth-issuer-policy.{authority}` is the publication channel
-for canonical lookup; a dedicated HTTPS host serves the HTTPS-only
-lookup mode. The Trust Method
+for canonical lookup; under the HTTPS-only lookup mode the record
+is an opt-in and a dedicated HTTPS host serves the policy. The Trust
+Method
 registers in the Identity Assertion Issuer Trust Methods registry
 ({{TRUST-FRAMEWORK}} §Identity Assertion Issuer Trust Methods Registry).
 
@@ -926,17 +934,18 @@ member is used only for the HTTPS-only deployment variant in
 
 ## HTTPS-Only Deployment Variant {#trust-method-https-authorized-issuer}
 
-Some deployments cannot or will not depend on DNS-published
-authority. Those deployments can use the same Issuer Authorization
-Policy document format with direct HTTPS retrieval from the Subject
-Authority's dedicated policy host ({{dedicated-policy-host}}). This
+Some deployments will not take policy content from DNS. Those
+deployments can use the same Issuer Authorization Policy document
+format, retrieved over HTTPS from the Subject Authority's dedicated
+policy host ({{dedicated-policy-host}}), with the DNS record serving
+only as the Subject Authority's opt-in. This
 is a deployment variant of the DAI
 mechanism, not a second Trust Method registered by this document.
 
 Under this variant, the Assertion Issuer is acceptable if the Subject
 Authority identified by the assertion's Subject Identifier publishes
-an Issuer Authorization Policy on its dedicated policy host
-authorizing the Assertion Issuer.
+the opt-in record and an Issuer Authorization Policy on its
+dedicated policy host authorizing the Assertion Issuer.
 
 ~~~ json
 {
@@ -950,8 +959,9 @@ The `lookup` member is OPTIONAL. If present, its value MUST be
 document format ({{dii-document}}), Subject Authority determination
 rules ({{TRUST-FRAMEWORK}} §Subject Authority Determination), HTTPS
 document URL ({{dii-https-url}}), verification rules
-({{dii-verification}}), and caching rules ({{dii-caching}}), but it
-does not perform the DNS lookup defined in {{dii-lookup}}.
+({{dii-verification}}), and caching rules ({{dii-caching}}), and
+the DNS query of {{dii-lookup}} for the opt-in, but it takes no
+policy content from DNS.
 
 When evaluated, the Resource Authorization Server MUST:
 
@@ -959,28 +969,34 @@ When evaluated, the Resource Authorization Server MUST:
    Identifier per {{TRUST-FRAMEWORK}} §Subject Authority Determination. If the format is not registered in
    {{TRUST-FRAMEWORK}} §Subject Authority Extraction Procedures Registry, reject the assertion.
 
-2. Fetch the Issuer Authorization Policy directly from the default
-   URL `https://oauth-issuer-policy.{A}/.well-known/oauth-issuer-policy`
-   per {{dii-https-url}}. The Resource Authorization Server MUST NOT
-   query `_oauth-issuer-policy.{A}` as part of this Trust Method and
-   MUST NOT use a DNS `uri=` pointer. A dedicated host name that does
-   not exist (NXDOMAIN, or no address records) is Negative: the
-   Subject Authority has not opted in ({{dii-failures}}).
+2. Query `_oauth-issuer-policy.{A}` and classify the response as in
+   steps 1 and 2a of {{dii-lookup}}. A `negative-authoritative`
+   response is Negative: the Subject Authority has not opted in. An
+   `indeterminate` or `malformed` response is Indeterminate. The
+   records' `issuer=`, `uri=`, and `key=` values are not used.
 
-3. Classify HTTPS retrieval and document validation outcomes per
+3. Fetch the Issuer Authorization Policy from the default URL
+   `https://oauth-issuer-policy.{A}/.well-known/oauth-issuer-policy`
+   per {{dii-https-url}}. The Resource Authorization Server MUST NOT
+   take issuers or a policy location from the DNS records. A
+   dedicated host name that does not exist (NXDOMAIN, or no address
+   records) is Negative ({{dii-failures}}).
+
+4. Classify HTTPS retrieval and document validation outcomes per
    {{dii-failures}}. Negative and Indeterminate states MUST result
    in rejection, except as {{dii-caching}} permits for a cached
    Affirmative policy during an Indeterminate live retrieval.
 
-4. Verify the fetched policy and match the Assertion Issuer against
+5. Verify the fetched policy and match the Assertion Issuer against
    `authorized_issuers` using steps 3 and 4 of {{dii-verification}}.
 
 A Resource Authorization Server uses this variant when it requires
-authority publication via HTTPS only and explicitly does not accept
-DNS-published authority (inline or DNS pointer). Compared to
+the policy itself to come over HTTPS and does not accept policy
+content published in DNS (inline or DNS pointer). Compared to
 canonical DNS-first lookup, this mode:
 
-- Removes the TXT record from the trust path. The dedicated host is
+- Removes the TXT record's contents from the trust path; the record
+  remains the opt-in. The dedicated host is
   still located through DNS, and issuance of its TLS certificate
   typically relies on DNS-based validation, so DNS integrity still
   matters; what changes is that an attacker must also obtain a
@@ -1003,13 +1019,13 @@ selects one lookup mode:
 - **Canonical DNS-first lookup** is the default. The Resource
   Authorization Server queries `_oauth-issuer-policy.{A}` and
   consults nothing else except the `uri=` target that record names
-  ({{dii-lookup}}). A Subject Authority that publishes only on the
-  dedicated host is not found under this mode.
+  ({{dii-lookup}}).
 
 - **HTTPS-only lookup** is an explicit deployment variant. Use it
-  when local policy distrusts DNS-published authority entirely and
-  requires authority retrieval over TLS-authenticated HTTPS only.
-  Inline DNS records and DNS pointer forms are rejected.
+  when local policy distrusts policy content published in DNS and
+  requires the policy itself to come over TLS-authenticated HTTPS
+  from the dedicated host. The DNS record is still required, as the
+  opt-in; its inline issuers and pointer are not used.
 
 A Trust Policy MUST NOT list more than one `domain_authorized_issuer`
 object; a Resource Authorization Server treats a policy that does as
@@ -1031,7 +1047,8 @@ the Subject Authority's namespace.
 ## Namespace Authority Bootstrap
 
 DAI's authority binding is DNS control of the registrable domain
-(or of the dedicated policy host name under it). This follows the
+and, under the HTTPS-only lookup mode, of the dedicated policy host
+name under it. This follows the
 bootstrap model of CAA {{RFC8659}} and MTA-STS {{RFC8461}}: an
 explicit DNS opt-in, a dedicated policy host, and no redirects.
 Pre-existing DNS
@@ -1059,8 +1076,13 @@ authentication for DNS-published authority. The threat surfaces
 differ from the canonical DNS-first lookup of
 `domain_authorized_issuer`:
 
-- DNS-record attacks ({{dns-integrity-and-compromise}}) do NOT
-  affect authority retrieval; the TXT record is not fetched.
+- DNS-record attacks ({{dns-integrity-and-compromise}}) can create
+  or remove the opt-in but cannot choose the policy or its host,
+  since the record's contents are not used.
+- A domain that lets untrusted users claim subdomains could lose
+  the dedicated host name to an attacker; the opt-in record defeats
+  that unless the attacker can also publish TXT records under the
+  domain ({{RFC8461}} Section 10.3).
 - Resolution of the dedicated host still uses DNS. A DNS redirect
   of that host combined with TLS misissuance substitutes the
   policy; CAA records and Certificate Transparency monitoring are
@@ -1592,7 +1614,8 @@ generic claim-matching object.
 
 Canonical DNS-first lookup and HTTPS-only lookup are not strictly
 ordered by security strength; they trade different risks.
-HTTPS-only lookup is resilient to TXT-record attacks but depends on
+HTTPS-only lookup is resilient to attacks on the TXT record's
+contents but depends on
 resolution of the dedicated host plus the public CA trust system; a
 DNS redirect combined with TLS misissuance defeats it.
 `domain_authorized_issuer` in the inline form is resilient to TLS
@@ -1617,12 +1640,13 @@ to) could publish a policy for a domain that never adopted DAI, with
 no DNS forgery at all.
 
 This document follows MTA-STS {{RFC8461}} instead. The TXT record is
-the opt-in; an HTTPS policy without DNS lives on a dedicated host
-name that exists only because the Subject Authority created it; and
-redirects are not followed. The cost is that a Subject Authority
-with no control of its DNS cannot participate, since provisioning
-the dedicated host also requires DNS. The full JSON policy remains
-available to every Subject Authority through the `uri=` pointer.
+the opt-in in both lookup modes; a policy for the HTTPS-only lookup
+mode lives on a dedicated host; and redirects are not followed. A
+host name alone would not be an opt-in, since domains that let users
+claim subdomains could lose it ({{RFC8461}} Section 10.3). The cost
+is that a Subject Authority with no control of its DNS cannot
+participate. The full JSON policy remains available to every Subject
+Authority through the `uri=` pointer.
 
 
 # Future Extensions {#future-extensions}
@@ -1972,10 +1996,11 @@ This appendix is non-normative and will be removed before publication.
 -01
 
   * Make the DNS TXT record an explicit opt-in: a namespace with no
-    record is Negative, with no HTTPS fallback. HTTPS publication
-    without DNS moves from the apex to a dedicated host,
-    `oauth-issuer-policy.{A}`, used only by the HTTPS-only lookup
-    mode. Policy fetches no longer follow redirects.
+    record is Negative, with no HTTPS fallback, in both lookup modes.
+    The HTTPS-only lookup mode fetches from a dedicated host,
+    `oauth-issuer-policy.{A}`, instead of the apex, and uses the TXT
+    record only as the opt-in. Policy fetches no longer follow
+    redirects.
   * Remove the `mode` member and `mode=` directive (monitor mode),
     which admitted more issuers than publishing nothing.
   * An entry without `tenant` no longer matches assertions that

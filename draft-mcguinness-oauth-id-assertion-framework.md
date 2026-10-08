@@ -926,37 +926,50 @@ advertisements consistent with this policy; discovery advertisements
 do not replace enforcement of its Trust Method requirements.
 
 The Resource Authorization Server MUST validate the federation
-trust chain, metadata policy, and Trust Marks per
-{{OIDF-FEDERATION}}; failure of any is failure of this Trust
-Method.
+trust chain, metadata policy, and the Trust Marks that requirement 4
+relies on, per {{OIDF-FEDERATION}}; failure of any is failure of this
+Trust Method.
 Federation `metadata_policy` constrains Entity Type metadata in
 Entity Statements; it does not constrain members carried only in
 documents bound by digest through an extension such as {{OIDF-WKB}}.
 A Superior that needs to constrain such a member, such as
 `jwks_uri`, marks it `essential`; {{OIDF-WKB}} then requires the
 leaf to carry it in Entity Type metadata, where the policy applies.
-For a key source, item 3 then selects that metadata value.
+For a key source, requirement 3 below then selects that metadata
+value.
 
-Lookup states ({{exception-handling}}): a fully validated chain
-terminating at a listed trust anchor is Affirmative. A chain that
-validates but establishes non-membership (no path to any listed
-trust anchor, or an Entity Statement that authoritatively excludes
-the leaf) is Negative. Any retrieval or validation failure that
-prevents a definitive answer (an Entity Statement fetch failing or
-timing out, a signature that cannot be verified because key material
-is unavailable, an expired statement that cannot be refreshed) is
-Indeterminate; both Negative and Indeterminate fail closed. Entity
-Statement caching follows the statements' own `exp` values per
-{{OIDF-FEDERATION}}, bounded by the consumer's local cache ceiling;
-a cached chain MUST NOT be used past the earliest `exp` in the
-chain. The framework-specific requirements below are evaluated
-against an Affirmative chain. A chain that fails requirement 1 is
-Negative, as above. A leaf that does not declare a required entity
-type (requirement 2), whose assertion signature does not verify
-under the permitted key source (requirement 3), or that lacks a
-required Trust Mark (requirement 4) does not satisfy this Trust
-Method; the lookup state is unchanged. A key source or required
-Trust Mark whose retrieval or validation cannot be completed is
+Lookup states ({{exception-handling}}):
+
+- **Affirmative**: a fully validated chain from the leaf to a listed
+  trust anchor.
+- **Negative**: the fetch of the leaf's Entity Configuration returns
+  HTTP 404 or 410 (the Assertion Issuer does not participate in
+  federation); the leaf's chains validate but none reaches a listed
+  trust anchor; or an Entity Statement authoritatively excludes the
+  leaf.
+- **Indeterminate**: any other failure to obtain or validate the
+  chain, such as an Entity Statement fetch that fails or times out, a
+  signature that cannot be verified because key material is
+  unavailable, or an expired statement that cannot be refreshed.
+
+Both Negative and Indeterminate fail closed. Entity Statement caching
+follows the statements' own `exp` values per {{OIDF-FEDERATION}},
+bounded by the consumer's local cache ceiling; a cached chain MUST
+NOT be used past the earliest `exp` in the chain. A Trust Mark that
+requirement 4 relies on is re-validated whenever the chain is, and
+is not used past its own `exp`.
+
+The framework-specific requirements below are evaluated against an
+Affirmative chain. A chain that fails requirement 1 is Negative, as
+above. A leaf that does not declare a required entity type
+(requirement 2), whose assertion signature does not verify under the
+permitted key source (requirement 3), or that holds no valid Trust
+Mark meeting a requirement (requirement 4) does not satisfy this
+Trust Method; the lookup state is unchanged. A Trust Mark that fails
+validation per {{OIDF-FEDERATION}} §7.3 does not meet a requirement.
+Only a retrieval the method needs and cannot complete (the permitted
+key source, a Trust Mark Issuer's chain, or a Trust Mark Status
+endpoint the Resource Authorization Server relies on) is
 Indeterminate.
 
 In addition to the procedures in {{OIDF-FEDERATION}}, the Resource
@@ -991,7 +1004,10 @@ requirements:
    satisfy this requirement: the `jwks`, `jwks_uri`, or
    `signed_jwks_uri` value in the leaf's policy-applied
    `openid_provider` or `oauth_authorization_server` metadata,
-   processed according to that specification. For `jwks_uri`, the
+   processed according to that specification. If both
+   `openid_provider` and `oauth_authorization_server` metadata carry
+   a key source, a key from either satisfies this requirement. For
+   `jwks_uri`, the
    trust chain authenticates the URI, not the key set it returns,
    which relies on HTTPS to that endpoint unless an extension also
    binds the key set; {{OIDF-WKB}}, for example, checks the key set

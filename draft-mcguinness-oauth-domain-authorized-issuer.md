@@ -506,6 +506,12 @@ header carries the signing key in its `jwk` parameter ({{RFC7515}}
 Section 4.1.3), the thumbprint of that key MUST equal this value, and
 the signature MUST verify with it ({{TRUST-FRAMEWORK}} §Signed Policy
 Metadata); a document that fails any of these checks is malformed.
+A `key=` directive also makes the consumer process the document as one
+whose object-level integrity its local policy requires
+({{TRUST-FRAMEWORK}} §Signed Policy Metadata): the signed JWT MUST
+contain every decision-affecting member the consumer uses, and the
+consumer MUST NOT use unsigned decision-affecting members that are
+absent from it.
 
 A recognized record MUST contain at least one `uri=` directive or at
 least one `issuer=` directive. Recognized records containing neither

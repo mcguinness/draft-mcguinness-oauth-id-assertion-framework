@@ -576,12 +576,14 @@ Authority Holder are the same party, evidence is local
 configuration) is the degenerate case and remains compatible with
 the model.
 
-The Trust Methods defined in this document and in {{DAI}} are
-bounded at depth one: the Authority Holder directly lists every
-authorized Delegate; no further delegation is permitted. Depth-1
-keeps revocation latency bounded by one cache and prevents
-compromise of any non-Authority-Holder party from expanding the
-authorized set. OpenID Federation {{OIDF-FEDERATION}} is the
+The `subject_namespace_authorization` methods of this framework,
+including {{DAI}}'s, are bounded at depth one: the Authority Holder
+directly lists every authorized Delegate; no further delegation is
+permitted. Depth one keeps revocation latency bounded by one cache
+and means no third party can add a Delegate to the list. It does not
+stop a party that controls a listed Delegate's keys, or that hosts
+the list, from acting within it ({{key-binding}}). OpenID Federation
+{{OIDF-FEDERATION}} is the
 notable chained-delegation profile in the OAuth ecosystem; the
 cross-category combination rule still applies independently of
 transitivity (a federation chain establishes Authenticity, not
@@ -1792,6 +1794,29 @@ establish authenticity. The cross-category combination rule
 ({{rasp}}) enforces this independence at evaluation time. See
 {{relationship-to-oidf}} for positioning against OpenID Federation.
 
+## Key Binding Is Outside Namespace Authorization {#key-binding}
+
+A `subject_namespace_authorization` method authorizes an issuer
+identifier, not a key. Which key speaks for that identifier is
+decided elsewhere, and every party that can decide it is trusted for
+every namespace that lists the issuer:
+
+- Under `openid_federation`, the leaf's policy-applied metadata
+  supplies the key source ({{trust-method-openid-federation}}), and
+  an Immediate Superior can supply that metadata
+  ({{OIDF-FEDERATION}} §3.1.1). A compromised intermediate or trust
+  anchor can therefore substitute the key of a listed issuer beneath
+  it, and both categories then pass.
+- Without federation, the key comes from the Assertion Issuer's own
+  metadata, and whoever controls that metadata controls the key.
+- A policy host named by a {{DAI}} `uri=` pointer controls the list
+  itself.
+
+The cross-category combination rule does not defend against these
+parties: they act as a listed issuer rather than adding one. A
+future extension could let an Authority Holder pin a key thumbprint
+for each authorized issuer.
+
 ## Scope of Namespace Authorization {#scope-of-namespace-authorization}
 
 Trust-policy evaluation establishes that the Assertion Issuer is
@@ -2256,9 +2281,10 @@ federates further." This is deliberate:
   policy names the Assertion Issuer.
 - Revocation latency is bounded by the Subject Authority's own
   cache lifetime, not by the depth of a delegation chain.
-- Compromise at any intermediate party (a federation operator, a
-  delegated issuer) cannot expand the namespace authorization of
-  any issuer the Subject Authority did not list directly.
+- No intermediate party (a federation operator, a delegated issuer)
+  can add an issuer the Subject Authority did not list. Parties that
+  bind keys to listed issuers, or host the list, remain trusted
+  ({{key-binding}}).
 
 Federation chains for issuer authentication remain in scope under
 the `issuer_authentication` category; only the

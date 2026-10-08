@@ -1955,9 +1955,22 @@ This appendix is non-normative and will be removed before publication.
 
 -01
 
+  * Make the DNS TXT record an explicit opt-in: a namespace with no
+    record is Negative, with no HTTPS fallback. HTTPS publication
+    without DNS moves from the apex to a dedicated host,
+    `oauth-issuer-policy.{A}`, used only by the HTTPS-only lookup
+    mode. Policy fetches no longer follow redirects.
+  * Remove the `mode` member and `mode=` directive (monitor mode),
+    which admitted more issuers than publishing nothing.
+  * An entry without `tenant` no longer matches assertions that
+    carry a `tenant` claim.
+  * Add the `key=` directive, which pins the `signed_policy` signing
+    key for a DNS pointer record.
+  * Rewrite caching: an explicit stale-if-error bound, a one-hour cap
+    on DNS results that are not DNSSEC-validated, and a one-hour cap
+    on Negative caching.
   * Sketch a federation-bound Issuer Authorization Policy as a
-    non-normative future extension; DAI's lookup, authority binding,
-    and integrity mechanisms are unchanged.
+    non-normative future extension.
 
 -00
 

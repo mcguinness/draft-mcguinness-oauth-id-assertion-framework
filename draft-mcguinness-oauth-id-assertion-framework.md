@@ -2826,9 +2826,19 @@ This appendix is non-normative and will be removed before publication.
     fail-closed resolution. Well-Known Binding is the expected
     first extension, cited informatively; an extension's digest
     check on a metadata `jwks_uri` key set validates that source.
-  * Clarify Trust Policy integrity, publication, caching, and
-    discovery requirements for federation-authenticated digest
-    bindings, and trust anchor compromise guidance.
+  * Remove `signed_policy` and the `trust-policy+jwt` media type
+    from the Trust Policy, which the Resource Authorization Server
+    enforces from its own configuration and clients use only for
+    discovery; object-level integrity now applies only to the Issuer
+    Authorization Policy. Add trust anchor compromise guidance.
+  * Forbid Authority-Holder-published waivers such as a monitoring
+    mode; define within-category or-semantics, with a Subject
+    Authority's published decision final for its namespace; map
+    `openid_federation` outcomes onto lookup states explicitly.
+  * Pin UTS #46 nontransitional processing for internationalized
+    domains; add outbound-fetch requirements and a security
+    consideration on key binding; define decision-affecting members
+    and a signed-policy rollback rule.
 
 -00
 

@@ -1951,8 +1951,11 @@ Authorization Server enforces its requirements from its own
 configuration, so a substituted copy can mislead only a client's
 discovery ({{signed-policy-metadata}}). The Issuer Authorization
 Policy, which decides acceptance, can carry `signed_policy` with the
-signer binding rules defined there. Mirrored or cached copies MUST
-NOT be relied on beyond their HTTP cache lifetime ({{caching}}).
+signer binding rules defined there. Mirrored or cached copies of a
+Trust Policy MUST NOT be relied on beyond their HTTP cache lifetime
+({{caching}}); cache and stale-use bounds for an Issuer Authorization
+Policy are set by the applicable Trust Method specification
+({{trust-method-spec-requirements}}).
 
 ## Shared Infrastructure and Hosted Well-Known Paths {#shared-infrastructure}
 

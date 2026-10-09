@@ -716,8 +716,8 @@ specifies. Repeated
 Indeterminate states across consecutive lookups MUST NOT extend
 the effective cache lifetime beyond the profile's stated maximum;
 if the cache expires while the live channel remains
-Indeterminate, the Trust Method is not satisfied, and the decision
-follows the combination rule above.
+Indeterminate, the Trust Method is not satisfied, and the access
+decision follows the fail-closed rule above ({{multiple-sources}}).
 
 Falling through to a different Authority Source within one Trust
 Method's evaluation is forbidden ({{multiple-sources}}): fallthrough
@@ -2784,8 +2784,8 @@ This appendix is non-normative and will be removed before publication.
     security consideration on key binding.
   * Recommend client authentication before Trust Method lookups and
     rejection of a JWT-bearer assertion whose `typ` names another
-    JWT application; return `invalid_grant` for a rejection at any
-    processing step.
+    JWT application; return `invalid_grant` for a rejection in steps
+    1 through 5 of Resource Authorization Server processing.
   * Add the cost of per-relationship issuer configuration and the
     nOAuth attack class to the Introduction, and state that
     namespace authorization does not make an email address a safe

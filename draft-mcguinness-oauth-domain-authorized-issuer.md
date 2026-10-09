@@ -1187,10 +1187,9 @@ canonical DNS-first lookup, this mode:
   matters; what changes is that an attacker must also obtain a
   certificate for the host, not only answer a TXT query.
 
-- Rejects the inline DNS form (where the policy is carried in the
-  TXT record itself) and the DNS pointer form (where DNS points
-  at a different HTTPS host). Both require trusting DNS for the
-  authoritative selection of either issuers or policy host.
+- Ignores inline issuers and any `uri=` other than the default URL.
+  Using either would require trusting DNS to select the issuers or
+  the policy host.
 
 - Requires the Subject Authority to provision the dedicated host,
   which it can delegate to a hosting provider without giving up
@@ -1293,7 +1292,8 @@ differ from the canonical DNS-first lookup of
   the primary defenses ({{transport-integrity}}).
 - The policy is served from the Subject Authority's dedicated
   host, so the risk is that of whoever operates that host
-  ({{third-party-policy-hosts}}).
+  ({{third-party-policy-hosts}}), unless a `key=` directive pins the
+  policy's signing key.
 - Because the dedicated host is a separate name, a Subject
   Authority whose apex is hosted on a marketing site or CDN it does
   not control can still participate, by provisioning or delegating

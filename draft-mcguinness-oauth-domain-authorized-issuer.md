@@ -1044,8 +1044,8 @@ Freshness and cache limits for the Issuer Authorization Policy:
   sustain denial of service against the publication channel from
   extending revocation latency toward the absolute ceiling.
 - **Negative results** SHOULD be cached, to bound lookup work under
-  load ({{dos-ssrf}}), for no longer than the lesser of the DNS
-  negative TTL ({{RFC2308}}) and 1 hour
+  load ({{dos-ssrf}}), and MUST NOT be cached for longer than the
+  lesser of the DNS negative TTL ({{RFC2308}}) and 1 hour
   (5 minutes is RECOMMENDED). The short cap makes a Subject Authority's
   first publication, and its recovery from a brief publication-channel
   takeover, visible promptly. The same cap SHOULD apply to a cached
@@ -1526,7 +1526,8 @@ drive lookups at will, creating three risks:
   cache with distinct-authority entries. Consumers MUST bound lookup
   work: enforce per-Subject-Authority and global rate limits and
   bound concurrent outstanding lookups. Consumers SHOULD cache
-  Negative and Indeterminate outcomes per {{dii-caching}}, and MAY
+  Negative outcomes, and MAY cache Indeterminate outcomes, per
+  {{dii-caching}}, and MAY
   impose a maximum number of distinct-authority lookups per unit
   time, shedding load by treating excess as Indeterminate
   (fail-closed).

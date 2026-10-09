@@ -663,8 +663,9 @@ outcome of the lookup operation onto exactly one of these states.
   the absence of a Delegation Artifact. Examples include DNS
   NXDOMAIN or NODATA with a valid (possibly DNSSEC-signed)
   authoritative answer where DNS is the profile's sole or final
-  publication channel, and HTTPS 404 from an authority-bound origin
-  that is the profile's sole publication channel. A profile with multiple publication channels for the
+  publication channel, and, for `openid_federation`, HTTP 404 for
+  the leaf's Entity Configuration
+  ({{trust-method-openid-federation}}). A profile with multiple publication channels for the
   same Authority Source reaches Negative only when the channels
   its lookup procedure consults authoritatively report no
   delegation. A profile MAY additionally
@@ -715,8 +716,8 @@ specifies. Repeated
 Indeterminate states across consecutive lookups MUST NOT extend
 the effective cache lifetime beyond the profile's stated maximum;
 if the cache expires while the live channel remains
-Indeterminate, the Validator MUST transition to a reject
-decision.
+Indeterminate, the Trust Method is not satisfied, and the decision
+follows the combination rule above.
 
 Falling through to a different Authority Source within one Trust
 Method's evaluation is forbidden ({{multiple-sources}}): fallthrough
@@ -1505,15 +1506,15 @@ request, the Resource Authorization Server MUST:
       subject namespace.
 
 6. Apply local policy (account-linking, consent, authorization,
-   risk) and the applicable grant profile's client authentication
-   and sender-constraining; this document does not specify either.
+   risk) and the applicable grant profile's sender-constraining;
+   this document specifies neither.
 
 Client authentication that the grant profile requires SHOULD be
 completed before step 5, so that unauthenticated requests cannot
 cause the lookups that step performs. Fetches made in step 5 follow
 {{outbound-fetches}}.
 
-Rejection at any step of this procedure, including a malformed Trust
+Rejection at any of steps 1 through 5, including a malformed Trust
 Policy (step 1) or an unlisted grant profile (step 3), MUST result in
 an OAuth `invalid_grant` error unless another error is defined by
 the applicable grant profile. Detailed trust-evaluation failure state

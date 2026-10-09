@@ -209,15 +209,20 @@ in {{future-extensions}}.
 This document uses terminology from {{TRUST-FRAMEWORK}}: Resource
 Authorization Server, Assertion Issuer, Subject Authority, Trust
 Policy, Issuer Authorization Policy, Authority Holder, Delegate,
-Delegation Artifact, and Validator. Subject Identifier formats
-follow {{RFC9493}}.
+Delegation Artifact, Validator, Trust Method, Consumer, and
+Decision-affecting member. Subject Identifier formats follow
+{{RFC9493}}.
 
-One term is specific to this document:
+Two terms are specific to this document:
 
 Domain-Authorized Issuer (DAI):
 : The Trust Method defined by this document, in which a Subject
 Authority publishes, over DNS and HTTPS, the set of Assertion
 Issuers it authorizes for its namespace.
+
+Publisher:
+: The Subject Authority, or a policy host acting for it, when it
+publishes a DNS record or an Issuer Authorization Policy.
 
 # Issuer Authorization Policy Document {#dii-document}
 

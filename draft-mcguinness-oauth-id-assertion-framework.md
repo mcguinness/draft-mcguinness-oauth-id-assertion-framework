@@ -1260,11 +1260,12 @@ Initial extractions:
   to a single unquoted `@` are out of scope for the `email` extraction.
   The local-part is not used. A trailing dot on the domain, if present,
   is removed. The domain is converted to A-label form ({{RFC5891}})
-  by UTS #46 `ToASCII` processing {{UTS46}} with
-  `Transitional_Processing` (deprecated in UTS #46) and
-  `IgnoreInvalidPunycode` false, and `UseSTD3ASCIIRules`,
-  `CheckHyphens`, `CheckBidi`, `CheckJoiners`, and `VerifyDnsLength`
-  true. Consumers MUST reject a domain for which `ToASCII` reports an
+  by UTS #46 `ToASCII` processing {{UTS46}} with these flags:
+  `Transitional_Processing=false` (nontransitional processing;
+  transitional processing is deprecated in UTS #46),
+  `IgnoreInvalidPunycode=false`, `UseSTD3ASCIIRules=true`,
+  `CheckHyphens=true`, `CheckBidi=true`, `CheckJoiners=true`, and
+  `VerifyDnsLength=true`. Consumers MUST reject a domain for which `ToASCII` reports an
   error.
   `UseSTD3ASCIIRules` rejects characters, such as `_`, that are not
   valid in host names, which an email domain does not need.

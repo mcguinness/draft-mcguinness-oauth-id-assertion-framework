@@ -859,7 +859,7 @@ in {{iana-authority-registry}}).
 
 `issuer_trust_methods`
 : REQUIRED. Non-empty JSON array of Trust Method objects (see
-{{trust-methods}}). This member states the trust REQUIREMENTS the
+{{trust-methods}}). This member states the trust requirements the
 Resource Authorization Server enforces against incoming identity
 assertions, not a list of capabilities. An assertion is rejected
 unless an Assertion Issuer satisfies the Trust Method combination
@@ -995,7 +995,7 @@ requirement object has:
 
 The Trust Policy governs Trust Mark requirements for identity
 assertions. A Resource Authorization Server that also advertises
-Trust Mark requirements through discovery metadata should keep those
+Trust Mark requirements through discovery metadata SHOULD keep those
 advertisements consistent with this policy; discovery advertisements
 do not replace enforcement of its Trust Method requirements.
 
@@ -1539,8 +1539,8 @@ For every such fetch, the Resource Authorization Server:
   and the connection cannot redirect the fetch;
 - MUST apply a timeout to each fetch and MUST bound response sizes;
   and
-- MUST bound the number of fetches one assertion can cause
-  (recommended: no more than 20).
+- MUST bound the number of fetches one assertion can cause; a bound
+  of no more than 20 is RECOMMENDED.
 
 Trust Method specifications MAY add requirements; for example,
 {{DAI}} forbids following redirects for policy fetches.
@@ -1969,7 +1969,7 @@ which RASes participate in which federations, which trust anchors
 are accepted, which Subject Identifier formats are honored. This
 information aids targeted attacks (for example, prioritizing
 compromise of a heavily-relied-upon trust anchor). Operators
-should publish only what clients need to determine whether they
+SHOULD publish only what clients need to determine whether they
 can attempt issuance, and prefer trust-anchor or federation
 expression over enumerating individual issuers.
 
@@ -2197,7 +2197,7 @@ and Specification Document this document:
 | `authorization_grant_profiles_supported` | Supported identity assertion grant profile identifiers |
 | `subject_identifier_formats_supported` | Supported Subject Identifier formats |
 | `issuer_trust_methods` | Trust Method requirements enforced for incoming identity assertions |
-| `crit` | Names decision-affecting members a consumer MUST understand or reject the document |
+| `crit` | Names decision-affecting members that a consumer has to understand to process the document |
 
 ## Subject Authority Extraction Procedures Registry {#iana-authority-registry}
 
@@ -2632,7 +2632,7 @@ the Resource Authorization Server:
    The terminal trust anchor matches `trust_anchors`; the
    policy-applied metadata declares entity type `openid_provider`;
    the `loa3` Trust Mark satisfies the requirement; the ID-JAG
-   signing key is taken ONLY from the federation-resolved JWKS,
+   signing key is taken only from the federation-resolved JWKS,
    not from the assertion `iss` URL's `.well-known/oauth-authorization-server`.
 
 3. **`subject_namespace_authorization` (domain_authorized_issuer).**

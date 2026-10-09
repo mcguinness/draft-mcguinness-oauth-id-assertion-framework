@@ -945,7 +945,7 @@ Resource Authorization Server MUST:
    construction.)
 
 4. Determine whether any entry in `authorized_issuers` matches. An
-   entry matches when ALL of the following hold:
+   entry matches when all of the following hold:
 
    a. `issuer` equals the JWT `iss` claim under case-sensitive URL
       string comparison (the comparison rule fixed in
@@ -1044,12 +1044,12 @@ Freshness and cache limits for the Issuer Authorization Policy:
 - **Negative results** SHOULD be cached, to bound lookup work under
   load ({{dos-ssrf}}), for no longer than the lesser of the DNS
   negative TTL ({{RFC2308}}) and 1 hour
-  (recommended: 5 minutes). The short cap makes a Subject Authority's
+  (5 minutes is RECOMMENDED). The short cap makes a Subject Authority's
   first publication, and its recovery from a brief publication-channel
   takeover, visible promptly. The same cap SHOULD apply to a cached
   explicit-denial policy ({{dii-document}}).
 - Indeterminate outcomes MAY be cached for a short period
-  (recommended: no more than 5 minutes) to absorb retry storms;
+  (no more than 5 minutes is RECOMMENDED) to absorb retry storms;
   an Indeterminate cache entry MUST NOT be treated as a policy and
   never satisfies the Trust Method.
 
@@ -1744,7 +1744,7 @@ Initial entries:
 
 | Directive Name | Description | Change Controller | Reference |
 |-|-|-|-|
-| `v` | Version token; MUST appear first | IETF | This document |
+| `v` | Version token; appears first | IETF | This document |
 | `authority` | Subject Authority this record binds (A-label) | IETF | This document |
 | `uri` | HTTPS URL of an Issuer Authorization Policy document | IETF | This document |
 | `key` | Thumbprint of the `signed_policy` signing key (pointer records only) | IETF | This document |
@@ -1788,7 +1788,7 @@ Initial entries; all are decision-affecting except `last_updated` and
 | `valid_until` | Delegation end time (within an entry) | IETF | This document |
 | `last_updated` | Policy publication time | IETF | This document |
 | `signed_policy` | Signed JWT of the policy members | IETF | This document |
-| `crit` | Names decision-affecting members a consumer MUST understand or reject the document | IETF | This document; {{TRUST-FRAMEWORK}} §Critical Members |
+| `crit` | Names decision-affecting members that a consumer has to understand to process the document | IETF | This document; {{TRUST-FRAMEWORK}} §Critical Members |
 
 ## Media Type Registration {#iana-dii-media-type}
 

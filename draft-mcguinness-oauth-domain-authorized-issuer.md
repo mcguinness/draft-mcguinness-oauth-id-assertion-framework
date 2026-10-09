@@ -562,7 +562,7 @@ fetches only from the dedicated policy host.
 
 | Channel | DNS form | Document | Authority binding | When to use |
 |-|-|-|-|-|
-| 1: Inline | TXT with `issuer=` ({{dii-dns-record}}) | None (carried in TXT) | DNS control of `{A}` | Common case: authorize an issuer for a namespace with no rich policy |
+| 1: Inline | TXT with `issuer=` ({{dii-dns-record}}) | None (carried in TXT) | DNS control of `{A}` | Common case: authorize an issuer that has its own issuer identifier, with no rich policy; cannot carry `tenant` ({{mechanism-limits}}) |
 | 2: Pointer | TXT with `uri=`, consumed by canonical lookup | HTTPS-hosted JSON under Subject Authority's operational control | DNS control of `{A}` AND TLS on the authority-operated host | Rich policy (validity windows, format restrictions, tenant binding) at a controlled origin |
 | 3: Dedicated Policy Host | TXT with `uri=` naming the default URL, consumed by the HTTPS-only lookup mode as the opt-in | HTTPS-hosted JSON at `https://oauth-issuer-policy.{A}/.well-known/oauth-issuer-policy` | DNS control of `{A}` (opt-in record) AND of `oauth-issuer-policy.{A}`, AND TLS on that host | Serving Resource Authorization Servers that use the HTTPS-only lookup mode |
 
@@ -1009,6 +1009,18 @@ satisfied and, as a result, the cross-category combination rule
 ({{TRUST-FRAMEWORK}} §Cross-Category Combination Rule) is not met,
 the Resource Authorization Server MUST reject the assertion with an
 OAuth `invalid_grant` error.
+
+Step 4b, for a grant profile that carries `tenant` (such as ID-JAG):
+
+| Entry has `tenant` | Assertion has `tenant` | Match |
+|-|-|-|
+| No | No | Yes |
+| No | Yes | No: an entry without `tenant` is not a wildcard |
+| Yes | No | No |
+| Yes | Yes | Only if the values are equal |
+
+Under a grant profile that carries no `tenant` claim, an assertion is
+treated as carrying none, so only entries without `tenant` match.
 
 ## Observing Before Enforcing {#observe-before-enforce}
 

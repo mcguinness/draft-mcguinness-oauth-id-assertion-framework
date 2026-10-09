@@ -3098,8 +3098,7 @@ Appendix F.  Document History
       other methods; say who publishes the Trust Policy and that one
       party can be both Assertion Issuer and client.
 
-   *  Split dense paragraphs into shorter sentences and lists, with no
-      change to any requirement.
+   *  Editorial changes for readability.
 
    -00
 

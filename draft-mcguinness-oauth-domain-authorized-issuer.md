@@ -341,8 +341,10 @@ channel on encountering a denial. Each object has:
   malformed. Publishers MUST place `crit` in the outer (unsigned)
   document: a `crit` present only in a `signed_policy` JWT payload is
   invisible to consumers that do not process signatures and therefore
-  has no effect on them. It MAY additionally be duplicated as a claim
-  in the signed JWT so that its value is integrity-protected. The DNS
+  has no effect on them. When the document carries `signed_policy`,
+  publishers MUST also include the same `crit` as a claim in the
+  signed JWT, so that a party that can alter the outer document cannot
+  remove it ({{signed-policy}}). The DNS
   record form does not carry `crit` ({{crit-dns-form}}).
 
 Consumers MUST ignore unrecognized members, except those named in
@@ -504,9 +506,10 @@ If a consumer's local policy requires object-level integrity through
 acting on the policy, and the JWT payload MUST contain every
 recognized decision-affecting member used by that consumer. The
 consumer MUST NOT use unsigned recognized decision-affecting members
-that are absent from the JWT payload, except `crit`, which a consumer
-always honors from the outer document because it can only cause
-rejection. If signature verification
+that are absent from the JWT payload. This includes `crit`: the
+consumer takes `crit` from the JWT payload, so removing the outer
+copy does not remove a critical requirement, and an outer `crit` with
+no signed counterpart makes the policy malformed. If signature verification
 fails, if the verification key is unacceptable, if the JWT is
 malformed, if the required issuer binding above is not satisfied, or
 if the JWT omits a recognized decision-affecting member required for
@@ -674,7 +677,7 @@ integrity its local policy requires ({{signed-policy}}): the signed
 JWT MUST
 contain every decision-affecting member the consumer uses, and the
 consumer MUST NOT use unsigned decision-affecting members that are
-absent from it, other than `crit` ({{signed-policy}}).
+absent from it, including `crit` ({{signed-policy}}).
 
 A recognized record MUST contain at least one `uri=` directive or at
 least one `issuer=` directive. Recognized records containing neither
@@ -1408,7 +1411,9 @@ an attacker who can strip `signed_policy` can strip `crit` with it;
 publisher-side criticality therefore does not defend against
 stripping by an on-path or edge attacker. A signature is effective
 against such an attacker only if consumers require it, through local
-configuration or a `key=` directive. A consumer configured to require
+configuration or a `key=` directive; such consumers take `crit` from
+the signed JWT ({{signed-policy}}), so the attacker cannot remove a
+critical requirement either. A consumer configured to require
 `signed_policy` for a Subject Authority MUST verify it before acting
 on that Subject Authority's policy, MUST reject a policy whose
 signature is missing or invalid, and MUST NOT treat a valid TLS
@@ -2412,7 +2417,8 @@ This appendix is non-normative and will be removed before publication.
   * Define signed-policy processing and register the
     `issuer-authorization-policy+jwt` media type in this document
     (moved from the framework), including the outcome for a consumer
-    without a verification key and the binding a `key=` pin provides;
+    without a verification key, the binding a `key=` pin provides,
+    and a signed copy of `crit`;
     describe how a spoofed negative answer can suppress a published
     denial when another namespace method is configured.
   * Allow at most one `domain_authorized_issuer` object in a Trust

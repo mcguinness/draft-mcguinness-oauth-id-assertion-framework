@@ -1047,8 +1047,13 @@ Freshness and cache limits for the Issuer Authorization Policy:
   extending revocation latency toward the absolute ceiling.
 - **Negative results** SHOULD be cached, to bound lookup work under
   load ({{dos-ssrf}}), and MUST NOT be cached for longer than the
-  lesser of the DNS negative TTL ({{RFC2308}}) and 1 hour
-  (5 minutes is RECOMMENDED). The short cap makes a Subject Authority's
+  lesser of 1 hour and the lifetime of the DNS answer that produced
+  them; a cache lifetime of 5 minutes is RECOMMENDED. That lifetime is
+  the negative TTL ({{RFC2308}}) for an NXDOMAIN or NODATA answer, or
+  the remaining TTL of the TXT record set for an answer that contains
+  records but none that yields a policy (no recognized record, or,
+  under the HTTPS-only lookup mode, no record whose `uri=` is the
+  default URL). The short cap makes a Subject Authority's
   first publication, and its recovery from a brief publication-channel
   takeover, visible promptly. The same cap SHOULD apply to a cached
   explicit-denial policy ({{dii-document}}).
@@ -2416,7 +2421,8 @@ This appendix is non-normative and will be removed before publication.
   * Rewrite caching: binding freshness lifetimes, a 24-hour absolute
     ceiling, an explicit stale-if-error bound, a one-hour cap on DNS
     results that are not DNSSEC-validated, a one-hour cap on Negative
-    caching, and 304 renewal only under the same `uri=` and `key=`.
+    caching with a lifetime taken from the DNS answer that produced
+    it, and 304 renewal only under the same `uri=` and `key=`.
   * Sketch a federation-bound Issuer Authorization Policy as a
     non-normative future extension.
   * Define signed-policy processing and register the

@@ -2625,6 +2625,8 @@ This appendix is non-normative and will be removed before publication.
     matching table and the overall revocation window, including
     upstream caches; say which key
     `key=` pins.
+  * Split dense paragraphs into shorter sentences and lists, with no
+    change to any requirement.
 
 -00
 

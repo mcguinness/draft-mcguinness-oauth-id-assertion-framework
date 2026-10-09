@@ -2491,6 +2491,9 @@ This appendix is non-normative and will be removed before publication.
     the comparison between DNS control and control of email
     recovery; state that the Trust Method targets organizational
     namespaces.
+  * Gloss the terms borrowed from the framework; add a tenant
+    matching table and the overall revocation window; say which key
+    `key=` pins.
 
 -00
 

@@ -2809,6 +2809,9 @@ This appendix is non-normative and will be removed before publication.
     Issuer that serves several tenants under one issuer identifier to
     send `tenant` in every ID-JAG. Reword the Trust Policy Discovery
     deferral.
+  * Summarize in a table what a namespace method's outcome leaves to
+    other methods; say who publishes the Trust Policy and that one
+    party can be both Assertion Issuer and client.
 
 -00
 

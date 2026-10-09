@@ -972,9 +972,9 @@ that the deferral from this framework to the method is testable:
   an explicit statement that the method caches nothing.
 - For a method whose evidence is signed, how the signer and the
   verification key are bound to the Authority Holder through a
-  channel independent of the signed artifact. This ensures that an
-  attacker who controls the artifact, or the channel that carries it,
-  cannot substitute either.
+  channel independent of the signed artifact, so that an attacker
+  who controls the artifact, or the channel that carries it, cannot
+  substitute either.
 - Any method-specific parameters, their JSON types, and whether each
   is REQUIRED or OPTIONAL.
 

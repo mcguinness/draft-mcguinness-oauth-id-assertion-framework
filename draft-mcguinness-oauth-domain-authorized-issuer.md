@@ -424,7 +424,9 @@ same Subject Authority MUST reject a `signed_policy` whose `iat` is
 earlier than the cached one's, so that an older signed policy cannot
 be replayed within its validity period. The JOSE header SHOULD
 contain a `kid` identifying the signing key. The JWT payload SHOULD
-NOT contain a `signed_policy` claim.
+NOT contain a `signed_policy` claim. The outer document still carries
+`subject_authority` and `authorized_issuers` ({{dii-document}}) when
+the JWT repeats them.
 
 Algorithms: {{RFC8725}} (JWT Best Current Practices) applies
 unchanged. In addition, the JWT MUST NOT use a MAC algorithm
@@ -785,8 +787,9 @@ dedicated policy host.
       all recognized records are discarded because of `authority=`
       mismatch, treat the response as `malformed`. (A `malformed`
       outcome is classified as Indeterminate, {{dii-failures}}.)
-      Records discarded for `authority=` mismatch are not otherwise
-      validated.
+      Finding a record's `authority=` directive requires only
+      splitting the record into directives at `;`; a record discarded
+      for `authority=` mismatch is not otherwise validated.
 
       Before continuing, validate the remaining recognized records
       against the directive rules in {{dii-dns-record}}. This includes
@@ -910,9 +913,6 @@ The following deterministic conflict rules apply:
 - Only the Subject Authority computed by the extraction procedure for
   the assertion's Subject Identifier applies. Another Subject Authority's
   policy cannot grant authority over that subject.
-
-- If the assertion's claims conflict with the matched policy entry, the
-  assertion fails the Trust Method.
 
 Consumers MUST NOT treat a Negative or Indeterminate outcome as
 satisfying the Trust Method, except that a cached Affirmative policy
@@ -1418,7 +1418,7 @@ sources coexist. Determinism is a security property: two verifiers
 receiving the same DNS and HTTPS responses, using the same Public
 Suffix List snapshot ({{TRUST-FRAMEWORK}} §Public Suffix List
 Versioning), and within the limits of
-{{https-policy-document-contract}}, MUST reach the same conclusion
+{{https-policy-document-contract}}, reach the same conclusion
 about what (if any) policy applies. An attacker with
 partial control of one publication channel cannot exploit
 interpretive ambiguity at the consumer.
@@ -1569,9 +1569,10 @@ in two directions, and the policy itself is public:
   obtain a near-real-time signal of where employees sign in. Caching
   ({{dii-caching}}) is the primary mitigation: it coarsens timing and
   collapses repeated lookups, so consumers SHOULD cache to the bounds
-  permitted rather than re-fetching per verification. The minimum
-  freshness lifetime of {{dii-caching}} keeps a Subject Authority
-  from observing every sign-in by publishing a very short TTL.
+  permitted rather than re-fetching per verification. A consumer
+  that applies the minimum freshness lifetime of {{dii-caching}}
+  keeps a Subject Authority from observing every sign-in through a
+  very short TTL.
 - **Policy contents.** A published policy is public. It reveals the
   Subject Authority's Identity Providers, tenant identifiers, and,
   through `valid_until`, when its contracts end. Subject Authorities

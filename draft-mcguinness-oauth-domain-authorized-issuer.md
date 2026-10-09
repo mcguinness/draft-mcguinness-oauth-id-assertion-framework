@@ -1095,6 +1095,14 @@ Freshness and cache limits for the Issuer Authorization Policy:
   an Indeterminate cache entry MUST NOT be treated as a policy and
   never satisfies the Trust Method.
 
+Taken together, after a Subject Authority removes an issuer, a
+consumer can keep accepting it for the remaining freshness lifetime
+of its cached entry plus up to 1 hour of stale-if-error use, never
+beyond the absolute ceiling. Because a DNS answer that was not
+DNSSEC-validated is fresh for at most 1 hour, that is at most about 2
+hours unless the record is DNSSEC-validated and published with a
+longer TTL.
+
 # Trust Methods {#trust-methods}
 
 This document defines `domain_authorized_issuer` as a

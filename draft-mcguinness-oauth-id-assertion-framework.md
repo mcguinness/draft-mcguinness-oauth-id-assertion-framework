@@ -2170,6 +2170,9 @@ Member Name:
 Member Description:
 : A short description of the member's semantics.
 
+Decision-Affecting:
+: Whether the member is decision-affecting ({{terminology}}).
+
 Change Controller:
 : The party responsible for change control.
 
@@ -2185,8 +2188,8 @@ how a consumer that does not recognize it behaves (the default is that
 unrecognized members are ignored; a member requiring fail-closed
 handling needs the criticality mechanism of {{critical-members}}).
 
-Initial entries, each with Change Controller IETF and Specification
-Document this document:
+Initial entries, each decision-affecting, with Change Controller IETF
+and Specification Document this document:
 
 | Member Name | Member Description |
 |-|-|
@@ -2219,6 +2222,9 @@ Extraction Procedure:
 : A reference to the specification text that defines how the Subject
 Authority is computed from a Subject Identifier of this format.
 
+Change Controller:
+: The party responsible for change control.
+
 Designated Expert instructions: the expert verifies that the format
 has a well-defined namespace authority, that the extraction procedure
 is deterministic (two consumers compute the same Subject Authority
@@ -2231,9 +2237,9 @@ have a well-defined namespace authority.
 
 Initial entries:
 
-| Subject Identifier Format | Subject Authority Form | Extraction Procedure |
-|-|-|-|
-| `email` | DNS domain | {{subject-authority-determination}} of this document |
+| Subject Identifier Format | Subject Authority Form | Extraction Procedure | Change Controller |
+|-|-|-|-|
+| `email` | DNS domain | {{subject-authority-determination}} of this document | IETF |
 
 --- back
 

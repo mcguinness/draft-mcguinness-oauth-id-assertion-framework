@@ -1753,8 +1753,8 @@ document ({{dii-document}}).
 
 Registration policy: Specification Required {{RFC8126}}.
 
-Each entry contains a Member Name, a Description, a Change Controller,
-and a Reference. Designated Expert instructions: the expert verifies
+Each entry contains a Member Name, a Description, whether the member
+is decision-affecting, a Change Controller, and a Reference. Designated Expert instructions: the expert verifies
 the member name does not collide with an existing member, its JSON
 type and semantics are specified, the registration states whether
 the member is decision-affecting ({{TRUST-FRAMEWORK}}
@@ -1768,7 +1768,8 @@ intended, MUST NOT be registered unless publishers can list it, or a
 top-level member its specification defines alongside it, in `crit`;
 `crit` does not reach members of `authorized_issuers` entries.
 
-Initial entries:
+Initial entries; all are decision-affecting except `last_updated` and
+`signed_policy`:
 
 | Member Name | Description | Change Controller | Reference |
 |-|-|-|-|

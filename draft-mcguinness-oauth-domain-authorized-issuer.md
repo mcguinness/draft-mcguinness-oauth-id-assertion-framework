@@ -390,6 +390,19 @@ provides object-level integrity for the whole document. It follows
 the signed metadata pattern defined for authorization server metadata
 in {{RFC8414}} and protected resource metadata in {{RFC9728}}.
 
+A consumer processes `signed_policy` only when it has an acceptable
+verification key for it: the key a `key=` directive pins, or a key
+configured out of band for the Subject Authority. A consumer without
+one treats the policy as malformed if `crit` lists `signed_policy` or
+its local policy requires object-level integrity for the Subject
+Authority, and otherwise ignores `signed_policy` and evaluates the
+unsigned members. Such a consumer has no object-level integrity to
+lose, and a publisher never publishes outer and signed values that
+conflict, so on a well-formed policy it reaches the same result as a
+consumer that processes the signature. The requirements on consumers
+in the rest of this section apply to a consumer that processes
+`signed_policy`.
+
 The `signed_policy` value is a JWT {{RFC7519}} in JWS Compact
 Serialization {{RFC7515}} containing policy members as claims. The
 JWT MUST be digitally signed using an asymmetric algorithm, MUST
@@ -419,9 +432,13 @@ registered media subtype with the `application/` prefix omitted, per
 the {{RFC8725}} §3.11 convention; the corresponding media type is
 registered in {{iana-dii-media-type}}.
 
-The JWT payload MUST contain `subject_authority`. The JWT `iss` claim
-MUST either equal that Subject Authority identifier or identify a
-signing authority that local policy or an applicable Trust Method
+The JWT payload MUST contain `subject_authority`. When a `key=`
+directive pins the verification key, a signature that verifies with
+that key binds the signer to the Subject Authority, and the JWT `iss`
+claim is not further constrained. Otherwise the JWT `iss` claim MUST
+either equal the `subject_authority` value (for example,
+`acme.example`, not `https://acme.example`) or identify a signing
+authority that local policy or an applicable Trust Method
 establishes as controlled by the Subject Authority. Consumers MUST
 NOT treat a signature by an Assertion Issuer the policy authorizes as
 proof of Subject Authority authorization unless such a relationship
@@ -476,7 +493,9 @@ If a consumer's local policy requires object-level integrity through
 acting on the policy, and the JWT payload MUST contain every
 recognized decision-affecting member used by that consumer. The
 consumer MUST NOT use unsigned recognized decision-affecting members
-that are absent from the JWT payload. If signature verification
+that are absent from the JWT payload, except `crit`, which a consumer
+always honors from the outer document because it can only cause
+rejection. If signature verification
 fails, if the verification key is unacceptable, if the JWT is
 malformed, if the required issuer binding above is not satisfied, or
 if the JWT omits a recognized decision-affecting member required for
@@ -641,7 +660,7 @@ integrity its local policy requires ({{signed-policy}}): the signed
 JWT MUST
 contain every decision-affecting member the consumer uses, and the
 consumer MUST NOT use unsigned decision-affecting members that are
-absent from it.
+absent from it, other than `crit` ({{signed-policy}}).
 
 A recognized record MUST contain at least one `uri=` directive or at
 least one `issuer=` directive. Recognized records containing neither

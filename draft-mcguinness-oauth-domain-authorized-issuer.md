@@ -726,7 +726,12 @@ depth (the defined document has a fixed shallow structure); fetch
 timeouts follow {{TRUST-FRAMEWORK}} §Outbound Fetches. Consumers
 SHOULD send a conditional request
 (for example, `If-None-Match`) when they hold a cached policy, treating
-a 304 response per {{dii-failures}}.
+a 304 response per {{dii-failures}}. A consumer MUST NOT treat a 304
+as renewing a held policy unless the current record's `uri=` and
+`key=` values equal those under which the held policy was retrieved
+and verified, and any `signed_policy` in it has not expired; it
+stores those values with the cached policy, and otherwise fetches
+without a conditional request.
 
 The document's shape and members are defined, with an example, in
 {{dii-document}}.
@@ -833,7 +838,7 @@ concrete DAI outcomes onto those states.
 
 | State | DAI outcomes |
 |-|-|
-| Affirmative | A well-formed Issuer Authorization Policy was retrieved (inline DNS, DNS pointer plus HTTPS fetch, or the dedicated host under the HTTPS-only lookup mode), its `subject_authority` matches `A`, and its structural validation succeeds; this includes a policy whose `authorized_issuers` array is empty (explicit denial, evaluated in {{dii-verification}}). HTTPS responses, when applicable, are 200 OK with a media type of `application/json` or a `+json`-suffixed type. A 304 (Not Modified) response to a conditional request validating a held cached policy within the absolute ceiling of {{dii-caching}} renews its freshness and is classified as the held policy's state; it does not reset the absolute cache-entry age. |
+| Affirmative | A well-formed Issuer Authorization Policy was retrieved (inline DNS, DNS pointer plus HTTPS fetch, or the dedicated host under the HTTPS-only lookup mode), its `subject_authority` matches `A`, and its structural validation succeeds; this includes a policy whose `authorized_issuers` array is empty (explicit denial, evaluated in {{dii-verification}}). HTTPS responses, when applicable, are 200 OK with a media type of `application/json` or a `+json`-suffixed type. A 304 (Not Modified) response to a conditional request validating a held cached policy within the absolute ceiling of {{dii-caching}}, under the conditions of {{https-policy-document-contract}}, renews its freshness and is classified as the held policy's state; it does not reset the absolute cache-entry age. |
 | Negative | Under canonical lookup, DNS `negative-authoritative`, or HTTPS 404 or 410 from the target of a DNS `uri=` pointer. Under the HTTPS-only lookup mode ({{trust-method-https-authorized-issuer}}), DNS `negative-authoritative` for the opt-in record, or no remaining record whose `uri=` is the default URL. No policy is published at the location the lookup consults. |
 | Indeterminate | Any other outcome, fail-closed by default. See enumeration below. |
 

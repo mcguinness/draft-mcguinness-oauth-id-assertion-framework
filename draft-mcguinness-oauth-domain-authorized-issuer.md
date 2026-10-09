@@ -913,7 +913,8 @@ Consumers MUST NOT treat a Negative or Indeterminate outcome as
 satisfying the Trust Method, except that a cached Affirmative policy
 MAY be used during an Indeterminate live retrieval within the
 stale-if-error bound of {{dii-caching}}. Whether the assertion is
-then rejected follows {{TRUST-FRAMEWORK}} §Fail-Closed Requirements:
+then rejected follows {{TRUST-FRAMEWORK}} §Multiple Authority Sources
+Within a Category:
 an Indeterminate outcome, like a policy that does not authorize the
 issuer, leaves the `subject_namespace_authorization` category
 unsatisfied whatever other methods yield, while a Negative outcome

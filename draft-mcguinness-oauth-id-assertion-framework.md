@@ -616,7 +616,7 @@ not have this effect; other methods in the category can still
 supply evidence. Where that channel's negative answers are not
 authenticated (for example, DNS without DNSSEC), an attacker who
 forges one can turn a published denial into a Negative and let
-another method decide ({{authority-source-compromise}}).
+another method decide ({{DAI}} §DNS Integrity and Compromise).
 
 ## Open-World Delegation and Bounded Transitivity {#open-world}
 
@@ -1816,10 +1816,11 @@ every namespace that lists the issuer:
 - Without federation, the key comes from the Assertion Issuer's own
   metadata, and whoever controls that metadata controls the key.
 - A policy host named by a {{DAI}} `uri=` pointer controls the list
-  itself.
+  itself, unless the Subject Authority pins the policy's signing key.
 
 The cross-category combination rule does not defend against these
-parties: they act as a listed issuer rather than adding one. A
+parties: the first two act as a listed issuer, and the third decides
+the list. A
 future extension could let an Authority Holder pin a key thumbprint
 for each authorized issuer.
 
@@ -1851,6 +1852,12 @@ claims, fresh-authentication signals, account-status attestations,
 out-of-band verification). In particular, `email_verified=true` is
 a prerequisite for deriving namespace authority from the email's
 domain; it is not evidence of current mailbox control.
+
+Namespace authorization also does not make an email address a safe
+account key by itself. A Resource Authorization Server keys accounts
+on issuer-scoped identifiers (for example, `iss` with `sub`, or
+`iss`, `tenant`, and `sub` for a multi-tenant issuer) and links an
+account by email only under its own account-linking rules.
 
 The authorization is also not audience-scoped: the
 `subject_namespace_authorization` category constrains which

@@ -1621,9 +1621,13 @@ infrastructure. Specific guidance:
   expired; overlapping validity windows (`valid_from`/`valid_until`)
   make the transition observable and bounded.
 - **Signing-key rollover.** To roll over a `key=`-pinned signing
-  key, publish the new thumbprint beside the old one, re-sign the
-  policy with the new key, and remove the old thumbprint once caches
-  have expired.
+  key, first publish the new thumbprint beside the old one, and keep
+  signing with the old key until no consumer can still hold a copy of
+  the record with only the old thumbprint: the old record's TTL,
+  capped as {{dii-caching}} caps DNS results, plus any minimum
+  freshness lifetime consumers apply. Then re-sign the policy with
+  the new key, and remove the old thumbprint once cached copies of
+  the policy signed with the old key have expired.
 - **Withdrawal.** To withdraw every authorization, remove the TXT
   record (Negative) or publish an empty `authorized_issuers` array
   (explicit denial). Deleting the policy document instead makes
@@ -2407,7 +2411,8 @@ This appendix is non-normative and will be removed before publication.
     carry a `tenant` claim.
   * Add the `key=` directive, which pins the `signed_policy` signing
     key for a pointer record, including the HTTPS-only opt-in; allow
-    two values for key rollover.
+    two values for key rollover, with a rollover order that lets the
+    new pin propagate before the signature changes.
   * Rewrite caching: binding freshness lifetimes, a 24-hour absolute
     ceiling, an explicit stale-if-error bound, a one-hour cap on DNS
     results that are not DNSSEC-validated, a one-hour cap on Negative

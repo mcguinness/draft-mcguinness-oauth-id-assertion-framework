@@ -411,7 +411,10 @@ policy claims, and MUST contain `iat`. It MUST contain `exp`, so that
 a superseded signed policy cannot be replayed indefinitely (relevant
 when the policy is hosted on shared infrastructure,
 {{third-party-policy-hosts}}); consumers MUST reject an expired
-`signed_policy`. A consumer that holds a cached signed policy for the
+`signed_policy`. Publishers SHOULD keep `exp` close to `iat` (for
+example, a few days), because a policy host can replay a superseded
+signed policy until its `exp` to a consumer that holds no cached
+copy. A consumer that holds a cached signed policy for the
 same Subject Authority MUST reject a `signed_policy` whose `iat` is
 earlier than the cached one's, so that an older signed policy cannot
 be replayed within its validity period. The JOSE header SHOULD
@@ -1372,7 +1375,12 @@ points:
   change of policy host.
 - A Subject Authority whose policy host is shared infrastructure, or
   is operated by a provider, can publish a `key=` thumbprint
-  ({{dii-dns-record}}) so that the host cannot alter the policy.
+  ({{dii-dns-record}}) so that the host cannot alter the policy. The
+  host can still withhold the policy, and can replay an older signed
+  policy whose `exp` has not passed to a consumer that holds no
+  cached copy, since the `iat` check of {{signed-policy}} needs one.
+  A short `exp` bounds that replay; removing a hostile host takes a
+  `key=` rotation or a new `uri=`.
 
 A Subject Authority that hosts its Issuer Authorization Policy on
 shared infrastructure it does not control end to end SHOULD publish

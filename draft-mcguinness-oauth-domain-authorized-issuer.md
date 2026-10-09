@@ -1703,17 +1703,57 @@ header value is the media subtype with the `application/` prefix
 omitted (`issuer-authorization-policy+jwt`), as required in
 {{signed-policy}}.
 
-For `application/issuer-authorization-policy+jwt`: Type name
-`application`; Subtype name `issuer-authorization-policy+jwt`;
-Required parameters none; Optional parameters none; Encoding
-considerations 8bit (the value is a JWT in JWS Compact
-Serialization, a sequence of base64url-encoded values separated by
-periods, per {{RFC7519}} Section 10.3.1); Security considerations
-{{signed-policy}} and the Security Considerations of this document;
-Interoperability considerations none; Published specification this
-document; Applications OAuth Subject Authorities and Resource
-Authorization Servers; Fragment identifier considerations none;
-Change controller IETF.
+Type name:
+: `application`
+
+Subtype name:
+: `issuer-authorization-policy+jwt`
+
+Required parameters:
+: N/A
+
+Optional parameters:
+: N/A
+
+Encoding considerations:
+: 8bit; the value is a JWT in JWS Compact Serialization, a sequence
+  of base64url-encoded values separated by periods ({{RFC7519}}
+  Section 10.3.1).
+
+Security considerations:
+: See {{signed-policy}} and {{dii-security}} of this document.
+
+Interoperability considerations:
+: N/A
+
+Published specification:
+: This document ({{signed-policy}})
+
+Applications that use this media type:
+: Subject Authorities that sign Issuer Authorization Policies, and
+  Resource Authorization Servers that verify them
+
+Fragment identifier considerations:
+: N/A
+
+Additional information:
+: Deprecated alias names for this type: N/A; Magic number(s): N/A;
+  File extension(s): N/A; Macintosh file type code(s): N/A
+
+Person and email address to contact for further information:
+: Karl McGuinness, public@karlmcguinness.com
+
+Intended usage:
+: COMMON
+
+Restrictions on usage:
+: none
+
+Author:
+: Karl McGuinness
+
+Change controller:
+: IETF
 
 --- back
 

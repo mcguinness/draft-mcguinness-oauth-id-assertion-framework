@@ -1098,13 +1098,18 @@ Freshness and cache limits for the Issuer Authorization Policy:
   an Indeterminate cache entry MUST NOT be treated as a policy and
   never satisfies the Trust Method.
 
-Taken together, after a Subject Authority removes an issuer, a
-consumer can keep accepting it for the remaining freshness lifetime
-of its cached entry plus up to 1 hour of stale-if-error use, never
-beyond the absolute ceiling. Because a DNS answer that was not
-DNSSEC-validated is fresh for at most 1 hour, that is at most about 2
-hours unless the record is DNSSEC-validated and published with a
-longer TTL.
+After a Subject Authority removes an issuer, each cached entry at a
+consumer remains usable for its remaining freshness lifetime plus up
+to 1 hour of stale-if-error use, never beyond the absolute ceiling.
+The overall revocation window is longer than one entry's lifetime.
+The change has to reach every authoritative server. Upstream caches
+can also keep serving the old authorization when a consumer
+refreshes: recursive resolvers for the old record's full advertised
+TTL ({{RFC1035}} Section 4.1.3), and HTTP caches for the document's
+freshness lifetime. The window is therefore up to the propagation
+time plus those upstream lifetimes, plus one consumer freshness
+lifetime and the stale-if-error hour. Steady-state lifetimes of 1
+hour or less, as recommended above, keep it to a few hours.
 
 # Trust Methods {#trust-methods}
 
@@ -2492,7 +2497,8 @@ This appendix is non-normative and will be removed before publication.
     recovery; state that the Trust Method targets organizational
     namespaces.
   * Gloss the terms borrowed from the framework; add a tenant
-    matching table and the overall revocation window; say which key
+    matching table and the overall revocation window, including
+    upstream caches; say which key
     `key=` pins.
 
 -00

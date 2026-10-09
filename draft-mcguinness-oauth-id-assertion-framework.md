@@ -1182,9 +1182,9 @@ A token-request flow with an ID-JAG carrying
 `email: alice@acme.example`, `email_verified: true`,
 `iss: https://idp.example.net`:
 
-1. The Resource Authorization Server determines that both Trust
-   Methods are applicable (the Trust Policy lists one in each
-   category).
+1. The Resource Authorization Server authenticates the client
+   (`private_key_jwt`) and determines that both Trust Methods are
+   applicable (the Trust Policy lists one in each category).
 
 2. **Authenticity** (`issuer_authentication` category): the
    Resource Authorization Server validates the OpenID Federation
@@ -1204,8 +1204,7 @@ A token-request flow with an ID-JAG carrying
 4. The cross-category combination rule ({{combination-rule}}) is
    satisfied: one Trust Method succeeded in each applicable
    category. The Resource Authorization Server proceeds with
-   `private_key_jwt` client authentication and access-token
-   issuance.
+   access-token issuance.
 
 If the Assertion Issuer were federation-authenticated but Acme
 had not listed it in its DAI record, step 2 would succeed and

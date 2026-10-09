@@ -2199,8 +2199,8 @@ domain-authorized issuer delegations with DNS-based discovery:
 
 ## Verification (Resource Authorization Server Side)
 
-3. The Resource Authorization Server validates the ID-JAG:
-   signature (via
+3. The Resource Authorization Server validates `private_key_jwt`
+   client authentication, then the ID-JAG: signature (via
    `https://idp.example.net/.well-known/openid-configuration`
    JWKS), `aud`, `exp`, `iat`, replay protection.
 
@@ -2223,8 +2223,8 @@ domain-authorized issuer delegations with DNS-based discovery:
    d. The ID-JAG `iss` value `https://idp.example.net` matches
       the single entry's `issuer` value. Verification succeeds.
 
-5. The Resource Authorization Server validates `private_key_jwt`,
-   then issues an access token in the response body.
+5. The Resource Authorization Server issues an access token in the
+   response body.
 
 ## Migration Variant: Pointer Form
 
@@ -2235,10 +2235,13 @@ without changing any consumer behavior:
 ~~~
 _oauth-issuer-policy.acme.example. IN TXT ( "v=oauth-issuer-policy1;"
     "authority=acme.example;"
-    "uri=https://acme.example/.well-known/oauth-issuer-policy" )
+    "uri=https://oauth-issuer-policy.acme.example"
+    "/.well-known/oauth-issuer-policy" )
 ~~~
 
-and publish the richer JSON document at the pointed-at URL:
+and publish the richer JSON document at that URL, the default URL on
+its dedicated policy host, which also serves Resource Authorization
+Servers that use the HTTPS-only lookup mode:
 
 ~~~ json
 {
@@ -2308,7 +2311,7 @@ security properties and operational guidance for this case are in
 
 - If `acme.example` published no TXT record, the lookup would be
   Negative and the assertion rejected, even if a document existed at
-  `https://acme.example/.well-known/oauth-issuer-policy`: the TXT
+  the default URL on `oauth-issuer-policy.acme.example`: the TXT
   record is the opt-in.
 
 - A wildcard record at `*.example` covering `acme.example` would

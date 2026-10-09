@@ -619,6 +619,16 @@ authenticated (for example, DNS without DNSSEC), an attacker who
 forges one can turn a published denial into a Negative and let
 another method decide ({{DAI}} §DNS Integrity and Compromise).
 
+In summary, for a `subject_namespace_authorization` method that
+consults the Subject Authority's own publication:
+
+| Outcome of that method | Can another method in the category satisfy it? |
+|-|-|
+| Affirmative, issuer authorized | Not needed: the category is satisfied |
+| Affirmative, issuer not authorized (including an explicit denial) | No: the published decision is final |
+| Indeterminate | No: it may hide a published decision |
+| Negative: nothing published through that channel | Yes |
+
 ## Open-World Delegation and Bounded Transitivity {#open-world}
 
 This document targets **open-world delegation**: the Authority

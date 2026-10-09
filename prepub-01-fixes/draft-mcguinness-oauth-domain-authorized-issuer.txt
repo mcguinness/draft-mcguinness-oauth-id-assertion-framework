@@ -348,10 +348,11 @@ Table of Contents
       treat the policy as malformed.  Publishers MUST place crit in the
       outer (unsigned) document: a crit present only in a signed_policy
       JWT payload is invisible to consumers that do not process
-      signatures and therefore has no effect on them.  It MAY
-      additionally be duplicated as a claim in the signed JWT so that
-      its value is integrity-protected.  The DNS record form does not
-      carry crit (Appendix B.2).
+      signatures and therefore has no effect on them.  When the document
+      carries signed_policy, publishers MUST also include the same crit
+      as a claim in the signed JWT, so that a party that can alter the
+      outer document cannot remove it (Section 3.1).  The DNS record
+      form does not carry crit (Appendix B.2).
 
    Consumers MUST ignore unrecognized members, except those named in
    crit.  A document containing duplicate member names (at the top level
@@ -544,13 +545,14 @@ Table of Contents
    on the policy, and the JWT payload MUST contain every recognized
    decision-affecting member used by that consumer.  The consumer MUST
    NOT use unsigned recognized decision-affecting members that are
-   absent from the JWT payload, except crit, which a consumer always
-   honors from the outer document because it can only cause rejection.
-   If signature verification fails, if the verification key is
-   unacceptable, if the JWT is malformed, if the required issuer binding
-   above is not satisfied, or if the JWT omits a recognized decision-
-   affecting member required for evaluation, the consumer MUST reject
-   the policy as malformed.
+   absent from the JWT payload.  This includes crit: the consumer takes
+   crit from the JWT payload, so removing the outer copy does not remove
+   a critical requirement, and an outer crit with no signed counterpart
+   makes the policy malformed.  If signature verification fails, if the
+   verification key is unacceptable, if the JWT is malformed, if the
+   required issuer binding above is not satisfied, or if the JWT omits a
+   recognized decision-affecting member required for evaluation, the
+   consumer MUST reject the policy as malformed.
 
 4.  Publication
 
@@ -737,8 +739,8 @@ Table of Contents
       whose object-level integrity its local policy requires
       (Section 3.1): the signed JWT MUST contain every decision-
       affecting member the consumer uses, and the consumer MUST NOT use
-      unsigned decision-affecting members that are absent from it, other
-      than crit (Section 3.1).
+      unsigned decision-affecting members that are absent from it,
+      including crit (Section 3.1).
 
    A recognized record MUST contain at least one uri= directive or at
    least one issuer= directive.  Recognized records containing neither
@@ -1134,11 +1136,16 @@ Table of Contents
 
    *  *Negative results* SHOULD be cached, to bound lookup work under
       load (Section 9.10), and MUST NOT be cached for longer than the
-      lesser of the DNS negative TTL ([RFC2308]) and 1 hour (5 minutes
-      is RECOMMENDED).  The short cap makes a Subject Authority's first
-      publication, and its recovery from a brief publication-channel
-      takeover, visible promptly.  The same cap SHOULD apply to a cached
-      explicit-denial policy (Section 3).
+      lesser of 1 hour and the lifetime of the DNS answer that produced
+      them; a cache lifetime of 5 minutes is RECOMMENDED.  That lifetime
+      is the negative TTL ([RFC2308]) for an NXDOMAIN or NODATA answer,
+      or the remaining TTL of the TXT record set for an answer that
+      contains records but none that yields a policy (no recognized
+      record, or, under the HTTPS-only lookup mode, no record whose uri=
+      is the default URL).  The short cap makes a Subject Authority's
+      first publication, and its recovery from a brief publication-
+      channel takeover, visible promptly.  The same cap SHOULD apply to
+      a cached explicit-denial policy (Section 3).
 
    *  Indeterminate outcomes MAY be cached for a short period (no more
       than 5 minutes is RECOMMENDED) to absorb retry storms; an
@@ -1495,11 +1502,13 @@ Table of Contents
    publisher-side criticality therefore does not defend against
    stripping by an on-path or edge attacker.  A signature is effective
    against such an attacker only if consumers require it, through local
-   configuration or a key= directive.  A consumer configured to require
-   signed_policy for a Subject Authority MUST verify it before acting on
-   that Subject Authority's policy, MUST reject a policy whose signature
-   is missing or invalid, and MUST NOT treat a valid TLS connection to a
-   shared edge as sufficient by itself.
+   configuration or a key= directive; such consumers take crit from the
+   signed JWT (Section 3.1), so the attacker cannot remove a critical
+   requirement either.  A consumer configured to require signed_policy
+   for a Subject Authority MUST verify it before acting on that Subject
+   Authority's policy, MUST reject a policy whose signature is missing
+   or invalid, and MUST NOT treat a valid TLS connection to a shared
+   edge as sufficient by itself.
 
 9.6.  Policy Conflicts and Determinism
 
@@ -1704,9 +1713,13 @@ Table of Contents
       make the transition observable and bounded.
 
    *  *Signing-key rollover.* To roll over a key=-pinned signing key,
-      publish the new thumbprint beside the old one, re-sign the policy
-      with the new key, and remove the old thumbprint once caches have
-      expired.
+      first publish the new thumbprint beside the old one, and keep
+      signing with the old key until no consumer can still hold a copy
+      of the record with only the old thumbprint: the old record's TTL,
+      capped as Section 7 caps DNS results, plus any minimum freshness
+      lifetime consumers apply.  Then re-sign the policy with the new
+      key, and remove the old thumbprint once cached copies of the
+      policy signed with the old key have expired.
 
    *  *Withdrawal.* To withdraw every authorization, remove the TXT
       record (Negative) or publish an empty authorized_issuers array
@@ -2699,12 +2712,14 @@ Appendix D.  Document History
 
    *  Add the key= directive, which pins the signed_policy signing key
       for a pointer record, including the HTTPS-only opt-in; allow two
-      values for key rollover.
+      values for key rollover, with a rollover order that lets the new
+      pin propagate before the signature changes.
 
    *  Rewrite caching: binding freshness lifetimes, a 24-hour absolute
       ceiling, an explicit stale-if-error bound, a one-hour cap on DNS
       results that are not DNSSEC-validated, a one-hour cap on Negative
-      caching, and 304 renewal only under the same uri= and key=.
+      caching with a lifetime taken from the DNS answer that produced
+      it, and 304 renewal only under the same uri= and key=.
 
    *  Sketch a federation-bound Issuer Authorization Policy as a non-
       normative future extension.
@@ -2712,9 +2727,9 @@ Appendix D.  Document History
    *  Define signed-policy processing and register the issuer-
       authorization-policy+jwt media type in this document (moved from
       the framework), including the outcome for a consumer without a
-      verification key and the binding a key= pin provides; describe how
-      a spoofed negative answer can suppress a published denial when
-      another namespace method is configured.
+      verification key, the binding a key= pin provides, and a signed
+      copy of crit; describe how a spoofed negative answer can suppress
+      a published denial when another namespace method is configured.
 
    *  Allow at most one domain_authorized_issuer object in a Trust
       Policy; cap published policies at 100 entries; require narrowing

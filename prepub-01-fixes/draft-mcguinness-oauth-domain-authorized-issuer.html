@@ -1659,8 +1659,10 @@ processing for, one or more listed members <span class="bcp14">MUST</span> treat
 malformed. Publishers <span class="bcp14">MUST</span> place <code>crit</code> in the outer (unsigned)
 document: a <code>crit</code> present only in a <code>signed_policy</code> JWT payload is
 invisible to consumers that do not process signatures and therefore
-has no effect on them. It <span class="bcp14">MAY</span> additionally be duplicated as a claim
-in the signed JWT so that its value is integrity-protected. The DNS
+has no effect on them. When the document carries <code>signed_policy</code>,
+publishers <span class="bcp14">MUST</span> also include the same <code>crit</code> as a claim in the
+signed JWT, so that a party that can alter the outer document cannot
+remove it (<a href="#signed-policy" class="auto internal xref">Section 3.1</a>). The DNS
 record form does not carry <code>crit</code> (<a href="#crit-dns-form" class="auto internal xref">Appendix B.2</a>).<a href="#section-3-3.10.1" class="pilcrow">¶</a></p>
 </dd>
       <dd class="break"></dd>
@@ -1878,9 +1880,10 @@ where a <code>key=</code> directive requires it (<a href="#dii-dns-record" class
 acting on the policy, and the JWT payload <span class="bcp14">MUST</span> contain every
 recognized decision-affecting member used by that consumer. The
 consumer <span class="bcp14">MUST NOT</span> use unsigned recognized decision-affecting members
-that are absent from the JWT payload, except <code>crit</code>, which a consumer
-always honors from the outer document because it can only cause
-rejection. If signature verification
+that are absent from the JWT payload. This includes <code>crit</code>: the
+consumer takes <code>crit</code> from the JWT payload, so removing the outer
+copy does not remove a critical requirement, and an outer <code>crit</code> with
+no signed counterpart makes the policy malformed. If signature verification
 fails, if the verification key is unacceptable, if the JWT is
 malformed, if the required issuer binding above is not satisfied, or
 if the JWT omits a recognized decision-affecting member required for
@@ -2113,7 +2116,7 @@ integrity its local policy requires (<a href="#signed-policy" class="auto intern
 JWT <span class="bcp14">MUST</span>
 contain every decision-affecting member the consumer uses, and the
 consumer <span class="bcp14">MUST NOT</span> use unsigned decision-affecting members that are
-absent from it, other than <code>crit</code> (<a href="#signed-policy" class="auto internal xref">Section 3.1</a>).<a href="#section-4.3-9.8.1" class="pilcrow">¶</a></p>
+absent from it, including <code>crit</code> (<a href="#signed-policy" class="auto internal xref">Section 3.1</a>).<a href="#section-4.3-9.8.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -2571,8 +2574,13 @@ extending revocation latency toward the absolute ceiling.<a href="#section-7-2.5
         <li class="normal" id="section-7-2.6">
           <p id="section-7-2.6.1"><strong>Negative results</strong> <span class="bcp14">SHOULD</span> be cached, to bound lookup work under
 load (<a href="#dos-ssrf" class="auto internal xref">Section 9.10</a>), and <span class="bcp14">MUST NOT</span> be cached for longer than the
-lesser of the DNS negative TTL (<span>[<a href="#RFC2308" class="cite xref">RFC2308</a>]</span>) and 1 hour
-(5 minutes is <span class="bcp14">RECOMMENDED</span>). The short cap makes a Subject Authority's
+lesser of 1 hour and the lifetime of the DNS answer that produced
+them; a cache lifetime of 5 minutes is <span class="bcp14">RECOMMENDED</span>. That lifetime is
+the negative TTL (<span>[<a href="#RFC2308" class="cite xref">RFC2308</a>]</span>) for an NXDOMAIN or NODATA answer, or
+the remaining TTL of the TXT record set for an answer that contains
+records but none that yields a policy (no recognized record, or,
+under the HTTPS-only lookup mode, no record whose <code>uri=</code> is the
+default URL). The short cap makes a Subject Authority's
 first publication, and its recovery from a brief publication-channel
 takeover, visible promptly. The same cap <span class="bcp14">SHOULD</span> apply to a cached
 explicit-denial policy (<a href="#dii-document" class="auto internal xref">Section 3</a>).<a href="#section-7-2.6.1" class="pilcrow">¶</a></p>
@@ -3015,7 +3023,9 @@ an attacker who can strip <code>signed_policy</code> can strip <code>crit</code>
 publisher-side criticality therefore does not defend against
 stripping by an on-path or edge attacker. A signature is effective
 against such an attacker only if consumers require it, through local
-configuration or a <code>key=</code> directive. A consumer configured to require
+configuration or a <code>key=</code> directive; such consumers take <code>crit</code> from
+the signed JWT (<a href="#signed-policy" class="auto internal xref">Section 3.1</a>), so the attacker cannot remove a
+critical requirement either. A consumer configured to require
 <code>signed_policy</code> for a Subject Authority <span class="bcp14">MUST</span> verify it before acting
 on that Subject Authority's policy, <span class="bcp14">MUST</span> reject a policy whose
 signature is missing or invalid, and <span class="bcp14">MUST NOT</span> treat a valid TLS
@@ -3286,9 +3296,13 @@ make the transition observable and bounded.<a href="#section-11-2.3.1" class="pi
 </li>
         <li class="normal" id="section-11-2.4">
           <p id="section-11-2.4.1"><strong>Signing-key rollover.</strong> To roll over a <code>key=</code>-pinned signing
-key, publish the new thumbprint beside the old one, re-sign the
-policy with the new key, and remove the old thumbprint once caches
-have expired.<a href="#section-11-2.4.1" class="pilcrow">¶</a></p>
+key, first publish the new thumbprint beside the old one, and keep
+signing with the old key until no consumer can still hold a copy of
+the record with only the old thumbprint: the old record's TTL,
+capped as <a href="#dii-caching" class="auto internal xref">Section 7</a> caps DNS results, plus any minimum
+freshness lifetime consumers apply. Then re-sign the policy with
+the new key, and remove the old thumbprint once cached copies of
+the policy signed with the old key have expired.<a href="#section-11-2.4.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-11-2.5">
           <p id="section-11-2.5.1"><strong>Withdrawal.</strong> To withdraw every authorization, remove the TXT
@@ -4594,13 +4608,15 @@ carry a <code>tenant</code> claim.<a href="#appendix-D-3.3.1" class="pilcrow">¶
         <li class="normal" id="appendix-D-3.4">
           <p id="appendix-D-3.4.1">Add the <code>key=</code> directive, which pins the <code>signed_policy</code> signing
 key for a pointer record, including the HTTPS-only opt-in; allow
-two values for key rollover.<a href="#appendix-D-3.4.1" class="pilcrow">¶</a></p>
+two values for key rollover, with a rollover order that lets the
+new pin propagate before the signature changes.<a href="#appendix-D-3.4.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.5">
           <p id="appendix-D-3.5.1">Rewrite caching: binding freshness lifetimes, a 24-hour absolute
 ceiling, an explicit stale-if-error bound, a one-hour cap on DNS
 results that are not DNSSEC-validated, a one-hour cap on Negative
-caching, and 304 renewal only under the same <code>uri=</code> and <code>key=</code>.<a href="#appendix-D-3.5.1" class="pilcrow">¶</a></p>
+caching with a lifetime taken from the DNS answer that produced
+it, and 304 renewal only under the same <code>uri=</code> and <code>key=</code>.<a href="#appendix-D-3.5.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.6">
           <p id="appendix-D-3.6.1">Sketch a federation-bound Issuer Authorization Policy as a
@@ -4610,7 +4626,8 @@ non-normative future extension.<a href="#appendix-D-3.6.1" class="pilcrow">¶</a
           <p id="appendix-D-3.7.1">Define signed-policy processing and register the
 <code>issuer-authorization-policy+jwt</code> media type in this document
 (moved from the framework), including the outcome for a consumer
-without a verification key and the binding a <code>key=</code> pin provides;
+without a verification key, the binding a <code>key=</code> pin provides,
+and a signed copy of <code>crit</code>;
 describe how a spoofed negative answer can suppress a published
 denial when another namespace method is configured.<a href="#appendix-D-3.7.1" class="pilcrow">¶</a></p>
 </li>

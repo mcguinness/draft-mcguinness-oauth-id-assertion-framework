@@ -1963,7 +1963,7 @@ matches only assertions that carry no `tenant` claim.
 The `tenant` member on `authorized_issuers[]` entries binds
 authorization to the specific tenant identifier the Identity
 Provider populates in the top-level `tenant` claim ({{ID-JAG}}
-§3.1). The binding makes the Subject Authority's choice
+§3.1, §6.1). The binding makes the Subject Authority's choice
 of authorized tenant observable on the wire and verifiable per
 assertion. It does not eliminate the trust assumption on the
 Identity Provider's tenant-isolation enforcement; it makes the

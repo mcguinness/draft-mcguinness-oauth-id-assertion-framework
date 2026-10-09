@@ -2438,7 +2438,7 @@ Yes. `domain_authorized_issuer` uses case-sensitive URL string
 comparison and accepts any absolute HTTPS issuer identifier
 including paths. If such an issuer also sends a `tenant` claim, the
 Subject Authority lists it with that `tenant` value, which requires
-the DNS pointer form ({{DAI}} §Verification).
+the DNS pointer form ({{DAI}} §Mechanism Limits).
 
 **Q: How do I revoke a delegation?**
 
@@ -2508,8 +2508,8 @@ Trust Method fails; the tool provider rejects with `invalid_grant`.
 The attacker's `email_verified: true` self-claim has no force;
 trust derives from the `iss`-vs-policy check, not from the
 assertion's own statements. `attacker.example` has no path to
-impersonate users in `example.com` unless the customer publishes
-them in DAI.
+impersonate users in `example.com` unless the customer lists it in
+its policy.
 
 # OpenID Federation Walkthrough {#example-federation-walkthrough}
 
@@ -2787,7 +2787,9 @@ This appendix is non-normative and will be removed before publication.
     JWT application; return `invalid_grant` for a rejection at any
     processing step.
   * Add the cost of per-relationship issuer configuration and the
-    nOAuth attack class to the Introduction. Require an Assertion
+    nOAuth attack class to the Introduction, and state that
+    namespace authorization does not make an email address a safe
+    account key. Require an Assertion
     Issuer that serves several tenants under one issuer identifier to
     send `tenant` in every ID-JAG. Reword the Trust Policy Discovery
     deferral.

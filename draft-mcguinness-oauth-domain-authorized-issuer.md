@@ -543,7 +543,8 @@ integrity only:
 - for consumers that support and verify it;
 - for deployments where local policy requires signed policy
   processing; or
-- where a `key=` directive requires it ({{dii-dns-record}}).
+- for lookups where a `key=` directive requires it
+  ({{dii-dns-record}}).
 
 If a consumer's local policy requires object-level integrity through
 `signed_policy`, the consumer MUST verify the signed JWT before
@@ -961,10 +962,13 @@ The Indeterminate state covers:
   - a `key=` directive in a record without `uri=`, or more than two
     distinct `key=` values;
   - an empty or otherwise malformed directive.
-- **HTTPS document validation**: body that is not a syntactically
-  valid Issuer Authorization Policy; `subject_authority` that does
-  not match `A`; a document that fails the verification a `key=`
-  directive requires.
+- **HTTPS document validation**:
+
+  - a body that is not a syntactically valid Issuer Authorization
+    Policy;
+  - a `subject_authority` that does not match `A`;
+  - a document that fails the verification a `key=` directive
+    requires.
 
 Any outcome not explicitly mapped to Affirmative or Negative above
 MUST be treated as Indeterminate.
@@ -1253,12 +1257,12 @@ The `lookup` member is OPTIONAL. If present, its value MUST be
 
 This variant reuses:
 
-- Issuer Authorization Policy document format ({{dii-document}});
-- Subject Authority determination rules ({{TRUST-FRAMEWORK}}
+- the Issuer Authorization Policy document format ({{dii-document}});
+- the Subject Authority determination rules ({{TRUST-FRAMEWORK}}
   §Subject Authority Determination);
-- HTTPS document URL ({{dii-https-url}});
-- verification rules ({{dii-verification}});
-- caching rules ({{dii-caching}}); and
+- the HTTPS document URL ({{dii-https-url}});
+- the verification rules ({{dii-verification}});
+- the caching rules ({{dii-caching}}); and
 - the DNS query of {{dii-lookup}}, for the opt-in.
 
 This variant takes no issuers or policy location from DNS.

@@ -185,6 +185,10 @@ all the Assertion Issuers I trust"; it says "these are the conditions
 an Assertion Issuer must satisfy." Conditions are evaluated by
 validating concrete evidence (a federation trust chain or a
 domain-authorized issuer record) when an assertion is presented.
+Despite its name, the Trust Policy is published by the Resource
+Authorization Server, not by an Assertion Issuer; a Subject Authority
+authorizes issuers in a separate document, the Issuer Authorization
+Policy ({{DAI}}).
 
 This document defines the Authority Delegation Model
 ({{delegation-model}}) and uses it to profile OAuth identity
@@ -423,6 +427,8 @@ the JWT `iss` claim. The same string is the `issuer` value in
 OAuth Authorization Server Metadata {{RFC8414}}, OpenID Connect
 Discovery {{OIDC-DISCOVERY}}, and the federation entity identifier
 in {{OIDF-FEDERATION}}. The Assertion Issuer is the Delegate.
+It is a separate role from the client that presents the assertion,
+but one party, such as an agent platform, can play both.
 
 Subject Authority:
 : The Authority Holder for a Subject Identifier namespace. The term

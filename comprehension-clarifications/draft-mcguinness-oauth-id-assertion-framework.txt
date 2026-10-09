@@ -657,22 +657,24 @@ Table of Contents
    In summary, for a subject_namespace_authorization method that
    consults the Subject Authority's own publication:
 
-     +====================================+==========================+
-     | Outcome of that method             | Can another method in    |
-     |                                    | the category satisfy it? |
-     +====================================+==========================+
-     | Affirmative, issuer authorized     | Not needed: the category |
-     |                                    | is satisfied             |
-     +------------------------------------+--------------------------+
-     | Affirmative, issuer not authorized | No: the published        |
-     | (including an explicit denial)     | decision is final        |
-     +------------------------------------+--------------------------+
-     | Indeterminate                      | No: it may hide a        |
-     |                                    | published decision       |
-     +------------------------------------+--------------------------+
-     | Negative: nothing published        | Yes                      |
-     | through that channel               |                          |
-     +------------------------------------+--------------------------+
+        +=========================+===============================+
+        | Outcome of that method  | Effect on the category        |
+        +=========================+===============================+
+        | Affirmative, issuer     | Satisfies it, unless another  |
+        | authorized              | method in the category yields |
+        |                         | one of the next two outcomes  |
+        +-------------------------+-------------------------------+
+        | Affirmative, issuer not | Final: the category is not    |
+        | authorized (including   | satisfied, whatever other     |
+        | an explicit denial)     | methods yield                 |
+        +-------------------------+-------------------------------+
+        | Indeterminate           | Final, as above: it may hide  |
+        |                         | a published decision          |
+        +-------------------------+-------------------------------+
+        | Negative: nothing       | None: other methods in the    |
+        | published through that  | category decide               |
+        | channel                 |                               |
+        +-------------------------+-------------------------------+
 
                                   Table 1
 

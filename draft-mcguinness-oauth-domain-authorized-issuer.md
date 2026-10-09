@@ -2390,25 +2390,34 @@ This appendix is non-normative and will be removed before publication.
   * Make the DNS TXT record an explicit opt-in: a namespace with no
     record is Negative, with no HTTPS fallback, in both lookup modes.
     The HTTPS-only lookup mode fetches from a dedicated host,
-    `oauth-issuer-policy.{A}`, instead of the apex, and uses the TXT
-    record only as the opt-in. Policy fetches no longer follow
-    redirects.
+    `oauth-issuer-policy.{A}`, instead of the apex; its opt-in is a
+    record whose `uri=` names the default URL there. Policy fetches
+    no longer follow redirects, and a 404 or 410 from a location a
+    record names is Indeterminate.
   * Remove the `mode` member and `mode=` directive (monitor mode),
     which admitted more issuers than publishing nothing.
   * An entry without `tenant` no longer matches assertions that
     carry a `tenant` claim.
   * Add the `key=` directive, which pins the `signed_policy` signing
-    key for a DNS pointer record.
-  * Rewrite caching: an explicit stale-if-error bound, a one-hour cap
-    on DNS results that are not DNSSEC-validated, and a one-hour cap
-    on Negative caching.
+    key for a pointer record, including the HTTPS-only opt-in; allow
+    two values for key rollover.
+  * Rewrite caching: binding freshness lifetimes, a 24-hour absolute
+    ceiling, an explicit stale-if-error bound, a one-hour cap on DNS
+    results that are not DNSSEC-validated, a one-hour cap on Negative
+    caching, and 304 renewal only under the same `uri=` and `key=`.
   * Sketch a federation-bound Issuer Authorization Policy as a
     non-normative future extension.
   * Define signed-policy processing and register the
     `issuer-authorization-policy+jwt` media type in this document
-    (moved from the framework); describe how a spoofed negative
-    answer can suppress a published denial when another namespace
-    method is configured.
+    (moved from the framework), including the outcome for a consumer
+    without a verification key and the binding a `key=` pin provides;
+    describe how a spoofed negative answer can suppress a published
+    denial when another namespace method is configured.
+  * Allow at most one `domain_authorized_issuer` object in a Trust
+    Policy; cap published policies at 100 entries; require narrowing
+    extensions to use a new version token or a member `crit` can
+    name. The SSRF rules now live in the framework's outbound-fetch
+    requirements.
   * Correct the relationship to the Email Verification Protocol,
     whose relying party also checks its record at verification time;
     add SAML scope metadata, bilateral domain verification, FastFed,

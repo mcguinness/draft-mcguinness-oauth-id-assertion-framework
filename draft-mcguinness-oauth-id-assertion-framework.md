@@ -2752,10 +2752,11 @@ This appendix is non-normative and will be removed before publication.
 -01
 
   * Align federation references with OpenID Federation 1.1 and
-    OpenID Federation for OpenID Connect 1.1; correct Trust Mark
-    type and issuer matching and permit explicit trust anchor
-    allowlists in place of a pinned Trust Mark issuer; require trust
-    in the Trust Mark Issuer to chain to the leaf's trust anchor.
+    OpenID Federation for OpenID Connect 1.1. Rename the Trust Mark
+    requirement member `id` to `trust_mark_type` and correct issuer
+    matching; permit explicit trust anchor allowlists in place of a
+    pinned Trust Mark issuer; require trust in the Trust Mark Issuer
+    to chain to the leaf's trust anchor.
   * Include `signed_jwks_uri` and an extension path for
     federation-bound key sources, with metadata precedence and
     fail-closed resolution. Well-Known Binding is the expected
@@ -2764,27 +2765,31 @@ This appendix is non-normative and will be removed before publication.
   * Remove `signed_policy` and the `trust-policy+jwt` media type
     from the Trust Policy, which the Resource Authorization Server
     enforces from its own configuration and clients use only for
-    discovery; object-level integrity now applies only to the Issuer
-    Authorization Policy. Add trust anchor compromise guidance.
+    discovery. Move signed-policy processing (including its rollback
+    rule), the issuer-policy `crit` placement rule, the note on
+    critical directives for the DNS record form, and the
+    `issuer-authorization-policy+jwt` media type to {{DAI}}; keep
+    Trust Policy `crit` handling here. Define decision-affecting
+    members in the Terminology and record them in the members
+    registry; add a Trust Method checklist item for signer and key
+    binding. Add trust anchor compromise guidance.
   * Forbid Authority-Holder-published waivers such as a monitoring
     mode; define within-category or-semantics, with a Subject
     Authority's published decision final for its namespace; map
     `openid_federation` outcomes onto lookup states explicitly.
-  * Pin UTS #46 nontransitional processing for internationalized
-    domains; add outbound-fetch requirements and a security
-    consideration on key binding; define decision-affecting members
-    and a signed-policy rollback rule.
-  * Move signed-policy processing, the issuer-policy `crit` placement
-    rule, and the `issuer-authorization-policy+jwt` media type to
-    {{DAI}}; keep Trust Policy `crit` handling here and define
-    decision-affecting members in the Terminology; add a Trust Method
-    checklist item for signer and key binding.
-  * Open the Introduction with the cost of per-relationship issuer
-    configuration and the nOAuth attack class; require an Assertion
+  * Pin UTS #46 nontransitional processing, with each flag stated,
+    for internationalized domains. Add outbound-fetch requirements,
+    which now hold the SSRF rules formerly in {{DAI}}, and a
+    security consideration on key binding.
+  * Recommend client authentication before Trust Method lookups and
+    rejection of a JWT-bearer assertion whose `typ` names another
+    JWT application; return `invalid_grant` for a rejection at any
+    processing step.
+  * Add the cost of per-relationship issuer configuration and the
+    nOAuth attack class to the Introduction. Require an Assertion
     Issuer that serves several tenants under one issuer identifier to
-    send `tenant` in every ID-JAG for a Resource Authorization Server
-    whose Trust Policy lists a namespace method; reword the Trust
-    Policy Discovery deferral.
+    send `tenant` in every ID-JAG. Reword the Trust Policy Discovery
+    deferral.
 
 -00
 

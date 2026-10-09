@@ -628,12 +628,12 @@ another method decide ({{DAI}} §DNS Integrity and Compromise).
 In summary, for a `subject_namespace_authorization` method that
 consults the Subject Authority's own publication:
 
-| Outcome of that method | Can another method in the category satisfy it? |
+| Outcome of that method | Effect on the category |
 |-|-|
-| Affirmative, issuer authorized | Not needed: the category is satisfied |
-| Affirmative, issuer not authorized (including an explicit denial) | No: the published decision is final |
-| Indeterminate | No: it may hide a published decision |
-| Negative: nothing published through that channel | Yes |
+| Affirmative, issuer authorized | Satisfies it, unless another method in the category yields one of the next two outcomes |
+| Affirmative, issuer not authorized (including an explicit denial) | Final: the category is not satisfied, whatever other methods yield |
+| Indeterminate | Final, as above: it may hide a published decision |
+| Negative: nothing published through that channel | None: other methods in the category decide |
 
 ## Open-World Delegation and Bounded Transitivity {#open-world}
 

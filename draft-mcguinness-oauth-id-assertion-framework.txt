@@ -226,7 +226,11 @@ Table of Contents
    all the Assertion Issuers I trust"; it says "these are the conditions
    an Assertion Issuer must satisfy."  Conditions are evaluated by
    validating concrete evidence (a federation trust chain or a domain-
-   authorized issuer record) when an assertion is presented.
+   authorized issuer record) when an assertion is presented.  Despite
+   its name, the Trust Policy is published by the Resource Authorization
+   Server, not by an Assertion Issuer; a Subject Authority authorizes
+   issuers in a separate document, the Issuer Authorization Policy
+   ([DAI]).
 
    This document defines the Authority Delegation Model (Section 3) and
    uses it to profile OAuth identity assertions.  It is consumed by
@@ -463,7 +467,9 @@ Table of Contents
       value in OAuth Authorization Server Metadata [RFC8414], OpenID
       Connect Discovery [OIDC-DISCOVERY], and the federation entity
       identifier in [OIDF-FEDERATION].  The Assertion Issuer is the
-      Delegate.
+      Delegate.  It is a separate role from the client that presents the
+      assertion, but one party, such as an agent platform, can play
+      both.
 
    Subject Authority:  The Authority Holder for a Subject Identifier
       namespace.  The term also names the identifier of that authority,
@@ -647,6 +653,30 @@ Table of Contents
    authenticated (for example, DNS without DNSSEC), an attacker who
    forges one can turn a published denial into a Negative and let
    another method decide ([DAI] §DNS Integrity and Compromise).
+
+   In summary, for a subject_namespace_authorization method that
+   consults the Subject Authority's own publication:
+
+        +=========================+===============================+
+        | Outcome of that method  | Effect on the category        |
+        +=========================+===============================+
+        | Affirmative, issuer     | Satisfies it, unless another  |
+        | authorized              | method in the category yields |
+        |                         | one of the next two outcomes  |
+        +-------------------------+-------------------------------+
+        | Affirmative, issuer not | Final: the category is not    |
+        | authorized (including   | satisfied, whatever other     |
+        | an explicit denial)     | methods yield                 |
+        +-------------------------+-------------------------------+
+        | Indeterminate           | Final, as above: it may hide  |
+        |                         | a published decision          |
+        +-------------------------+-------------------------------+
+        | Negative: nothing       | None: other methods in the    |
+        | published through that  | category decide               |
+        | channel                 |                               |
+        +-------------------------+-------------------------------+
+
+                                  Table 1
 
 3.3.  Open-World Delegation and Bounded Transitivity
 
@@ -2093,7 +2123,7 @@ Table of Contents
    |                                 | subject's namespace owner      |
    +---------------------------------+--------------------------------+
 
-                                 Table 1
+                                 Table 2
 
 10.1.5.  Identity Assertion Issuer Trust Methods Registry
 
@@ -2203,7 +2233,7 @@ Table of Contents
    |                                        | process the document     |
    +----------------------------------------+--------------------------+
 
-                                  Table 2
+                                  Table 3
 
 10.2.  Subject Authority Extraction Procedures Registry
 
@@ -2249,7 +2279,7 @@ Table of Contents
    |                   |                | this document  |            |
    +-------------------+----------------+----------------+------------+
 
-                                 Table 3
+                                 Table 4
 
 11.  References
 
@@ -2922,6 +2952,10 @@ Appendix F.  Document History
       Require an Assertion Issuer that serves several tenants under one
       issuer identifier to send tenant in every ID-JAG.  Reword the
       Trust Policy Discovery deferral.
+
+   *  Summarize in a table what a namespace method's outcome leaves to
+      other methods; say who publishes the Trust Policy and that one
+      party can be both Assertion Issuer and client.
 
    -00
 

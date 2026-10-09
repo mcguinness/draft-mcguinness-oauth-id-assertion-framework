@@ -1496,25 +1496,63 @@ appear in all capitals, as shown here.<a href="#section-1.2-1" class="pilcrow">�
       <h2 id="name-terminology">
 <a href="#section-2" class="section-number selfRef">2. </a><a href="#name-terminology" class="section-name selfRef">Terminology</a>
       </h2>
-<p id="section-2-1">This document uses terminology from <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>: Resource
-Authorization Server, Assertion Issuer, Subject Authority, Trust
-Policy, Issuer Authorization Policy, Authority Holder, Delegate,
-Delegation Artifact, Validator, Trust Method, Consumer, and
-Decision-affecting member. Subject Identifier formats follow
-<span>[<a href="#RFC9493" class="cite xref">RFC9493</a>]</span>.<a href="#section-2-1" class="pilcrow">¶</a></p>
-<p id="section-2-2">Two terms are specific to this document:<a href="#section-2-2" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-2-3">
-        <dt id="section-2-3.1">Domain-Authorized Issuer (DAI):</dt>
-        <dd style="margin-left: 1.5em" id="section-2-3.2">
-          <p id="section-2-3.2.1">The Trust Method defined by this document, in which a Subject
+<p id="section-2-1">This document uses terminology from <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>, which
+defines each term. In brief:<a href="#section-2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-2-2.1">
+          <p id="section-2-2.1.1"><strong>Subject Authority</strong>: the owner of a subject namespace, such as
+the DNS domain <code>acme.example</code> for <code>alice@acme.example</code>.<a href="#section-2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-2-2.2">
+          <p id="section-2-2.2.1"><strong>Assertion Issuer</strong>: the authorization server that issues
+identity assertions, typically an organization's Identity Provider.<a href="#section-2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-2-2.3">
+          <p id="section-2-2.3.1"><strong>Resource Authorization Server</strong>: the authorization server that
+receives an identity assertion and decides whether to accept it.<a href="#section-2-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-2-2.4">
+          <p id="section-2-2.4.1"><strong>Trust Policy</strong>: the document in which a Resource Authorization
+Server states the Trust Methods it requires.<a href="#section-2-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-2-2.5">
+          <p id="section-2-2.5.1"><strong>Trust Method</strong>: a procedure for evaluating evidence about an
+Assertion Issuer. This document defines one.<a href="#section-2-2.5.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-2-2.6">
+          <p id="section-2-2.6.1"><strong>Issuer Authorization Policy</strong>: the document in which a Subject
+Authority lists the Assertion Issuers it authorizes
+(<a href="#dii-document" class="auto internal xref">Section 3</a>).<a href="#section-2-2.6.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-2-2.7">
+          <p id="section-2-2.7.1"><strong>Consumer</strong>: a party that retrieves and processes a policy
+document.<a href="#section-2-2.7.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-2-2.8">
+          <p id="section-2-2.8.1"><strong>Decision-affecting member</strong>: a policy member whose value can
+change whether a consumer accepts an assertion.<a href="#section-2-2.8.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-2-2.9">
+          <p id="section-2-2.9.1"><strong>Authority Holder</strong>, <strong>Delegate</strong>, <strong>Delegation Artifact</strong>, and
+<strong>Validator</strong>: the framework's general names for the Subject
+Authority, Assertion Issuer, Issuer Authorization Policy, and
+Resource Authorization Server.<a href="#section-2-2.9.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-2-3">Subject Identifier formats follow <span>[<a href="#RFC9493" class="cite xref">RFC9493</a>]</span>.<a href="#section-2-3" class="pilcrow">¶</a></p>
+<p id="section-2-4">Two terms are specific to this document:<a href="#section-2-4" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2-5">
+        <dt id="section-2-5.1">Domain-Authorized Issuer (DAI):</dt>
+        <dd style="margin-left: 1.5em" id="section-2-5.2">
+          <p id="section-2-5.2.1">The Trust Method defined by this document, in which a Subject
 Authority publishes, over DNS and HTTPS, the set of Assertion
-Issuers it authorizes for its namespace.<a href="#section-2-3.2.1" class="pilcrow">¶</a></p>
+Issuers it authorizes for its namespace.<a href="#section-2-5.2.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-2-3.3">Publisher:</dt>
-        <dd style="margin-left: 1.5em" id="section-2-3.4">
-          <p id="section-2-3.4.1">The Subject Authority, or a policy host acting for it, when it
-publishes a DNS record or an Issuer Authorization Policy.<a href="#section-2-3.4.1" class="pilcrow">¶</a></p>
+<dt id="section-2-5.3">Publisher:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-5.4">
+          <p id="section-2-5.4.1">The Subject Authority, or a policy host acting for it, when it
+publishes a DNS record or an Issuer Authorization Policy.<a href="#section-2-5.4.1" class="pilcrow">¶</a></p>
 </dd>
       <dd class="break"></dd>
 </dl>
@@ -1939,7 +1977,7 @@ fetches only from the dedicated policy host.<a href="#section-4.1-1" class="pilc
               <td class="text-left" rowspan="1" colspan="1">None (carried in TXT)</td>
               <td class="text-left" rowspan="1" colspan="1">DNS control of <code>{A}</code>
 </td>
-              <td class="text-left" rowspan="1" colspan="1">Common case: authorize an issuer for a namespace with no rich policy</td>
+              <td class="text-left" rowspan="1" colspan="1">Common case: authorize an issuer that has its own issuer identifier, with no rich policy; cannot carry <code>tenant</code> (<a href="#mechanism-limits" class="auto internal xref">Section 9.7</a>)</td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">2: Pointer</td>
@@ -2098,9 +2136,11 @@ across records.<a href="#section-4.3-9.6.1" class="pilcrow">¶</a></p>
           <dd class="break"></dd>
 <dt id="section-4.3-9.7"><code>key=THUMBPRINT</code></dt>
           <dd style="margin-left: 1.5em" id="section-4.3-9.8">
-            <p id="section-4.3-9.8.1"><span class="bcp14">OPTIONAL</span>. The JWK SHA-256 thumbprint <span>[<a href="#RFC7638" class="cite xref">RFC7638</a>]</span>, base64url-encoded
-without padding, of the key that signs the <code>signed_policy</code> of the
-document named by <code>uri=</code>. Valid only in a record that carries
+            <p id="section-4.3-9.8.1"><span class="bcp14">OPTIONAL</span>. The JWK SHA-256 thumbprint <span>[<a href="#RFC7638" class="cite xref">RFC7638</a>]</span> (a hash of the
+public key's JSON Web Key form), base64url-encoded without padding,
+of the key that signs the <code>signed_policy</code> of the document named by
+<code>uri=</code>. This is the Subject Authority's policy-signing key, not an
+Assertion Issuer's assertion-signing key. Valid only in a record that carries
 <code>uri=</code>; in any other record it is malformed. At most two distinct
 <code>key=</code> values may appear across the remaining records, so that a
 Subject Authority can publish an old and a new key during a
@@ -2110,7 +2150,8 @@ header carries the signing key in its <code>jwk</code> parameter (<span>[<a href
 Section 4.1.3), the thumbprint of that key <span class="bcp14">MUST</span> equal one of these
 values, and
 the signature <span class="bcp14">MUST</span> verify with it (<a href="#signed-policy" class="auto internal xref">Section 3.1</a>); a document
-that fails any of these checks is malformed. A <code>key=</code> directive also
+that fails any of these checks is malformed, and so Indeterminate
+(<a href="#dii-failures" class="auto internal xref">Section 5.1</a>). A <code>key=</code> directive also
 makes the consumer process the document as one whose object-level
 integrity its local policy requires (<a href="#signed-policy" class="auto internal xref">Section 3.1</a>): the signed
 JWT <span class="bcp14">MUST</span>
@@ -2279,7 +2320,8 @@ verified as that directive requires.<a href="#section-5-3.2.5.2.1" class="pilcro
           </ul>
 <p id="section-5-3.2.6">
 c. Otherwise (no <code>uri=</code> present), construct a virtual Issuer
-   Authorization Policy with <code>subject_authority</code> set to <code>A</code> and
+   Authorization Policy, one built from the records rather than
+   fetched, with <code>subject_authority</code> set to <code>A</code> and
    one entry in <code>authorized_issuers</code> for each distinct <code>issuer=</code>
    value across the remaining records. Entry order carries no
    semantics (<a href="#dii-verification" class="auto internal xref">Section 6</a>); the deduplicated values form
@@ -2497,6 +2539,41 @@ satisfied and, as a result, the cross-category combination rule
 (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Cross-Category Combination Rule) is not met,
 the Resource Authorization Server <span class="bcp14">MUST</span> reject the assertion with an
 OAuth <code>invalid_grant</code> error.<a href="#section-6-3" class="pilcrow">¶</a></p>
+<p id="section-6-4">Step 4b, for a grant profile that carries <code>tenant</code> (such as ID-JAG):<a href="#section-6-4" class="pilcrow">¶</a></p>
+<table class="center" id="table-4">
+        <caption><a href="#table-4" class="selfRef">Table 4</a></caption>
+<thead>
+          <tr>
+            <th class="text-left" rowspan="1" colspan="1">Entry has tenant</th>
+            <th class="text-left" rowspan="1" colspan="1">Assertion has tenant</th>
+            <th class="text-left" rowspan="1" colspan="1">Match</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">No</td>
+            <td class="text-left" rowspan="1" colspan="1">No</td>
+            <td class="text-left" rowspan="1" colspan="1">Yes</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">No</td>
+            <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            <td class="text-left" rowspan="1" colspan="1">No: an entry without <code>tenant</code> is not a wildcard</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            <td class="text-left" rowspan="1" colspan="1">No</td>
+            <td class="text-left" rowspan="1" colspan="1">No</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            <td class="text-left" rowspan="1" colspan="1">Yes</td>
+            <td class="text-left" rowspan="1" colspan="1">Only if the values are equal</td>
+          </tr>
+        </tbody>
+      </table>
+<p id="section-6-6">Under a grant profile that carries no <code>tenant</code> claim, an assertion is
+treated as carrying none, so only entries without <code>tenant</code> match.<a href="#section-6-6" class="pilcrow">¶</a></p>
 <div id="observe-before-enforce">
 <section id="section-6.1">
         <h3 id="name-observing-before-enforcing">
@@ -2592,6 +2669,18 @@ an Indeterminate cache entry <span class="bcp14">MUST NOT</span> be treated as a
 never satisfies the Trust Method.<a href="#section-7-2.7.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
+<p id="section-7-3">After a Subject Authority removes an issuer, each cached entry at a
+consumer remains usable for its remaining freshness lifetime plus up
+to 1 hour of stale-if-error use, never beyond the absolute ceiling.
+The overall revocation window is longer than one entry's lifetime.
+The change has to reach every authoritative server. Upstream caches
+can also keep serving the old authorization when a consumer
+refreshes: recursive resolvers for the old record's full advertised
+TTL (<span>[<a href="#RFC1035" class="cite xref">RFC1035</a>]</span> Section 4.1.3), and HTTP caches for the document's
+freshness lifetime. The window is therefore up to the propagation
+time plus those upstream lifetimes, plus one consumer freshness
+lifetime and the stale-if-error hour. Steady-state lifetimes of 1
+hour or less, as recommended above, keep it to a few hours.<a href="#section-7-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="trust-methods">
@@ -3005,8 +3094,9 @@ change of policy host.<a href="#section-9.5-2.3.1" class="pilcrow">¶</a></p>
           <li class="normal" id="section-9.5-2.4">
             <p id="section-9.5-2.4.1">A Subject Authority whose policy host is shared infrastructure, or
 is operated by a provider, can publish a <code>key=</code> thumbprint
-(<a href="#dii-dns-record" class="auto internal xref">Section 4.3</a>) so that the host cannot alter the policy. The
-host can still withhold the policy, and can replay an older signed
+(<a href="#dii-dns-record" class="auto internal xref">Section 4.3</a>) so that the host cannot alter the policy,
+provided the Subject Authority, not the host, holds the signing
+key. The host can still withhold the policy, and can replay an older signed
 policy whose <code>exp</code> has not passed to a consumer that holds no
 cached copy, since the <code>iat</code> check of <a href="#signed-policy" class="auto internal xref">Section 3.1</a> needs one.
 A short <code>exp</code> bounds that replay; removing a hostile host takes a
@@ -3498,8 +3588,8 @@ be registered unless its specification also defines a new version
 token (<a href="#dii-dns-record" class="auto internal xref">Section 4.3</a>), so that consumers that do not implement
 it ignore the record rather than the directive.<a href="#section-12.4-3" class="pilcrow">¶</a></p>
 <p id="section-12.4-4">Initial entries:<a href="#section-12.4-4" class="pilcrow">¶</a></p>
-<table class="center" id="table-4">
-          <caption><a href="#table-4" class="selfRef">Table 4</a></caption>
+<table class="center" id="table-5">
+          <caption><a href="#table-5" class="selfRef">Table 5</a></caption>
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">Directive Name</th>
@@ -3579,8 +3669,8 @@ top-level member its specification defines alongside it, in <code>crit</code>;
 <code>crit</code> does not reach members of <code>authorized_issuers</code> entries.<a href="#section-12.5-3" class="pilcrow">¶</a></p>
 <p id="section-12.5-4">Initial entries; all are decision-affecting except <code>last_updated</code> and
 <code>signed_policy</code>:<a href="#section-12.5-4" class="pilcrow">¶</a></p>
-<table class="center" id="table-5">
-          <caption><a href="#table-5" class="selfRef">Table 5</a></caption>
+<table class="center" id="table-6">
+          <caption><a href="#table-6" class="selfRef">Table 6</a></caption>
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">Member Name</th>
@@ -4648,6 +4738,12 @@ and DNS-based OpenID discovery to the related mechanisms; bound
 the comparison between DNS control and control of email
 recovery; state that the Trust Method targets organizational
 namespaces.<a href="#appendix-D-3.9.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-D-3.10">
+          <p id="appendix-D-3.10.1">Gloss the terms borrowed from the framework; add a tenant
+matching table and the overall revocation window, including
+upstream caches; say which key
+<code>key=</code> pins.<a href="#appendix-D-3.10.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="appendix-D-4">-00<a href="#appendix-D-4" class="pilcrow">¶</a></p>

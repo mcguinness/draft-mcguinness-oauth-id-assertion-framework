@@ -1526,7 +1526,11 @@ criteria. The Resource Authorization Server does not say "these are
 all the Assertion Issuers I trust"; it says "these are the conditions
 an Assertion Issuer must satisfy." Conditions are evaluated by
 validating concrete evidence (a federation trust chain or a
-domain-authorized issuer record) when an assertion is presented.<a href="#section-1-5" class="pilcrow">¶</a></p>
+domain-authorized issuer record) when an assertion is presented.
+Despite its name, the Trust Policy is published by the Resource
+Authorization Server, not by an Assertion Issuer; a Subject Authority
+authorizes issuers in a separate document, the Issuer Authorization
+Policy (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span>).<a href="#section-1-5" class="pilcrow">¶</a></p>
 <p id="section-1-6">This document defines the Authority Delegation Model
 (<a href="#delegation-model" class="auto internal xref">Section 3</a>) and uses it to profile OAuth identity
 assertions. It is consumed by <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>, which defines one
@@ -1843,7 +1847,9 @@ receiving the assertion grant." The RAS is the Validator.<a href="#section-2-5.2
 the JWT <code>iss</code> claim. The same string is the <code>issuer</code> value in
 OAuth Authorization Server Metadata <span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span>, OpenID Connect
 Discovery <span>[<a href="#OIDC-DISCOVERY" class="cite xref">OIDC-DISCOVERY</a>]</span>, and the federation entity identifier
-in <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span>. The Assertion Issuer is the Delegate.<a href="#section-2-5.4.1" class="pilcrow">¶</a></p>
+in <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span>. The Assertion Issuer is the Delegate.
+It is a separate role from the client that presents the assertion,
+but one party, such as an agent platform, can play both.<a href="#section-2-5.4.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-2-5.5">Subject Authority:</dt>
@@ -2071,6 +2077,35 @@ supply evidence. Where that channel's negative answers are not
 authenticated (for example, DNS without DNSSEC), an attacker who
 forges one can turn a published denial into a Negative and let
 another method decide (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §DNS Integrity and Compromise).<a href="#section-3.2.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.2.2-4">In summary, for a <code>subject_namespace_authorization</code> method that
+consults the Subject Authority's own publication:<a href="#section-3.2.2-4" class="pilcrow">¶</a></p>
+<table class="center" id="table-1">
+            <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
+<thead>
+              <tr>
+                <th class="text-left" rowspan="1" colspan="1">Outcome of that method</th>
+                <th class="text-left" rowspan="1" colspan="1">Effect on the category</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Affirmative, issuer authorized</td>
+                <td class="text-left" rowspan="1" colspan="1">Satisfies it, unless another method in the category yields one of the next two outcomes</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Affirmative, issuer not authorized (including an explicit denial)</td>
+                <td class="text-left" rowspan="1" colspan="1">Final: the category is not satisfied, whatever other methods yield</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Indeterminate</td>
+                <td class="text-left" rowspan="1" colspan="1">Final, as above: it may hide a published decision</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Negative: nothing published through that channel</td>
+                <td class="text-left" rowspan="1" colspan="1">None: other methods in the category decide</td>
+              </tr>
+            </tbody>
+          </table>
 </section>
 </div>
 </section>
@@ -3862,8 +3897,8 @@ clear what evidence satisfies it. Categories that merely rename or
 subdivide an existing category <span class="bcp14">SHOULD</span> be rejected.<a href="#section-10.1.4-4" class="pilcrow">¶</a></p>
 <p id="section-10.1.4-5">Initial entries, each with Change Controller IETF and Specification
 Document this document:<a href="#section-10.1.4-5" class="pilcrow">¶</a></p>
-<table class="center" id="table-1">
-            <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
+<table class="center" id="table-2">
+            <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Category Name</th>
@@ -4015,8 +4050,8 @@ unrecognized members are ignored; a member requiring fail-closed
 handling needs the criticality mechanism of <a href="#critical-members" class="auto internal xref">Section 4.5</a>).<a href="#section-10.1.6-5" class="pilcrow">¶</a></p>
 <p id="section-10.1.6-6">Initial entries, each decision-affecting, with Change Controller IETF
 and Specification Document this document:<a href="#section-10.1.6-6" class="pilcrow">¶</a></p>
-<table class="center" id="table-2">
-            <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
+<table class="center" id="table-3">
+            <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Member Name</th>
@@ -4105,8 +4140,8 @@ comparison semantics per <a href="#subject-authority-determination" class="auto 
 expected to register additional entries here when those identifiers
 have a well-defined namespace authority.<a href="#section-10.2-6" class="pilcrow">¶</a></p>
 <p id="section-10.2-7">Initial entries:<a href="#section-10.2-7" class="pilcrow">¶</a></p>
-<table class="center" id="table-3">
-          <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
+<table class="center" id="table-4">
+          <caption><a href="#table-4" class="selfRef">Table 4</a></caption>
 <thead>
             <tr>
               <th class="text-left" rowspan="1" colspan="1">Subject Identifier Format</th>
@@ -4892,6 +4927,11 @@ account key. Require an Assertion
 Issuer that serves several tenants under one issuer identifier to
 send <code>tenant</code> in every ID-JAG. Reword the Trust Policy Discovery
 deferral.<a href="#appendix-F-3.7.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-F-3.8">
+          <p id="appendix-F-3.8.1">Summarize in a table what a namespace method's outcome leaves to
+other methods; say who publishes the Trust Policy and that one
+party can be both Assertion Issuer and client.<a href="#appendix-F-3.8.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="appendix-F-4">-00<a href="#appendix-F-4" class="pilcrow">¶</a></p>

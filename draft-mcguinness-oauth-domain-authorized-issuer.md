@@ -151,8 +151,8 @@ Issuers it authorizes for its namespace. The DNS record can carry
 the authorized issuers inline (for simple deployments) or point at
 an HTTPS-hosted JSON document containing richer policy (validity
 windows, format restrictions, tenant binding, multiple issuers).
-A Resource Authorization Server that does not take policy content
-from DNS can instead fetch the policy from a dedicated HTTPS host,
+A Resource Authorization Server that does not take issuers or a policy
+location from DNS can instead fetch the policy from a dedicated HTTPS host,
 `oauth-issuer-policy.{domain}`. In both cases the DNS record is the
 Subject Authority's explicit opt-in: a namespace that publishes no
 record is not covered.
@@ -534,9 +534,9 @@ Authority chooses based on operational constraints; all carry the
 same document model ({{dii-document}}), although the inline form
 expresses only part of it ({{mechanism-limits}}). The canonical
 lookup procedure ({{dii-lookup}}) consults only DNS and the `uri=`
-target a DNS record names; the dedicated policy host is consulted
-only by the HTTPS-only lookup mode
-({{trust-method-https-authorized-issuer}}).
+target a DNS record names, which can be the dedicated policy host;
+the HTTPS-only lookup mode ({{trust-method-https-authorized-issuer}})
+fetches only from the dedicated policy host.
 
 | Channel | DNS form | Document | Authority binding | When to use |
 |-|-|-|-|-|
@@ -763,8 +763,8 @@ is Negative, and no other channel is consulted.
 This is the canonical procedure used by the
 `domain_authorized_issuer` Trust Method. The HTTPS-only lookup mode
 defined in {{trust-method-https-authorized-issuer}} uses the DNS
-record only as an opt-in and fetches the policy only from the
-dedicated policy host.
+record as the opt-in and for any `key=` pin, and fetches the policy
+only from the dedicated policy host.
 
 1. Query the DNS TXT resource record set at
    `_oauth-issuer-policy.{A}`. Classify the response as:
@@ -1110,7 +1110,8 @@ member is used only for the HTTPS-only deployment variant in
 
 ## HTTPS-Only Deployment Variant {#trust-method-https-authorized-issuer}
 
-Some deployments will not take policy content from DNS. Those
+Some deployments will not take issuers or a policy location from
+DNS. Those
 deployments can use the same Issuer Authorization Policy document
 format, retrieved over HTTPS from the Subject Authority's dedicated
 policy host ({{dedicated-policy-host}}), with the DNS record serving
@@ -1207,7 +1208,8 @@ selects one lookup mode:
   ({{dii-lookup}}).
 
 - **HTTPS-only lookup** is an explicit deployment variant. Use it
-  when local policy distrusts policy content published in DNS and
+  when local policy distrusts issuers or policy locations published in
+  DNS and
   requires the policy itself to come over TLS-authenticated HTTPS
   from the dedicated host. The DNS record is still required, as the
   opt-in, and its `uri=` names the default URL; its inline issuers

@@ -450,7 +450,7 @@ is explicitly established.
 The verification key MUST be resolved through a channel independent
 of the one that carried the policy document, and MUST be one of:
 
-- the key whose thumbprint the Subject Authority publishes in the
+- a key whose thumbprint the Subject Authority publishes in a
   `key=` directive of its DNS pointer record ({{dii-dns-record}}). A
   `key=` thumbprint binds the document to what the consumer already
   trusts DNS for: it defeats substitution by the policy host or a
@@ -651,11 +651,14 @@ across records.
 : OPTIONAL. The JWK SHA-256 thumbprint {{RFC7638}}, base64url-encoded
 without padding, of the key that signs the `signed_policy` of the
 document named by `uri=`. Valid only in a record that carries
-`uri=`; in any other record it is malformed. More than one distinct
-`key=` value across the remaining records is malformed. When
+`uri=`; in any other record it is malformed. At most two distinct
+`key=` values may appear across the remaining records, so that a
+Subject Authority can publish an old and a new key during a
+rollover; more than two is malformed. When
 present, the fetched document MUST carry a `signed_policy` whose JWS
 header carries the signing key in its `jwk` parameter ({{RFC7515}}
-Section 4.1.3), the thumbprint of that key MUST equal this value, and
+Section 4.1.3), the thumbprint of that key MUST equal one of these
+values, and
 the signature MUST verify with it ({{signed-policy}}); a document
 that fails any of these checks is malformed. A `key=` directive also
 makes the consumer process the document as one whose object-level
@@ -864,8 +867,8 @@ The Indeterminate state covers:
   record; all recognized records discarded for `authority=` mismatch;
   more than one `authority=` in a record; a recognized record with
   neither `uri=` nor `issuer=`; multiple distinct `uri=` values; a
-  `key=` directive in a record without `uri=`, or more than one
-  distinct `key=` value; an empty or otherwise malformed directive.
+  `key=` directive in a record without `uri=`, or more than two
+  distinct `key=` values; an empty or otherwise malformed directive.
 - **HTTPS document validation**: body that is not a syntactically
   valid Issuer Authorization Policy; `subject_authority` that does
   not match `A`; a document that fails the verification a `key=`
@@ -1135,8 +1138,8 @@ When evaluated, the Resource Authorization Server MUST:
 
 2. Query `_oauth-issuer-policy.{A}` and classify the response as in
    steps 1 and 2a of {{dii-lookup}}; more than one distinct `uri=`
-   value, or more than one distinct `key=` value, across the remaining
-   records is `malformed`. A `negative-authoritative` response is
+   value, or more than two distinct `key=` values, across the
+   remaining records is `malformed`. A `negative-authoritative` response is
    Negative. The Subject Authority has opted in to this mode only if
    a remaining record carries a `uri=` whose value is exactly the
    default URL ({{dedicated-policy-host}}); otherwise the outcome is
@@ -1599,6 +1602,10 @@ infrastructure. Specific guidance:
   entry only after the old issuer is decommissioned and caches have
   expired; overlapping validity windows (`valid_from`/`valid_until`)
   make the transition observable and bounded.
+- **Signing-key rollover.** To roll over a `key=`-pinned signing
+  key, publish the new thumbprint beside the old one, re-sign the
+  policy with the new key, and remove the old thumbprint once caches
+  have expired.
 - **Withdrawal.** To withdraw every authorization, remove the TXT
   record (Negative) or publish an empty `authorized_issuers` array
   (explicit denial). Deleting the policy document instead makes

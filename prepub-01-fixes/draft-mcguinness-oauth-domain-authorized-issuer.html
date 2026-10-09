@@ -2737,10 +2737,9 @@ matters; what changes is that an attacker must also obtain a
 certificate for the host, not only answer a TXT query.<a href="#section-8.2-8.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.2-8.2">
-            <p id="section-8.2-8.2.1">Rejects the inline DNS form (where the policy is carried in the
-TXT record itself) and the DNS pointer form (where DNS points
-at a different HTTPS host). Both require trusting DNS for the
-authoritative selection of either issuers or policy host.<a href="#section-8.2-8.2.1" class="pilcrow">¶</a></p>
+            <p id="section-8.2-8.2.1">Ignores inline issuers and any <code>uri=</code> other than the default URL.
+Using either would require trusting DNS to select the issuers or
+the policy host.<a href="#section-8.2-8.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-8.2-8.3">
             <p id="section-8.2-8.3.1">Requires the Subject Authority to provision the dedicated host,
@@ -2875,7 +2874,8 @@ the primary defenses (<a href="#transport-integrity" class="auto internal xref">
           <li class="normal" id="section-9.3-2.4">
             <p id="section-9.3-2.4.1">The policy is served from the Subject Authority's dedicated
 host, so the risk is that of whoever operates that host
-(<a href="#third-party-policy-hosts" class="auto internal xref">Section 9.5</a>).<a href="#section-9.3-2.4.1" class="pilcrow">¶</a></p>
+(<a href="#third-party-policy-hosts" class="auto internal xref">Section 9.5</a>), unless a <code>key=</code> directive pins the
+policy's signing key.<a href="#section-9.3-2.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.3-2.5">
             <p id="section-9.3-2.5.1">Because the dedicated host is a separate name, a Subject

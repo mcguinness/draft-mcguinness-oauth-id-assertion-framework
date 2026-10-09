@@ -2187,8 +2187,8 @@ specifies. Repeated
 Indeterminate states across consecutive lookups <span class="bcp14">MUST NOT</span> extend
 the effective cache lifetime beyond the profile's stated maximum;
 if the cache expires while the live channel remains
-Indeterminate, the Trust Method is not satisfied, and the decision
-follows the combination rule above.<a href="#section-3.4.2-3" class="pilcrow">¶</a></p>
+Indeterminate, the Trust Method is not satisfied, and the access
+decision follows the fail-closed rule above (<a href="#multiple-sources" class="auto internal xref">Section 3.2.2</a>).<a href="#section-3.4.2-3" class="pilcrow">¶</a></p>
 <p id="section-3.4.2-4">Falling through to a different Authority Source within one Trust
 Method's evaluation is forbidden (<a href="#multiple-sources" class="auto internal xref">Section 3.2.2</a>): fallthrough
 on non-Affirmative states is the same downgrade as
@@ -4881,8 +4881,8 @@ security consideration on key binding.<a href="#appendix-F-3.5.1" class="pilcrow
         <li class="normal" id="appendix-F-3.6">
           <p id="appendix-F-3.6.1">Recommend client authentication before Trust Method lookups and
 rejection of a JWT-bearer assertion whose <code>typ</code> names another
-JWT application; return <code>invalid_grant</code> for a rejection at any
-processing step.<a href="#appendix-F-3.6.1" class="pilcrow">¶</a></p>
+JWT application; return <code>invalid_grant</code> for a rejection in steps
+1 through 5 of Resource Authorization Server processing.<a href="#appendix-F-3.6.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-F-3.7">
           <p id="appendix-F-3.7.1">Add the cost of per-relationship issuer configuration and the

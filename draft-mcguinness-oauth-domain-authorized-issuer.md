@@ -1718,7 +1718,12 @@ Description, a Change Controller, and a Reference. Designated Expert
 instructions: the expert verifies the directive name is unique, its
 value syntax is specified within the ABNF value production of
 {{dii-dns-record}} (ASCII, no `;`, no whitespace), and its
-multiplicity and duplicate-handling rules are stated.
+multiplicity and duplicate-handling rules are stated. A directive
+that narrows what a record authorizes, so that a consumer ignoring
+it would accept more than the Subject Authority intended, MUST NOT
+be registered unless its specification also defines a new version
+token ({{dii-dns-record}}), so that consumers that do not implement
+it ignore the record rather than the directive.
 
 Initial entries:
 
@@ -1748,7 +1753,11 @@ the member is decision-affecting ({{TRUST-FRAMEWORK}}
 states how a consumer that does not recognize it behaves (the default
 is to ignore unrecognized members; a member requiring fail-closed
 handling uses the `crit` mechanism of {{TRUST-FRAMEWORK}} §Critical
-Members).
+Members). A member that narrows what a policy authorizes, so that a
+consumer ignoring it would accept more than the Subject Authority
+intended, MUST NOT be registered unless publishers can list it, or a
+top-level member its specification defines alongside it, in `crit`;
+`crit` does not reach members of `authorized_issuers` entries.
 
 Initial entries:
 
@@ -2037,9 +2046,13 @@ authority binding, or integrity mechanisms to depend on federation.
 ## Critical Directives for the DNS Record Form {#crit-dns-form}
 
 The JSON document carries a `crit` member ({{dii-document}}), so an
-extension that adds a decision-affecting member to the Issuer
-Authorization Policy can mark it critical and have already-deployed
-consumers honor it. The DNS record form has no analogous
+extension that adds a decision-affecting top-level member to the
+Issuer Authorization Policy can mark it critical and have
+already-deployed consumers honor it. `crit` does not reach members
+of `authorized_issuers` entries, so an extension that narrows
+entries (for example, a `permitted_audiences` member) also defines a
+top-level member for publishers to list in `crit`
+({{iana-dii-members}}). The DNS record form has no analogous
 per-directive criticality mechanism today; its version token
 ({{dii-dns-record}}) prevents misinterpretation of incompatible future
 syntax by making unrecognized versions ignored, so a Subject Authority

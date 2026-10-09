@@ -42,6 +42,7 @@ normative:
   RFC8553:
   RFC8615:
   RFC9493:
+  RFC9111:
   ID-JAG:
     title: "Identity Assertion JWT Authorization Grant"
     target: https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/
@@ -68,7 +69,6 @@ informative:
   RFC9728:
   RFC2308:
   RFC8785:
-  RFC9111:
   OIDC-DISCOVERY:
     title: "OpenID Connect Discovery 1.0"
     target: https://openid.net/specs/openid-connect-discovery-1_0.html
@@ -1951,8 +1951,8 @@ matches only assertions that carry no `tenant` claim.
 
 The `tenant` member on `authorized_issuers[]` entries binds
 authorization to the specific tenant identifier the Identity
-Provider populates in the top-level `tenant` claim defined in
-{{ID-JAG}} §6.1. The binding makes the Subject Authority's choice
+Provider populates in the top-level `tenant` claim ({{ID-JAG}}
+§3.1). The binding makes the Subject Authority's choice
 of authorized tenant observable on the wire and verifiable per
 assertion. It does not eliminate the trust assumption on the
 Identity Provider's tenant-isolation enforcement; it makes the

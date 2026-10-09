@@ -29,7 +29,6 @@ author:
 
 normative:
   RFC6749:
-  RFC7515:
   RFC7519:
   RFC7521:
   RFC7523:
@@ -38,6 +37,7 @@ normative:
   RFC8725:
   RFC9493:
   RFC9728:
+  RFC9700:
   RFC5891:
   RFC8126:
   OIDF-FEDERATION:
@@ -76,7 +76,7 @@ informative:
   RFC7033:
   RFC9989:
   RFC7662:
-  RFC9700:
+  RFC7515:
   OIDC-DISCOVERY:
     title: "OpenID Connect Discovery 1.0"
     target: https://openid.net/specs/openid-connect-discovery-1_0.html
@@ -1076,7 +1076,7 @@ requirements:
    identity assertion JWT MUST be taken from a key set that the
    leaf's policy-applied metadata designates, or that is otherwise
    bound to the leaf's Entity Identifier through the validated trust
-   chain. The key sources defined in {{OIDF-FEDERATION}} §5.2.1.1
+   chain. The key sources defined in {{OIDF-FEDERATION}} §5.2.1
    satisfy this requirement: the `jwks`, `jwks_uri`, or
    `signed_jwks_uri` value in the leaf's policy-applied
    `openid_provider` or `oauth_authorization_server` metadata,
@@ -1255,7 +1255,7 @@ Initial extractions:
   The domain is the substring after the single `@`. Consumers MUST
   reject an `email` claim value that does not contain exactly one `@`
   character or whose domain part is empty; this document uses the
-  simple single-`@` rule rather than the full {{RFC5321}} addr-spec
+  simple single-`@` rule rather than the full {{RFC5321}} Mailbox
   grammar, and quoted local-parts or address forms that do not reduce
   to a single unquoted `@` are out of scope for the `email` extraction.
   The local-part is not used. A trailing dot on the domain, if present,
@@ -2000,7 +2000,7 @@ string that maps to a different Subject Authority cannot land on
 another user's account.
 
 The `email` extraction uses the simple single-`@` rule and does not
-implement the full {{RFC5321}} addr-spec grammar; internationalized
+implement the full {{RFC5321}} Mailbox grammar; internationalized
 email addresses (SMTPUTF8, {{RFC6530}}) whose local-part requires
 UTF-8 are outside the scope of the `email` extraction defined here,
 though the domain of such an address is handled normally once isolated.

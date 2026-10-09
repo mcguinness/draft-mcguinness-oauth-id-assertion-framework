@@ -1043,7 +1043,10 @@ multi-tenant Assertion Issuer:
   `authorized_issuers[].issuer` field accepts any absolute HTTPS URL
   issuer identifier, and case-sensitive comparison against the JWT
   `iss` claim distinguishes tenants under the same host. Each
-  authorized tenant is one `authorized_issuers` entry.
+  authorized tenant is one `authorized_issuers` entry. If such an
+  issuer also sends a `tenant` claim, the entry carries the same
+  `tenant` value ({{dii-verification}}, step 4b), which only the
+  pointer form can express.
 
 - **Shared issuer with a tenant claim** (for example,
   `https://accounts.google.com` serving every Google Workspace tenant
@@ -1419,7 +1422,7 @@ The shared-issuer case and its `tenant` binding are demonstrated
 in the Shared Issuer Variant of the End-to-End Example. The
 following security points apply:
 
-- **Tenant binding is required for shared issuers.** Under a grant
+- **Shared issuers are authorized per tenant.** Under a grant
   profile that carries `tenant`, an entry without `tenant` matches
   only assertions that carry no `tenant` claim ({{dii-verification}}),
   so listing a shared issuer without `tenant`, including in the inline
@@ -1427,9 +1430,7 @@ following security points apply:
   authorizes a tenant by listing the
   (issuer, tenant) pair. This relies on the Identity Provider
   sending the `tenant` claim whenever it is multi-tenant, which
-  {{TRUST-FRAMEWORK}} §ID-JAG requires of a shared issuer whenever
-  the Resource Authorization Server's Trust Policy lists a namespace
-  method. A shared
+  {{TRUST-FRAMEWORK}} §ID-JAG requires of every shared issuer. A shared
   issuer that omits the claim anyway would again match an entry
   without `tenant`, so Subject Authorities SHOULD list a shared
   issuer only with `tenant`.

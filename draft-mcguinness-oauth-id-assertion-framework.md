@@ -1574,15 +1574,16 @@ Identifier and requires rejection if it is absent or unresolvable.
 
 {{ID-JAG}} §6.1 requires a multi-tenant issuer to include the
 `tenant` claim when the tenant context is relevant to the Resource
-Authorization Server. Under this binding, the tenant context is
-relevant whenever the Resource Authorization Server's Trust Policy
-lists a `subject_namespace_authorization` method, because such a
+Authorization Server. Under this binding, an Assertion Issuer that
+serves more than one tenant under a single issuer identifier MUST
+include the `tenant` claim in every ID-JAG it issues. A namespace
 method can bind authorization to a tenant (for example, {{DAI}}
 §Single-Issuer Multi-Tenant Identity Providers) and cannot tell an
-issuer's tenants apart without the claim. An Assertion Issuer that
-serves more than one tenant under a single issuer identifier
-therefore MUST include the `tenant` claim in every ID-JAG it issues
-for such a Resource Authorization Server.
+issuer's tenants apart without the claim, and the Assertion Issuer
+cannot tell which Resource Authorization Servers evaluate such a
+method: publishing a Trust Policy is optional
+({{metadata-publication}}), and local policy can add Trust Methods
+({{rasp}} step 5d). This narrows {{ID-JAG}} §6.1.
 
 In addition to the processing in {{rasp}}, the Resource Authorization
 Server MUST:
@@ -2420,7 +2421,9 @@ participate in DAI.
 
 Yes. `domain_authorized_issuer` uses case-sensitive URL string
 comparison and accepts any absolute HTTPS issuer identifier
-including paths.
+including paths. If such an issuer also sends a `tenant` claim, the
+Subject Authority lists it with that `tenant` value, which requires
+the DNS pointer form ({{DAI}} §Verification).
 
 **Q: How do I revoke a delegation?**
 
@@ -2439,16 +2442,23 @@ identities about its users.
 
 **Cast:** customer `example.com` (owns the email domain); agent
 platform `https://agentprovider.example` (mints ID-JAGs after
-federated SSO from the customer's primary IdP); tool provider
-`https://toolprovider.example` (the Resource Authorization Server);
-end user `alice@example.com`.
+federated SSO from the customer's primary Identity Provider); tool
+provider `https://toolprovider.example` (the Resource Authorization
+Server); end user `alice@example.com`. The agent platform serves
+many customers and gives each its own issuer identifier, here
+`https://agentprovider.example/example-com`. A platform that served
+every customer under one issuer identifier would send `tenant` in
+every ID-JAG ({{id-jag-profile}}), and the customer would list it
+with that `tenant` value in the DNS pointer form ({{DAI}}
+§Single-Issuer Multi-Tenant Identity Providers).
 
 **Publication.** The customer publishes:
 
 ~~~
-_oauth-issuer-policy.example.com. IN TXT ( "v=oauth-issuer-policy1;"
+_oauth-issuer-policy.example.com. IN TXT (
+    "v=oauth-issuer-policy1;"
     "authority=example.com;"
-    "issuer=https://agentprovider.example" )
+    "issuer=https://agentprovider.example/example-com" )
 ~~~
 
 The tool provider publishes a Trust Policy listing
@@ -2458,7 +2468,7 @@ mints an ID-JAG:
 
 ~~~ json
 {
-  "iss": "https://agentprovider.example",
+  "iss": "https://agentprovider.example/example-com",
   "aud": "https://toolprovider.example",
   "exp": 1780166400, "iat": 1780166100, "jti": "b9c1...",
   "sub": "user-3f81a2",
@@ -2466,11 +2476,11 @@ mints an ID-JAG:
 }
 ~~~
 
-**Verification.** The tool provider validates the ID-JAG per
-{{ID-JAG}}, extracts the Subject Authority `example.com` from the
-email claim, queries `_oauth-issuer-policy.example.com`, confirms
-the `iss` value matches an authorized issuer in the policy, and proceeds
-with `private_key_jwt` client authentication and token issuance.
+**Verification.** The tool provider authenticates the client
+(`private_key_jwt`), validates the ID-JAG per {{ID-JAG}}, extracts
+the Subject Authority `example.com` from the email claim, queries
+`_oauth-issuer-policy.example.com`, confirms the `iss` value matches
+an authorized issuer in the policy, and issues a token.
 
 **What this protects against.** Suppose `attacker.example` mints
 its own assertion claiming `email: alice@example.com,

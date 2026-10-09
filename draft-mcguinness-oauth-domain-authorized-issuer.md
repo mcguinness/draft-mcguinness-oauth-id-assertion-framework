@@ -2109,8 +2109,10 @@ patterns and an interaction rule with the assertion's `aud` claim.
 
 The Email Verification Protocol {{I-D.hardt-email-verification}}
 defines a DNS TXT record at `_email-verification.{domain}` whose
-`iss=` value names an authorized issuer for the namespace, using
-a bare hostname rather than a full HTTPS issuer identifier. A
+`iss=` value names an authorized issuer for the namespace. The
+record carries a bare hostname; the issuer identifier derived from
+it is an HTTPS origin with no path, not a full HTTPS issuer
+identifier. A
 future Trust Method (provisionally `email_verification_dns`)
 could let a Resource Authorization Server honor those records
 without requiring the Subject Authority to also publish an

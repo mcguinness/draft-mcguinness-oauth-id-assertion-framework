@@ -192,8 +192,9 @@ assertions. It is consumed by {{DAI}}, which defines one
 Subject-Authority publication mechanism. The two documents together
 are described in {{family}}. The assertion-bearer grant and chaining
 mechanics of {{ID-JAG}} and {{I-D.ietf-oauth-identity-chaining}}
-remain unchanged; this document adds only the issuer-trust
-evaluation layer.
+remain unchanged; this document adds the issuer-trust evaluation
+layer and one requirement on multi-tenant Assertion Issuers
+({{id-jag-profile}}).
 
 ## Minimal Deployment
 
@@ -262,9 +263,9 @@ a wire-format alternative.
 This policy is complementary to OpenID Federation: OpenID Federation
 can authenticate that an issuer belongs to a trusted ecosystem, while
 the Domain-Authorized Issuer Trust Method lets the namespace owner say
-which issuers may assert about subjects in that namespace. This document also
-follows existing DNS authority-publication patterns such as CAA,
-MTA-STS, SPF, DKIM, and the Email Verification Protocol. Background and
+which issuers may assert about subjects in that namespace. That Trust
+Method follows existing DNS authority-publication patterns such as
+CAA, MTA-STS, SPF, DKIM, and the Email Verification Protocol. Background and
 positioning details are in {{relationship-to-oidf}} and
 {{DAI}} §Following Existing DNS Authority Patterns.
 
@@ -462,7 +463,7 @@ members, and any member whose registration says otherwise.
 
 # Authority Delegation Model {#delegation-model}
 
-This section is the explanatory model that the Trust Policy
+This section defines the model that the Trust Policy
 machinery ({{trust-policy-document}}, {{trust-methods}}) and
 profiles such as {{DAI}} instantiate. The vocabulary
 (Authority Holder, Delegate, Delegation Artifact, Assertion,
@@ -717,11 +718,9 @@ if the cache expires while the live channel remains
 Indeterminate, the Validator MUST transition to a reject
 decision.
 
-Within one Trust Method's evaluation, a Validator MUST NOT fall
-through to a different Authority Source on Negative or
-Indeterminate states from the originally-applicable Authority
-Source ({{multiple-sources}}).
-Fallthrough on non-Affirmative states is the same downgrade as
+Falling through to a different Authority Source within one Trust
+Method's evaluation is forbidden ({{multiple-sources}}): fallthrough
+on non-Affirmative states is the same downgrade as
 extended-cache-on-Indeterminate: both convert a hard denial into
 a soft one driven by adversary-controllable availability of the
 authoritative publication channel.
@@ -1514,10 +1513,10 @@ completed before step 5, so that unauthenticated requests cannot
 cause the lookups that step performs. Fetches made in step 5 follow
 {{outbound-fetches}}.
 
-Failure to satisfy issuer trust, subject identifier, or assertion
-claim requirements in the Trust Policy MUST result in an OAuth
-`invalid_grant` error unless another error is defined by the
-applicable grant profile. Detailed trust-evaluation failure state
+Rejection at any step of this procedure, including a malformed Trust
+Policy (step 1) or an unlisted grant profile (step 3), MUST result in
+an OAuth `invalid_grant` error unless another error is defined by
+the applicable grant profile. Detailed trust-evaluation failure state
 MUST NOT be returned to public clients in the OAuth error response;
 it is a reconnaissance target.
 
@@ -1877,8 +1876,9 @@ it does not revoke individual assertions. JWT bearer tokens are
 stateless and remain valid until `exp` regardless of session
 termination, credential revocation at the Assertion Issuer, or
 Subject Authority withdrawal of the issuer's authorization via
-DAI (which prevents NEW assertions but does not invalidate
-already-issued ones). Deployments requiring synchronous revocation need OAuth
+DAI (withdrawal stops the Resource Authorization Server from
+accepting further assertions once its cache expires, but does not
+revoke access or refresh tokens it has already issued). Deployments requiring synchronous revocation need OAuth
 2.0 Token Revocation {{RFC7009}}, Token Introspection {{RFC7662}},
 or short assertion lifetimes at the grant-profile layer.
 
@@ -1952,8 +1952,8 @@ cadence required by the applicable Trust Method specification. Transport integri
 
 Trust-policy evaluation is a security-critical decision; deployments
 are encouraged to log, for each processed assertion, at minimum the
-Assertion Issuer identifier, the Trust Policy URI with its retrieval
-time and cache validator (for example, its ETag), the Trust Methods
+Assertion Issuer identifier, the version or configuration identifier
+of the Trust Policy in effect, the Trust Methods
 that succeeded, the matched trust
 anchor or Issuer Authorization Policy origin, the Subject Identifier
 format, and the accept/reject outcome, and to support correlation
@@ -2408,8 +2408,9 @@ to declare what evidence it requires of an Assertion Issuer
 (metadata at `/.well-known/identity-assertion-trust-policy`). DAI
 is what a **Subject Authority** publishes to declare which
 Assertion Issuers it authorizes for its namespace (a record at
-`_oauth-issuer-policy.{domain}`, optionally with a document on the
-dedicated host `oauth-issuer-policy.{domain}`). RAS-published vs
+`_oauth-issuer-policy.{domain}`, optionally pointing with `uri=` to
+a JSON policy document, conventionally on the dedicated host
+`oauth-issuer-policy.{domain}`). RAS-published vs
 Subject-Authority-published.
 
 **Q: Why two independent trust categories?**
@@ -2424,7 +2425,7 @@ configured. Conflating them is the bug
 **Q: What if my Subject Authority cannot publish DNS TXT records?**
 
 Both lookup modes require the TXT record at
-`_oauth-issuer-policy.{authority}`, which is the Subject Authority's
+`_oauth-issuer-policy.{domain}`, which is the Subject Authority's
 opt-in ({{DAI}} §Lookup Procedure and §HTTPS-Only Deployment
 Variant). A Subject Authority that cannot publish TXT records cannot
 participate in DAI.

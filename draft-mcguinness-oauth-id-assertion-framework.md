@@ -2620,15 +2620,15 @@ the Resource Authorization Server:
    the Resource Authorization Server issues an access token.
 
 **Selected failure variants.** A chain not terminating at the
-listed trust anchor → `invalid_grant`. A leaf without the required
-Trust Mark → `invalid_grant`. A federation-resolved JWKS that
-doesn't match the ID-JAG signing key → `invalid_grant` (the metadata
+listed trust anchor yields `invalid_grant`. A leaf without the required
+Trust Mark yields `invalid_grant`. A federation-resolved JWKS that
+doesn't match the ID-JAG signing key yields `invalid_grant` (the metadata
 key source takes precedence, so there is no fallback to a separate
 JWKS referenced by `.well-known/oauth-authorization-server`). Such a
 separate JWKS is eligible only when the policy-applied metadata has
 no key source and a supported extension authenticates its binding to
 the leaf, as in {{example-wkb-variant}}. `partner.example` not listing
-the Assertion Issuer in DAI → `invalid_grant` even though
+the Assertion Issuer in DAI yields `invalid_grant` even though
 federation membership is valid.
 
 ## Trust Mark Requirement Without an Issuer

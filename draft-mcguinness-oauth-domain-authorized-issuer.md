@@ -304,7 +304,7 @@ channel on encountering a denial. Each object has:
   `valid_from`
   : OPTIONAL. {{RFC3339}} date-time. The delegation MUST NOT be treated
   as valid before this time. A consumer MAY apply a small clock-skew
-  tolerance (≤5 minutes), consistent with JWT `nbf` conventions
+  tolerance (at most 5 minutes), consistent with JWT `nbf` conventions
   ({{RFC7519}} Section 4.1.5). This tolerance applies only to
   `valid_from`; it MUST NOT be applied to `valid_until` to extend a
   delegation past its stated end.

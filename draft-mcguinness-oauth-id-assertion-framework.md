@@ -703,8 +703,8 @@ outcome of the lookup operation onto exactly one of these states.
   profile's choice under its state mapping. Within the profile's
   evaluation, a Negative state is the Authority Holder's decision
   that no delegation is in effect through that channel, and it is
-  final for that Trust Method. {{multiple-sources}} states its
-  effect on other methods.
+  final for that Trust Method. {{multiple-sources}} states the
+  effect of a Negative state on other methods.
 
 - **Indeterminate**: the lookup did not produce an authoritative
   Affirmative or Negative result. Examples include:
@@ -1387,8 +1387,8 @@ SHOULD use a snapshot of the {{PSL}} no older than 30 days.
 The determinism property this framework claims holds for a given
 computed Subject Authority. Parties that require identical Subject
 Authority computation across verifiers SHOULD agree on, or pin, a PSL
-snapshot. One example is a Subject Authority and the Resource
-Authorization Servers that consume its policy. Subject Authorities
+snapshot. Such parties include, for example, a Subject Authority and
+the Resource Authorization Servers that consume its policy. Subject Authorities
 SHOULD monitor PSL changes affecting their namespace.
 
 ### Subdomain Authority {#subdomain-authority}
@@ -1564,13 +1564,13 @@ request, the Resource Authorization Server MUST:
       the assertion carries a namespace-bound Subject Identifier, the
       Resource Authorization Server MUST reject the assertion unless
       local policy independently establishes authority over the
-      subject namespace. Federation membership alone does not
-      establish authority over a particular subject namespace. A
-      namespace-bound Subject Identifier is one whose format has a
-      registered Subject Authority extraction procedure
-      ({{iana-authority-registry}}). The Resource Authorization
-      Server can thus determine that an identifier is namespace-bound
-      without running a namespace method.
+      subject namespace. A namespace-bound Subject Identifier is one
+      whose format has a registered Subject Authority extraction
+      procedure ({{iana-authority-registry}}), so the Resource
+      Authorization Server can determine that an identifier is
+      namespace-bound without running a namespace method. Federation
+      membership alone does not establish authority over a particular
+      subject namespace.
 
 6. Apply local policy (account-linking, consent, authorization,
    risk) and the applicable grant profile's sender-constraining;

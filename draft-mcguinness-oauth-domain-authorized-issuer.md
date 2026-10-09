@@ -320,10 +320,10 @@ channel on encountering a denial. Each object has:
     When absent, the entry matches only assertions that carry no
     top-level `tenant` claim. Consequently, under a grant profile that
     carries `tenant`, listing a shared issuer without `tenant`
-    authorizes none of its tenants. {{dii-multi-tenant}} covers grant
-    profiles that do not carry `tenant`. Grant profiles that do not
-    carry a `tenant` claim (e.g., the generic JWT-bearer grant of
-    {{RFC7523}}) match only entries that omit `tenant`.
+    authorizes none of its tenants. Grant profiles that do not carry
+    a `tenant` claim (e.g., the generic JWT-bearer grant of
+    {{RFC7523}}) match only entries that omit `tenant`, as
+    {{dii-multi-tenant}} discusses.
 
     Tenant values are issuer-specific and MUST NOT be compared across
     issuers. To authorize multiple tenants of the same shared issuer,
@@ -608,12 +608,13 @@ canonical lookups to the same document.
 
 The host name alone is not an opt-in. Some domains let untrusted
 users claim subdomains or serve content on them, and an attacker
-could claim `oauth-issuer-policy` ({{RFC8461}} Section 10.3). Not
-every TXT record at `_oauth-issuer-policy.{A}` is an opt-in either.
-A Subject Authority that publishes only an inline record, or a
-pointer to another host, has not set up the dedicated host. Subject
-Authorities whose domains let others claim subdomains SHOULD also
-reserve the `oauth-issuer-policy` label.
+could claim `oauth-issuer-policy` ({{RFC8461}} Section 10.3).
+Subject Authorities whose domains let others claim subdomains SHOULD
+also reserve the `oauth-issuer-policy` label, in addition to
+publishing the opt-in record. Not every TXT record at
+`_oauth-issuer-policy.{A}` is an opt-in either. A Subject Authority
+that publishes only an inline record, or a pointer to another host,
+has not set up the dedicated host.
 
 Unlike the apex, the dedicated host can be delegated to a hosting
 provider (for example, by a CNAME record) without giving that
@@ -816,8 +817,8 @@ renewing a held policy unless:
   which the held policy was retrieved and verified; and
 - any `signed_policy` in the held policy has not expired.
 
-The consumer stores those values with the cached policy, and
-otherwise fetches without a conditional request.
+The consumer stores those values with the cached policy. If either
+condition does not hold, it fetches without a conditional request.
 
 The document's shape and members are defined, with an example, in
 {{dii-document}}.
@@ -2307,10 +2308,10 @@ The bridge is deferred because it forces the reader to learn:
 It is also deferred because {{I-D.hardt-email-verification}} is
 progressing on its own timeline independent of this document.
 Deployments wanting the bridge can either publish both records or
-wait for the future Trust Method specification. The two records are
-an `_oauth-issuer-policy` record satisfying
-`domain_authorized_issuer` plus their existing `_email-verification`
-record for other consumers.
+wait for the future Trust Method specification. Publishing both
+means an `_oauth-issuer-policy` record satisfying
+`domain_authorized_issuer`, plus the deployment's existing
+`_email-verification` record for other consumers.
 
 ## Assertion Issuer Discovery (Client-Side) {#assertion-issuer-discovery-client-side}
 

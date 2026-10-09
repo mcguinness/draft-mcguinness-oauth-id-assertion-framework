@@ -727,7 +727,8 @@ Bounds (a response exceeding any bound is classified per
 {{dii-failures}}): consumers MUST accept a policy document of at least
 64 KiB and MAY reject one larger; publishers MUST keep the document
 within 64 KiB. Consumers MUST accept at least 100 `authorized_issuers`
-entries and MAY reject more. Consumers SHOULD limit JSON nesting
+entries and MAY reject more; publishers MUST NOT publish more than
+100. Consumers SHOULD limit JSON nesting
 depth (the defined document has a fixed shallow structure); fetch
 timeouts follow {{TRUST-FRAMEWORK}} §Outbound Fetches. Consumers
 SHOULD send a conditional request

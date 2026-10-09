@@ -797,7 +797,7 @@ Example authorization server metadata:
     "urn:ietf:params:oauth:grant-profile:id-jag"
   ],
   "identity_assertion_trust_policy_uri":
-    "https://api.resource.example/.well-known/identity-assertion-trust-policy"
+    "https://api.resource.example/trust-policy"
 }
 ~~~
 
@@ -2081,12 +2081,13 @@ categories (so that the cross-category AND semantics of
 clear what evidence satisfies it. Categories that merely rename or
 subdivide an existing category SHOULD be rejected.
 
-Initial entries:
+Initial entries, each with Change Controller IETF and Specification
+Document this document:
 
-| Category Name | Description | Change Controller | Specification Document |
-|-|-|-|-|
-| `issuer_authentication` | Establishes that the Assertion Issuer is an authentic, recognized entity | IETF | This document |
-| `subject_namespace_authorization` | Establishes that the Assertion Issuer is authorized by the subject's namespace owner | IETF | This document |
+| Category Name | Description |
+|-|-|
+| `issuer_authentication` | Establishes that the Assertion Issuer is an authentic, recognized entity |
+| `subject_namespace_authorization` | Establishes that the Assertion Issuer is authorized by the subject's namespace owner |
 
 ### Identity Assertion Issuer Trust Methods Registry {#iana-trust-methods-registry}
 
@@ -2127,11 +2128,23 @@ lookup states and any cache-lifetime bounds, per
 collide in meaning with parameters of other methods in a way that
 would be ambiguous when methods are combined.
 
-Initial entries:
+Initial entry:
 
-| Identifier | Categories | Parameters | Change Controller | Reference |
-|-|-|-|-|-|
-| `openid_federation` | `issuer_authentication` | `trust_anchors` (array of string, REQUIRED); `trust_marks` (array of object, OPTIONAL; see {{trust-method-openid-federation}}) | IETF | This document |
+Identifier:
+: `openid_federation`
+
+Categories:
+: `issuer_authentication`
+
+Parameters:
+: `trust_anchors` (array of string, REQUIRED); `trust_marks` (array
+  of object, OPTIONAL; see {{trust-method-openid-federation}})
+
+Change Controller:
+: IETF
+
+Reference:
+: This document
 
 ### Trust Policy Members Registry {#iana-trust-policy-members-registry}
 
@@ -2164,15 +2177,16 @@ how a consumer that does not recognize it behaves (the default is that
 unrecognized members are ignored; a member requiring fail-closed
 handling needs the criticality mechanism of {{critical-members}}).
 
-Initial entries:
+Initial entries, each with Change Controller IETF and Specification
+Document this document:
 
-| Member Name | Member Description | Change Controller | Specification Document |
-|-|-|-|-|
-| `resource_authorization_server` | Resource Authorization Server issuer identifier | IETF | This document |
-| `authorization_grant_profiles_supported` | Supported identity assertion grant profile identifiers | IETF | This document |
-| `subject_identifier_formats_supported` | Supported Subject Identifier formats | IETF | This document |
-| `issuer_trust_methods` | Trust Method requirements enforced for incoming identity assertions | IETF | This document |
-| `crit` | Names decision-affecting members a consumer MUST understand or reject the document | IETF | This document |
+| Member Name | Member Description |
+|-|-|
+| `resource_authorization_server` | Resource Authorization Server issuer identifier |
+| `authorization_grant_profiles_supported` | Supported identity assertion grant profile identifiers |
+| `subject_identifier_formats_supported` | Supported Subject Identifier formats |
+| `issuer_trust_methods` | Trust Method requirements enforced for incoming identity assertions |
+| `crit` | Names decision-affecting members a consumer MUST understand or reject the document |
 
 ## Subject Authority Extraction Procedures Registry {#iana-authority-registry}
 
@@ -2500,12 +2514,10 @@ holding a Level-of-Assurance-3 Trust Mark); end user
     {
       "method": "openid_federation",
       "trust_anchors": ["https://federation.example.org"],
-      "trust_marks": [
-        {
-          "trust_mark_type": "https://federation.example.org/tm/loa3",
-          "issuer": "https://federation.example.org"
-        }
-      ]
+      "trust_marks": [{
+        "trust_mark_type": "https://federation.example.org/tm/loa3",
+        "issuer": "https://federation.example.org"
+      }]
     },
     { "method": "domain_authorized_issuer" }
   ]
@@ -2575,7 +2587,8 @@ constrains `issuer` and requires `jwks_uri` via `metadata_policy`
 The Subject Authority publishes a DAI record:
 
 ~~~
-_oauth-issuer-policy.partner.example. IN TXT ( "v=oauth-issuer-policy1;"
+_oauth-issuer-policy.partner.example. IN TXT (
+    "v=oauth-issuer-policy1;"
     "authority=partner.example;"
     "issuer=https://idp.partner.example" )
 ~~~

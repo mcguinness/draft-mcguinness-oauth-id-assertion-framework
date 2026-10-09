@@ -1629,9 +1629,21 @@ This document registers the following entry in the Identity
 Assertion Issuer Trust Methods registry
 ({{TRUST-FRAMEWORK}} §Identity Assertion Issuer Trust Methods Registry):
 
-| Identifier | Categories | Parameters | Change Controller | Reference |
-|-|-|-|-|-|
-| `domain_authorized_issuer` | `subject_namespace_authorization` | `lookup` (string, OPTIONAL; value `https_only` selects the HTTPS-only lookup variant) | IETF | This document |
+Identifier:
+: `domain_authorized_issuer`
+
+Categories:
+: `subject_namespace_authorization`
+
+Parameters:
+: `lookup` (string, OPTIONAL; the value `https_only` selects the
+  HTTPS-only lookup mode, {{trust-method-https-authorized-issuer}})
+
+Change Controller:
+: IETF
+
+Reference:
+: This document
 
 ## Issuer Authorization Policy Directives Registry {#iana-dii-directives}
 
@@ -2137,9 +2149,12 @@ domain-authorized issuer delegations with DNS-based discovery:
 
    grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
    &assertion=eyJhbGciOiJSUzI1NiIs...
-   &client_assertion_type=urn:ietf:params:oauth:client-assertion-type:jwt-bearer
+   &client_assertion_type=
+   urn:ietf:params:oauth:client-assertion-type:jwt-bearer
    &client_assertion=eyJhbGciOiJFUzI1NiIs...
    ~~~
+
+   Line breaks in the request body are for display only.
 
 ## Verification (Resource Authorization Server Side)
 

@@ -191,27 +191,36 @@ Table of Contents
    subject namespace being asserted.
 
    Today a Resource Authorization Server typically answers the namespace
-   question through bilateral setup: each customer proves control of its
-   domain, configures its Identity Provider with the Resource
-   Authorization Server, and repeats both steps at every other Resource
-   Authorization Server it uses.  That configuration is held separately
-   at each Resource Authorization Server, so it goes stale when the
-   customer changes Identity Providers, and it does not extend to
-   issuers, such as agent platforms, that have no prior relationship
-   with each customer.  Where it is missing, a Resource Authorization
-   Server that trusts a multi-tenant issuer can accept an assertion
-   about a subject from a tenant with no authority over the subject's
-   domain.  The nOAuth disclosure [NOAUTH] showed account takeover by
-   that path: an application linked accounts by an email address that an
-   attacker had set on a user in the attacker's own tenant.  Namespace
-   authorization lets the domain owner state once which issuers and
-   tenants may assert about its subjects, for every Resource
+   question through bilateral setup.  Each customer:
+
+   *  proves control of its domain,
+
+   *  configures its Identity Provider with the Resource Authorization
+      Server, and
+
+   *  repeats both steps at every other Resource Authorization Server it
+      uses.
+
+   That configuration is held separately at each Resource Authorization
+   Server, so it goes stale when the customer changes Identity
+   Providers.  It also does not extend to issuers, such as agent
+   platforms, that have no prior relationship with each customer.
+
+   Where that configuration is missing, a Resource Authorization Server
+   that trusts a multi-tenant issuer can accept an assertion about a
+   subject from a tenant with no authority over the subject's domain.
+   The nOAuth disclosure [NOAUTH] showed account takeover by that path.
+   In that attack, an application linked accounts by an email address
+   that an attacker had set on a user in the attacker's own tenant.
+
+   Namespace authorization lets the domain owner state once which
+   issuers and tenants may assert about its subjects, for every Resource
    Authorization Server to check.  It complements, and does not replace,
    the defenses on the Resource Authorization Server's side: keying
    accounts on immutable issuer-scoped identifiers, and linking accounts
    by email only under explicit account-linking rules (Section 7.7).
 
-   This is an open-world issuer-trust problem: the Resource
+   This is an open-world issuer-trust problem.  The Resource
    Authorization Server may receive identity assertions from issuers
    that were not individually configured in advance, but whose
    acceptability can be evaluated from published evidence at request
@@ -223,14 +232,14 @@ Table of Contents
    This document defines an Identity Assertion Issuer Trust Policy that
    a Resource Authorization Server publishes to describe its trust
    criteria.  The Resource Authorization Server does not say "these are
-   all the Assertion Issuers I trust"; it says "these are the conditions
-   an Assertion Issuer must satisfy."  Conditions are evaluated by
-   validating concrete evidence (a federation trust chain or a domain-
-   authorized issuer record) when an assertion is presented.  Despite
-   its name, the Trust Policy is published by the Resource Authorization
-   Server, not by an Assertion Issuer; a Subject Authority authorizes
-   issuers in a separate document, the Issuer Authorization Policy
-   ([DAI]).
+   all the Assertion Issuers I trust."  It says "these are the
+   conditions an Assertion Issuer must satisfy."  Conditions are
+   evaluated by validating concrete evidence (a federation trust chain
+   or a domain-authorized issuer record) when an assertion is presented.
+   Despite its name, the Trust Policy is published by the Resource
+   Authorization Server, not by an Assertion Issuer.  A Subject
+   Authority authorizes issuers in a separate document, the Issuer
+   Authorization Policy ([DAI]).
 
    This document defines the Authority Delegation Model (Section 3) and
    uses it to profile OAuth identity assertions.  It is consumed by
@@ -594,14 +603,14 @@ Table of Contents
    declares one or more Trust Methods in a given category, that category
    is applicable to every Assertion the Validator evaluates within the
    profile's scope.  The Assertion itself MUST NOT be able to waive the
-   category: an Assertion lacking satisfying evidence for an applicable
+   category.  An Assertion lacking satisfying evidence for an applicable
    category MUST be rejected.  Profiles MUST NOT define applicability
    conditions that depend on properties of the Assertion under
    evaluation.  This prohibition is directional: assertion properties
-   may never _relax_ what the policy requires; rejection rules keyed on
+   may never _relax_ what the policy requires.  Rejection rules keyed on
    assertion properties (such as the federation-only rule in Section 5.2
    step 5e) only tighten it and are permitted.  Nor can a published
-   Delegation Artifact waive the category: a profile MUST NOT define a
+   Delegation Artifact waive the category.  A profile MUST NOT define a
    published state, such as a monitoring mode, under which an Assertion
    whose issuer the artifact does not authorize satisfies the category.
 
@@ -610,26 +619,28 @@ Table of Contents
    A profile that admits such a method MUST require, in its grant-
    profile binding, that every Assertion in scope carry a Subject
    Identifier from which a Subject Authority is determinable, and MUST
-   require rejection otherwise (see the processing rule in Section 5.2
-   and Section 7.3 for the attack this prevents).
+   require rejection otherwise.  See the processing rule in Section 5.2
+   and Section 7.3 for the attack this prevents.
 
 3.2.2.  Multiple Authority Sources Within a Category
 
    A Validator MAY accept Delegation Artifacts from multiple Authority
    Sources within the same category (multiple Subject Authorities for
    different namespaces, multiple federation trust anchors).  For
-   subject_namespace_authorization, the Authority Source is chosen from
-   the Assertion's own claims before the Assertion is authenticated
-   against any delegation, so a profile MUST define deterministic source
-   selection: a binding function from Assertion + request context to
-   exactly one Authority Source (or deterministic failure), invariant
-   under attacker-controlled inputs outside the binding function.  The
-   attack against ad-hoc or fallback selection logic and the
-   deterministic-selection requirement are detailed in Section 7.2.  For
-   issuer_authentication, every Authority Source the Trust Policy lists
-   is equally trusted by the Validator, so a profile MAY accept evidence
-   from any of them (for openid_federation, a chain to any listed trust
-   anchor, Section 4.3.4.1).
+   subject_namespace_authorization, a profile MUST define deterministic
+   source selection: a binding function from Assertion + request context
+   to exactly one Authority Source (or deterministic failure), invariant
+   under attacker-controlled inputs outside the binding function.  This
+   is because that category's Authority Source is chosen from the
+   Assertion's own claims before the Assertion is authenticated against
+   any delegation.  The attack against ad-hoc or fallback selection
+   logic and the deterministic-selection requirement are detailed in
+   Section 7.2.
+
+   For issuer_authentication, every Authority Source the Trust Policy
+   lists is equally trusted by the Validator, so a profile MAY accept
+   evidence from any of them.  For openid_federation, this means a chain
+   to any listed trust anchor (Section 4.3.4.1).
 
    Within one Trust Method's evaluation, a Validator MUST NOT fall
    through to a different Authority Source if the originally-applicable
@@ -642,13 +653,13 @@ Table of Contents
    Delegation Artifact from the Subject Authority and that artifact does
    not authorize the Assertion Issuer (including an explicit denial),
    the category is not satisfied, whatever any other method in the
-   category yields: the Subject Authority's published decision is final
+   category yields.  The Subject Authority's published decision is final
    for its namespace.  An Indeterminate state from a
    subject_namespace_authorization method that consults the Subject
    Authority's own publication has the same effect, because it may hide
    that published decision.  A Negative state, in which the Subject
    Authority has published nothing through that method's channel, does
-   not have this effect; other methods in the category can still supply
+   not have this effect.  Other methods in the category can still supply
    evidence.  Where that channel's negative answers are not
    authenticated (for example, DNS without DNSSEC), an attacker who
    forges one can turn a published denial into a Negative and let
@@ -720,28 +731,43 @@ Table of Contents
       absence of a Delegation Artifact.  Examples include DNS NXDOMAIN
       or NODATA with a valid (possibly DNSSEC-signed) authoritative
       answer where DNS is the profile's sole or final publication
-      channel, and, for openid_federation, HTTP 404 for the leaf's
-      Entity Configuration (Section 4.3.4.1).  A profile with multiple
-      publication channels for the same Authority Source reaches
-      Negative only when the channels its lookup procedure consults
-      authoritatively report no delegation.  A profile MAY additionally
-      define an explicitly published denial; whether it maps to Negative
-      or to an Affirmative retrieval whose evaluation yields no matching
-      delegation is the profile's choice under its state mapping.
-      Within the profile's evaluation, a Negative state is the Authority
-      Holder's decision that no delegation is in effect through that
-      channel, and it is final for that Trust Method (Section 3.2.2
-      states its effect on other methods).
+      channel.  For openid_federation, another example is HTTP 404 for
+      the leaf's Entity Configuration (Section 4.3.4.1).
+
+      A profile with multiple publication channels for the same
+      Authority Source reaches Negative only when the channels its
+      lookup procedure consults authoritatively report no delegation.  A
+      profile MAY additionally define an explicitly published denial.
+      Whether such a denial maps to Negative or to an Affirmative
+      retrieval whose evaluation yields no matching delegation is the
+      profile's choice under its state mapping.  Within the profile's
+      evaluation, a Negative state is the Authority Holder's decision
+      that no delegation is in effect through that channel, and it is
+      final for that Trust Method.  Section 3.2.2 states the effect of a
+      Negative state on other methods.
 
    *  *Indeterminate*: the lookup did not produce an authoritative
-      Affirmative or Negative result.  Examples include DNS SERVFAIL,
-      resolver timeout, network partition, HTTPS 5xx, TLS handshake
-      failure, malformed publication-channel response, and structural
-      validation failure on a retrieved artifact (invalid signature,
-      unparseable payload, validity bounds of the artifact as a whole
-      outside the acceptable window; bounds on individual entries inside
-      an artifact are evaluated by the profile).  An Indeterminate state
-      carries no information about the Authority Holder's intent.
+      Affirmative or Negative result.  Examples include:
+
+      -  DNS SERVFAIL
+
+      -  resolver timeout
+
+      -  network partition
+
+      -  HTTPS 5xx
+
+      -  TLS handshake failure
+
+      -  malformed publication-channel response
+
+      -  structural validation failure on a retrieved artifact (invalid
+         signature, unparseable payload, validity bounds of the artifact
+         as a whole outside the acceptable window)
+
+      Bounds on individual entries inside an artifact are evaluated by
+      the profile.  An Indeterminate state carries no information about
+      the Authority Holder's intent.
 
    The Affirmative / Negative / Indeterminate taxonomy is structural:
    Negative is the Authority Holder's affirmative non-delegation;
@@ -755,19 +781,20 @@ Table of Contents
    channel that map to each state.
 
    A Validator MUST fail closed on both Negative and Indeterminate
-   states: neither state satisfies the Trust Method that produced it,
-   and the access decision MUST be reject unless another Trust Method
-   satisfies the same category as Section 3.2.2 permits.  Profiles MUST
-   NOT permit any condition under which an Indeterminate state is
-   treated as Affirmative; doing so converts the fail-closed property
-   into an availability-driven downgrade attack surface.
+   states: neither state satisfies the Trust Method that produced it.
+   On a Negative or Indeterminate state, the access decision MUST be
+   reject unless another Trust Method satisfies the same category as
+   Section 3.2.2 permits.  Profiles MUST NOT permit any condition under
+   which an Indeterminate state is treated as Affirmative.  Doing so
+   converts the fail-closed property into an availability-driven
+   downgrade attack surface.
 
    A Validator MAY rely on a cached Affirmative Delegation Artifact
    during a transient Indeterminate state on the live publication
    channel, but only within the stale-serving bound the profile
    specifies.  Repeated Indeterminate states across consecutive lookups
    MUST NOT extend the effective cache lifetime beyond the profile's
-   stated maximum; if the cache expires while the live channel remains
+   stated maximum.  If the cache expires while the live channel remains
    Indeterminate, the Trust Method is not satisfied, and the access
    decision follows the fail-closed rule above (Section 3.2.2).
 
@@ -924,12 +951,14 @@ Table of Contents
    member naming a Trust Method identifier registered in Section 10.1.5
    plus any members required by that identifier.  An object whose
    required members are absent, wrong-typed, or out-of-constraint is
-   malformed; unrecognized members of a recognized object are ignored.
+   malformed.  Unrecognized members of a recognized object are ignored.
+
    How an unrecognized or malformed object is handled depends on the
-   consumer's role: a client reading the policy for capability discovery
-   MAY skip objects it does not recognize (it cannot satisfy them), but
-   a Resource Authorization Server evaluating an assertion MUST apply
-   Section 5.2 step 5a and reject the assertion, because ignoring the
+   consumer's role.  A client reading the policy for capability
+   discovery MAY skip objects it does not recognize, since it cannot
+   satisfy them.  For an unrecognized or malformed object, a Resource
+   Authorization Server evaluating an assertion MUST apply Section 5.2
+   step 5a and reject the assertion.  It rejects because ignoring the
    object would silently evaluate a strict subset of the operator's
    declared requirements.
 
@@ -1081,16 +1110,28 @@ Table of Contents
 
    The framework-specific requirements below are evaluated against an
    Affirmative chain.  A chain that fails requirement 1 is Negative, as
-   above.  A leaf that does not declare a required entity type
-   (requirement 2), whose assertion signature does not verify under the
-   permitted key source (requirement 3), or that holds no valid Trust
-   Mark meeting a requirement (requirement 4) does not satisfy this
-   Trust Method; the lookup state is unchanged.  A Trust Mark that fails
-   validation per [OIDF-FEDERATION] §7.3 does not meet a requirement.
-   Only a retrieval the method needs and cannot complete (the permitted
-   key source, a Trust Mark Issuer's chain, or a Trust Mark Status
-   endpoint the Resource Authorization Server relies on) is
-   Indeterminate.
+   above.  In each case below, the leaf does not satisfy this Trust
+   Method and the lookup state is unchanged:
+
+   *  It does not declare a required entity type (requirement 2).
+
+   *  Its assertion signature does not verify under the permitted key
+      source (requirement 3).
+
+   *  It holds no valid Trust Mark meeting a requirement (requirement
+      4).
+
+   A Trust Mark that fails validation per [OIDF-FEDERATION] §7.3 does
+   not meet a requirement.  Only a retrieval the method needs and cannot
+   complete is Indeterminate.  Such a retrieval targets one of the
+   following:
+
+   *  The permitted key source.
+
+   *  A Trust Mark Issuer's chain.
+
+   *  A Trust Mark Status endpoint the Resource Authorization Server
+      relies on.
 
    In addition to the procedures in [OIDF-FEDERATION], the Resource
    Authorization Server MUST apply the following framework-specific
@@ -1118,48 +1159,61 @@ Table of Contents
        identity assertion JWT MUST be taken from a key set that the
        leaf's policy-applied metadata designates, or that is otherwise
        bound to the leaf's Entity Identifier through the validated trust
-       chain.  The key sources defined in [OIDF-FEDERATION] §5.2.1
-       satisfy this requirement: the jwks, jwks_uri, or signed_jwks_uri
+       chain.
+
+       The key sources defined in [OIDF-FEDERATION] §5.2.1 satisfy this
+       requirement.  Each is the jwks, jwks_uri, or signed_jwks_uri
        value in the leaf's policy-applied openid_provider or
        oauth_authorization_server metadata, processed according to that
        specification.  If both openid_provider and
        oauth_authorization_server metadata carry a key source, a key
-       from either satisfies this requirement.  For jwks_uri, the trust
-       chain authenticates the URI, not the key set it returns, which
-       relies on HTTPS to that endpoint unless an extension also binds
-       the key set; [OIDF-WKB], for example, checks the key set
-       retrieved from a metadata jwks_uri against jwks_digests when the
-       leaf binds a document that references a JWK Set. A consumer that
-       applies such a binding treats its failure as failure to validate
-       that key source.  Specifications that extend this Trust Method
-       MAY define additional key sources that satisfy it.  If the
-       policy-applied metadata carries a key source, that source is the
-       only one permitted; an extension-defined source is used only when
-       the metadata carries none.  Failure to retrieve or validate the
+       from either satisfies this requirement.
+
+       For jwks_uri, the trust chain authenticates the URI, not the key
+       set it returns.  The returned key set relies on HTTPS to that
+       endpoint unless an extension also binds the key set.  [OIDF-WKB],
+       for example, checks the key set retrieved from a metadata
+       jwks_uri against jwks_digests when the leaf binds a document that
+       references a JWK Set. A consumer that applies such a binding
+       treats its failure as failure to validate that key source.
+
+       Specifications that extend this Trust Method MAY define
+       additional key sources that satisfy it.  If the policy-applied
+       metadata carries a key source, that source is the only one
+       permitted.  An extension-defined source is used only when the
+       metadata carries none.  Failure to retrieve or validate the
        metadata's key source MUST NOT trigger fallback to an extension-
-       defined source.  A JWK Set obtained any other way, including from
-       the jwks_uri of [RFC8414] metadata that no qualifying source
-       binds, MUST NOT be used.  This prevents a downgrade in which an
-       attacker who can alter the Assertion Issuer's [RFC8414] metadata,
-       but not its federation metadata, substitutes the key source.  If
-       no qualifying key source is available, or its binding cannot be
+       defined source.
+
+       A JWK Set obtained any other way, including from the jwks_uri of
+       [RFC8414] metadata that no qualifying source binds, MUST NOT be
+       used.  This prevents a downgrade in which an attacker who can
+       alter the Assertion Issuer's [RFC8414] metadata, but not its
+       federation metadata, substitutes the key source.  If no
+       qualifying key source is available, or its binding cannot be
        verified, the outcome is Indeterminate (Section 3.4).
 
    4.  *Trust Mark satisfaction.* If the Trust Method object contains
        trust_marks, each requirement object MUST be satisfied by at
        least one Trust Mark in the leaf's Entity Configuration
-       trust_marks claim that validates per [OIDF-FEDERATION] §7.3,
-       whose trust_mark_type equals the requirement's trust_mark_type,
-       and whose iss claim equals the requirement's issuer (or, when
-       issuer is absent, satisfies the rule in the issuer member
-       definition above).  The type in the Entity Configuration entry
-       MUST match the type in the validated Trust Mark JWT; the issuer
-       is taken from the JWT's iss claim, not from the enclosing entry.
-       The trust in the Trust Mark Issuer that [OIDF-FEDERATION] §7.3
-       requires before validation MUST be established through a trust
-       chain terminating at the same trust anchor as the leaf's chain
-       (the trust anchor whose trust_mark_issuers claim applies when
-       issuer is absent).
+       trust_marks claim that meets all of the following:
+
+       *  It validates per [OIDF-FEDERATION] §7.3.
+
+       *  Its trust_mark_type equals the requirement's trust_mark_type.
+
+       *  Its iss claim equals the requirement's issuer, or, when issuer
+          is absent, satisfies the rule in the issuer member definition
+          above.
+
+       The type in the Entity Configuration entry MUST match the type in
+       the validated Trust Mark JWT.  The issuer is taken from the JWT's
+       iss claim, not from the enclosing entry.  The trust in the Trust
+       Mark Issuer that [OIDF-FEDERATION] §7.3 requires before
+       validation MUST be established through a trust chain terminating
+       at the same trust anchor as the leaf's chain.  That is the trust
+       anchor whose trust_mark_issuers claim applies when issuer is
+       absent.
 
    The proposed Well-Known Binding mechanism [OIDF-WKB] illustrates the
    additional key-source path in item 3: it binds a JWK Set to the
@@ -1285,42 +1339,57 @@ Table of Contents
 
       The domain is the substring after the single @. Consumers MUST
       reject an email claim value that does not contain exactly one @
-      character or whose domain part is empty; this document uses the
+      character or whose domain part is empty.  This document uses the
       simple single-@ rule rather than the full [RFC5321] Mailbox
-      grammar, and quoted local-parts or address forms that do not
-      reduce to a single unquoted @ are out of scope for the email
-      extraction.  The local-part is not used.  A trailing dot on the
-      domain, if present, is removed.  The domain is converted to
-      A-label form ([RFC5891]) by UTS #46 ToASCII processing [UTS46]
-      with these flags: Transitional_Processing=false (nontransitional
-      processing; transitional processing is deprecated in UTS #46),
-      IgnoreInvalidPunycode=false, UseSTD3ASCIIRules=true,
-      CheckHyphens=true, CheckBidi=true, CheckJoiners=true, and
-      VerifyDnsLength=true.  Consumers MUST reject a domain for which
-      ToASCII reports an error.  UseSTD3ASCIIRules rejects characters,
-      such as _, that are not valid in host names, which an email domain
-      does not need.  This pins one mapping, so that two consumers
-      compute the same A-label: transitional processing or IDNA2003 maps
-      some characters (such as U+00DF) differently and would select a
-      different Subject Authority.  Conversion happens before any Public
-      Suffix List matching, so that comparison operates on a single
-      canonical form.
+      grammar.  Quoted local-parts or address forms that do not reduce
+      to a single unquoted @ are out of scope for the email extraction.
+      The local-part is not used.  A trailing dot on the domain, if
+      present, is removed.
+
+      The domain is converted to A-label form ([RFC5891]) by UTS #46
+      ToASCII processing [UTS46] with these flags:
+
+      *  Transitional_Processing=false (nontransitional processing).
+         Transitional processing is deprecated in UTS #46.
+
+      *  IgnoreInvalidPunycode=false
+
+      *  UseSTD3ASCIIRules=true
+
+      *  CheckHyphens=true
+
+      *  CheckBidi=true
+
+      *  CheckJoiners=true
+
+      *  VerifyDnsLength=true
+
+      Consumers MUST reject a domain for which ToASCII reports an error.
+      UseSTD3ASCIIRules rejects characters, such as _, that are not
+      valid in host names, which an email domain does not need.  These
+      flags pin one mapping, so that two consumers compute the same
+      A-label.  Transitional processing or IDNA2003 maps some characters
+      (such as U+00DF) differently and would select a different Subject
+      Authority.  Conversion happens before any Public Suffix List
+      matching, so that comparison operates on a single canonical form.
 
       The A-label domain is then normalized to its registrable domain
       ("eTLD+1") by applying the Public Suffix List matching algorithm
-      [PSL], including its wildcard * and exception ! rules: the Subject
-      Authority is the shortest suffix of the domain that is one label
-      longer than the longest matching public suffix.  Consumers MUST
-      use both the ICANN and PRIVATE divisions of the list (a delegated
-      namespace listed in the PRIVATE division, such as team.example-
-      pages.example, resolves to that namespace; using only the ICANN
-      division would compute a coarser Subject Authority and query a
-      different name).  The result is compared using case-insensitive
-      ASCII comparison of A-labels.  Consumers MUST reject an email
-      whose domain is itself a public suffix (no registrable domain
-      exists).  Registrable-domain normalization prevents an attacker
-      who controls a subdomain (for example, via subdomain takeover)
-      from overriding the legitimate record at the registrable domain.
+      [PSL], including its wildcard * and exception ! rules.  The
+      Subject Authority is the shortest suffix of the domain that is one
+      label longer than the longest matching public suffix.  Consumers
+      MUST use both the ICANN and PRIVATE divisions of the list.  A
+      delegated namespace listed in the PRIVATE division, such as
+      team.example-pages.example, resolves to that namespace.  Using
+      only the ICANN division would compute a coarser Subject Authority
+      and query a different name.
+
+      The result is compared using case-insensitive ASCII comparison of
+      A-labels.  Consumers MUST reject an email whose domain is itself a
+      public suffix (no registrable domain exists).  Registrable-domain
+      normalization prevents an attacker who controls a subdomain (for
+      example, via subdomain takeover) from overriding the legitimate
+      record at the registrable domain.
 
    A Subject Identifier whose format is not registered in Section 10.2
    yields no Subject Authority; processing follows Section 5.2 step 5c.
@@ -1347,18 +1416,19 @@ Table of Contents
    different times can yield different registrable domains for the same
    email.  Because the Subject Authority is the DNS name queried, two
    Resource Authorization Servers using different PSL snapshots can
-   compute different Subject Authorities for the same assertion and thus
-   query different names and reach different decisions; this is a
-   deterministic-source-selection hazard (Section 3.2.2) and a security
-   consideration, not merely an operational one, during the window in
-   which a label's public-suffix status is changing.  Consumers SHOULD
-   use a snapshot of the [PSL] no older than 30 days.  The determinism
-   property this framework claims holds for a given computed Subject
-   Authority; parties that require identical Subject Authority
-   computation across verifiers (for example, a Subject Authority and
-   the Resource Authorization Servers that consume its policy) SHOULD
-   agree on, or pin, a PSL snapshot.  Subject Authorities SHOULD monitor
-   PSL changes affecting their namespace.
+   compute different Subject Authorities for the same assertion.  They
+   can thus query different names and reach different decisions.  During
+   the window in which a label's public-suffix status is changing, this
+   is a deterministic-source-selection hazard (Section 3.2.2) and a
+   security consideration, not merely an operational one.  Consumers
+   SHOULD use a snapshot of the [PSL] no older than 30 days.
+
+   The determinism property this framework claims holds for a given
+   computed Subject Authority.  Parties that require identical Subject
+   Authority computation across verifiers SHOULD agree on, or pin, a PSL
+   snapshot.  Such parties include, for example, a Subject Authority and
+   the Resource Authorization Servers that consume its policy.  Subject
+   Authorities SHOULD monitor PSL changes affecting their namespace.
 
 4.4.2.  Subdomain Authority
 
@@ -1373,12 +1443,14 @@ Table of Contents
    naming other members of the same document whose correct processing is
    REQUIRED for safe interpretation.  A Trust Method specification MAY
    adopt this mechanism, with the rules of this section, for the policy
-   documents it defines (for example, [DAI]).  A consumer that does not
-   recognize, or does not implement processing for, any member named in
-   crit MUST reject the document as malformed rather than ignoring the
-   unrecognized member.  Members not named in crit retain the default
-   handling: unrecognized members are ignored. crit names members of the
-   object that carries it; it does not reach members of nested objects.
+   documents it defines (for example, [DAI]).
+
+   A consumer that does not recognize, or does not implement processing
+   for, any member named in crit MUST reject the document as malformed
+   rather than ignoring the unrecognized member.  Members not named in
+   crit retain the default handling: unrecognized members are ignored.
+   crit names members of the object that carries it.  It does not reach
+   members of nested objects.
 
    crit, when present, MUST be a non-empty array of strings; each string
    SHOULD name a member that is actually present in the document.  A
@@ -1388,10 +1460,11 @@ Table of Contents
    uses for critical header parameters.
 
    This mechanism is defined in the base specification, with no member
-   named critical by default, so that a future extension can mark a new
-   decision-affecting member critical and have already-deployed
-   consumers honor it; an extension that omitted it from the base could
-   not retrofit fail-closed behavior onto the deployed base.
+   named critical by default.  Defining it in the base lets a future
+   extension mark a new decision-affecting member critical and have
+   already-deployed consumers honor it.  An extension that omitted it
+   from the base could not retrofit fail-closed behavior onto the
+   deployed base.
 
 5.  Trust Policy Processing
 
@@ -1457,20 +1530,22 @@ Table of Contents
 
    2.  Validate the assertion per the applicable grant profile
        ([RFC7521], [RFC7523], [ID-JAG]).  This validation is provisional
-       with respect to signing-key resolution: a Trust Method evaluated
+       with respect to signing-key resolution.  A Trust Method evaluated
        in step 5 MAY constrain the source of the key used to verify the
-       assertion signature (for example, openid_federation requires a
-       federation-resolved JWKS, Section 4.3.4.1).  The Resource
-       Authorization Server MUST NOT accept the assertion until the
-       signature has been verified with a key permitted by each key-
-       source-constraining Trust Method that it relies on to satisfy the
-       combination rule in step 5 (not every listed method: under the
-       or-semantics of Section 3.2.1, a category may be satisfied by one
-       of several alternative methods, and only the constraints of the
-       method actually relied on apply).  A signature validated only
-       against an unconstrained source, such as the iss URL's
-       authorization server metadata, does not satisfy this step when
-       the relied-on Trust Method constrains the key source.
+       assertion signature.  For example, openid_federation requires a
+       federation-resolved JWKS (Section 4.3.4.1).
+
+       The Resource Authorization Server MUST NOT accept the assertion
+       until the signature has been verified with a key permitted by
+       each key-source-constraining Trust Method it relies on to satisfy
+       the combination rule in step 5.  This applies to the methods
+       relied on, not to every listed method.  Under the or-semantics of
+       Section 3.2.1, a category may be satisfied by one of several
+       alternative methods, and only the constraints of the method
+       actually relied on apply.  A signature validated only against an
+       unconstrained source, such as the iss URL's authorization server
+       metadata, does not satisfy this step when the relied-on Trust
+       Method constrains the key source.
 
    3.  Verify that the applicable grant profile is listed in
        authorization_grant_profiles_supported.
@@ -1489,12 +1564,12 @@ Table of Contents
        issuer_trust_methods is not recognized, is malformed, or cannot
        be assigned to a category known to the Resource Authorization
        Server, the Resource Authorization Server MUST reject the
-       assertion: it cannot determine whether it is evaluating the full
-       set of requirements the operator declared, and silently ignoring
-       the object would evaluate a strict subset (a fail-open category
-       downgrade).  A single evidence item MUST NOT be counted toward
-       more than one category even when its Trust Method is registered
-       in several.
+       assertion.  In that case, the Resource Authorization Server
+       cannot determine whether it is evaluating the full set of
+       requirements the operator declared.  Silently ignoring the object
+       would evaluate a strict subset (a fail-open category downgrade).
+       A single evidence item MUST NOT be counted toward more than one
+       category even when its Trust Method is registered in several.
 
        b.  Each category present in the partitioned policy is applicable
        to every assertion evaluated under this policy; applicability is
@@ -1511,22 +1586,24 @@ Table of Contents
        Resource Authorization Server MUST reject the assertion.  The
        Resource Authorization Server MUST NOT treat the
        subject_namespace_authorization category as inapplicable because
-       the assertion omits a Subject Identifier, and MUST NOT consume
-       any subject or identity claim from the assertion for account
-       linking, authorization, or subject resolution when the namespace
-       category is present but cannot be evaluated.
+       the assertion omits a Subject Identifier.  When the namespace
+       category is present but cannot be evaluated, the Resource
+       Authorization Server MUST NOT consume any subject or identity
+       claim from the assertion for account linking, authorization, or
+       subject resolution.
 
        d.  Local policy MAY require satisfaction of additional Trust
        Methods for specific clients, subjects, or scopes.
 
        e.  When the policy lists only issuer_authentication methods and
-       the assertion carries a namespace-bound Subject Identifier (one
-       whose format has a registered Subject Authority extraction
-       procedure, Section 10.2, so that the Resource Authorization
-       Server can determine this without running a namespace method),
-       the Resource Authorization Server MUST reject the assertion
-       unless local policy independently establishes authority over the
-       subject namespace: federation membership alone does not establish
+       the assertion carries a namespace-bound Subject Identifier, the
+       Resource Authorization Server MUST reject the assertion unless
+       local policy independently establishes authority over the subject
+       namespace.  A namespace-bound Subject Identifier is one whose
+       format has a registered Subject Authority extraction procedure
+       (Section 10.2), so the Resource Authorization Server can
+       determine that an identifier is namespace-bound without running a
+       namespace method.  Federation membership alone does not establish
        authority over a particular subject namespace.
 
    6.  Apply local policy (account-linking, consent, authorization,
@@ -1548,10 +1625,17 @@ Table of Contents
 5.3.  Outbound Fetches
 
    Evaluating Trust Methods makes the Resource Authorization Server
-   fetch resources at locations an attacker can choose: the Assertion
-   Issuer's metadata and key sets, Entity Statements reached through a
-   leaf's authority_hints, a Trust Mark Issuer's chain, and policy
-   documents named by a Subject Authority that the attacker controls.
+   fetch resources at locations an attacker can choose:
+
+   *  the Assertion Issuer's metadata and key sets;
+
+   *  Entity Statements reached through a leaf's authority_hints;
+
+   *  a Trust Mark Issuer's chain; and
+
+   *  policy documents named by a Subject Authority that the attacker
+      controls.
+
    For every such fetch, the Resource Authorization Server:
 
    *  MUST NOT connect to an address that is private-use, loopback,
@@ -1606,7 +1690,7 @@ Table of Contents
    include the tenant claim in every ID-JAG it issues.  A namespace
    method can bind authorization to a tenant (for example, [DAI]
    §Single-Issuer Multi-Tenant Identity Providers) and cannot tell an
-   issuer's tenants apart without the claim, and the Assertion Issuer
+   issuer's tenants apart without the claim.  The Assertion Issuer
    cannot tell which Resource Authorization Servers evaluate such a
    method: publishing a Trust Policy is optional (Section 4.1), and
    local policy can add Trust Methods (Section 5.2 step 5d).  This
@@ -1692,21 +1776,24 @@ Table of Contents
 7.1.  Alignment with OAuth Security BCP
 
    This document complements the OAuth 2.0 Security Best Current
-   Practice ([RFC9700]); it does not duplicate or override it.  The
-   subject_namespace_authorization category is the wire-format analog of
-   [RFC9700] §4.4 (AS mix-up mitigations): to the extent the Subject
-   Authority's publication channel provides integrity, a Resource
-   Authorization Server will not accept an assertion from an
+   Practice ([RFC9700]).  It does not duplicate or override it.
+
+   The subject_namespace_authorization category is the wire-format
+   analog of [RFC9700] §4.4 (AS mix-up mitigations).  To the extent the
+   Subject Authority's publication channel provides integrity, a
+   Resource Authorization Server will not accept an assertion from an
    authorization server that the Subject Authority has not listed.  This
-   guarantee is only as strong as the integrity of that channel: a Trust
-   Method whose evidence is published over unauthenticated DNS or a
-   compromisable HTTPS origin can be defeated by an attacker who
-   controls that channel (see the per-Trust-Method security analysis,
-   e.g. [DAI], and Section 3.2.2).  It is not an unconditional
-   guarantee.  Other [RFC9700] topics (redirect URI validation, bearer-
-   token replay, client authentication) apply at the grant-profile and
-   client-authentication layers and are not addressed here.
-   Implementations SHOULD follow [RFC9700] at those layers.
+   guarantee is only as strong as the integrity of that channel.  It is
+   not an unconditional guarantee.  A Trust Method whose evidence is
+   published over unauthenticated DNS or a compromisable HTTPS origin
+   can be defeated by an attacker who controls that channel.  See the
+   per-Trust-Method security analysis (for example, [DAI]) and
+   Section 3.2.2.
+
+   Other [RFC9700] topics (redirect URI validation, bearer-token replay,
+   client authentication) apply at the grant-profile and client-
+   authentication layers and are not addressed here.  Implementations
+   SHOULD follow [RFC9700] at those layers.
 
 7.2.  Unverified Claim Exploitation
 
@@ -1890,45 +1977,53 @@ Table of Contents
    tenant, and sub for a multi-tenant issuer) and links an account by
    email only under its own account-linking rules.
 
-   The authorization is also not audience-scoped: the
+   The authorization is also not audience-scoped.  The
    subject_namespace_authorization category constrains which Assertion
-   Issuers may assert about a namespace, not which Resource
-   Authorization Servers an authorized issuer may target, so a
-   compromised-but-authorized issuer can mint assertions about the
-   namespace's subjects for any consumer.  Audience binding is enforced
-   by the assertion's aud claim and the applicable grant profile, not by
-   the Subject Authority; a future extension may let Authority Holders
-   constrain acceptable audiences (see [DAI] §Future Extensions).
+   Issuers may assert about a namespace.  It does not constrain which
+   Resource Authorization Servers an authorized issuer may target.  A
+   compromised-but-authorized issuer can therefore mint assertions about
+   the namespace's subjects for any consumer.  Audience binding is
+   enforced by the assertion's aud claim and the applicable grant
+   profile, not by the Subject Authority.  A future extension may let
+   Authority Holders constrain acceptable audiences (see [DAI] §Future
+   Extensions).
 
 7.8.  Per-Assertion Revocation Is Out of Scope
 
-   This framework decides whether an Assertion Issuer is authorized; it
+   This framework decides whether an Assertion Issuer is authorized.  It
    does not revoke individual assertions.  JWT bearer tokens are
-   stateless and remain valid until exp regardless of session
-   termination, credential revocation at the Assertion Issuer, or
-   Subject Authority withdrawal of the issuer's authorization via DAI
-   (withdrawal stops the Resource Authorization Server from accepting
-   further assertions once its cache expires, but does not revoke access
-   or refresh tokens it has already issued).  Deployments requiring
-   synchronous revocation need OAuth 2.0 Token Revocation [RFC7009],
-   Token Introspection [RFC7662], or short assertion lifetimes at the
-   grant-profile layer.
+   stateless and remain valid until exp regardless of:
+
+   *  session termination;
+
+   *  credential revocation at the Assertion Issuer; or
+
+   *  Subject Authority withdrawal of the issuer's authorization via
+      DAI.
+
+   That withdrawal stops the Resource Authorization Server from
+   accepting further assertions once its cache expires.  It does not
+   revoke access or refresh tokens the Resource Authorization Server has
+   already issued.  Deployments requiring synchronous revocation need
+   OAuth 2.0 Token Revocation [RFC7009], Token Introspection [RFC7662],
+   or short assertion lifetimes at the grant-profile layer.
 
 7.9.  Policy Document Integrity
 
    The Trust Policy MUST be served over HTTPS with TLS server
    authentication, and its integrity rests on TLS.  It carries no
-   signature: a Resource Authorization Server enforces its Trust Policy
+   signature.  A Resource Authorization Server enforces its Trust Policy
    from its own configuration, and a client uses the published copy only
-   for discovery (Section 5.1), so a substituted Trust Policy can
-   mislead a client's choice of Assertion Issuer but cannot change what
-   the Resource Authorization Server accepts.  Integrity protection for
-   an Issuer Authorization Policy, which decides acceptance, is defined
-   by the Trust Method specification that defines the policy (for
-   example, [DAI] §Signed Policy).  Mirrored or cached copies of a Trust
-   Policy MUST NOT be relied on beyond their HTTP cache lifetime
-   (Section 7.12); cache and stale-use bounds for an Issuer
-   Authorization Policy are set by the applicable Trust Method
+   for discovery (Section 5.1).  A substituted Trust Policy can
+   therefore mislead a client's choice of Assertion Issuer but cannot
+   change what the Resource Authorization Server accepts.
+
+   Integrity protection for an Issuer Authorization Policy, which
+   decides acceptance, is defined by the Trust Method specification that
+   defines the policy (for example, [DAI] §Signed Policy).  Mirrored or
+   cached copies of a Trust Policy MUST NOT be relied on beyond their
+   HTTP cache lifetime (Section 7.12).  Cache and stale-use bounds for
+   an Issuer Authorization Policy are set by the applicable Trust Method
    specification (Section 4.3.3).
 
 7.10.  Shared Infrastructure and Hosted Well-Known Paths
@@ -1960,15 +2055,15 @@ Table of Contents
 7.11.  Downgrade Attacks
 
    A Resource Authorization Server that supports multiple Trust Methods
-   SHOULD define local precedence rules.  Because or-semantics apply
-   within a single Trust Method category and the client cannot observe
-   per-subject local requirements, Resource Authorization Servers MUST
-   enforce differentiated requirements at token request time rather than
-   relying on the policy document alone; a client's choice of a weaker
-   listed Trust Method is not a protocol violation the client can be
-   held to but a condition the Resource Authorization Server rejects.
-   The cross-category combination rule in Section 5.2 prevents downgrade
-   across categories (for example, satisfying only an
+   SHOULD define local precedence rules.  Resource Authorization Servers
+   MUST enforce differentiated requirements at token request time rather
+   than relying on the policy document alone.  This is because or-
+   semantics apply within a single Trust Method category and the client
+   cannot observe per-subject local requirements.  A client's choice of
+   a weaker listed Trust Method is not a protocol violation the client
+   can be held to but a condition the Resource Authorization Server
+   rejects.  The cross-category combination rule in Section 5.2 prevents
+   downgrade across categories (for example, satisfying only an
    issuer_authentication method when a subject_namespace_authorization
    method is also applicable).
 
@@ -1983,14 +2078,24 @@ Table of Contents
 
 7.13.  Observability
 
-   Trust-policy evaluation is a security-critical decision; deployments
-   are encouraged to log, for each processed assertion, at minimum the
-   Assertion Issuer identifier, the version or configuration identifier
-   of the Trust Policy in effect, the Trust Methods that succeeded, the
-   matched trust anchor or Issuer Authorization Policy origin, the
-   Subject Identifier format, and the accept/reject outcome, and to
-   support correlation across the issuance and verification halves of an
-   identity-chain transaction.
+   Trust-policy evaluation is a security-critical decision.  For each
+   processed assertion, deployments are encouraged to log at minimum:
+
+   *  the Assertion Issuer identifier;
+
+   *  the version or configuration identifier of the Trust Policy in
+      effect;
+
+   *  the Trust Methods that succeeded;
+
+   *  the matched trust anchor or Issuer Authorization Policy origin;
+
+   *  the Subject Identifier format; and
+
+   *  the accept/reject outcome.
+
+   Deployments are also encouraged to support correlation across the
+   issuance and verification halves of an identity-chain transaction.
 
 8.  Privacy Considerations
 
@@ -2017,24 +2122,25 @@ Table of Contents
    The email Subject Identifier format carries an internationalized
    domain.  Consumers convert the domain to A-label form by UTS #46
    nontransitional processing (Section 4.4) before Public Suffix List
-   matching and before comparison, and compare A-labels using case-
-   insensitive ASCII comparison.  Performing all comparison on the
-   A-label form means two visually distinct Unicode domains that map to
-   different A-labels are correctly treated as different Subject
-   Authorities; conversely, this mechanism does not by itself defend
-   against homograph confusion presented to a human at account-linking
-   or display time, which is out of scope and left to the consuming
-   application.  Comparison operates on the mechanism level, not the
-   visual level.  Resource Authorization Servers that link accounts by
-   email SHOULD compare the domain in this A-label form, so that a
-   Unicode string that maps to a different Subject Authority cannot land
-   on another user's account.
+   matching and before comparison.  They compare A-labels using case-
+   insensitive ASCII comparison.
+
+   Performing all comparison on the A-label form means two visually
+   distinct Unicode domains that map to different A-labels are correctly
+   treated as different Subject Authorities.  Conversely, this mechanism
+   does not by itself defend against homograph confusion presented to a
+   human at account-linking or display time.  Such confusion is out of
+   scope and left to the consuming application.  Comparison operates on
+   the mechanism level, not the visual level.  Resource Authorization
+   Servers that link accounts by email SHOULD compare the domain in this
+   A-label form, so that a Unicode string that maps to a different
+   Subject Authority cannot land on another user's account.
 
    The email extraction uses the simple single-@ rule and does not
-   implement the full [RFC5321] Mailbox grammar; internationalized email
-   addresses (SMTPUTF8, [RFC6530]) whose local-part requires UTF-8 are
-   outside the scope of the email extraction defined here, though the
-   domain of such an address is handled normally once isolated.  A
+   implement the full [RFC5321] Mailbox grammar.  Internationalized
+   email addresses (SMTPUTF8, [RFC6530]) whose local-part requires UTF-8
+   are outside the scope of the email extraction defined here, though
+   the domain of such an address is handled normally once isolated.  A
    future Subject Identifier format may define richer address handling
    by registering its own extraction procedure (Section 10.2).
 
@@ -2150,15 +2256,20 @@ Table of Contents
    Reference:  A reference to the specification defining the Trust
       Method.
 
-   Designated Expert instructions: the expert verifies that the
-   identifier is unique and descriptive; that each listed category is
-   registered; that the Trust Method's evidence and evaluation procedure
-   are specified precisely enough for interoperable implementation
-   (including its mapping onto the Affirmative/Negative/Indeterminate
-   lookup states and any cache-lifetime bounds, per Section 4.3.3); and
-   that parameter names do not collide in meaning with parameters of
-   other methods in a way that would be ambiguous when methods are
-   combined.
+   Designated Expert instructions: the expert verifies that:
+
+   *  the identifier is unique and descriptive;
+
+   *  each listed category is registered;
+
+   *  the Trust Method's evidence and evaluation procedure are specified
+      precisely enough for interoperable implementation (including its
+      mapping onto the Affirmative/Negative/Indeterminate lookup states
+      and any cache-lifetime bounds, per Section 4.3.3); and
+
+   *  parameter names do not collide in meaning with parameters of other
+      methods in a way that would be ambiguous when methods are
+      combined.
 
    Initial entry:
 
@@ -2195,14 +2306,21 @@ Table of Contents
    Specification Document:  A reference to the specification defining
       the member.
 
-   Designated Expert instructions: the expert verifies that the member
-   name does not collide with an existing member, that its semantics and
-   JSON type are specified, that the registration states whether the
-   member is decision-affecting (Section 2), and that any decision-
-   affecting member states how a consumer that does not recognize it
-   behaves (the default is that unrecognized members are ignored; a
-   member requiring fail-closed handling needs the criticality mechanism
-   of Section 4.5).
+   Designated Expert instructions: the expert verifies that:
+
+   *  the member name does not collide with an existing member;
+
+   *  the member's semantics and JSON type are specified;
+
+   *  the registration states whether the member is decision-affecting
+      (Section 2); and
+
+   *  any decision-affecting member states how a consumer that does not
+      recognize it behaves.
+
+   The default is that unrecognized members are ignored.  A member
+   requiring fail-closed handling needs the criticality mechanism of
+   Section 4.5.
 
    Initial entries, each decision-affecting, with Change Controller IETF
    and Specification Document this document:
@@ -2494,14 +2612,23 @@ B.1.  Additional Subject Identifier Formats
    (email, Section 4.4).  The policy model accommodates additional
    Subject Identifier formats.  A future specification adding a new
    format would register a Subject Authority Extraction Procedure in
-   Section 10.2 defining how a Subject Authority is computed from values
-   of the new format, and either reuse domain_authorized_issuer (when
-   the computed Subject Authority is a DNS-publishable domain) or
-   register a new subject_namespace_authorization Trust Method.  The
-   Trust Policy document format, Issuer Authorization Policy document
-   format, Trust Method category structure, combination rule, and
-   bounded-transitivity property remain unchanged across such
-   extensions.
+   Section 10.2.  The procedure would define how a Subject Authority is
+   computed from values of the new format.  The specification would
+   either reuse domain_authorized_issuer (when the computed Subject
+   Authority is a DNS-publishable domain) or register a new
+   subject_namespace_authorization Trust Method.
+
+   The following remain unchanged across such extensions:
+
+   *  the Trust Policy document format;
+
+   *  the Issuer Authorization Policy document format;
+
+   *  the Trust Method category structure;
+
+   *  the combination rule; and
+
+   *  the bounded-transitivity property.
 
    Candidate formats considered as future work include URL-host Subject
    Identifiers (url_host), Decentralized Identifiers (did), and a
@@ -2511,27 +2638,40 @@ B.1.  Additional Subject Identifier Formats
 B.2.  Presented Delegation Credentials
 
    The subject_namespace_authorization methods defined so far are
-   declarative and fetched: the Validator retrieves the Authority
-   Holder's published policy at verification time.  The complementary
-   shape is a presented credential: the Authority Holder signs a
-   delegation ("issuer X may assert for namespace A until time T",
-   optionally audience-scoped), gives it to the Assertion Issuer, and
-   the issuer presents it with the assertion, in the manner of an x5c
-   chain or an OpenID Federation Subordinate Statement.  Verification
-   becomes offline once the Authority Holder's key is known, removing
-   the per-verification lookup from the token path and enabling
-   constraints a flat record cannot express, such as audiences and
-   scopes (and delegation chains, should a future revision relax the
-   depth-1 bound of Section 7.5).  The costs are the mirror image: the
-   Authority Holder needs key management and signing automation, key
-   discovery recurses to a DNS- or HTTPS-anchored channel, and
-   revocation requires status checking or short-lived credentials.
-   Nothing in this framework precludes such a method: it would register
-   as a subject_namespace_authorization Trust Method whose evidence is
-   carried in-band, satisfy the checklist in Section 4.3.3, and compose
-   with existing methods under the combination rule.  It is deferred as
-   an assurance-tier extension for deployments whose requirements
-   justify the operational cost.
+   declarative and fetched.  The Validator retrieves the Authority
+   Holder's published policy at verification time.
+
+   The complementary shape is a presented credential.  The Authority
+   Holder signs a delegation ("issuer X may assert for namespace A until
+   time T", optionally audience-scoped) and gives it to the Assertion
+   Issuer.  The issuer presents it with the assertion, in the manner of
+   an x5c chain or an OpenID Federation Subordinate Statement.
+   Verification becomes offline once the Authority Holder's key is
+   known.  This removes the per-verification lookup from the token path.
+   It also enables constraints a flat record cannot express, such as
+   audiences and scopes.  Delegation chains are another such constraint,
+   should a future revision relax the depth-1 bound of Section 7.5.
+
+   The costs are the mirror image:
+
+   *  The Authority Holder needs key management and signing automation.
+
+   *  Key discovery recurses to a DNS- or HTTPS-anchored channel.
+
+   *  Revocation requires status checking or short-lived credentials.
+
+   Nothing in this framework precludes such a method.  Such a method
+   would:
+
+   *  register as a subject_namespace_authorization Trust Method whose
+      evidence is carried in-band;
+
+   *  satisfy the checklist in Section 4.3.3; and
+
+   *  compose with existing methods under the combination rule.
+
+   Such a method is deferred as an assurance-tier extension for
+   deployments whose requirements justify the operational cost.
 
 B.3.  Actor Identity Trust Evaluation
 
@@ -2892,12 +3032,13 @@ E.2.  Well-Known Binding Variant
    that the metadata's issuer equals the leaf's Entity Identifier.  Item
    3 then permits the bound JWK Set for assertion verification.  The
    Trust Mark and DAI checks are unchanged.  Metadata policy does not
-   constrain members carried only in the covered document.  If the
-   Intermediate's policy instead marked jwks_uri essential, the leaf
-   would carry it in Entity Type metadata; item 3 would select that
-   source, and the extension would still check the retrieved key set
-   against jwks_digests.  A key mismatch never authorizes fallback.  An
-   absent binding, digest mismatch, or unsupported extension with no
+   constrain members carried only in the covered document.
+
+   If the Intermediate's policy instead marked jwks_uri essential, the
+   leaf would carry it in Entity Type metadata.  Item 3 would select
+   that source, and the extension would still check the retrieved key
+   set against jwks_digests.  A key mismatch never authorizes fallback.
+   An absent binding, digest mismatch, or unsupported extension with no
    other qualifying key source yields Indeterminate and invalid_grant.
 
 Appendix F.  Document History
@@ -2956,6 +3097,8 @@ Appendix F.  Document History
    *  Summarize in a table what a namespace method's outcome leaves to
       other methods; say who publishes the Trust Policy and that one
       party can be both Assertion Issuer and client.
+
+   *  Editorial changes for readability.
 
    -00
 

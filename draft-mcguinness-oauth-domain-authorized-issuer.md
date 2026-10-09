@@ -136,7 +136,8 @@ Authority Determination concept.
 
 # Introduction
 
-OAuth deployments using identity-assertion grants (e.g., ID-JAG, or
+OAuth deployments using identity-assertion grants (e.g., the
+Identity Assertion JWT Authorization Grant (ID-JAG), or
 generic JWT-bearer assertions carrying an identity claim; see
 {{TRUST-FRAMEWORK}}) need to answer "is this Assertion Issuer
 authorized to assert about subjects in this namespace?". An issuer authenticated by federation
@@ -483,7 +484,8 @@ for unrecognized members. A conflict exists when a member name
 appears in both the unsigned outer document and the signed JWT
 payload AND the two values are not equal when compared as parsed
 JSON values (member order and insignificant whitespace ignored;
-equivalently, their JCS {{RFC8785}} serializations differ). Consumers
+equivalently, their JSON Canonicalization Scheme {{RFC8785}}
+serializations differ). Consumers
 MUST reject a policy that contains any such conflict; an attacker who
 can modify the outer document but not the signed JWT otherwise has a
 lever to inject visible-but-ignored members that may mislead
@@ -1304,8 +1306,8 @@ The trade-off between the two lookup modes is discussed in
 An adversary who can substitute a forged DNS response (off-path
 resolver spoofing, authoritative nameserver hijack, registrar
 account compromise, BGP hijack, recursive cache poisoning) can
-substitute the Subject Authority's policy: add an attacker-
-controlled Assertion Issuer to the inline form, redirect a `uri=`
+substitute the Subject Authority's policy: add an
+attacker-controlled Assertion Issuer to the inline form, redirect a `uri=`
 pointer, or force `indeterminate` outcomes to benefit a cached
 attacker-friendly policy. The pointer form additionally depends on
 TLS authentication of the pointed-at host: TLS does not mitigate
@@ -1338,7 +1340,8 @@ Required framework defenses:
   than a cacheable Negative.
 - Subject Authorities SHOULD sign `_oauth-issuer-policy.{A}` with
   DNSSEC, and consumers that do not validate DNSSEC SHOULD use a
-  trustworthy resolver path (DoH/DoT to a vetted resolver).
+  trustworthy resolver path (DNS over HTTPS or DNS over TLS to a
+  vetted resolver).
 
 Forged negative answers: a `negative-authoritative` DNS result is
 Negative ({{dii-lookup}}). When `domain_authorized_issuer` is the only
@@ -1556,8 +1559,8 @@ in two directions, and the policy itself is public:
   It does not carry the full subject identifier for formats such as
   `email`, but the authority plus timing can reveal organizational
   relationships and login activity. Resource Authorization Servers
-  SHOULD use a privacy-preserving resolver path (DoH/DoT to a vetted
-  resolver) and SHOULD NOT perform the lookup until it is needed for a
+  SHOULD use a privacy-preserving resolver path (DNS over HTTPS or
+  DNS over TLS to a vetted resolver) and SHOULD NOT perform the lookup until it is needed for a
   concrete verification decision.
 - **To the Subject Authority.** For the dedicated-host and `uri=`
   channels, the Subject Authority's own server (or its chosen policy
@@ -2188,7 +2191,8 @@ _oauth-issuer-policy.acme.example. IN TXT ( "v=oauth-issuer-policy1;"
 ~~~
 
 The quoted segments are concatenated without a separator, yielding
-`v=oauth-issuer-policy1;authority=acme.example;issuer=https://idp.example.net`.
+one record whose directives are `v=oauth-issuer-policy1`,
+`authority=acme.example`, and `issuer=https://idp.example.net`.
 No HTTPS endpoint is operated on `acme.example`.
 
 The Resource Authorization Server publishes a Trust Policy that lists

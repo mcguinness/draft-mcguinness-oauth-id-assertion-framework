@@ -1668,7 +1668,7 @@ Practice ({{RFC9700}}); it does not duplicate or override it. The
 `subject_namespace_authorization` category is the wire-format
 analog of {{RFC9700}} §4.4 (AS mix-up mitigations): to the extent the
 Subject Authority's publication channel provides integrity, a Resource
-Authorization Server will not accept an assertion from an AS that the
+Authorization Server will not accept an assertion from an authorization server that the
 Subject Authority has not listed. This guarantee is only as strong as
 the integrity of that channel: a Trust Method whose evidence is
 published over unauthenticated DNS or a compromisable HTTPS origin can
@@ -1846,8 +1846,8 @@ from a successful trust-policy evaluation:
   compliance regime.
 
 These properties are out of scope and obtained, if needed, through
-mechanisms outside this framework (authentication-method/AAL
-claims, fresh-authentication signals, account-status attestations,
+mechanisms outside this framework (authentication-method or
+authentication assurance level claims, fresh-authentication signals, account-status attestations,
 out-of-band verification). In particular, `email_verified=true` is
 a prerequisite for deriving namespace authority from the email's
 domain; it is not evidence of current mailbox control.

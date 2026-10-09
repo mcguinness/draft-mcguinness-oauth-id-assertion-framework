@@ -1005,10 +1005,10 @@ Freshness and cache limits for the Issuer Authorization Policy:
   record's TTL and its HTTP freshness lifetime. A
   document without explicit freshness information (no `max-age` and
   no `Expires`) is fresh for a local default that MUST NOT exceed 1
-  hour. Consumers SHOULD respect these lifetimes, and MAY apply a
-  minimum freshness lifetime of up to 5 minutes even when a TTL or
-  HTTP lifetime is shorter, to coarsen the timing signal discussed
-  in {{privacy}}.
+  hour. Consumers MUST NOT treat a cached policy as fresh beyond
+  these lifetimes, except that they MAY apply a minimum freshness
+  lifetime of up to 5 minutes even when a TTL or HTTP lifetime is
+  shorter, to coarsen the timing signal discussed in {{privacy}}.
 - **Unvalidated DNS.** Consumers MUST NOT treat a DNS result that was
   not DNSSEC-validated as fresh for more than 1 hour, whatever its
   TTL: a spoofed answer chooses its own TTL
@@ -1017,8 +1017,8 @@ Freshness and cache limits for the Issuer Authorization Policy:
   records and HTTPS policies with a freshness lifetime of at most 1
   hour, reducing it further during an active revocation.
 - **Absolute ceiling.** Consumers MUST enforce an absolute local
-  ceiling on the age of any cached policy entry (recommended: 24
-  hours), regardless of TTL or `Cache-Control`. A cached entry older
+  ceiling of at most 24 hours on the age of any cached policy entry,
+  regardless of TTL or `Cache-Control`. A cached entry older
   than the ceiling MUST NOT be used and MUST be re-fetched with an
   unconditional request.
 - **Stale-if-error.** When a live retrieval is Indeterminate, a

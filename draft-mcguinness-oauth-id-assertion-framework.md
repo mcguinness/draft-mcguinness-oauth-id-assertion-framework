@@ -2275,9 +2275,11 @@ Designated Expert instructions: the expert verifies that:
 - the registration states whether the member is decision-affecting
   ({{terminology}}); and
 - any decision-affecting member states how a consumer that does not
-  recognize it behaves. The default is that unrecognized members are
-  ignored. A member requiring fail-closed handling needs the
-  criticality mechanism of {{critical-members}}.
+  recognize it behaves.
+
+The default is that unrecognized members are ignored. A member
+requiring fail-closed handling needs the criticality mechanism of
+{{critical-members}}.
 
 Initial entries, each decision-affecting, with Change Controller IETF
 and Specification Document this document:

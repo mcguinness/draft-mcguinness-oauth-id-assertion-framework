@@ -1882,7 +1882,7 @@ Registration policy: Specification Required {{RFC8126}}.
 Each entry contains a Directive Name (character set `[a-z0-9_-]`), a
 Description, a Change Controller, and a Reference.
 
-Designated Expert instructions: the expert verifies that
+Designated Expert instructions: the expert verifies that:
 
 - the directive name is unique;
 - its value syntax is specified within the ABNF value production of
@@ -1917,16 +1917,18 @@ Registration policy: Specification Required {{RFC8126}}.
 Each entry contains a Member Name, a Description, whether the member
 is decision-affecting, a Change Controller, and a Reference.
 
-Designated Expert instructions: the expert verifies that
+Designated Expert instructions: the expert verifies that:
 
 - the member name does not collide with an existing member;
 - its JSON type and semantics are specified;
 - the registration states whether the member is decision-affecting
   ({{TRUST-FRAMEWORK}} §Terminology); and
 - any decision-affecting member states how a consumer that does not
-  recognize it behaves. The default is to ignore unrecognized
-  members. A member requiring fail-closed handling uses the `crit`
-  mechanism of {{TRUST-FRAMEWORK}} §Critical Members.
+  recognize it behaves.
+
+The default is to ignore unrecognized members. A member requiring
+fail-closed handling uses the `crit` mechanism of {{TRUST-FRAMEWORK}}
+§Critical Members.
 
 A member that narrows what a policy authorizes, so that a consumer
 ignoring it would accept more than the Subject Authority intended,

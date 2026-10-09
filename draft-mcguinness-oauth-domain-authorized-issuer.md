@@ -538,8 +538,8 @@ only by the HTTPS-only lookup mode
 
 | Channel | DNS form | Document | Authority binding | When to use |
 |-|-|-|-|-|
-| 1: DNS-Inline | TXT with `issuer=` ({{dii-dns-record}}) | None (carried in TXT) | DNS control of `{A}` | Common case: authorize an issuer for a namespace with no rich policy |
-| 2: Authority-Hosted HTTPS | TXT with `uri=`, consumed by canonical lookup | HTTPS-hosted JSON under Subject Authority's operational control | DNS control of `{A}` AND TLS on the authority-operated host | Rich policy (validity windows, format restrictions, tenant binding) at a controlled origin |
+| 1: Inline | TXT with `issuer=` ({{dii-dns-record}}) | None (carried in TXT) | DNS control of `{A}` | Common case: authorize an issuer for a namespace with no rich policy |
+| 2: Pointer | TXT with `uri=`, consumed by canonical lookup | HTTPS-hosted JSON under Subject Authority's operational control | DNS control of `{A}` AND TLS on the authority-operated host | Rich policy (validity windows, format restrictions, tenant binding) at a controlled origin |
 | 3: Dedicated Policy Host | TXT with `uri=` naming the default URL, consumed by the HTTPS-only lookup mode as the opt-in | HTTPS-hosted JSON at `https://oauth-issuer-policy.{A}/.well-known/oauth-issuer-policy` | DNS control of `{A}` (opt-in record) AND of `oauth-issuer-policy.{A}`, AND TLS on that host | Serving Resource Authorization Servers that use the HTTPS-only lookup mode |
 
 ## Dedicated Policy Host {#dedicated-policy-host}
@@ -1057,7 +1057,7 @@ Freshness and cache limits for the Issuer Authorization Policy:
 
 This document defines `domain_authorized_issuer` as a
 `subject_namespace_authorization` Trust Method of {{TRUST-FRAMEWORK}}.
-DNS at `_oauth-issuer-policy.{authority}` is the publication channel
+DNS at `_oauth-issuer-policy.{A}` is the publication channel
 for canonical lookup; under the HTTPS-only lookup mode the record
 is an opt-in and a dedicated HTTPS host serves the policy. The Trust
 Method
@@ -1314,7 +1314,7 @@ the DNS compromise that selected that host.
 Absent DNSSEC or an authenticated resolver path, the inline DNS form's
 integrity is no stronger than the recursive resolver path between
 consumer and authoritative server. Deployments needing a stronger
-guarantee SHOULD sign the zone with DNSSEC or use the HTTPS document
+guarantee SHOULD sign the zone with DNSSEC or use the pointer
 form with the controls of {{TRUST-FRAMEWORK}} §Shared Infrastructure
 and Hosted Well-Known Paths; the inline form's "common case"
 simplicity ({{publication-profiles}}) is an operability tradeoff, not
@@ -1429,7 +1429,7 @@ specified in {{dii-failures}}.
 ## Mechanism Limits {#mechanism-limits}
 
 - **Authentication.** The inline DNS form has no signing mechanism;
-  its authority binding is DNS control. The HTTPS document form
+  its authority binding is DNS control. The pointer form
   relies on DNS selection plus TLS to the selected policy host.
 - **Scope.** A Resource Authorization Server MUST NOT use a
   matched Issuer Authorization Policy to establish trust for
@@ -1438,7 +1438,7 @@ specified in {{dii-failures}}.
   "issuer X is authorized for Subject Authority A." Deployments
   needing `tenant`, `subject_identifier_formats`, `valid_from`,
   `valid_until`, or explicit denial (an empty `authorized_issuers`
-  array, {{dii-document}}) MUST use the HTTPS or DNS pointer form;
+  array, {{dii-document}}) MUST use the pointer form;
   a recognized inline record with no `issuer=` is malformed, so the
   inline form cannot publish an empty delegation set. An inline
   record that names a shared multi-tenant issuer authorizes none of
@@ -1598,7 +1598,7 @@ infrastructure. Specific guidance:
   regional tenants and departing Identity Providers are the usual
   omissions, and they surface as rejections at such servers. Subject
   Authorities SHOULD sign the zone with DNSSEC or publish via the
-  HTTPS document form, since every published decision carries the
+  pointer form, since every published decision carries the
   full weight of the publication channel's integrity
   ({{dns-integrity-and-compromise}}).
 - **Change management and TTLs.** Reduce DNS TTLs in advance of any
@@ -2191,8 +2191,8 @@ The quoted segments are concatenated without a separator, yielding
 `v=oauth-issuer-policy1;authority=acme.example;issuer=https://idp.example.net`.
 No HTTPS endpoint is operated on `acme.example`.
 
-The Resource Authorization Server publishes a trust policy that accepts
-domain-authorized issuer delegations with DNS-based discovery:
+The Resource Authorization Server publishes a Trust Policy that lists
+`domain_authorized_issuer` with canonical lookup:
 
 ~~~ json
 {

@@ -226,7 +226,7 @@ for OAuth identity assertions ({{categories}}):
 - **`issuer_authentication`** is the Authenticity category. It
   asks: is the JWT `iss` claim a recognized signer?
 
-- **`subject_namespace_authorization`** is the Delegation Authority
+- **`subject_namespace_authorization`** is the delegation authority
   category. It asks: has the namespace owner authorized this
   issuer to assert about subjects in its namespace?
 
@@ -1366,14 +1366,14 @@ not retrofit fail-closed behavior onto the deployed base.
 
 # Trust Policy Processing
 
-The trust policy governs whether an Assertion Issuer's identity
+The Trust Policy governs whether an Assertion Issuer's identity
 assertion is acceptable to the Resource Authorization Server. It does
 not, by itself, authorize any particular access, scope, role, or
 attribute. The Resource Authorization Server's local policy continues
 to determine, for an accepted assertion, which scopes are granted,
 which subject claims are honored for account linking, and which local
-authorization decisions follow. The trust policy is necessary but not
-sufficient: passing trust policy evaluation only means the Resource
+authorization decisions follow. The Trust Policy is necessary but not
+sufficient: passing Trust Policy evaluation only means the Resource
 Authorization Server is willing to consider the assertion as input to
 its access-control logic.
 
@@ -1591,7 +1591,7 @@ Server MUST:
 
 2. Verify that the `email` Subject Identifier, when the assertion
    carries one, uses a format listed in
-   `subject_identifier_formats_supported`, if that trust policy member
+   `subject_identifier_formats_supported`, if that Trust Policy member
    is present. (Whether the assertion is required to carry the Subject
    Identifier at all is governed by {{rasp}} step 5c.)
 
@@ -1641,7 +1641,7 @@ Authorization Server MUST:
 
 2. Verify that the `email` Subject Identifier, when the assertion
    carries one, uses a format listed in
-   `subject_identifier_formats_supported`, if that trust policy
+   `subject_identifier_formats_supported`, if that Trust Policy
    member is present.
 
 3. Treat the identity claim only as input to Subject Authority
@@ -1734,11 +1734,11 @@ Assertion gives the attacker a way to waive the category by
 constructing a matching Assertion.
 
 The attack: the profile (or local configuration) declares "the
-delegation-authority category is not applicable when the
+namespace authorization category is not applicable when the
 Assertion is from a legacy issuer" (or carries a legacy-flag
 claim, or fails some heuristic that signals "legacy"). The
 attacker constructs an Assertion matching the legacy condition.
-The Validator silently skips the entire delegation-authority
+The Validator silently skips the entire namespace authorization
 evaluation; the open-world defense layer is bypassed and the
 Validator falls back to authenticity alone, which the
 cross-category combination rule was explicitly designed to forbid
@@ -2445,7 +2445,7 @@ Remove the entry from the Issuer Authorization Policy or set
 `valid_until` to the past. Revocation latency is bounded by cache
 lifetime; see {{DAI}} §Caching.
 
-# Agent Platform IdP Walkthrough {#example-agent-platform}
+# Agent Platform Walkthrough {#example-agent-platform}
 
 This appendix is non-normative. It walks through how the framework
 prevents an unauthorized provider from impersonating users in a

@@ -679,9 +679,11 @@ fragment component. MAY appear multiple times within a record and
 across records.
 
 `key=THUMBPRINT`
-: OPTIONAL. The JWK SHA-256 thumbprint {{RFC7638}}, base64url-encoded
-without padding, of the key that signs the `signed_policy` of the
-document named by `uri=`. Valid only in a record that carries
+: OPTIONAL. The JWK SHA-256 thumbprint {{RFC7638}} (a hash of the
+public key's JSON Web Key form), base64url-encoded without padding,
+of the key that signs the `signed_policy` of the document named by
+`uri=`. This is the Subject Authority's policy-signing key, not an
+Assertion Issuer's assertion-signing key. Valid only in a record that carries
 `uri=`; in any other record it is malformed. At most two distinct
 `key=` values may appear across the remaining records, so that a
 Subject Authority can publish an old and a new key during a
@@ -691,7 +693,8 @@ header carries the signing key in its `jwk` parameter ({{RFC7515}}
 Section 4.1.3), the thumbprint of that key MUST equal one of these
 values, and
 the signature MUST verify with it ({{signed-policy}}); a document
-that fails any of these checks is malformed. A `key=` directive also
+that fails any of these checks is malformed, and so Indeterminate
+({{dii-failures}}). A `key=` directive also
 makes the consumer process the document as one whose object-level
 integrity its local policy requires ({{signed-policy}}): the signed
 JWT MUST
@@ -1439,8 +1442,9 @@ points:
   change of policy host.
 - A Subject Authority whose policy host is shared infrastructure, or
   is operated by a provider, can publish a `key=` thumbprint
-  ({{dii-dns-record}}) so that the host cannot alter the policy. The
-  host can still withhold the policy, and can replay an older signed
+  ({{dii-dns-record}}) so that the host cannot alter the policy,
+  provided the Subject Authority, not the host, holds the signing
+  key. The host can still withhold the policy, and can replay an older signed
   policy whose `exp` has not passed to a consumer that holds no
   cached copy, since the `iat` check of {{signed-policy}} needs one.
   A short `exp` bounds that replay; removing a hostile host takes a

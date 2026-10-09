@@ -1713,11 +1713,13 @@ Table of Contents
       make the transition observable and bounded.
 
    *  *Signing-key rollover.* To roll over a key=-pinned signing key,
-      first publish the new thumbprint beside the old one, and keep
-      signing with the old key until no consumer can still hold a copy
-      of the record with only the old thumbprint: the old record's TTL,
-      capped as Section 7 caps DNS results, plus any minimum freshness
-      lifetime consumers apply.  Then re-sign the policy with the new
+      first publish the new thumbprint beside the old one.  Keep signing
+      with the old key until the record carrying both thumbprints has
+      reached every authoritative server and the full TTL the old record
+      advertised has then passed, plus any minimum freshness lifetime
+      consumers apply.  Recursive resolvers can serve the old record for
+      its whole TTL ([RFC1035] Section 4.1.3), whatever cap a consumer
+      places on its own cache.  Then re-sign the policy with the new
       key, and remove the old thumbprint once cached copies of the
       policy signed with the old key have expired.
 

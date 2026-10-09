@@ -662,8 +662,8 @@ outcome of the lookup operation onto exactly one of these states.
   the absence of a Delegation Artifact. Examples include DNS
   NXDOMAIN or NODATA with a valid (possibly DNSSEC-signed)
   authoritative answer where DNS is the profile's sole or final
-  publication channel, and HTTPS 404 from the authority-bound
-  origin. A profile with multiple publication channels for the
+  publication channel, and HTTPS 404 from an authority-bound origin
+  that is the profile's sole publication channel. A profile with multiple publication channels for the
   same Authority Source reaches Negative only when the channels
   its lookup procedure consults authoritatively report no
   delegation. A profile MAY additionally

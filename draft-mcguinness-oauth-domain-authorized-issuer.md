@@ -842,7 +842,7 @@ concrete DAI outcomes onto those states.
 | State | DAI outcomes |
 |-|-|
 | Affirmative | A well-formed Issuer Authorization Policy was retrieved (inline DNS, DNS pointer plus HTTPS fetch, or the dedicated host under the HTTPS-only lookup mode), its `subject_authority` matches `A`, and its structural validation succeeds; this includes a policy whose `authorized_issuers` array is empty (explicit denial, evaluated in {{dii-verification}}). HTTPS responses, when applicable, are 200 OK with a media type of `application/json` or a `+json`-suffixed type. A 304 (Not Modified) response to a conditional request validating a held cached policy within the absolute ceiling of {{dii-caching}}, under the conditions of {{https-policy-document-contract}}, renews its freshness and is classified as the held policy's state; it does not reset the absolute cache-entry age. |
-| Negative | Under canonical lookup, DNS `negative-authoritative`, or HTTPS 404 or 410 from the target of a DNS `uri=` pointer. Under the HTTPS-only lookup mode ({{trust-method-https-authorized-issuer}}), DNS `negative-authoritative` for the opt-in record, or no remaining record whose `uri=` is the default URL. No policy is published at the location the lookup consults. |
+| Negative | Under canonical lookup, DNS `negative-authoritative`. Under the HTTPS-only lookup mode ({{trust-method-https-authorized-issuer}}), DNS `negative-authoritative` for the opt-in record, or no remaining record whose `uri=` is the default URL. No policy is published at the location the lookup consults. |
 | Indeterminate | Any other outcome, fail-closed by default. See enumeration below. |
 
 The Indeterminate state covers:
@@ -852,8 +852,10 @@ The Indeterminate state covers:
 - **HTTPS transport**: TLS error, connection failure, or a policy
   host that cannot be resolved, including a dedicated host name that
   does not exist.
-- **HTTPS response**: 5xx; 4xx other than 404 and 410 (for example
-  401, 403, 405, 429, 451); 2xx other than 200; any 3xx other than a
+- **HTTPS response**: 5xx; any 4xx, including 404 and 410, since
+  the Subject Authority published a record naming the location and a
+  missing document there is not an authoritative absence; 2xx other
+  than 200; any 3xx other than a
   304 validating a held cached policy (redirects are not followed,
   {{dii-https-url}}); unsupported media type; a body larger than the
   size limit, or containing more `authorized_issuers` entries than
@@ -1030,9 +1032,8 @@ Freshness and cache limits for the Issuer Authorization Policy:
   sustain denial of service against the publication channel from
   extending revocation latency toward the absolute ceiling.
 - **Negative results** SHOULD be cached, to bound lookup work under
-  load ({{dos-ssrf}}), for no longer than the lesser of their
-  negative-caching lifetime (the DNS negative TTL {{RFC2308}}, or the
-  HTTP freshness lifetime of a 404 or 410 response) and 1 hour
+  load ({{dos-ssrf}}), for no longer than the lesser of the DNS
+  negative TTL ({{RFC2308}}) and 1 hour
   (recommended: 5 minutes). The short cap makes a Subject Authority's
   first publication, and its recovery from a brief publication-channel
   takeover, visible promptly. The same cap SHOULD apply to a cached
@@ -1598,6 +1599,11 @@ infrastructure. Specific guidance:
   entry only after the old issuer is decommissioned and caches have
   expired; overlapping validity windows (`valid_from`/`valid_until`)
   make the transition observable and bounded.
+- **Withdrawal.** To withdraw every authorization, remove the TXT
+  record (Negative) or publish an empty `authorized_issuers` array
+  (explicit denial). Deleting the policy document instead makes
+  lookups Indeterminate, so consumers can keep using a cached policy
+  within the stale-if-error bound of {{dii-caching}}.
 - **Monitoring.** Monitor the record set and any HTTPS policy document
   for unexpected changes, and perform cross-region/cross-resolver
   checks to detect localized substitution ({{dns-integrity-and-compromise}}).

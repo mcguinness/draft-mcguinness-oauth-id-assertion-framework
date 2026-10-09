@@ -207,12 +207,32 @@ in {{future-extensions}}.
 
 # Terminology
 
-This document uses terminology from {{TRUST-FRAMEWORK}}: Resource
-Authorization Server, Assertion Issuer, Subject Authority, Trust
-Policy, Issuer Authorization Policy, Authority Holder, Delegate,
-Delegation Artifact, Validator, Trust Method, Consumer, and
-Decision-affecting member. Subject Identifier formats follow
-{{RFC9493}}.
+This document uses terminology from {{TRUST-FRAMEWORK}}, which
+defines each term. In brief:
+
+- **Subject Authority**: the owner of a subject namespace, such as
+  the DNS domain `acme.example` for `alice@acme.example`.
+- **Assertion Issuer**: the authorization server that issues
+  identity assertions, typically an organization's Identity Provider.
+- **Resource Authorization Server**: the authorization server that
+  receives an identity assertion and decides whether to accept it.
+- **Trust Policy**: the document in which a Resource Authorization
+  Server states the Trust Methods it requires.
+- **Trust Method**: a procedure for evaluating evidence about an
+  Assertion Issuer. This document defines one.
+- **Issuer Authorization Policy**: the document in which a Subject
+  Authority lists the Assertion Issuers it authorizes
+  ({{dii-document}}).
+- **Consumer**: a party that retrieves and processes a policy
+  document.
+- **Decision-affecting member**: a policy member whose value can
+  change whether a consumer accepts an assertion.
+- **Authority Holder**, **Delegate**, **Delegation Artifact**, and
+  **Validator**: the framework's general names for the Subject
+  Authority, Assertion Issuer, Issuer Authorization Policy, and
+  Resource Authorization Server.
+
+Subject Identifier formats follow {{RFC9493}}.
 
 Two terms are specific to this document:
 
@@ -817,7 +837,8 @@ only from the dedicated policy host.
         verified as that directive requires.
 
    c. Otherwise (no `uri=` present), construct a virtual Issuer
-      Authorization Policy with `subject_authority` set to `A` and
+      Authorization Policy, one built from the records rather than
+      fetched, with `subject_authority` set to `A` and
       one entry in `authorized_issuers` for each distinct `issuer=`
       value across the remaining records. Entry order carries no
       semantics ({{dii-verification}}); the deduplicated values form

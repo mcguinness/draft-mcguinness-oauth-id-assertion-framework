@@ -207,12 +207,32 @@ in {{future-extensions}}.
 
 # Terminology
 
-This document uses terminology from {{TRUST-FRAMEWORK}}: Resource
-Authorization Server, Assertion Issuer, Subject Authority, Trust
-Policy, Issuer Authorization Policy, Authority Holder, Delegate,
-Delegation Artifact, Validator, Trust Method, Consumer, and
-Decision-affecting member. Subject Identifier formats follow
-{{RFC9493}}.
+This document uses terminology from {{TRUST-FRAMEWORK}}, which
+defines each term. In brief:
+
+- **Subject Authority**: the owner of a subject namespace, such as
+  the DNS domain `acme.example` for `alice@acme.example`.
+- **Assertion Issuer**: the authorization server that issues
+  identity assertions, typically an organization's Identity Provider.
+- **Resource Authorization Server**: the authorization server that
+  receives an identity assertion and decides whether to accept it.
+- **Trust Policy**: the document in which a Resource Authorization
+  Server states the Trust Methods it requires.
+- **Trust Method**: a procedure for evaluating evidence about an
+  Assertion Issuer. This document defines one.
+- **Issuer Authorization Policy**: the document in which a Subject
+  Authority lists the Assertion Issuers it authorizes
+  ({{dii-document}}).
+- **Consumer**: a party that retrieves and processes a policy
+  document.
+- **Decision-affecting member**: a policy member whose value can
+  change whether a consumer accepts an assertion.
+- **Authority Holder**, **Delegate**, **Delegation Artifact**, and
+  **Validator**: the framework's general names for the Subject
+  Authority, Assertion Issuer, Issuer Authorization Policy, and
+  Resource Authorization Server.
+
+Subject Identifier formats follow {{RFC9493}}.
 
 Two terms are specific to this document:
 
@@ -542,7 +562,7 @@ fetches only from the dedicated policy host.
 
 | Channel | DNS form | Document | Authority binding | When to use |
 |-|-|-|-|-|
-| 1: Inline | TXT with `issuer=` ({{dii-dns-record}}) | None (carried in TXT) | DNS control of `{A}` | Common case: authorize an issuer for a namespace with no rich policy |
+| 1: Inline | TXT with `issuer=` ({{dii-dns-record}}) | None (carried in TXT) | DNS control of `{A}` | Common case: authorize an issuer that has its own issuer identifier, with no rich policy; cannot carry `tenant` ({{mechanism-limits}}) |
 | 2: Pointer | TXT with `uri=`, consumed by canonical lookup | HTTPS-hosted JSON under Subject Authority's operational control | DNS control of `{A}` AND TLS on the authority-operated host | Rich policy (validity windows, format restrictions, tenant binding) at a controlled origin |
 | 3: Dedicated Policy Host | TXT with `uri=` naming the default URL, consumed by the HTTPS-only lookup mode as the opt-in | HTTPS-hosted JSON at `https://oauth-issuer-policy.{A}/.well-known/oauth-issuer-policy` | DNS control of `{A}` (opt-in record) AND of `oauth-issuer-policy.{A}`, AND TLS on that host | Serving Resource Authorization Servers that use the HTTPS-only lookup mode |
 
@@ -659,9 +679,11 @@ fragment component. MAY appear multiple times within a record and
 across records.
 
 `key=THUMBPRINT`
-: OPTIONAL. The JWK SHA-256 thumbprint {{RFC7638}}, base64url-encoded
-without padding, of the key that signs the `signed_policy` of the
-document named by `uri=`. Valid only in a record that carries
+: OPTIONAL. The JWK SHA-256 thumbprint {{RFC7638}} (a hash of the
+public key's JSON Web Key form), base64url-encoded without padding,
+of the key that signs the `signed_policy` of the document named by
+`uri=`. This is the Subject Authority's policy-signing key, not an
+Assertion Issuer's assertion-signing key. Valid only in a record that carries
 `uri=`; in any other record it is malformed. At most two distinct
 `key=` values may appear across the remaining records, so that a
 Subject Authority can publish an old and a new key during a
@@ -671,7 +693,8 @@ header carries the signing key in its `jwk` parameter ({{RFC7515}}
 Section 4.1.3), the thumbprint of that key MUST equal one of these
 values, and
 the signature MUST verify with it ({{signed-policy}}); a document
-that fails any of these checks is malformed. A `key=` directive also
+that fails any of these checks is malformed, and so Indeterminate
+({{dii-failures}}). A `key=` directive also
 makes the consumer process the document as one whose object-level
 integrity its local policy requires ({{signed-policy}}): the signed
 JWT MUST
@@ -817,7 +840,8 @@ only from the dedicated policy host.
         verified as that directive requires.
 
    c. Otherwise (no `uri=` present), construct a virtual Issuer
-      Authorization Policy with `subject_authority` set to `A` and
+      Authorization Policy, one built from the records rather than
+      fetched, with `subject_authority` set to `A` and
       one entry in `authorized_issuers` for each distinct `issuer=`
       value across the remaining records. Entry order carries no
       semantics ({{dii-verification}}); the deduplicated values form
@@ -989,6 +1013,18 @@ satisfied and, as a result, the cross-category combination rule
 the Resource Authorization Server MUST reject the assertion with an
 OAuth `invalid_grant` error.
 
+Step 4b, for a grant profile that carries `tenant` (such as ID-JAG):
+
+| Entry has `tenant` | Assertion has `tenant` | Match |
+|-|-|-|
+| No | No | Yes |
+| No | Yes | No: an entry without `tenant` is not a wildcard |
+| Yes | No | No |
+| Yes | Yes | Only if the values are equal |
+
+Under a grant profile that carries no `tenant` claim, an assertion is
+treated as carrying none, so only entries without `tenant` match.
+
 ## Observing Before Enforcing {#observe-before-enforce}
 
 This document defines no mode in which a published policy is
@@ -1061,6 +1097,19 @@ Freshness and cache limits for the Issuer Authorization Policy:
   (no more than 5 minutes is RECOMMENDED) to absorb retry storms;
   an Indeterminate cache entry MUST NOT be treated as a policy and
   never satisfies the Trust Method.
+
+After a Subject Authority removes an issuer, each cached entry at a
+consumer remains usable for its remaining freshness lifetime plus up
+to 1 hour of stale-if-error use, never beyond the absolute ceiling.
+The overall revocation window is longer than one entry's lifetime.
+The change has to reach every authoritative server. Upstream caches
+can also keep serving the old authorization when a consumer
+refreshes: recursive resolvers for the old record's full advertised
+TTL ({{RFC1035}} Section 4.1.3), and HTTP caches for the document's
+freshness lifetime. The window is therefore up to the propagation
+time plus those upstream lifetimes, plus one consumer freshness
+lifetime and the stale-if-error hour. Steady-state lifetimes of 1
+hour or less, as recommended above, keep it to a few hours.
 
 # Trust Methods {#trust-methods}
 
@@ -1398,8 +1447,9 @@ points:
   change of policy host.
 - A Subject Authority whose policy host is shared infrastructure, or
   is operated by a provider, can publish a `key=` thumbprint
-  ({{dii-dns-record}}) so that the host cannot alter the policy. The
-  host can still withhold the policy, and can replay an older signed
+  ({{dii-dns-record}}) so that the host cannot alter the policy,
+  provided the Subject Authority, not the host, holds the signing
+  key. The host can still withhold the policy, and can replay an older signed
   policy whose `exp` has not passed to a consumer that holds no
   cached copy, since the `iat` check of {{signed-policy}} needs one.
   A short `exp` bounds that replay; removing a hostile host takes a
@@ -2446,6 +2496,10 @@ This appendix is non-normative and will be removed before publication.
     the comparison between DNS control and control of email
     recovery; state that the Trust Method targets organizational
     namespaces.
+  * Gloss the terms borrowed from the framework; add a tenant
+    matching table and the overall revocation window, including
+    upstream caches; say which key
+    `key=` pins.
 
 -00
 

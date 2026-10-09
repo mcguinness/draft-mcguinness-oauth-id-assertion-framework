@@ -185,6 +185,10 @@ all the Assertion Issuers I trust"; it says "these are the conditions
 an Assertion Issuer must satisfy." Conditions are evaluated by
 validating concrete evidence (a federation trust chain or a
 domain-authorized issuer record) when an assertion is presented.
+Despite its name, the Trust Policy is published by the Resource
+Authorization Server, not by an Assertion Issuer; a Subject Authority
+authorizes issuers in a separate document, the Issuer Authorization
+Policy ({{DAI}}).
 
 This document defines the Authority Delegation Model
 ({{delegation-model}}) and uses it to profile OAuth identity
@@ -423,6 +427,8 @@ the JWT `iss` claim. The same string is the `issuer` value in
 OAuth Authorization Server Metadata {{RFC8414}}, OpenID Connect
 Discovery {{OIDC-DISCOVERY}}, and the federation entity identifier
 in {{OIDF-FEDERATION}}. The Assertion Issuer is the Delegate.
+It is a separate role from the client that presents the assertion,
+but one party, such as an agent platform, can play both.
 
 Subject Authority:
 : The Authority Holder for a Subject Identifier namespace. The term
@@ -618,6 +624,16 @@ supply evidence. Where that channel's negative answers are not
 authenticated (for example, DNS without DNSSEC), an attacker who
 forges one can turn a published denial into a Negative and let
 another method decide ({{DAI}} §DNS Integrity and Compromise).
+
+In summary, for a `subject_namespace_authorization` method that
+consults the Subject Authority's own publication:
+
+| Outcome of that method | Effect on the category |
+|-|-|
+| Affirmative, issuer authorized | Satisfies it, unless another method in the category yields one of the next two outcomes |
+| Affirmative, issuer not authorized (including an explicit denial) | Final: the category is not satisfied, whatever other methods yield |
+| Indeterminate | Final, as above: it may hide a published decision |
+| Negative: nothing published through that channel | None: other methods in the category decide |
 
 ## Open-World Delegation and Bounded Transitivity {#open-world}
 
@@ -2793,6 +2809,9 @@ This appendix is non-normative and will be removed before publication.
     Issuer that serves several tenants under one issuer identifier to
     send `tenant` in every ID-JAG. Reword the Trust Policy Discovery
     deferral.
+  * Summarize in a table what a namespace method's outcome leaves to
+    other methods; say who publishes the Trust Policy and that one
+    party can be both Assertion Issuer and client.
 
 -00
 

@@ -402,10 +402,9 @@ configured out of band for the Subject Authority. A consumer without
 one MUST treat the policy as malformed if `crit` lists `signed_policy`
 or its local policy requires object-level integrity for the Subject
 Authority; otherwise it ignores `signed_policy` and evaluates the
-unsigned members. Such a consumer has no object-level integrity to
-lose, and a publisher never publishes outer and signed values that
-conflict, so on a well-formed policy it reaches the same result as a
-consumer that processes the signature. The requirements on consumers
+unsigned members. Such a consumer gets no object-level integrity from
+the signature: it cannot detect a modified outer document, an expired
+`signed_policy`, or a replayed older one. The requirements on consumers
 in the rest of this section apply to a consumer that processes
 `signed_policy`.
 

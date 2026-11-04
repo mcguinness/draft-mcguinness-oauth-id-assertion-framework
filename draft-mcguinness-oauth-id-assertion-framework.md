@@ -925,8 +925,8 @@ member is deliberately named without the `_supported` suffix used
 by capability-style OAuth metadata parameters
 ({{RFC8414}}) to signal that distinction. Local policy may add
 requirements per client, subject, or scope; see {{downgrade}}.
-Methods that belong only to the `client_authorization` category are
-malformed in this member.
+An object in this member counts only toward the issuer categories,
+and a method that belongs to no issuer category is malformed here.
 
 `client_trust_methods`
 : OPTIONAL. Non-empty JSON array of Trust Method objects
@@ -936,8 +936,12 @@ present, it states the trust requirements the Resource Authorization
 Server enforces against the client that presents an identity
 assertion: an assertion is rejected unless the authenticated client
 satisfies the Trust Method combination rule in {{rasp}} against the
-methods listed here. A method that does not belong to the
-`client_authorization` category is malformed in this member.
+methods listed here. An object in this member counts only toward the
+`client_authorization` category, and a method that does not belong to
+that category is malformed here. A Resource Authorization Server can
+list `client_trust_methods` in `crit` ({{critical-members}}) so that a
+client that does not implement this member does not read the policy
+as placing no requirement on clients.
 
 ## Trust Methods {#trust-methods}
 
@@ -1638,7 +1642,8 @@ request, the Resource Authorization Server MUST:
    a. Partition the Trust Method objects in `issuer_trust_methods` and
       `client_trust_methods` by category (see
       {{trust-method-categories}}). A Trust Method registered with
-      multiple categories belongs to each. If any object in either
+      multiple categories belongs to each category that its member
+      allows ({{trust-policy-document}}). If any object in either
       member is not recognized, is malformed (including a method
       listed in the wrong member, {{trust-policy-document}}), or
       cannot be assigned to a category known to the Resource

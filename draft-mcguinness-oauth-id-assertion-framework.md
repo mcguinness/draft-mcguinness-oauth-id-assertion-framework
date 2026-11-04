@@ -1676,7 +1676,7 @@ request, the Resource Authorization Server MUST:
    d. Local policy MAY require satisfaction of additional Trust
       Methods for specific clients, subjects, or scopes.
 
-   e. When the policy lists only `issuer_authentication` methods and
+   e. When the policy lists no `subject_namespace_authorization` method and
       the assertion carries a namespace-bound Subject Identifier, the
       Resource Authorization Server MUST reject the assertion unless
       local policy independently establishes authority over the

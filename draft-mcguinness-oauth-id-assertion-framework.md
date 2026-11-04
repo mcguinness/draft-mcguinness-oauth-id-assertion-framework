@@ -1976,7 +1976,7 @@ publication-channel compromise model.
 
 ## Transitive Authorization is Bounded {#transitive-authz-bounded}
 
-The two trust categories make different transitivity choices, both
+The two issuer categories make different transitivity choices, both
 permitted within the taxonomy of {{open-world}}:
 
 - `issuer_authentication` permits chained transitivity. The
@@ -1990,7 +1990,7 @@ permitted within the taxonomy of {{open-world}}:
   latency is bounded by the Subject Authority's own cache lifetime
   and does not compound across delegations.
 
-The two categories are independent: federation membership does not
+The two issuer categories are independent: federation membership does not
 establish namespace authority, and namespace authorization does not
 establish authenticity. The cross-category combination rule
 ({{rasp}}) enforces this independence at evaluation time. See
@@ -2065,6 +2065,29 @@ Audience binding is enforced by the assertion's `aud` claim and the
 applicable grant profile, not by the Subject Authority. A future
 extension may let Authority Holders constrain acceptable audiences
 (see {{DAI}} §Future Extensions).
+
+## Client Authorization {#client-authorization-security}
+
+The `client_authorization` category evaluates the client that
+presents an identity assertion. The client is taken from the token
+request's client authentication, not from the assertion, so an
+attacker who controls an assertion's claims cannot choose which
+client is evaluated ({{unverified-claim}}). Recognizing a client says
+nothing about the subject or the Assertion Issuer, and the other
+categories still apply.
+
+`openid_federation_client` requires the client to authenticate with
+a key its federation metadata publishes. Without that rule, an
+attacker who registered a client with the Resource Authorization
+Server under another party's Entity Identifier could be recognized as
+that party.
+
+A client method that lets a client opt in by publishing evidence,
+such as a DNS record, has the same property as a namespace method:
+under the combination rule, a client that has published nothing is
+Negative and is rejected wherever the category is listed. Accepting
+such clients through local policy instead needs a mechanism that
+this document does not define.
 
 ## Per-Assertion Revocation Is Out of Scope {#per-assertion-revocation}
 

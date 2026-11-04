@@ -250,9 +250,11 @@ for OAuth identity assertions ({{categories}}):
   category. It asks: has the namespace owner authorized this
   issuer to assert about subjects in its namespace?
 
-- **`client_recognition`** is the presenter category. It asks: is
-  the client presenting the assertion recognized by an authority the
-  Resource Authorization Server accepts?
+- **`client_recognition`** applies the Authenticity question to the
+  client that presents the assertion. It asks: is that client
+  recognized by an authority the Resource Authorization Server
+  accepts? Recognition admits the client to the exchange. It does not
+  authorize the client to act for any particular user.
 
 Each Trust Method belongs to one or more of these categories, and
 evidence is required from each applicable category
@@ -535,8 +537,8 @@ artifact, accept latency bounded by the cache window.
 
 ## Independent Trust Evaluation Categories {#categories}
 
-A Validator combines independent trust evaluations to accept an
-Assertion. Each category answers a distinct question:
+A Validator combines two independent trust evaluations to accept
+an Assertion. Each category answers a distinct question:
 
 - **Authenticity**: is the entity that signed the Assertion
   cryptographically authentic and recognized as a member of some
@@ -548,19 +550,17 @@ Assertion. Each category answers a distinct question:
   asserted scope delegated to this signer? Satisfied by a
   Delegation Artifact from the appropriate Authority Holder.
 
-- **Presenter recognition**: is the party presenting the Assertion
-  recognized, by an Authority Holder the Validator accepts, as
-  entitled to present it? Satisfied by evidence about the presenter,
-  such as its federation membership. The presenter is not a Delegate:
-  it presents Assertions but does not issue them.
+Authenticity can be evaluated for more than one principal: the
+entity that signed the Assertion and, in OAuth, the client that
+presents it.
 
 The OAuth Trust Method categories defined in this document
 ({{trust-method-categories}}) instantiate these:
-`issuer_authentication` realizes Authenticity,
+`issuer_authentication` realizes Authenticity for the signer,
 `subject_namespace_authorization` realizes Delegation authority
 for namespace-bound Subject Identifiers, and `client_recognition`
-realizes Presenter recognition for the OAuth client that presents an
-identity assertion.
+realizes Authenticity for the OAuth client that presents an identity
+assertion.
 
 Local policy (risk scoring, scope grants, account linking, business
 rules) applies on top of these categories and remains the final
@@ -984,7 +984,10 @@ fails closed if it does not ({{rasp}} step 5c).
 the token endpoint, recognized by an authority the Resource
 Authorization Server accepts? Methods in this category are listed in
 `client_trust_methods` and evaluate the authenticated client, never a
-claim in the assertion ({{rasp}} step 5f).
+claim in the assertion ({{rasp}} step 5f). Recognition admits a client
+to assertion exchange. It does not authorize the client to act for a
+particular user; the grant profile's client binding does that (for
+ID-JAG, {{ID-JAG}} §4.4.1).
 
 Deployments accepting assertions about namespace-bound subjects
 SHOULD list at least one `subject_namespace_authorization`

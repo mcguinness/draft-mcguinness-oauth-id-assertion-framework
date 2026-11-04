@@ -85,6 +85,10 @@ informative:
     title: "OAuth Domain-Authorized Issuer Trust Method"
     target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer/
     date: false
+  I-D.shankarlingam-oauth-agent-dns-link:
+    title: "Linking an Agent's DNS Name to its OAuth Client"
+    target: https://datatracker.ietf.org/doc/draft-shankarlingam-oauth-agent-dns-link/
+    date: false
   I-D.ietf-oauth-identity-chaining:
     title: "OAuth Identity and Authorization Chaining Across Domains"
     target: https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-chaining/
@@ -2618,6 +2622,22 @@ would:
 Such a method is deferred as an assurance-tier extension for
 deployments whose requirements justify the operational cost.
 
+## Additional Client Authorization Methods
+
+Other `client_authorization` methods can follow the pattern of
+{{DAI}} for clients identified by DNS names. For example,
+{{I-D.shankarlingam-oauth-agent-dns-link}} publishes, under an
+agent's DNS name, the issuer and client identifier the agent uses at
+its operator's authorization server, and has the agent present a
+fresh token from that client. As a Trust Method, such a mechanism
+would need to define its lookup states, including Indeterminate on
+DNS failure, bind its record to the queried name as {{DAI}}'s
+`authority=` directive does, and say how the token is carried in a
+token request. Clients registered through OpenID Federation Explicit
+Registration ({{OIDF-FEDERATION-CONNECT}} §12.2) are another gap: a
+method for them would take the Entity Identifier from the
+registration rather than from the `client_id`.
+
 ## Actor Identity Trust Evaluation
 
 OAuth assertions can carry an `act` object expressing actor
@@ -2683,13 +2703,13 @@ a JSON policy document, conventionally on the dedicated host
 `oauth-issuer-policy.{domain}`). RAS-published vs
 Subject-Authority-published.
 
-**Q: Why two independent trust categories?**
+**Q: Why independent trust categories?**
 
 To stop "federation member" from being silently treated as
 "authoritative for any namespace." Each category answers a
 different question and the cross-category combination rule
-({{combination-rule}}) requires evidence from both when both are
-configured. Conflating them is the bug
+({{combination-rule}}) requires evidence from each category that
+is configured. Conflating them is the bug
 ({{combination-rule}}, {{transitive-authz-bounded}}).
 
 **Q: What if my Subject Authority cannot publish DNS TXT records?**

@@ -390,10 +390,7 @@ membership.
 Delegate:
 : An entity that has received attestation authority from an
 Authority Holder and may issue Assertions within the delegated
-scope. In this document the Delegate is the Assertion Issuer,
-except in the `client_authorization` category
-({{trust-method-categories}}), where it is the client that presents
-the Assertion.
+scope. In this document the Delegate is the Assertion Issuer.
 
 Delegation Artifact:
 : A profile-defined representation of a delegation: a signed
@@ -554,7 +551,8 @@ Assertion. Each category answers a distinct question:
 - **Presenter recognition**: is the party presenting the Assertion
   recognized, by an Authority Holder the Validator accepts, as
   entitled to present it? Satisfied by evidence about the presenter,
-  such as its federation membership.
+  such as its federation membership. The presenter is not a Delegate:
+  it presents Assertions but does not issue them.
 
 The OAuth Trust Method categories defined in this document
 ({{trust-method-categories}}) instantiate these:
@@ -1247,7 +1245,10 @@ token endpoint. The client evaluated is the one that the grant
 profile's client authentication identifies ({{rasp}} step 5f). For
 ID-JAG, the assertion's `client_id` claim identifies the same client
 ({{ID-JAG}} §4.4.1), so the Assertion Issuer has already named the
-client it issued the assertion to. Recognizing a client does not
+client it issued the assertion to. Under the generic JWT-bearer
+binding ({{jwt-bearer-profile}}) the assertion names no client, so any
+client that satisfies the category can present an assertion it
+obtained. Recognizing a client does not
 authorize any Assertion Issuer, and authorizing an Assertion Issuer
 does not recognize any client.
 

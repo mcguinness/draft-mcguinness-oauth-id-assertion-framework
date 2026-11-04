@@ -119,7 +119,9 @@ that a Resource Authorization Server publishes to declare which trust
 methods it requires of an Assertion Issuer, including
 issuer-authentication methods (such as OpenID Federation) and
 subject-namespace authorization methods defined by separate
-profiles.
+profiles. The policy can also require evidence about the OAuth
+client that presents the assertion, through client-authorization
+methods.
 
 The Domain-Authorized Issuer Trust Method is defined separately as one
 subject-namespace authorization profile usable by this framework.
@@ -233,7 +235,7 @@ that policy for the asserted subject namespace.
 
 ## Trust Evaluation Categories {#two-trust-questions}
 
-This document defines two independent trust-evaluation categories
+This document defines three independent trust-evaluation categories
 for OAuth identity assertions ({{categories}}):
 
 - **`issuer_authentication`** is the Authenticity category. It
@@ -242,6 +244,10 @@ for OAuth identity assertions ({{categories}}):
 - **`subject_namespace_authorization`** is the delegation authority
   category. It asks: has the namespace owner authorized this
   issuer to assert about subjects in its namespace?
+
+- **`client_authorization`** is the presenter category. It asks: is
+  the client presenting the assertion recognized by an authority the
+  Resource Authorization Server accepts?
 
 Each Trust Method belongs to one or more of these categories, and
 evidence is required from each applicable category
@@ -379,7 +385,10 @@ membership.
 Delegate:
 : An entity that has received attestation authority from an
 Authority Holder and may issue Assertions within the delegated
-scope. In this document the Delegate is the Assertion Issuer.
+scope. In this document the Delegate is the Assertion Issuer,
+except in the `client_authorization` category
+({{trust-method-categories}}), where it is the client that presents
+the Assertion.
 
 Delegation Artifact:
 : A profile-defined representation of a delegation: a signed
@@ -450,8 +459,8 @@ by a Resource Authorization Server to declare its trust criteria.
 
 Trust Method:
 : A registered, named evaluation procedure by which a Validator
-tests one category of trust evidence about an Assertion Issuer
-({{trust-methods}}). A Trust Policy names the Trust Methods it
+tests one category of trust evidence about an Assertion Issuer or
+about the client presenting an Assertion ({{trust-methods}}). A Trust Policy names the Trust Methods it
 requires.
 
 Issuer Authorization Policy:
@@ -524,8 +533,8 @@ artifact, accept latency bounded by the cache window.
 
 ## Independent Trust Evaluation Categories {#categories}
 
-A Validator combines two independent trust evaluations to accept
-an Assertion. Each category answers a distinct question:
+A Validator combines independent trust evaluations to accept an
+Assertion. Each category answers a distinct question:
 
 - **Authenticity**: is the entity that signed the Assertion
   cryptographically authentic and recognized as a member of some
@@ -537,14 +546,21 @@ an Assertion. Each category answers a distinct question:
   asserted scope delegated to this signer? Satisfied by a
   Delegation Artifact from the appropriate Authority Holder.
 
+- **Presenter recognition**: is the party presenting the Assertion
+  recognized, by an Authority Holder the Validator accepts, as
+  entitled to present it? Satisfied by evidence about the presenter,
+  such as its federation membership.
+
 The OAuth Trust Method categories defined in this document
 ({{trust-method-categories}}) instantiate these:
-`issuer_authentication` realizes Authenticity, and
+`issuer_authentication` realizes Authenticity,
 `subject_namespace_authorization` realizes Delegation authority
-for namespace-bound Subject Identifiers.
+for namespace-bound Subject Identifiers, and `client_authorization`
+realizes Presenter recognition for the OAuth client that presents an
+identity assertion.
 
 Local policy (risk scoring, scope grants, account linking, business
-rules) applies on top of these two categories and remains the final
+rules) applies on top of these categories and remains the final
 decision layer ({{rasp}} step 6).
 
 ### Cross-Category Combination Rule {#combination-rule}
@@ -904,6 +920,19 @@ member is deliberately named without the `_supported` suffix used
 by capability-style OAuth metadata parameters
 ({{RFC8414}}) to signal that distinction. Local policy may add
 requirements per client, subject, or scope; see {{downgrade}}.
+Methods that belong only to the `client_authorization` category are
+malformed in this member.
+
+`client_trust_methods`
+: OPTIONAL. Non-empty JSON array of Trust Method objects
+({{trust-methods}}) whose methods belong to the
+`client_authorization` category ({{trust-method-categories}}). When
+present, it states the trust requirements the Resource Authorization
+Server enforces against the client that presents an identity
+assertion: an assertion is rejected unless the authenticated client
+satisfies the Trust Method combination rule in {{rasp}} against the
+methods listed here. A method that does not belong to the
+`client_authorization` category is malformed in this member.
 
 ## Trust Methods {#trust-methods}
 
@@ -942,6 +971,13 @@ member of a recognized ecosystem?
 named namespace? When a policy lists a method in this category, every
 in-scope assertion must carry a resolvable Subject Identifier and
 fails closed if it does not ({{rasp}} step 5c).
+
+`client_authorization`
+: Is the OAuth client presenting the assertion, as authenticated at
+the token endpoint, recognized by an authority the Resource
+Authorization Server accepts? Methods in this category are listed in
+`client_trust_methods` and evaluate the authenticated client, never a
+claim in the assertion ({{rasp}} step 5f).
 
 Deployments accepting assertions about namespace-bound subjects
 SHOULD list at least one `subject_namespace_authorization`

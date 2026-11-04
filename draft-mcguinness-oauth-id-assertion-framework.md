@@ -1495,7 +1495,10 @@ Authorization Server:
    Subject Identifiers, this usually means satisfying both an
    `issuer_authentication` method (such as federation membership) and
    a `subject_namespace_authorization` method (such as authorization
-   by the Subject Authority).
+   by the Subject Authority). If the Trust Policy contains
+   `client_trust_methods`, the client also determines whether it
+   satisfies them, for example whether its `client_id` is an Entity
+   Identifier in a listed federation.
 
 5. Determines whether the Assertion Issuer can produce a Subject
    Identifier in a format listed in
@@ -1555,16 +1558,19 @@ request, the Resource Authorization Server MUST:
    unless the applicable grant profile defines a different format
    selection rule.
 
-5. Verify that the Assertion Issuer identified by `iss` satisfies the
-   Trust Method combination rule:
+5. Verify that the Assertion Issuer identified by `iss` and, when the
+   policy contains `client_trust_methods`, the authenticated client
+   satisfy the Trust Method combination rule:
 
-   a. Partition the Trust Method objects in `issuer_trust_methods` by
-      category (see {{trust-method-categories}}). A Trust Method
-      registered with multiple categories belongs to each. If any
-      object in `issuer_trust_methods` is not recognized, is
-      malformed, or cannot be assigned to a category known to the
-      Resource Authorization Server, the Resource Authorization
-      Server MUST reject the assertion. In that case, the Resource
+   a. Partition the Trust Method objects in `issuer_trust_methods` and
+      `client_trust_methods` by category (see
+      {{trust-method-categories}}). A Trust Method registered with
+      multiple categories belongs to each. If any object in either
+      member is not recognized, is malformed (including a method
+      listed in the wrong member, {{trust-policy-document}}), or
+      cannot be assigned to a category known to the Resource
+      Authorization Server, the Resource Authorization Server MUST
+      reject the assertion. In that case, the Resource
       Authorization Server cannot determine whether it is evaluating
       the full set of requirements the operator declared. Silently
       ignoring the object would evaluate a strict subset (a fail-open
@@ -1575,9 +1581,10 @@ request, the Resource Authorization Server MUST:
    b. Each category present in the partitioned policy is applicable to
       every assertion evaluated under this policy; applicability is a
       property of the policy, not the assertion ({{category-applicability}}).
-      For each present category, the Assertion Issuer MUST satisfy at
-      least one Trust Method from that category, subject to the
-      finality rule of {{multiple-sources}}.
+      For each present category, the Assertion Issuer, or for the
+      `client_authorization` category the authenticated client, MUST
+      satisfy at least one Trust Method from that category, subject to
+      the finality rule of {{multiple-sources}}.
 
    c. When the policy contains a `subject_namespace_authorization`
       Trust Method, the assertion MUST carry a Subject Identifier from
@@ -1607,6 +1614,14 @@ request, the Resource Authorization Server MUST:
       namespace-bound without running a namespace method. Federation
       membership alone does not establish authority over a particular
       subject namespace.
+
+   f. When the policy contains `client_trust_methods`, the token
+      request MUST carry client authentication that the grant profile
+      defines, and the Resource Authorization Server MUST evaluate the
+      `client_authorization` category against the client that
+      authentication identifies, never against a claim in the
+      assertion. If the request carries no client authentication, the
+      Resource Authorization Server MUST reject the assertion.
 
 6. Apply local policy (account-linking, consent, authorization,
    risk) and the applicable grant profile's sender-constraining;
@@ -1726,7 +1741,9 @@ grant-profile identifier; a deployment accepting this grant MUST list
 it in `authorization_grant_profiles_supported` so {{rasp}} step 3
 applies uniformly. A Resource Authorization Server SHOULD reject a
 JWT-bearer assertion whose `typ` header identifies a different JWT
-application ({{RFC8725}} §3.11).
+application ({{RFC8725}} §3.11). {{RFC7523}} Section 3.1 lets this
+grant be used without client authentication. A Trust Policy that
+contains `client_trust_methods` requires it ({{rasp}} step 5f).
 
 As with ID-JAG, the Subject Identifier for this binding is the
 top-level `email` claim, accompanied by `email_verified=true`,

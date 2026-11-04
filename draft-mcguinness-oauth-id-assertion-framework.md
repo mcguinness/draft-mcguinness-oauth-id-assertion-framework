@@ -1268,39 +1268,54 @@ policy requires them, holds the required Trust Marks.
 The method has the members `trust_anchors` and `trust_marks`, defined
 as for `openid_federation` ({{trust-method-openid-federation}}).
 
-The client's Entity Identifier is its `client_id`. The client uses
-Automatic Registration ({{OIDF-FEDERATION-CONNECT}} §12.1), which
-OpenID Federation also allows at OAuth token endpoints
-({{OIDF-FEDERATION-CONNECT}} §12.1.5). A client whose `client_id` is
-not an Entity Identifier does not satisfy this method, and the lookup
-state is Negative.
+The client's `client_id` is its Entity Identifier, as in Automatic
+Registration ({{OIDF-FEDERATION-CONNECT}} §12.1 and §12.4). OpenID
+Federation defines Automatic Registration starting from an
+Authentication Request. This method applies the same identification
+to a client whose first request to the Resource Authorization Server
+is a token request. It places none of the obligations of
+{{OIDF-FEDERATION-CONNECT}} §12.1 on the client toward the Resource
+Authorization Server, and it is evaluated for each token request that
+presents an identity assertion. A client whose `client_id` is not an
+Entity Identifier does not satisfy this method, and the lookup state
+is Negative.
 
 The Resource Authorization Server evaluates this method as it
 evaluates `openid_federation`, with the client's Entity Identifier as
 the leaf. Trust chain validation, the lookup states, caching, and
-requirements 1 and 4 apply unchanged. Requirements 2 and 3 are
-replaced by the following:
+requirements 1 and 4 apply unchanged. Where that section refers to the
+Assertion Issuer, it refers here to the client. Requirements 2 and 3
+are replaced by the following:
 
 - **Entity type constraint.** The leaf's policy-applied federation
   metadata MUST declare the entity type `oauth_client` or
   `openid_relying_party` ({{OIDF-FEDERATION-CONNECT}} §5.1.4 and
   §5.1.1), under the type-declaration rule of requirement 2.
-- **Federation-bound client authentication key.** The key that
-  authenticated the client MUST be taken from a key source in the
-  leaf's policy-applied `oauth_client` or `openid_relying_party`
-  metadata, under the key-source, precedence, and no-fallback rules
-  of requirement 3. The client authenticates with a JWT
-  ({{RFC7523}} Section 2.2) signed by that key, or with self-signed
-  certificate mutual TLS ({{RFC8705}} Section 2.2) whose certificate
-  key is in that key source. A client authenticated with a key from
-  any other source, including a key registered with the Resource
-  Authorization Server out of band, does not satisfy this method.
+- **Federation-bound client authentication key.** Client
+  authentication MUST verify under a key in a key set that the leaf's
+  policy-applied `oauth_client` or `openid_relying_party` metadata
+  designates through `jwks`, `jwks_uri`, or `signed_jwks_uri`
+  ({{OIDF-FEDERATION}} §5.2.1). If both carry a key source, a key from
+  either satisfies this requirement. The permitted client
+  authentication methods are:
+
+  - JWT client authentication ({{RFC7523}} Section 2.2) with a JWT
+    signed by such a key; and
+  - self-signed certificate mutual TLS ({{RFC8705}} Section 2.2) with
+    a certificate whose public key is such a key.
+
+  A client that authenticates any other way does not satisfy this
+  method. Keys the Resource Authorization Server knows only through
+  another source, such as out-of-band registration or a client
+  metadata document, do not count. If no such key set is available,
+  or it cannot be retrieved or validated, the outcome is
+  Indeterminate.
 
 As for the assertion signature in {{rasp}} step 2, client
 authentication is provisional until this method is evaluated. When
 the Resource Authorization Server relies on this method to satisfy
 the `client_authorization` category, it MUST NOT accept the
-assertion unless the key that authenticated the client is one this
+assertion unless client authentication verified under a key this
 method permits.
 
 Clients registered through Explicit Registration

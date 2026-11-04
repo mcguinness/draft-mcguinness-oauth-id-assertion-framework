@@ -89,6 +89,10 @@ informative:
     title: "Linking an Agent's DNS Name to its OAuth Client"
     target: https://datatracker.ietf.org/doc/draft-shankarlingam-oauth-agent-dns-link/
     date: false
+  I-D.ietf-oauth-client-id-metadata-document:
+    title: "OAuth Client ID Metadata Document"
+    target: https://datatracker.ietf.org/doc/draft-ietf-oauth-client-id-metadata-document/
+    date: false
   I-D.ietf-oauth-identity-chaining:
     title: "OAuth Identity and Authorization Chaining Across Domains"
     target: https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-chaining/
@@ -1255,6 +1259,14 @@ obtained. Recognizing a client does not
 authorize any Assertion Issuer, and authorizing an Assertion Issuer
 does not recognize any client.
 
+The OAuth Client ID Metadata Document
+{{I-D.ietf-oauth-client-id-metadata-document}} is complementary. It
+lets an authorization server obtain a client's metadata and keys
+from its `client_id` URL, but it leaves the decision to trust that
+client to the authorization server. A client recognition method could
+use it as a key source only together with evidence that the Resource
+Authorization Server trusts.
+
 #### openid_federation_client {#trust-method-openid-federation-client}
 
 The `openid_federation_client` method indicates that the client is
@@ -1322,9 +1334,25 @@ the `client_recognition` category, it MUST NOT accept the
 assertion unless client authentication verified under a key this
 method permits.
 
+The keys come from the trust chain, so the Resource Authorization
+Server resolves the client's trust chain and key set before it
+verifies client authentication. A failure before the client is
+authenticated leaves the request without accepted client
+authentication, and the result is `invalid_client` ({{rasp}} step
+5f). A failure after authentication, such as a missing Trust Mark,
+is a Trust Method failure like any other and results in
+`invalid_grant`.
+
 Clients registered through Explicit Registration
 ({{OIDF-FEDERATION-CONNECT}} §12.2) receive a `client_id` that need
 not be their Entity Identifier. This method does not cover them.
+
+A Resource Authorization Server that also has clients it registered
+itself can apply a Trust Policy without `client_trust_methods` to
+them, selected by the request's `client_id` ({{rasp}} step 1). This
+document defines no other way to combine registered and federation
+clients. {{example-client-recognition}} walks through first contact,
+rejection, cached trust, and coexistence.
 
 ### Worked Example: OpenID Federation + DAI {#example-federation-dai}
 

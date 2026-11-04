@@ -1693,13 +1693,14 @@ request, the Resource Authorization Server MUST:
       membership alone does not establish authority over a particular
       subject namespace.
 
-   f. When the policy contains `client_trust_methods`, the token
-      request MUST carry client authentication that the grant profile
-      defines, and the Resource Authorization Server MUST evaluate the
-      `client_authorization` category against the client that
-      authentication identifies, never against a claim in the
-      assertion. If the request carries no client authentication, the
-      Resource Authorization Server MUST reject the assertion.
+   f. When the policy contains `client_trust_methods`, the Resource
+      Authorization Server MUST evaluate the `client_authorization`
+      category against the client that the request's client
+      authentication ({{RFC6749}} Section 2.3) identifies, never
+      against a claim in the assertion. If the request carries no
+      client authentication that the Resource Authorization Server
+      accepts, it MUST reject the request with an `invalid_client`
+      error ({{RFC6749}} Section 5.2).
 
 6. Apply local policy (account-linking, consent, authorization,
    risk) and the applicable grant profile's sender-constraining;
@@ -1707,13 +1708,16 @@ request, the Resource Authorization Server MUST:
 
 Client authentication that the grant profile requires SHOULD be
 completed before step 5, so that unauthenticated requests cannot
-cause the lookups that step performs. Fetches made in step 5 follow
-{{outbound-fetches}}.
+cause the lookups that step performs. For a client whose
+authentication keys a `client_authorization` method resolves, such as
+`openid_federation_client`, resolving those keys is the only lookup
+the Resource Authorization Server performs before the client is
+authenticated. Fetches made in step 5 follow {{outbound-fetches}}.
 
 Rejection at any of steps 1 through 5, including a malformed Trust
 Policy (step 1) or an unlisted grant profile (step 3), MUST result in
 an OAuth `invalid_grant` error unless another error is defined by
-the applicable grant profile. Detailed trust-evaluation failure state
+the applicable grant profile or by step 5f. Detailed trust-evaluation failure state
 MUST NOT be returned to public clients in the OAuth error response;
 it is a reconnaissance target.
 
@@ -1723,6 +1727,7 @@ Evaluating Trust Methods makes the Resource Authorization Server
 fetch resources at locations an attacker can choose:
 
 - the Assertion Issuer's metadata and key sets;
+- a client's Entity Configuration, trust chain, and key sets;
 - Entity Statements reached through a leaf's `authority_hints`;
 - a Trust Mark Issuer's chain; and
 - policy documents named by a Subject Authority that the attacker

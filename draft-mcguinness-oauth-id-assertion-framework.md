@@ -2328,6 +2328,7 @@ Document this document:
 |-|-|
 | `issuer_authentication` | Establishes that the Assertion Issuer is an authentic, recognized entity |
 | `subject_namespace_authorization` | Establishes that the Assertion Issuer is authorized by the subject's namespace owner |
+| `client_authorization` | Establishes that the client presenting the assertion is recognized by an authority the Resource Authorization Server accepts |
 
 ### Identity Assertion Issuer Trust Methods Registry {#iana-trust-methods-registry}
 
@@ -2370,7 +2371,7 @@ Designated Expert instructions: the expert verifies that:
 - parameter names do not collide in meaning with parameters of other
   methods in a way that would be ambiguous when methods are combined.
 
-Initial entry:
+Initial entries:
 
 Identifier:
 : `openid_federation`
@@ -2381,6 +2382,22 @@ Categories:
 Parameters:
 : `trust_anchors` (array of string, REQUIRED); `trust_marks` (array
   of object, OPTIONAL; see {{trust-method-openid-federation}})
+
+Change Controller:
+: IETF
+
+Reference:
+: This document
+
+Identifier:
+: `openid_federation_client`
+
+Categories:
+: `client_authorization`
+
+Parameters:
+: `trust_anchors` (array of string, REQUIRED); `trust_marks` (array
+  of object, OPTIONAL; see {{trust-method-openid-federation-client}})
 
 Change Controller:
 : IETF
@@ -2435,6 +2452,7 @@ and Specification Document this document:
 | `authorization_grant_profiles_supported` | Supported identity assertion grant profile identifiers |
 | `subject_identifier_formats_supported` | Supported Subject Identifier formats |
 | `issuer_trust_methods` | Trust Method requirements enforced for incoming identity assertions |
+| `client_trust_methods` | Trust Method requirements enforced for the client presenting an identity assertion |
 | `crit` | Names decision-affecting members that a consumer has to understand to process the document |
 
 ## Subject Authority Extraction Procedures Registry {#iana-authority-registry}

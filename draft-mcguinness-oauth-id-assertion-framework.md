@@ -125,7 +125,7 @@ methods it requires of an Assertion Issuer, including
 issuer-authentication methods (such as OpenID Federation) and
 subject-namespace authorization methods defined by separate
 profiles. The policy can also require evidence about the OAuth
-client that presents the assertion, through client-authorization
+client that presents the assertion, through client-recognition
 methods.
 
 The Domain-Authorized Issuer Trust Method is defined separately as one
@@ -250,7 +250,7 @@ for OAuth identity assertions ({{categories}}):
   category. It asks: has the namespace owner authorized this
   issuer to assert about subjects in its namespace?
 
-- **`client_authorization`** is the presenter category. It asks: is
+- **`client_recognition`** is the presenter category. It asks: is
   the client presenting the assertion recognized by an authority the
   Resource Authorization Server accepts?
 
@@ -558,7 +558,7 @@ The OAuth Trust Method categories defined in this document
 ({{trust-method-categories}}) instantiate these:
 `issuer_authentication` realizes Authenticity,
 `subject_namespace_authorization` realizes Delegation authority
-for namespace-bound Subject Identifiers, and `client_authorization`
+for namespace-bound Subject Identifiers, and `client_recognition`
 realizes Presenter recognition for the OAuth client that presents an
 identity assertion.
 
@@ -626,7 +626,7 @@ against ad-hoc or fallback selection logic and the
 deterministic-selection requirement are detailed in
 {{unverified-claim}}.
 
-For `issuer_authentication` and `client_authorization`, every
+For `issuer_authentication` and `client_recognition`, every
 Authority Source the Trust Policy lists is equally trusted by the
 Validator, so a profile MAY accept evidence from any of them. For `openid_federation`, this
 means a chain to any listed trust anchor
@@ -929,13 +929,13 @@ and a method that belongs to no issuer category is malformed here.
 `client_trust_methods`
 : OPTIONAL. Non-empty JSON array of Trust Method objects
 ({{trust-methods}}) whose methods belong to the
-`client_authorization` category ({{trust-method-categories}}). When
+`client_recognition` category ({{trust-method-categories}}). When
 present, it states the trust requirements the Resource Authorization
 Server enforces against the client that presents an identity
 assertion: an assertion is rejected unless the authenticated client
 satisfies the Trust Method combination rule in {{rasp}} against the
 methods listed here. An object in this member counts only toward the
-`client_authorization` category, and a method that does not belong to
+`client_recognition` category, and a method that does not belong to
 that category is malformed here. A Resource Authorization Server can
 list `client_trust_methods` in `crit` ({{critical-members}}) so that a
 client that does not implement this member does not read the policy
@@ -979,7 +979,7 @@ named namespace? When a policy lists a method in this category, every
 in-scope assertion must carry a resolvable Subject Identifier and
 fails closed if it does not ({{rasp}} step 5c).
 
-`client_authorization`
+`client_recognition`
 : Is the OAuth client presenting the assertion, as authenticated at
 the token endpoint, recognized by an authority the Resource
 Authorization Server accepts? Methods in this category are listed in
@@ -1237,9 +1237,9 @@ one ({{transitive-authz-bounded}}). Concrete methods in this category
 are defined by companion specifications and registered in the
 Trust Methods registry ({{iana-trust-methods-registry}}).
 
-### Client Authorization Methods {#client-authorization-methods}
+### Client Recognition Methods {#client-recognition-methods}
 
-`client_authorization`-category methods are satisfied by evidence
+`client_recognition`-category methods are satisfied by evidence
 about the OAuth client that presents an identity assertion at the
 token endpoint. The client evaluated is the one that the grant
 profile's client authentication identifies ({{rasp}} step 5f). For
@@ -1315,7 +1315,7 @@ are replaced by the following:
 As for the assertion signature in {{rasp}} step 2, client
 authentication is provisional until this method is evaluated. When
 the Resource Authorization Server relies on this method to satisfy
-the `client_authorization` category, it MUST NOT accept the
+the `client_recognition` category, it MUST NOT accept the
 assertion unless client authentication verified under a key this
 method permits.
 
@@ -1676,7 +1676,7 @@ request, the Resource Authorization Server MUST:
       every assertion evaluated under this policy; applicability is a
       property of the policy, not the assertion ({{category-applicability}}).
       For each present category, the Assertion Issuer, or for the
-      `client_authorization` category the authenticated client, MUST
+      `client_recognition` category the authenticated client, MUST
       satisfy at least one Trust Method from that category, subject to
       the finality rule of {{multiple-sources}}.
 
@@ -1710,7 +1710,7 @@ request, the Resource Authorization Server MUST:
       subject namespace.
 
    f. When the policy contains `client_trust_methods`, the Resource
-      Authorization Server MUST evaluate the `client_authorization`
+      Authorization Server MUST evaluate the `client_recognition`
       category against the client that the request's client
       authentication ({{RFC6749}} Section 2.3) identifies, never
       against a claim in the assertion. If the request carries no
@@ -1725,7 +1725,7 @@ request, the Resource Authorization Server MUST:
 Client authentication that the grant profile requires SHOULD be
 completed before step 5, so that unauthenticated requests cannot
 cause the lookups that step performs. For a client whose
-authentication keys a `client_authorization` method resolves, such as
+authentication keys a `client_recognition` method resolves, such as
 `openid_federation_client`, resolving those keys is the only lookup
 the Resource Authorization Server performs before the client is
 authenticated. Fetches made in step 5 follow {{outbound-fetches}}.
@@ -2096,9 +2096,9 @@ applicable grant profile, not by the Subject Authority. A future
 extension may let Authority Holders constrain acceptable audiences
 (see {{DAI}} §Future Extensions).
 
-## Client Authorization {#client-authorization-security}
+## Client Recognition {#client-recognition-security}
 
-The `client_authorization` category evaluates the client that
+The `client_recognition` category evaluates the client that
 presents an identity assertion. The client is taken from the token
 request's client authentication, not from the assertion, so an
 attacker who controls an assertion's claims cannot choose which
@@ -2363,7 +2363,7 @@ Document this document:
 |-|-|
 | `issuer_authentication` | Establishes that the Assertion Issuer is an authentic, recognized entity |
 | `subject_namespace_authorization` | Establishes that the Assertion Issuer is authorized by the subject's namespace owner |
-| `client_authorization` | Establishes that the client presenting the assertion is recognized by an authority the Resource Authorization Server accepts |
+| `client_recognition` | Establishes that the client presenting the assertion is recognized by an authority the Resource Authorization Server accepts |
 
 ### Identity Assertion Issuer Trust Methods Registry {#iana-trust-methods-registry}
 
@@ -2428,7 +2428,7 @@ Identifier:
 : `openid_federation_client`
 
 Categories:
-: `client_authorization`
+: `client_recognition`
 
 Parameters:
 : `trust_anchors` (array of string, REQUIRED); `trust_marks` (array
@@ -2653,9 +2653,9 @@ would:
 Such a method is deferred as an assurance-tier extension for
 deployments whose requirements justify the operational cost.
 
-## Additional Client Authorization Methods
+## Additional Client Recognition Methods
 
-Other `client_authorization` methods can follow the pattern of
+Other `client_recognition` methods can follow the pattern of
 {{DAI}} for clients identified by DNS names. For example,
 {{I-D.shankarlingam-oauth-agent-dns-link}} publishes, under an
 agent's DNS name, the issuer and client identifier the agent uses at
@@ -3119,7 +3119,7 @@ This appendix is non-normative and will be removed before publication.
     other methods; say who publishes the Trust Policy and that one
     party can be both Assertion Issuer and client.
   * Editorial changes for readability.
-  * Add a `client_authorization` category, evaluated against the
+  * Add a `client_recognition` category, evaluated against the
     client that presents the assertion, with a `client_trust_methods`
     Trust Policy member and an `openid_federation_client` method.
 

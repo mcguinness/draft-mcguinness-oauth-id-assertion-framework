@@ -3298,9 +3298,10 @@ This appendix is non-normative and will be removed before publication.
     other methods; say who publishes the Trust Policy and that one
     party can be both Assertion Issuer and client.
   * Editorial changes for readability.
-  * Add a `client_recognition` category, evaluated against the
-    client that presents the assertion, with a `client_trust_methods`
-    Trust Policy member and an `openid_federation_client` method.
+  * Add a `client_recognition` category, which applies the
+    Authenticity question to the client that presents the assertion,
+    with a `client_trust_methods` Trust Policy member, an
+    `openid_federation_client` method, and a walkthrough.
 
 -00
 

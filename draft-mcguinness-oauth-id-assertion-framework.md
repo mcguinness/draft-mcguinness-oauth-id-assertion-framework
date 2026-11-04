@@ -626,9 +626,9 @@ against ad-hoc or fallback selection logic and the
 deterministic-selection requirement are detailed in
 {{unverified-claim}}.
 
-For `issuer_authentication`, every Authority Source the Trust
-Policy lists is equally trusted by the Validator, so a profile MAY
-accept evidence from any of them. For `openid_federation`, this
+For `issuer_authentication` and `client_authorization`, every
+Authority Source the Trust Policy lists is equally trusted by the
+Validator, so a profile MAY accept evidence from any of them. For `openid_federation`, this
 means a chain to any listed trust anchor
 ({{trust-method-openid-federation}}).
 
@@ -2115,9 +2115,14 @@ that party.
 A client method that lets a client opt in by publishing evidence,
 such as a DNS record, has the same property as a namespace method:
 under the combination rule, a client that has published nothing is
-Negative and is rejected wherever the category is listed. Accepting
-such clients through local policy instead needs a mechanism that
-this document does not define.
+Negative, and is rejected wherever the category is listed unless
+another listed client method is satisfied. Accepting such clients
+through local policy instead needs a mechanism that this document
+does not define.
+
+Step 5f of {{rasp}} requires client authentication whenever the
+policy lists a client method, even where a grant profile would allow a
+request without it.
 
 ## Per-Assertion Revocation Is Out of Scope {#per-assertion-revocation}
 

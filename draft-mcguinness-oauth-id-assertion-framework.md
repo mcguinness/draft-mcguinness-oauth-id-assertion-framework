@@ -3071,6 +3071,154 @@ fallback. An absent binding, digest mismatch, or unsupported
 extension with no other qualifying key source yields Indeterminate
 and `invalid_grant`.
 
+# Client Recognition Walkthrough {#example-client-recognition}
+
+This appendix is non-normative. It walks through
+`openid_federation_client` ({{trust-method-openid-federation-client}})
+from a client's first token request to later requests. It also shows
+how a Resource Authorization Server runs federation clients beside
+clients it registered itself.
+
+**Cast:**
+
+- Resource Authorization Server `https://api.saas.example`, with
+  token endpoint `https://api.saas.example/token`.
+- Trust anchor `https://federation.example.org`.
+- Client `https://agent.example`, an agent platform that is a
+  federation Entity of type `oauth_client`. It has never contacted
+  the Resource Authorization Server.
+- Assertion Issuer `https://idp.partner.example`, which issues the
+  client an ID-JAG for `alice@partner.example` whose `client_id`
+  claim is `https://agent.example`.
+
+**Trust Policy.** The Resource Authorization Server publishes:
+
+~~~ json
+{
+  "resource_authorization_server": "https://api.saas.example",
+  "authorization_grant_profiles_supported": [
+    "urn:ietf:params:oauth:grant-profile:id-jag"
+  ],
+  "issuer_trust_methods": [
+    {
+      "method": "openid_federation",
+      "trust_anchors": ["https://federation.example.org"]
+    },
+    { "method": "domain_authorized_issuer" }
+  ],
+  "client_trust_methods": [
+    {
+      "method": "openid_federation_client",
+      "trust_anchors": ["https://federation.example.org"]
+    }
+  ],
+  "crit": ["client_trust_methods"]
+}
+~~~
+
+**Client metadata.** The client's Entity Configuration, at
+`https://agent.example/.well-known/openid-federation`, includes:
+
+~~~ json
+{
+  "iss": "https://agent.example",
+  "sub": "https://agent.example",
+  "metadata": {
+    "oauth_client": {
+      "token_endpoint_auth_method": "private_key_jwt",
+      "jwks_uri": "https://agent.example/jwks.json"
+    }
+  },
+  "authority_hints": ["https://federation.example.org"]
+}
+~~~
+
+**First contact.** The client's first request to the Resource
+Authorization Server is a token request:
+
+~~~ http
+POST /token HTTP/1.1
+Host: api.saas.example
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
+&assertion=eyJ0eXAiOiJvYXV0aC1pZC1qYWcrand0Ii...
+&client_id=https%3A%2F%2Fagent.example
+&client_assertion_type=
+urn:ietf:params:oauth:client-assertion-type:jwt-bearer
+&client_assertion=eyJhbGciOiJFUzI1NiIsImtpZCI6...
+~~~
+
+Line breaks in the request body are for display only. The client
+assertion's claims are:
+
+~~~ json
+{
+  "iss": "https://agent.example",
+  "sub": "https://agent.example",
+  "aud": "https://api.saas.example/token",
+  "exp": 1780166400,
+  "jti": "c1f0..."
+}
+~~~
+
+**Processing.** The Resource Authorization Server:
+
+1. Reads `client_id`, finds a URL it has not registered, and applies
+   the policy above ({{rasp}} step 1).
+2. Resolves the client's Entity Configuration and a trust chain to
+   `https://federation.example.org`. Before the client is
+   authenticated, this is the only lookup it performs.
+3. Checks that the policy-applied metadata declares `oauth_client`.
+4. Fetches the key set at `jwks_uri` and verifies the client
+   assertion's signature with a key in it. The client is now
+   authenticated.
+5. Validates the ID-JAG, including that its `client_id` claim is
+   `https://agent.example` ({{ID-JAG}} §4.4.1).
+6. Evaluates `openid_federation` for `https://idp.partner.example`,
+   `domain_authorized_issuer` for `partner.example`, and
+   `openid_federation_client` for the client. Every category is
+   satisfied, so it issues an access token.
+
+**Rejections:**
+
+- The `client_id` is not an Entity Identifier: the method is
+  Negative, the request has no accepted client authentication, and
+  the result is `invalid_client`.
+- The trust chain ends at a trust anchor that is not listed:
+  `invalid_client`.
+- The client assertion is signed with a key that is not in the
+  federation key set, even one the Resource Authorization Server
+  holds from another source: `invalid_client`.
+- The Entity Configuration cannot be fetched: the method is
+  Indeterminate, and the result is `invalid_client`.
+- The policy required a Trust Mark that the client does not hold:
+  the client is authenticated but not recognized, and the result is
+  `invalid_grant`.
+- The ID-JAG's `client_id` claim names a different client:
+  `invalid_grant` ({{ID-JAG}} §4.4.1).
+- The client is recognized, but the Assertion Issuer fails an issuer
+  method: `invalid_grant`.
+
+**Later requests.** The Resource Authorization Server caches the
+trust chain no longer than its earliest `exp`
+({{trust-method-openid-federation}}), and the key set under its HTTP
+caching rules. Later requests from the client use the cached chain,
+and each request is still evaluated against the policy. When the
+client rotates its keys, a signature with a key the cached key set
+lacks can prompt one fresh fetch of the key set before rejection. If
+the federation stops recognizing the client, the change takes effect
+when the cached chain expires.
+
+**Coexistence with registered clients.** The Resource Authorization
+Server also has clients it registered itself, with opaque `client_id`
+values and keys it holds. It selects the Trust Policy per request
+({{rasp}} step 1). A `client_id` it registered gets a policy without
+`client_trust_methods`, and any other `client_id` gets the policy
+above. The selection uses the request's `client_id`, not a claim in
+the assertion. A registered client authenticates as it always has,
+and a federation client is admitted only through the client method.
+
 # Document History
 
 This appendix is non-normative and will be removed before publication.

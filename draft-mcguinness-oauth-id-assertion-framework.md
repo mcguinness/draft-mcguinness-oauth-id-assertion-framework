@@ -701,7 +701,9 @@ Delegation authority).
 ## Lookup States and Fail-Closed {#exception-handling}
 
 A Validator's lookup of a Delegation Artifact produces exactly
-one of three abstract states. Profiles MUST map every concrete
+one of three abstract states. The same states classify a lookup of
+evidence about an OAuth client in the `client_recognition` category
+({{trust-method-categories}}). Profiles MUST map every concrete
 outcome of the lookup operation onto exactly one of these states.
 
 ### Lookup States
@@ -1017,7 +1019,8 @@ that the deferral from this framework to the method is testable:
   belongs to ({{iana-trust-methods-registry}}).
 - The evidence the method consumes and the exact procedure by which a
   Validator decides the method is satisfied for a given (issuer,
-  subject) pair, precise enough for interoperable implementation.
+  subject) pair or, for `client_recognition`, a given authenticated
+  client, precise enough for interoperable implementation.
 - The mapping of the method's retrieval and evaluation outcomes onto
   the Affirmative / Negative / Indeterminate lookup states
   ({{exception-handling}}), including which conditions fail closed.
@@ -1826,7 +1829,7 @@ For every such fetch, the Resource Authorization Server:
   and the connection cannot redirect the fetch;
 - MUST apply a timeout to each fetch and MUST bound response sizes;
   and
-- MUST bound the number of fetches one assertion can cause; a bound
+- MUST bound the number of fetches one token request can cause; a bound
   of no more than 20 is RECOMMENDED.
 
 Trust Method specifications MAY add requirements; for example,

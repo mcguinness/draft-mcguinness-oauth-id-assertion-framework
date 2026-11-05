@@ -2170,15 +2170,23 @@ The `client_recognition` category evaluates the client that
 presents an identity assertion. The client is taken from the token
 request's client authentication, not from the assertion, so an
 attacker who controls an assertion's claims cannot choose which
-client is evaluated ({{unverified-claim}}). Recognizing a client says
-nothing about the subject or the Assertion Issuer, and the other
-categories still apply.
+client is evaluated ({{unverified-claim}}). Recognition admits a
+client to the exchange. It does not authorize the client to act for
+a particular user, it says nothing about the subject or the Assertion
+Issuer, and the other categories still apply. Under the generic
+JWT-bearer binding, where the assertion names no client, any
+recognized client can present an assertion it obtained
+({{client-recognition-methods}}).
 
 `openid_federation_client` requires the client to authenticate with
-a key its federation metadata publishes. Without that rule, an
-attacker who registered a client with the Resource Authorization
-Server under another party's Entity Identifier could be recognized as
-that party.
+a key its federation metadata publishes. Without that rule, a client
+could authenticate with a key the Resource Authorization Server holds
+from another source, such as a client metadata document, and be
+recognized as the federation Entity its `client_id` names. A Resource
+Authorization Server that also registers clients selects their policy
+only after they authenticate against their registration, so naming a
+registered `client_id` without authenticating as that client does not
+avoid the client method ({{client-recognition-methods}}).
 
 A client method that lets a client opt in by publishing evidence,
 such as a DNS record, has the same property as a namespace method:

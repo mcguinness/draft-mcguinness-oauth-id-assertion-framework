@@ -590,7 +590,10 @@ signer's identity beyond what the Delegation Artifact attests.
 #### Category Applicability {#category-applicability}
 
 Category applicability is a property of the Validator's published
-Trust Policy, not of the incoming Assertion. If the Trust Policy
+Trust Policy, not of the incoming Assertion. A Validator that holds
+more than one Trust Policy selects one per request from properties of
+the request that it has authenticated, such as an authenticated OAuth
+client ({{rasp}} step 1), never from properties of the Assertion. If the Trust Policy
 declares one or more Trust Methods in a given category, that
 category is applicable to every Assertion the Validator evaluates
 within the profile's scope. The Assertion itself MUST NOT be able
@@ -800,6 +803,11 @@ Assertion Issuer Trust Policy in its authorization server metadata
 `identity_assertion_trust_policy_uri`
 : OPTIONAL. HTTPS URI identifying the Identity Assertion Issuer Trust
   Policy document.
+
+A Resource Authorization Server that applies different Trust Policies
+to different clients publishes the one that applies to clients
+without a prior relationship with it. It tells a client it registers
+which policy applies to that client at registration.
 
 A Protected Resource that publishes OAuth 2.0 Protected Resource
 Metadata {{RFC9728}} MAY include the same member to advertise the
@@ -1348,10 +1356,18 @@ Clients registered through Explicit Registration
 not be their Entity Identifier. This method does not cover them.
 
 A Resource Authorization Server that also has clients it registered
-itself can apply a Trust Policy without `client_trust_methods` to
-them, selected by the request's `client_id` ({{rasp}} step 1). This
-document defines no other way to combine registered and federation
-clients. {{example-client-recognition}} walks through first contact,
+itself can apply a Trust Policy without `client_trust_methods` to a
+request that authenticates as one of those clients against that
+registration ({{rasp}} step 1). Every other request, including one
+that names a registered `client_id` without authenticating as that
+client, gets the policy with `client_trust_methods`. Such a Resource
+Authorization Server keeps the identifiers it registers distinct from
+Entity Identifiers, for example by never registering an `https` URL
+as a `client_id`, so that a registered client cannot share an
+identifier with a federation Entity. It publishes the policy that
+applies to clients without a prior relationship, and a registered
+client learns its own policy at registration. This document defines
+no other way to combine registered and federation clients. {{example-client-recognition}} walks through first contact,
 rejection, cached trust, and coexistence.
 
 ### Worked Example: OpenID Federation + DAI {#example-federation-dai}
@@ -1650,7 +1666,11 @@ When evaluating an identity assertion JWT presented in a token
 request, the Resource Authorization Server MUST:
 
 1. Select and parse the Trust Policy that applies to the token request.
-   If the policy document is malformed, reject the assertion.
+   A Resource Authorization Server that holds more than one Trust
+   Policy selects one from properties of the request that it has
+   authenticated, such as the authenticated client, and never from a
+   claim in the assertion ({{category-applicability}}). If the policy
+   document is malformed, reject the assertion.
    (Recognition of individual Trust Method objects is handled in
    step 5a.)
 

@@ -3229,23 +3229,23 @@ assertion's claims are:
 {
   "iss": "https://agent.example",
   "sub": "https://agent.example",
-  "aud": "https://api.saas.example/token",
-  "exp": 1780166400,
+  "aud": "https://api.saas.example",
+  "exp": 1793880000,
   "jti": "c1f0..."
 }
 ~~~
 
 **Processing.** The Resource Authorization Server:
 
-1. Reads `client_id`, finds a URL it has not registered, and applies
-   the policy above ({{rasp}} step 1).
+1. Reads `client_id`. It is not a client the Resource Authorization
+   Server registered, so the policy above applies ({{rasp}} step 1).
 2. Resolves the client's Entity Configuration and a trust chain to
-   `https://federation.example.org`. Before the client is
-   authenticated, this is the only lookup it performs.
+   `https://federation.example.org`.
 3. Checks that the policy-applied metadata declares `oauth_client`.
 4. Fetches the key set at `jwks_uri` and verifies the client
    assertion's signature with a key in it. The client is now
-   authenticated.
+   authenticated. Steps 2 through 4 are the only lookups before the
+   client is authenticated.
 5. Validates the ID-JAG, including that its `client_id` claim is
    `https://agent.example` ({{ID-JAG}} §4.4.1).
 6. Evaluates `openid_federation` for `https://idp.partner.example`,
@@ -3261,13 +3261,13 @@ assertion's claims are:
 - The trust chain ends at a trust anchor that is not listed:
   `invalid_client`.
 - The client assertion is signed with a key that is not in the
-  federation key set, even one the Resource Authorization Server
-  holds from another source: `invalid_client`.
-- The Entity Configuration cannot be fetched: the method is
-  Indeterminate, and the result is `invalid_client`.
+  federation key set, even one published in a client metadata
+  document: `invalid_client`.
+- The Entity Configuration fetch times out or returns a 5xx status:
+  the method is Indeterminate, and the result is `invalid_client`.
 - The policy required a Trust Mark that the client does not hold:
   the client is authenticated but not recognized, and the result is
-  `invalid_grant`.
+  `unauthorized_client`.
 - The ID-JAG's `client_id` claim names a different client:
   `invalid_grant` ({{ID-JAG}} §4.4.1).
 - The client is recognized, but the Assertion Issuer fails an issuer
@@ -3279,18 +3279,21 @@ trust chain no longer than its earliest `exp`
 caching rules. Later requests from the client use the cached chain,
 and each request is still evaluated against the policy. When the
 client rotates its keys, a signature with a key the cached key set
-lacks can prompt one fresh fetch of the key set before rejection. If
+lacks can prompt one fresh fetch of the key set, rate-limited per
+client, before rejection. If
 the federation stops recognizing the client, the change takes effect
 when the cached chain expires.
 
 **Coexistence with registered clients.** The Resource Authorization
 Server also has clients it registered itself, with opaque `client_id`
-values and keys it holds. It selects the Trust Policy per request
-({{rasp}} step 1). A `client_id` it registered gets a policy without
-`client_trust_methods`, and any other `client_id` gets the policy
-above. The selection uses the request's `client_id`, not a claim in
-the assertion. A registered client authenticates as it always has,
-and a federation client is admitted only through the client method.
+values and credentials it holds, and it never registers an `https`
+URL as a `client_id`. A request that authenticates as one of those
+clients gets a policy without `client_trust_methods` ({{rasp}} step
+1). Any other request, including one that names a registered
+`client_id` without authenticating as that client, gets the policy
+above and is admitted only through the client method. The published
+policy is the one above; a registered client learns its own policy
+at registration.
 
 # Document History
 

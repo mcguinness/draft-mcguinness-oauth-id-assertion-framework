@@ -1297,7 +1297,10 @@ Registration ({{OIDF-FEDERATION-CONNECT}} §12.1 and §12.4). OpenID
 Federation defines Automatic Registration starting from an
 Authentication Request. This method applies the same identification
 to a client whose first request to the Resource Authorization Server
-is a token request. It places none of the obligations of
+is a token request. {{OIDF-FEDERATION-CONNECT}} §12.1.5 anticipates
+Entity Identifier client IDs at further OAuth endpoints but leaves
+such uses out of its scope. This method places none of the
+obligations of
 {{OIDF-FEDERATION-CONNECT}} §12.1 on the client toward the Resource
 Authorization Server, and it is evaluated for each token request that
 presents an identity assertion. A client whose `client_id` is not an
@@ -1324,9 +1327,14 @@ are replaced by the following:
   authentication methods are:
 
   - JWT client authentication ({{RFC7523}} Section 2.2) with a JWT
-    signed by such a key; and
+    signed by such a key, whose `aud` claim is the Resource
+    Authorization Server's issuer identifier and contains no other
+    value; and
   - self-signed certificate mutual TLS ({{RFC8705}} Section 2.2) with
-    a certificate whose public key is such a key.
+    a certificate that is the `x5c` value of such a key.
+
+  These are the rules Automatic Registration applies
+  ({{OIDF-FEDERATION-CONNECT}} §12.1.1).
 
   A client that authenticates any other way does not satisfy this
   method. Keys the Resource Authorization Server knows only through

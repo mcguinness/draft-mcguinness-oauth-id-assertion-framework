@@ -1335,21 +1335,26 @@ are replaced by the following:
   or it cannot be retrieved or validated, the outcome is
   Indeterminate.
 
-As for the assertion signature in {{rasp}} step 2, client
-authentication is provisional until this method is evaluated. When
-the Resource Authorization Server relies on this method to satisfy
-the `client_recognition` category, it MUST NOT accept the
+When the Resource Authorization Server relies on this method to
+satisfy the `client_recognition` category, it MUST NOT accept the
 assertion unless client authentication verified under a key this
-method permits.
+method permits. Verification under any other key, such as a key from
+a client metadata document, is not client authentication for this
+method.
 
 The keys come from the trust chain, so the Resource Authorization
 Server resolves the client's trust chain and key set before it
-verifies client authentication. A failure before the client is
-authenticated leaves the request without accepted client
-authentication, and the result is `invalid_client` ({{rasp}} step
-5f). A failure after authentication, such as a missing Trust Mark,
-is a Trust Method failure like any other and results in
-`invalid_grant`.
+verifies client authentication. The error for a failure depends on
+the condition, not on when it is detected:
+
+- `invalid_client` ({{RFC6749}} Section 5.2) when the `client_id` is
+  not an Entity Identifier, no trust chain reaches a listed trust
+  anchor, the chain or the key set is Indeterminate, the metadata
+  declares neither entity type, or client authentication does not
+  verify under a key in the federation key set; and
+- `unauthorized_client` ({{RFC6749}} Section 5.2) when the client is
+  authenticated but holds no Trust Mark that meets a requirement
+  (requirement 4).
 
 Clients registered through Explicit Registration
 ({{OIDF-FEDERATION-CONNECT}} §12.2) receive a `client_id` that need
@@ -1784,7 +1789,8 @@ authenticated. Fetches made in step 5 follow {{outbound-fetches}}.
 Rejection at any of steps 1 through 5, including a malformed Trust
 Policy (step 1) or an unlisted grant profile (step 3), MUST result in
 an OAuth `invalid_grant` error unless another error is defined by
-the applicable grant profile or by step 5f. Detailed trust-evaluation failure state
+the applicable grant profile, by step 5f, or by the Trust Method that
+failed. Detailed trust-evaluation failure state
 MUST NOT be returned to public clients in the OAuth error response;
 it is a reconnaissance target.
 

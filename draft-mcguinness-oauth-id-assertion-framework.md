@@ -2803,7 +2803,8 @@ appendix, a deployment implementing the
 proposed {{OIDF-WKB}} mechanism could instead publish the following
 leaf Entity Configuration excerpt. Digest strings are placeholders;
 the full Entity Configuration also contains the required timestamps,
-Federation Entity Keys, and the same Trust Mark as above.
+Federation Entity Keys, and the same Trust Mark as above. The Entity
+Type metadata shown is abbreviated; it carries no key source.
 
 ~~~ json
 {
@@ -2832,22 +2833,23 @@ identifies `https://idp.partner.example` as its `issuer` and references
 Intermediate does not supply a protocol key source or require one
 through `metadata_policy`; the `openid_provider` policy shown above
 does not apply to this variant's `oauth_authorization_server` type.
-The Entity Type metadata carries `issuer` but no key source, so
-item 3 selects the extension-defined source. {{OIDF-WKB}} permits
-`issuer` in both places because its value must equal the Entity
-Identifier.
+The Entity Type metadata carries no key source, so item 3 selects
+the extension-defined source: the JWK Set at the covered document's
+`jwks_uri`, which `jwks_digests` binds.
 
-After validating the trust chain, the consumer verifies the covered
-metadata and JWK Set using the extension's digest rules and checks
-that the metadata's `issuer` equals the leaf's Entity Identifier.
+The consumer verifies the covered metadata and its JWK Set by the
+extension's rules, which include validating the trust chain, and
+checks that the metadata's `issuer` equals the leaf's Entity
+Identifier.
 Item 3 then permits the bound JWK Set for assertion verification.
 The Trust Mark and DAI checks are unchanged. Metadata policy does
 not constrain members carried only in the covered document.
 
 If the Intermediate's policy instead marked `jwks_uri` `essential`,
-the leaf would carry it in Entity Type metadata. Item 3 would select
-that source, and the extension would still check the retrieved key
-set against `jwks_digests`. A key mismatch never authorizes
+the leaf would carry it in Entity Type metadata, and item 3 would
+select that source. The binding covers that source only when it
+names the same URL as the covered document's `jwks_uri`; otherwise
+the key set relies on HTTPS alone. A key mismatch never authorizes
 fallback. An absent binding, digest mismatch, or unsupported
 extension with no other qualifying key source yields Indeterminate
 and `invalid_grant`.

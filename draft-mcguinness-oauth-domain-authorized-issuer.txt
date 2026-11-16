@@ -2350,8 +2350,8 @@ Table of Contents
               <https://openid.net/specs/openid-connect-discovery-
               1_0.html>.
 
-   [OIDF-WKB] Hardt, D., "OpenID Federation Well-Known Binding 1.0", 29
-              September 2026, <https://dickhardt.github.io/well-known-
+   [OIDF-WKB] Hardt, D., "OpenID Federation Well-Known Binding 1.0", 11
+              November 2026, <https://dickhardt.github.io/well-known-
               binding/main.html>.
 
    [RFC2308]  Andrews, M., "Negative Caching of DNS Queries (DNS

@@ -1424,6 +1424,12 @@ validating it per {{OIDF-FEDERATION}} §10.2, in place of resolving
 one. Without a published Entity Configuration or a valid supplied
 chain, the client does not satisfy this method.
 
+The Resource Authorization Server caches the client's key set no
+longer than the trust chain ({{trust-method-openid-federation}}). A
+client assertion signed with a key whose `kid` the cached key set
+lacks MAY prompt one fresh fetch of the key set, rate-limited per
+client, before the request is rejected.
+
 Clients registered through Explicit Registration
 ({{OIDF-FEDERATION-CONNECT}} §12.2) receive a `client_id` that need
 not be their Entity Identifier. This method covers such a client only
@@ -3367,8 +3373,8 @@ assertion's claims are:
 
 **Later requests.** The Resource Authorization Server caches the
 trust chain no longer than its earliest `exp`
-({{trust-method-openid-federation}}), and the key set under its HTTP
-caching rules. Later requests from the client use the cached chain,
+({{trust-method-openid-federation}}), and the key set no longer than
+the chain. Later requests from the client use the cached chain,
 and each request is still evaluated against the policy. When the
 client rotates its keys, a signature with a key the cached key set
 lacks can prompt one fresh fetch of the key set, rate-limited per

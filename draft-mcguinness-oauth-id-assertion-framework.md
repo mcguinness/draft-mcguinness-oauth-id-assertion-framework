@@ -1129,10 +1129,11 @@ requirements:
    For `jwks_uri`, the trust chain authenticates the URI, not the key
    set it returns. The returned key set relies on HTTPS to that
    endpoint unless an extension also binds the key set. {{OIDF-WKB}},
-   for example, checks the key set retrieved from a metadata
-   `jwks_uri` against `jwks_digests` when the leaf binds a document
-   that references a JWK Set. A consumer that applies such a binding
-   treats its failure as failure to validate that key source.
+   for example, checks the JWK Set at a covered document's `jwks_uri`
+   against `jwks_digests` in the leaf's Entity Configuration. When the
+   metadata's `jwks_uri` names the URL whose key set an extension
+   binds, a consumer that applies the binding treats its failure as
+   failure to validate that key source.
 
    Specifications that extend this Trust Method MAY define additional
    key sources that satisfy it. If the policy-applied metadata carries

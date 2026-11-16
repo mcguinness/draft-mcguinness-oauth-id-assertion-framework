@@ -1378,16 +1378,25 @@ method.
 The keys come from the trust chain, so the Resource Authorization
 Server resolves the client's trust chain and key set before it
 verifies client authentication. The error for a failure depends on
-the condition, not on when it is detected:
+the condition, not on when it is detected. When more than one
+condition applies, the first in this list determines the error:
 
-- `invalid_client` ({{RFC6749}} Section 5.2) when the `client_id` is
-  not an Entity Identifier, no trust chain reaches a listed trust
-  anchor, the chain or the key set is Indeterminate, the metadata
-  declares neither entity type, or client authentication does not
-  verify under a key in the federation key set; and
-- `unauthorized_client` ({{RFC6749}} Section 5.2) when the client is
-  authenticated but holds no Trust Mark that meets a requirement
-  (requirement 4).
+1. `invalid_client` ({{RFC6749}} Section 5.2) when the `client_id`
+   is not an Entity Identifier, no trust chain reaches a listed trust
+   anchor, the chain or the key set is Indeterminate, the metadata
+   declares neither entity type, the client authenticates with a
+   method its metadata does not declare, or client authentication
+   does not verify under a key in the federation key set.
+2. When the client is authenticated but not recognized, because it
+   holds no Trust Mark that meets a requirement (requirement 4), the
+   Trust Mark evaluation is Indeterminate, or its metadata does not
+   declare the request's grant type: the error that the grant
+   profile defines for a client the Resource Authorization Server
+   does not authorize, such as `access_denied` for {{ID-JAG}}
+   (§4.4.3), and otherwise `unauthorized_client` ({{RFC6749}}
+   Section 5.2).
+3. Any other failure, of the assertion or of an issuer method, gets
+   the error that {{rasp}} specifies.
 
 Any token request can name an `https` `client_id`, and so cause these
 fetches before the client is authenticated, including a fetch for
@@ -1853,7 +1862,8 @@ Rejection at any of steps 1 through 5, including a malformed Trust
 Policy (step 1) or an unlisted grant profile (step 3), MUST result in
 an OAuth `invalid_grant` error unless another error is defined by
 the applicable grant profile, by step 5f, or by the Trust Method that
-failed. Detailed trust-evaluation failure state
+failed. An error from step 5f or from a `client_recognition` method
+takes precedence over any other. Detailed trust-evaluation failure state
 MUST NOT be returned to public clients in the OAuth error response;
 it is a reconnaissance target.
 
@@ -3331,7 +3341,8 @@ assertion's claims are:
   the method is Indeterminate, and the result is `invalid_client`.
 - The policy required a Trust Mark that the client does not hold:
   the client is authenticated but not recognized, and the result is
-  `unauthorized_client`.
+  `access_denied`, the code {{ID-JAG}} §4.4.3 defines for a client
+  the Resource Authorization Server does not authorize.
 - The ID-JAG's `client_id` claim names a different client:
   `invalid_grant` ({{ID-JAG}} §4.4.1).
 - The client is recognized, but the Assertion Issuer fails an issuer

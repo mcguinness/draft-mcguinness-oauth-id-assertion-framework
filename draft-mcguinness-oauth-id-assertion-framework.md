@@ -592,10 +592,10 @@ signer's identity beyond what the Delegation Artifact attests.
 
 Category applicability is a property of the Validator's published
 Trust Policy, not of the incoming Assertion. A Validator that holds
-more than one Trust Policy selects one per request from what it has
-authenticated about the request, such as an OAuth client's
-authentication against its registration ({{rasp}} step 1), never
-from properties of the Assertion. If the Trust Policy
+more than one Trust Policy never selects one from properties of the
+Assertion, and selects one by OAuth client only after authenticating
+the client against its registration ({{rasp}} step 1). If the Trust
+Policy
 declares one or more Trust Methods in a given category, that
 category is applicable to every Assertion the Validator evaluates
 within the profile's scope. The Assertion itself MUST NOT be able
@@ -1751,14 +1751,14 @@ request, the Resource Authorization Server MUST:
 
 1. Select and parse the Trust Policy that applies to the token request.
    A Resource Authorization Server that holds more than one Trust
-   Policy applies its default policy, the one it publishes if it
-   publishes any ({{metadata-publication}}), except to a request whose
-   client authentication verifies against a registration it holds. To
-   that request it can apply a policy chosen for that registration
-   ({{trust-method-openid-federation-client}} limits which
-   registrations qualify). It never selects a policy from a claim in
-   the assertion ({{category-applicability}}). If the policy document
-   is malformed, reject the assertion.
+   Policy never selects one from a claim in the assertion
+   ({{category-applicability}}). It selects one by client only when
+   the request's client authentication verifies against a
+   registration it holds ({{trust-method-openid-federation-client}}
+   limits which registrations qualify). Any other request gets the
+   policy that applies without regard to the client, such as the one
+   it publishes ({{metadata-publication}}). If the policy document is
+   malformed, reject the assertion.
    (Recognition of individual Trust Method objects is handled in
    step 5a.)
 

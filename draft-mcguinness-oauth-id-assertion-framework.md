@@ -1366,6 +1366,26 @@ the condition, not on when it is detected:
   authenticated but holds no Trust Mark that meets a requirement
   (requirement 4).
 
+Any token request can name an `https` `client_id`, and so cause these
+fetches before the client is authenticated, including a fetch for
+every Entity in the client's `authority_hints` ({{OIDF-FEDERATION}}
+§18.1). Before the client is authenticated, the Resource
+Authorization Server:
+
+- MUST limit the number of `authority_hints` it follows;
+- SHOULD cache a Negative or Indeterminate outcome per `client_id`
+  for a bounded period; and
+- SHOULD rate-limit trust chain resolution for clients it has not
+  seen before.
+
+A client that does not publish its Entity Configuration
+({{OIDF-FEDERATION}} §9) can send its trust chain in a `trust_chain`
+header parameter of its client assertion ({{OIDF-FEDERATION}}
+§4.3). The Resource Authorization Server MAY use that chain, after
+validating it per {{OIDF-FEDERATION}} §10.2, in place of resolving
+one. Without a published Entity Configuration or a valid supplied
+chain, the client does not satisfy this method.
+
 Clients registered through Explicit Registration
 ({{OIDF-FEDERATION-CONNECT}} §12.2) receive a `client_id` that need
 not be their Entity Identifier. This method does not cover them.

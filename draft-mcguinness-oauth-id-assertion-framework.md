@@ -1331,15 +1331,25 @@ are replaced by the following:
   ({{OIDF-FEDERATION}} §5.2.1). The permitted client
   authentication methods are:
 
-  - JWT client authentication ({{RFC7523}} Section 2.2) with a JWT
-    signed by such a key, whose `aud` claim is the Resource
-    Authorization Server's issuer identifier and contains no other
-    value; and
+  - JWT client authentication ({{RFC7523}} Sections 2.2 and 3) with a
+    JWT signed by such a key, whose `aud` claim is the Resource
+    Authorization Server's issuer identifier, either as a string or
+    as an array with that single element; and
   - self-signed certificate mutual TLS ({{RFC8705}} Section 2.2) with
-    a certificate that is the `x5c` value of such a key.
+    a certificate equal to the first certificate in the `x5c` value
+    of such a key, without certificate chain validation.
 
-  These are the rules Automatic Registration applies
-  ({{OIDF-FEDERATION-CONNECT}} §12.1.1).
+  A first token request is in the position that
+  {{OIDF-FEDERATION-CONNECT}} §12.1.1.2 addresses for a Pushed
+  Authorization Request: the client authenticates before any
+  registration exists. These are that section's two client
+  authentication methods (see also §12.1.1.2.1). They are narrower
+  than {{OIDF-FEDERATION-CONNECT}} §12.1.4, under which a server
+  accepts any mutually supported method, and than {{RFC7523}}
+  Section 3, which also allows the token endpoint URL as `aud`. The
+  `aud` value is the issuer identifier, not an Entity Identifier,
+  because the Resource Authorization Server need not be a federation
+  Entity.
 
   A client that authenticates any other way does not satisfy this
   method. Keys the Resource Authorization Server knows only through

@@ -1132,9 +1132,13 @@ Neither Negative nor Indeterminate satisfies this Trust Method
 ({{fail-closed-requirements}}). Entity Statement caching
 follows the statements' own `exp` values per {{OIDF-FEDERATION}},
 bounded by the consumer's local cache ceiling; a cached chain MUST
-NOT be used past the earliest `exp` in the chain. A Trust Mark that
-requirement 4 relies on is re-validated whenever the chain is, and
-is not used past its own `exp`.
+NOT be used past the earliest `exp` in the chain, or more than 24
+hours after it was obtained. The same 24-hour limit applies to a key
+set obtained through requirement 3. A Trust Mark that requirement 4
+relies on is re-validated whenever the chain is, and is not used
+past its own `exp`. A Trust Mark without `exp` is re-validated at its
+Trust Mark Status endpoint ({{OIDF-FEDERATION}} §8.4) when the Trust
+Mark Issuer publishes one.
 
 The framework-specific requirements below are evaluated against an
 Affirmative chain. A chain that fails requirement 1 is Negative, as
@@ -1426,7 +1430,8 @@ A client that does not publish its Entity Configuration
 header parameter of its client assertion ({{OIDF-FEDERATION}}
 §4.3). The Resource Authorization Server MAY use that chain, after
 validating it per {{OIDF-FEDERATION}} §10.2, in place of resolving
-one. Without a published Entity Configuration or a valid supplied
+one. It resolves the chain itself instead when any Entity Statement
+in the supplied chain was issued more than 24 hours earlier. Without a published Entity Configuration or a valid supplied
 chain, the client does not satisfy this method.
 
 The Resource Authorization Server caches the client's key set no

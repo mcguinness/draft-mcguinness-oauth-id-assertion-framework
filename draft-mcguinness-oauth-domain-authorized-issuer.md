@@ -56,7 +56,7 @@ informative:
   OIDF-WKB:
     title: "OpenID Federation Well-Known Binding 1.0"
     target: https://dickhardt.github.io/well-known-binding/main.html
-    date: 2026-09-29
+    date: 2026-11-11
     author:
       - name: Dick Hardt
         ins: D. Hardt
@@ -2577,54 +2577,34 @@ security properties and operational guidance for this case are in
 # Document History
 
 This appendix is non-normative and will be removed before publication.
+A number in parentheses is a closed issue in the
+[issue tracker](https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues)
+for this document, which holds the details of that change.
 
 -01
 
-  * Make the DNS TXT record an explicit opt-in: a namespace with no
-    record is Negative, with no HTTPS fallback, in both lookup modes.
-    The HTTPS-only lookup mode fetches from a dedicated host,
-    `oauth-issuer-policy.{A}`, instead of the apex; its opt-in is a
-    record whose `uri=` names the default URL there. Policy fetches
-    no longer follow redirects, and a 404 or 410 from a location a
-    record names is Indeterminate.
-  * Remove the `mode` member and `mode=` directive (monitor mode),
-    which admitted more issuers than publishing nothing.
-  * An entry without `tenant` no longer matches assertions that
-    carry a `tenant` claim.
-  * Add the `key=` directive, which pins the `signed_policy` signing
-    key for a pointer record, including the HTTPS-only opt-in; allow
-    two values for key rollover, with a rollover order that lets the
-    new pin propagate before the signature changes.
-  * Rewrite caching: binding freshness lifetimes, a 24-hour absolute
-    ceiling, an explicit stale-if-error bound, a one-hour cap on DNS
-    results that are not DNSSEC-validated, a one-hour cap on Negative
-    caching with a lifetime taken from the DNS answer that produced
-    it, and 304 renewal only under the same `uri=` and `key=`.
-  * Sketch a federation-bound Issuer Authorization Policy as a
-    non-normative future extension.
+  * Make the DNS TXT record an explicit opt-in with no HTTPS fallback;
+    fetch HTTPS-only policies from the dedicated host
+    `oauth-issuer-policy.{A}`; stop following redirects (#23).
+  * Remove monitor mode: the `mode` member and `mode=` directive
+    (#22).
+  * An entry without `tenant` no longer matches an assertion that
+    carries `tenant` (#26).
+  * Allow at most one `domain_authorized_issuer` object per Trust
+    Policy and 100 entries per published policy, and constrain
+    narrowing extensions (#27).
+  * Add the `key=` directive, which pins the signed-policy key and
+    allows rollover (#24).
+  * Bound every cache lifetime, and state the overall revocation
+    window (#25).
   * Define signed-policy processing and register the
-    `issuer-authorization-policy+jwt` media type in this document
-    (moved from the framework), including the outcome for a consumer
-    without a verification key, the binding a `key=` pin provides,
-    and a signed copy of `crit`;
-    describe how a spoofed negative answer can suppress a published
-    denial when another namespace method is configured.
-  * Allow at most one `domain_authorized_issuer` object in a Trust
-    Policy; cap published policies at 100 entries; require narrowing
-    extensions to use a new version token or a member `crit` can
-    name. The SSRF rules now live in the framework's outbound-fetch
-    requirements.
-  * Correct the relationship to the Email Verification Protocol,
-    whose relying party also checks its record at verification time;
-    add SAML scope metadata, bilateral domain verification, FastFed,
-    and DNS-based OpenID discovery to the related mechanisms; bound
-    the comparison between DNS control and control of email
-    recovery; state that the Trust Method targets organizational
-    namespaces.
-  * Gloss the terms borrowed from the framework; add a tenant
-    matching table and the overall revocation window, including
-    upstream caches; say which key
-    `key=` pins.
+    `issuer-authorization-policy+jwt` media type here, moved from the
+    framework (#21).
+  * Sketch a federation-bound Issuer Authorization Policy as a
+    non-normative future extension (#20).
+  * Correct the relationship to the Email Verification Protocol, add
+    related mechanisms, and gloss terms borrowed from the framework
+    (#29).
   * Editorial changes for readability.
 
 -00

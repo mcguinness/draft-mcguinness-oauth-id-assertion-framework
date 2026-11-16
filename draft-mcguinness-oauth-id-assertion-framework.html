@@ -25,7 +25,9 @@ that a Resource Authorization Server publishes to declare which trust
 methods it requires of an Assertion Issuer, including
 issuer-authentication methods (such as OpenID Federation) and
 subject-namespace authorization methods defined by separate
-profiles. 
+profiles. The policy can also require evidence about the OAuth
+client that presents the assertion, through client-recognition
+methods. 
        The Domain-Authorized Issuer Trust Method is defined separately as one
 subject-namespace authorization profile usable by this framework. 
     " name="description">
@@ -1119,7 +1121,9 @@ that a Resource Authorization Server publishes to declare which trust
 methods it requires of an Assertion Issuer, including
 issuer-authentication methods (such as OpenID Federation) and
 subject-namespace authorization methods defined by separate
-profiles.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+profiles. The policy can also require evidence about the OAuth
+client that presents the assertion, through client-recognition
+methods.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
 <p id="section-abstract-3">The Domain-Authorized Issuer Trust Method is defined separately as one
 subject-namespace authorization profile usable by this framework.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
 </section>
@@ -1277,7 +1281,10 @@ subject-namespace authorization profile usable by this framework.<a href="#secti
                     <p id="section-toc.1-1.4.2.3.2.5.1"><a href="#section-4.3.5" class="auto internal xref">4.3.5</a>.  <a href="#name-subject-namespace-authoriza" class="internal xref">Subject Namespace Authorization Methods</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3.2.6">
-                    <p id="section-toc.1-1.4.2.3.2.6.1"><a href="#section-4.3.6" class="auto internal xref">4.3.6</a>.  <a href="#name-worked-example-openid-feder" class="internal xref">Worked Example: OpenID Federation + DAI</a></p>
+                    <p id="section-toc.1-1.4.2.3.2.6.1"><a href="#section-4.3.6" class="auto internal xref">4.3.6</a>.  <a href="#name-client-recognition-methods" class="internal xref">Client Recognition Methods</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3.2.7">
+                    <p id="section-toc.1-1.4.2.3.2.7.1"><a href="#section-4.3.7" class="auto internal xref">4.3.7</a>.  <a href="#name-worked-example-openid-feder" class="internal xref">Worked Example: OpenID Federation + DAI</a></p>
 </li>
                 </ul>
 </li>
@@ -1347,22 +1354,25 @@ subject-namespace authorization profile usable by this framework.<a href="#secti
                 <p id="section-toc.1-1.7.2.7.1"><a href="#section-7.7" class="auto internal xref">7.7</a>.  <a href="#name-scope-of-namespace-authoriz" class="internal xref">Scope of Namespace Authorization</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.8">
-                <p id="section-toc.1-1.7.2.8.1"><a href="#section-7.8" class="auto internal xref">7.8</a>.  <a href="#name-per-assertion-revocation-is" class="internal xref">Per-Assertion Revocation Is Out of Scope</a></p>
+                <p id="section-toc.1-1.7.2.8.1"><a href="#section-7.8" class="auto internal xref">7.8</a>.  <a href="#name-client-recognition" class="internal xref">Client Recognition</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.9">
-                <p id="section-toc.1-1.7.2.9.1"><a href="#section-7.9" class="auto internal xref">7.9</a>.  <a href="#name-policy-document-integrity" class="internal xref">Policy Document Integrity</a></p>
+                <p id="section-toc.1-1.7.2.9.1"><a href="#section-7.9" class="auto internal xref">7.9</a>.  <a href="#name-per-assertion-revocation-is" class="internal xref">Per-Assertion Revocation Is Out of Scope</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.10">
-                <p id="section-toc.1-1.7.2.10.1"><a href="#section-7.10" class="auto internal xref">7.10</a>. <a href="#name-shared-infrastructure-and-h" class="internal xref">Shared Infrastructure and Hosted Well-Known Paths</a></p>
+                <p id="section-toc.1-1.7.2.10.1"><a href="#section-7.10" class="auto internal xref">7.10</a>. <a href="#name-policy-document-integrity" class="internal xref">Policy Document Integrity</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.11">
-                <p id="section-toc.1-1.7.2.11.1"><a href="#section-7.11" class="auto internal xref">7.11</a>. <a href="#name-downgrade-attacks" class="internal xref">Downgrade Attacks</a></p>
+                <p id="section-toc.1-1.7.2.11.1"><a href="#section-7.11" class="auto internal xref">7.11</a>. <a href="#name-shared-infrastructure-and-h" class="internal xref">Shared Infrastructure and Hosted Well-Known Paths</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.12">
-                <p id="section-toc.1-1.7.2.12.1"><a href="#section-7.12" class="auto internal xref">7.12</a>. <a href="#name-trust-policy-caching" class="internal xref">Trust Policy Caching</a></p>
+                <p id="section-toc.1-1.7.2.12.1"><a href="#section-7.12" class="auto internal xref">7.12</a>. <a href="#name-downgrade-attacks" class="internal xref">Downgrade Attacks</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.13">
-                <p id="section-toc.1-1.7.2.13.1"><a href="#section-7.13" class="auto internal xref">7.13</a>. <a href="#name-observability" class="internal xref">Observability</a></p>
+                <p id="section-toc.1-1.7.2.13.1"><a href="#section-7.13" class="auto internal xref">7.13</a>. <a href="#name-trust-policy-caching" class="internal xref">Trust Policy Caching</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.14">
+                <p id="section-toc.1-1.7.2.14.1"><a href="#section-7.14" class="auto internal xref">7.14</a>. <a href="#name-observability" class="internal xref">Observability</a></p>
 </li>
             </ul>
 </li>
@@ -1388,10 +1398,10 @@ subject-namespace authorization profile usable by this framework.<a href="#secti
                     <p id="section-toc.1-1.10.2.1.2.3.1"><a href="#section-10.1.3" class="auto internal xref">10.1.3</a>.  <a href="#name-well-known-uri-for-trust-po" class="internal xref">Well-Known URI for Trust Policy</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.1.2.4">
-                    <p id="section-toc.1-1.10.2.1.2.4.1"><a href="#section-10.1.4" class="auto internal xref">10.1.4</a>.  <a href="#name-identity-assertion-issuer-t" class="internal xref">Identity Assertion Issuer Trust Method Categories Registry</a></p>
+                    <p id="section-toc.1-1.10.2.1.2.4.1"><a href="#section-10.1.4" class="auto internal xref">10.1.4</a>.  <a href="#name-identity-assertion-trust-me" class="internal xref">Identity Assertion Trust Method Categories Registry</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.1.2.5">
-                    <p id="section-toc.1-1.10.2.1.2.5.1"><a href="#section-10.1.5" class="auto internal xref">10.1.5</a>.  <a href="#name-identity-assertion-issuer-tr" class="internal xref">Identity Assertion Issuer Trust Methods Registry</a></p>
+                    <p id="section-toc.1-1.10.2.1.2.5.1"><a href="#section-10.1.5" class="auto internal xref">10.1.5</a>.  <a href="#name-identity-assertion-trust-met" class="internal xref">Identity Assertion Trust Methods Registry</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.1.2.6">
                     <p id="section-toc.1-1.10.2.1.2.6.1"><a href="#section-10.1.6" class="auto internal xref">10.1.6</a>.  <a href="#name-trust-policy-members-regist" class="internal xref">Trust Policy Members Registry</a></p>
@@ -1435,10 +1445,13 @@ subject-namespace authorization profile usable by this framework.<a href="#secti
                 <p id="section-toc.1-1.13.2.2.1"><a href="#appendix-B.2" class="auto internal xref">B.2</a>.  <a href="#name-presented-delegation-creden" class="internal xref">Presented Delegation Credentials</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.3">
-                <p id="section-toc.1-1.13.2.3.1"><a href="#appendix-B.3" class="auto internal xref">B.3</a>.  <a href="#name-actor-identity-trust-evalua" class="internal xref">Actor Identity Trust Evaluation</a></p>
+                <p id="section-toc.1-1.13.2.3.1"><a href="#appendix-B.3" class="auto internal xref">B.3</a>.  <a href="#name-additional-client-recogniti" class="internal xref">Additional Client Recognition Methods</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.4">
-                <p id="section-toc.1-1.13.2.4.1"><a href="#appendix-B.4" class="auto internal xref">B.4</a>.  <a href="#name-trust-policy-discovery" class="internal xref">Trust Policy Discovery</a></p>
+                <p id="section-toc.1-1.13.2.4.1"><a href="#appendix-B.4" class="auto internal xref">B.4</a>.  <a href="#name-actor-identity-trust-evalua" class="internal xref">Actor Identity Trust Evaluation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13.2.5">
+                <p id="section-toc.1-1.13.2.5.1"><a href="#appendix-B.5" class="auto internal xref">B.5</a>.  <a href="#name-trust-policy-discovery" class="internal xref">Trust Policy Discovery</a></p>
 </li>
             </ul>
 </li>
@@ -1460,10 +1473,13 @@ subject-namespace authorization profile usable by this framework.<a href="#secti
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.17">
-            <p id="section-toc.1-1.17.1"><a href="#appendix-F" class="auto internal xref">Appendix F</a>.  <a href="#name-document-history" class="internal xref">Document History</a></p>
+            <p id="section-toc.1-1.17.1"><a href="#appendix-F" class="auto internal xref">Appendix F</a>.  <a href="#name-client-recognition-walkthro" class="internal xref">Client Recognition Walkthrough</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.18">
-            <p id="section-toc.1-1.18.1"><a href="#appendix-G" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+            <p id="section-toc.1-1.18.1"><a href="#appendix-G" class="auto internal xref">Appendix G</a>.  <a href="#name-document-history" class="internal xref">Document History</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.19">
+            <p id="section-toc.1-1.19.1"><a href="#appendix-H" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
 </li>
         </ul>
 </nav>
@@ -1588,7 +1604,7 @@ that policy for the asserted subject namespace.<a href="#section-1.1-3" class="p
         <h3 id="name-trust-evaluation-categories">
 <a href="#section-1.2" class="section-number selfRef">1.2. </a><a href="#name-trust-evaluation-categories" class="section-name selfRef">Trust Evaluation Categories</a>
         </h3>
-<p id="section-1.2-1">This document defines two independent trust-evaluation categories
+<p id="section-1.2-1">This document defines three independent trust-evaluation categories
 for OAuth identity assertions (<a href="#categories" class="auto internal xref">Section 3.2</a>):<a href="#section-1.2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-1.2-2.1">
@@ -1599,6 +1615,13 @@ asks: is the JWT <code>iss</code> claim a recognized signer?<a href="#section-1.
             <p id="section-1.2-2.2.1"><strong><code>subject_namespace_authorization</code></strong> is the delegation authority
 category. It asks: has the namespace owner authorized this
 issuer to assert about subjects in its namespace?<a href="#section-1.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-1.2-2.3">
+            <p id="section-1.2-2.3.1"><strong><code>client_recognition</code></strong> applies the Authenticity question to the
+client that presents the assertion. It asks: is that client
+recognized by an authority the Resource Authorization Server
+accepts? Recognition admits the client to the exchange. It does not
+authorize the client to act for any particular user.<a href="#section-1.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.2-3">Each Trust Method belongs to one or more of these categories, and
@@ -1881,8 +1904,8 @@ by a Resource Authorization Server to declare its trust criteria.<a href="#secti
 <dt id="section-2-5.9">Trust Method:</dt>
         <dd style="margin-left: 1.5em" id="section-2-5.10">
           <p id="section-2-5.10.1">A registered, named evaluation procedure by which a Validator
-tests one category of trust evidence about an Assertion Issuer
-(<a href="#trust-methods" class="auto internal xref">Section 4.3</a>). A Trust Policy names the Trust Methods it
+tests one category of trust evidence about an Assertion Issuer or
+about the client presenting an Assertion (<a href="#trust-methods" class="auto internal xref">Section 4.3</a>). A Trust Policy names the Trust Methods it
 requires.<a href="#section-2-5.10.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
@@ -1973,8 +1996,8 @@ artifact, accept latency bounded by the cache window.<a href="#section-3.1-4" cl
         <h3 id="name-independent-trust-evaluatio">
 <a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-independent-trust-evaluatio" class="section-name selfRef">Independent Trust Evaluation Categories</a>
         </h3>
-<p id="section-3.2-1">A Validator combines two independent trust evaluations to accept
-an Assertion. Each category answers a distinct question:<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.2-1">A Validator combines two kinds of independent trust evaluation to
+accept an Assertion. Each category answers a distinct question:<a href="#section-3.2-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-3.2-2.1">
             <p id="section-3.2-2.1.1"><strong>Authenticity</strong>: is the entity that signed the Assertion
@@ -1989,14 +2012,19 @@ asserted scope delegated to this signer? Satisfied by a
 Delegation Artifact from the appropriate Authority Holder.<a href="#section-3.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-3.2-3">The OAuth Trust Method categories defined in this document
+<p id="section-3.2-3">Authenticity can be evaluated for more than one principal: the
+entity that signed the Assertion and, in OAuth, the client that
+presents it.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.2-4">The OAuth Trust Method categories defined in this document
 (<a href="#trust-method-categories" class="auto internal xref">Section 4.3.2</a>) instantiate these:
-<code>issuer_authentication</code> realizes Authenticity, and
+<code>issuer_authentication</code> realizes Authenticity for the signer,
 <code>subject_namespace_authorization</code> realizes Delegation authority
-for namespace-bound Subject Identifiers.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
-<p id="section-3.2-4">Local policy (risk scoring, scope grants, account linking, business
-rules) applies on top of these two categories and remains the final
-decision layer (<a href="#rasp" class="auto internal xref">Section 5.2</a> step 6).<a href="#section-3.2-4" class="pilcrow">¶</a></p>
+for namespace-bound Subject Identifiers, and <code>client_recognition</code>
+realizes Authenticity for the OAuth client that presents an identity
+assertion.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
+<p id="section-3.2-5">Local policy (risk scoring, scope grants, account linking, business
+rules) applies on top of these categories and remains the final
+decision layer (<a href="#rasp" class="auto internal xref">Section 5.2</a> step 6).<a href="#section-3.2-5" class="pilcrow">¶</a></p>
 <div id="combination-rule">
 <section id="section-3.2.1">
           <h4 id="name-cross-category-combination-">
@@ -2021,7 +2049,11 @@ signer's identity beyond what the Delegation Artifact attests.<a href="#section-
 <a href="#section-3.2.1.1" class="section-number selfRef">3.2.1.1. </a><a href="#name-category-applicability" class="section-name selfRef">Category Applicability</a>
             </h5>
 <p id="section-3.2.1.1-1">Category applicability is a property of the Validator's published
-Trust Policy, not of the incoming Assertion. If the Trust Policy
+Trust Policy, not of the incoming Assertion. A Validator that holds
+more than one Trust Policy never selects one from properties of the
+Assertion, and selects one by OAuth client only after authenticating
+the client against its registration (<a href="#rasp" class="auto internal xref">Section 5.2</a> step 1). If the Trust
+Policy
 declares one or more Trust Methods in a given category, that
 category is applicable to every Assertion the Validator evaluates
 within the profile's scope. The Assertion itself <span class="bcp14">MUST NOT</span> be able
@@ -2065,9 +2097,9 @@ the Assertion is authenticated against any delegation. The attack
 against ad-hoc or fallback selection logic and the
 deterministic-selection requirement are detailed in
 <a href="#unverified-claim" class="auto internal xref">Section 7.2</a>.<a href="#section-3.2.2-1" class="pilcrow">¶</a></p>
-<p id="section-3.2.2-2">For <code>issuer_authentication</code>, every Authority Source the Trust
-Policy lists is equally trusted by the Validator, so a profile <span class="bcp14">MAY</span>
-accept evidence from any of them. For <code>openid_federation</code>, this
+<p id="section-3.2.2-2">For <code>issuer_authentication</code> and <code>client_recognition</code>, every
+Authority Source the Trust Policy lists is equally trusted by the
+Validator, so a profile <span class="bcp14">MAY</span> accept evidence from any of them. For <code>openid_federation</code>, this
 means a chain to any listed trust anchor
 (<a href="#trust-method-openid-federation" class="auto internal xref">Section 4.3.4.1</a>).<a href="#section-3.2.2-2" class="pilcrow">¶</a></p>
 <p id="section-3.2.2-3">Within one Trust Method's evaluation, a Validator <span class="bcp14">MUST NOT</span> fall
@@ -2159,7 +2191,9 @@ Delegation authority).<a href="#section-3.3-2" class="pilcrow">¶</a></p>
 <a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-lookup-states-and-fail-clos" class="section-name selfRef">Lookup States and Fail-Closed</a>
         </h3>
 <p id="section-3.4-1">A Validator's lookup of a Delegation Artifact produces exactly
-one of three abstract states. Profiles <span class="bcp14">MUST</span> map every concrete
+one of three abstract states. The same states classify a lookup of
+evidence about an OAuth client in the <code>client_recognition</code> category
+(<a href="#trust-method-categories" class="auto internal xref">Section 4.3.2</a>). Profiles <span class="bcp14">MUST</span> map every concrete
 outcome of the lookup operation onto exactly one of these states.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
 <div id="lookup-states">
 <section id="section-3.4.1">
@@ -2298,7 +2332,12 @@ Policy document.<a href="#section-4.1-2.2.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-4.1-3">A Protected Resource that publishes OAuth 2.0 Protected Resource
+<p id="section-4.1-3">A Resource Authorization Server that applies different Trust Policies
+to different clients publishes the one that applies to clients
+without a prior relationship with it. How a client it registers
+learns which policy applies to that client is out of scope for this
+document.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.1-4">A Protected Resource that publishes OAuth 2.0 Protected Resource
 Metadata <span>[<a href="#RFC9728" class="cite xref">RFC9728</a>]</span> <span class="bcp14">MAY</span> include the same member to advertise the
 policy applied by its Resource Authorization Server. Clients that
 obtain the URI from Protected Resource Metadata <span class="bcp14">MUST</span> verify that the
@@ -2306,8 +2345,8 @@ policy document's <code>resource_authorization_server</code> value identifies an
 authorization server listed in the Protected Resource's
 <code>authorization_servers</code> array. If the same member appears in both
 metadata documents, the authorization server metadata value is
-authoritative.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
-<p id="section-4.1-4">A Resource Authorization Server may additionally publish the trust
+authoritative.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.1-5">A Resource Authorization Server may additionally publish the trust
 policy at the well-known URI registered in
 <a href="#iana-trust-policy-well-known" class="auto internal xref">Section 10.1.3</a>. The well-known URI is derived from
 the Resource Authorization Server's issuer identifier by the
@@ -2317,33 +2356,33 @@ port, if any) and any path component of the issuer identifier. For an
 issuer with no path component this yields
 <code>https://{host}/.well-known/identity-assertion-trust-policy</code>. If both
 the metadata member and the well-known URI are available and identify
-different documents, the metadata member is authoritative.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
-<p id="section-4.1-5">A consumer retrieving a Trust Policy document (from either source)
+different documents, the metadata member is authoritative.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
+<p id="section-4.1-6">A consumer retrieving a Trust Policy document (from either source)
 fetches it with an HTTP GET over HTTPS with TLS server
 authentication, subject to the following rules. The consumer <span class="bcp14">MUST NOT</span>
 act on a policy it could not retrieve and validate; such a retrieval
 failure is distinct from a successfully retrieved policy that rejects
-an assertion.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
+an assertion.<a href="#section-4.1-6" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.1-6.1">
-            <p id="section-4.1-6.1.1">The response <span class="bcp14">MUST</span> have status 200 and a media type of
-<code>application/json</code> or a <code>+json</code>-suffixed type.<a href="#section-4.1-6.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-4.1-7.1">
+            <p id="section-4.1-7.1.1">The response <span class="bcp14">MUST</span> have status 200 and a media type of
+<code>application/json</code> or a <code>+json</code>-suffixed type.<a href="#section-4.1-7.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-4.1-6.2">
-            <p id="section-4.1-6.2.1">Consumers <span class="bcp14">MUST</span> follow HTTPS redirects up to a limit of 5 hops;
+          <li class="normal" id="section-4.1-7.2">
+            <p id="section-4.1-7.2.1">Consumers <span class="bcp14">MUST</span> follow HTTPS redirects up to a limit of 5 hops;
 every redirect target <span class="bcp14">MUST</span> use the <code>https</code> scheme and <span class="bcp14">MUST</span> remain
 within the origin of the URI being fetched. A redirect to a
 different origin, or
-exceeding the hop limit, is a retrieval failure.<a href="#section-4.1-6.2.1" class="pilcrow">¶</a></p>
+exceeding the hop limit, is a retrieval failure.<a href="#section-4.1-7.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-4.1-6.3">
-            <p id="section-4.1-6.3.1">Any other status, a TLS failure, an unparseable body, or a body
+          <li class="normal" id="section-4.1-7.3">
+            <p id="section-4.1-7.3.1">Any other status, a TLS failure, an unparseable body, or a body
 exceeding a consumer-chosen limit (which <span class="bcp14">MUST</span> allow at least
-64 KiB) is a retrieval failure.<a href="#section-4.1-6.3.1" class="pilcrow">¶</a></p>
+64 KiB) is a retrieval failure.<a href="#section-4.1-7.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-4.1-7">Example authorization server metadata:<a href="#section-4.1-7" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-4.1-8">
+<p id="section-4.1-8">Example authorization server metadata:<a href="#section-4.1-8" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-4.1-9">
 <pre>
 {
   "issuer": "https://api.resource.example",
@@ -2357,7 +2396,7 @@ exceeding a consumer-chosen limit (which <span class="bcp14">MUST</span> allow a
   "identity_assertion_trust_policy_uri":
     "https://api.resource.example/trust-policy"
 }
-</pre><a href="#section-4.1-8" class="pilcrow">¶</a>
+</pre><a href="#section-4.1-9" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
@@ -2373,7 +2412,7 @@ required members are absent or wrong-typed, <span class="bcp14">MUST</span> reje
 containing duplicate member names at any object level, and <span class="bcp14">MUST</span> ignore
 unrecognized members except those named in <code>crit</code> (<a href="#critical-members" class="auto internal xref">Section 4.5</a>).
 The policy <span class="bcp14">MAY</span> include a <code>crit</code> member (<a href="#critical-members" class="auto internal xref">Section 4.5</a>). It
-carries no signature (<a href="#integrity" class="auto internal xref">Section 7.9</a>). Members are
+carries no signature (<a href="#integrity" class="auto internal xref">Section 7.10</a>). Members are
 registered in <a href="#iana-trust-policy-members-registry" class="auto internal xref">Section 10.1.6</a>.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
 <p id="section-4.2-2">Example:<a href="#section-4.2-2" class="pilcrow">¶</a></p>
 <div class="lang-json sourcecode" id="section-4.2-3">
@@ -2442,7 +2481,27 @@ happens to satisfy a method not listed here is not acceptable. The
 member is deliberately named without the <code>_supported</code> suffix used
 by capability-style OAuth metadata parameters
 (<span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span>) to signal that distinction. Local policy may add
-requirements per client, subject, or scope; see <a href="#downgrade" class="auto internal xref">Section 7.11</a>.<a href="#section-4.2.1-1.8.1" class="pilcrow">¶</a></p>
+requirements per client, subject, or scope; see <a href="#downgrade" class="auto internal xref">Section 7.12</a>.
+An object in this member counts only toward the issuer categories,
+<code>issuer_authentication</code> and <code>subject_namespace_authorization</code>, and a
+method that belongs to no issuer category is malformed here.<a href="#section-4.2.1-1.8.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.2.1-1.9"><code>client_trust_methods</code></dt>
+            <dd style="margin-left: 1.5em" id="section-4.2.1-1.10">
+              <p id="section-4.2.1-1.10.1"><span class="bcp14">OPTIONAL</span>. Non-empty JSON array of Trust Method objects
+(<a href="#trust-methods" class="auto internal xref">Section 4.3</a>) whose methods belong to the
+<code>client_recognition</code> category (<a href="#trust-method-categories" class="auto internal xref">Section 4.3.2</a>). When
+present, it states the trust requirements the Resource Authorization
+Server enforces against the client that presents an identity
+assertion: an assertion is rejected unless the authenticated client
+satisfies the Trust Method combination rule in <a href="#rasp" class="auto internal xref">Section 5.2</a> against the
+methods listed here. An object in this member counts only toward the
+<code>client_recognition</code> category, and a method that does not belong to
+that category is malformed here. A Resource Authorization Server can
+list <code>client_trust_methods</code> in <code>crit</code> (<a href="#critical-members" class="auto internal xref">Section 4.5</a>) so that a
+client that does not implement this member does not read the policy
+as placing no requirement on clients.<a href="#section-4.2.1-1.10.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
@@ -2500,6 +2559,18 @@ named namespace? When a policy lists a method in this category, every
 in-scope assertion must carry a resolvable Subject Identifier and
 fails closed if it does not (<a href="#rasp" class="auto internal xref">Section 5.2</a> step 5c).<a href="#section-4.3.2-2.4.1" class="pilcrow">¶</a></p>
 </dd>
+            <dd class="break"></dd>
+<dt id="section-4.3.2-2.5"><code>client_recognition</code></dt>
+            <dd style="margin-left: 1.5em" id="section-4.3.2-2.6">
+              <p id="section-4.3.2-2.6.1">Is the OAuth client presenting the assertion, as authenticated at
+the token endpoint, recognized by an authority the Resource
+Authorization Server accepts? Methods in this category are listed in
+<code>client_trust_methods</code> and evaluate the authenticated client, never a
+claim in the assertion (<a href="#rasp" class="auto internal xref">Section 5.2</a> step 5f). Recognition admits a client
+to assertion exchange. It does not authorize the client to act for a
+particular user; the grant profile's client binding does that (for
+ID-JAG, <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1).<a href="#section-4.3.2-2.6.1" class="pilcrow">¶</a></p>
+</dd>
           <dd class="break"></dd>
 </dl>
 <p id="section-4.3.2-3">Deployments accepting assertions about namespace-bound subjects
@@ -2525,7 +2596,8 @@ belongs to (<a href="#iana-trust-methods-registry" class="auto internal xref">Se
             <li class="normal" id="section-4.3.3-2.2">
               <p id="section-4.3.3-2.2.1">The evidence the method consumes and the exact procedure by which a
 Validator decides the method is satisfied for a given (issuer,
-subject) pair, precise enough for interoperable implementation.<a href="#section-4.3.3-2.2.1" class="pilcrow">¶</a></p>
+subject) pair or, for <code>client_recognition</code>, a given authenticated
+client, precise enough for interoperable implementation.<a href="#section-4.3.3-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-4.3.3-2.3">
               <p id="section-4.3.3-2.3.1">The mapping of the method's retrieval and evaluation outcomes onto
@@ -2820,19 +2892,243 @@ are defined by companion specifications and registered in the
 Trust Methods registry (<a href="#iana-trust-methods-registry" class="auto internal xref">Section 10.1.5</a>).<a href="#section-4.3.5-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="example-federation-dai">
+<div id="client-recognition-methods">
 <section id="section-4.3.6">
-          <h4 id="name-worked-example-openid-feder">
-<a href="#section-4.3.6" class="section-number selfRef">4.3.6. </a><a href="#name-worked-example-openid-feder" class="section-name selfRef">Worked Example: OpenID Federation + DAI</a>
+          <h4 id="name-client-recognition-methods">
+<a href="#section-4.3.6" class="section-number selfRef">4.3.6. </a><a href="#name-client-recognition-methods" class="section-name selfRef">Client Recognition Methods</a>
           </h4>
-<p id="section-4.3.6-1">This non-normative example shows the two trust-evaluation
+<p id="section-4.3.6-1"><code>client_recognition</code>-category methods are satisfied by evidence
+about the OAuth client that presents an identity assertion at the
+token endpoint. The client evaluated is the one that the grant
+profile's client authentication identifies (<a href="#rasp" class="auto internal xref">Section 5.2</a> step 5f). For
+ID-JAG, the assertion's <code>client_id</code> claim identifies the same client
+(<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1), so the Assertion Issuer has already named the
+client it issued the assertion to. Under the generic JWT-bearer
+binding (<a href="#jwt-bearer-profile" class="auto internal xref">Section 6.2</a>) the assertion names no client, so any
+client that satisfies the category can present an assertion it
+obtained. Recognizing a client does not
+authorize any Assertion Issuer, and authorizing an Assertion Issuer
+does not recognize any client.<a href="#section-4.3.6-1" class="pilcrow">¶</a></p>
+<p id="section-4.3.6-2">The OAuth Client ID Metadata Document
+<span>[<a href="#I-D.ietf-oauth-client-id-metadata-document" class="cite xref">I-D.ietf-oauth-client-id-metadata-document</a>]</span> is complementary. It
+lets an authorization server obtain a client's metadata and keys
+from its <code>client_id</code> URL, but it leaves the decision to trust that
+client to the authorization server. A client recognition method could
+use it as a key source only together with evidence that the Resource
+Authorization Server trusts.<a href="#section-4.3.6-2" class="pilcrow">¶</a></p>
+<div id="trust-method-openid-federation-client">
+<section id="section-4.3.6.1">
+            <h5 id="name-openid_federation_client">
+<a href="#section-4.3.6.1" class="section-number selfRef">4.3.6.1. </a><a href="#name-openid_federation_client" class="section-name selfRef">openid_federation_client</a>
+            </h5>
+<p id="section-4.3.6.1-1">The <code>openid_federation_client</code> method indicates that the client is
+acceptable if it is an OpenID Federation <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> Entity
+whose trust chain validates to a listed trust anchor and, when the
+policy requires them, holds the required Trust Marks.<a href="#section-4.3.6.1-1" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-4.3.6.1-2">
+<pre>
+{
+  "method": "openid_federation_client",
+  "trust_anchors": ["https://federation.example.org"]
+}
+</pre><a href="#section-4.3.6.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.3.6.1-3">The method has the members <code>trust_anchors</code> and <code>trust_marks</code>, defined
+as for <code>openid_federation</code> (<a href="#trust-method-openid-federation" class="auto internal xref">Section 4.3.4.1</a>).<a href="#section-4.3.6.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.3.6.1-4">The client's <code>client_id</code> is its Entity Identifier, as in Automatic
+Registration (<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §12.1 and §12.4).
+<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §12.1 starts Automatic Registration at an
+Authentication Request, and §12.1.5 says that bare OAuth 2.0
+deployments can use it. It does not describe a client whose first
+request is a token request with no Authentication Request before it;
+this method defines that case. This method places none of the
+obligations of
+<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §12.1 on the client toward the Resource
+Authorization Server, and it is evaluated for each token request that
+presents an identity assertion. The <code>client_id</code> <span class="bcp14">MUST</span> equal the <code>sub</code>
+of the client's Entity Configuration by simple string comparison. A
+client whose <code>client_id</code> is not an Entity Identifier
+(<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §1.2) does not satisfy this method, and the
+lookup state is Negative.<a href="#section-4.3.6.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.3.6.1-5">The Resource Authorization Server evaluates this method as it
+evaluates <code>openid_federation</code>, with the client's Entity Identifier as
+the leaf. Trust chain validation, the lookup states, caching, and
+requirements 1 and 4 apply unchanged. Where that section refers to the
+Assertion Issuer, it refers here to the client. Every requirement <span class="bcp14">MUST</span>
+hold on one trust chain: the metadata, key set, and Trust Marks used
+are those of the chain that satisfies requirement 1. Requirements 2
+and 3 are replaced by the following:<a href="#section-4.3.6.1-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.3.6.1-6.1">
+                <p id="section-4.3.6.1-6.1.1"><strong>Entity type constraint.</strong> The leaf's policy-applied federation
+metadata <span class="bcp14">MUST</span> declare the entity type <code>oauth_client</code> or
+<code>openid_relying_party</code> (<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §5.1.4 and
+§5.1.1), under the type-declaration rule of requirement 2. The
+client metadata is the policy-applied <code>oauth_client</code> metadata, or
+the <code>openid_relying_party</code> metadata when the leaf declares no
+<code>oauth_client</code> type (<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §12 uses
+<code>oauth_client</code> for OAuth 2.0 profiles other than OpenID Connect).
+Metadata from the two types is never combined.<a href="#section-4.3.6.1-6.1.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-4.3.6.1-6.2">
+                <p id="section-4.3.6.1-6.2.1"><strong>Federation-bound client authentication key.</strong> Client
+authentication <span class="bcp14">MUST</span> verify under a key in a key set that the client
+metadata designates through <code>jwks</code>, <code>jwks_uri</code>, or <code>signed_jwks_uri</code>
+(<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §5.2.1), processed as that section specifies.
+For <code>jwks_uri</code>, the trust chain authenticates the URI, not the key
+set it returns, which relies on HTTPS to that endpoint. The
+permitted client authentication methods are:<a href="#section-4.3.6.1-6.2.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.3.6.1-6.2.2.1">
+                    <p id="section-4.3.6.1-6.2.2.1.1">JWT client authentication (<span>[<a href="#RFC7523" class="cite xref">RFC7523</a>]</span> Sections 2.2 and 3) with a
+JWT signed by such a key, whose <code>aud</code> claim is the Resource
+Authorization Server's issuer identifier, either as a string or
+as an array with that single element; and<a href="#section-4.3.6.1-6.2.2.1.1" class="pilcrow">¶</a></p>
+</li>
+                  <li class="normal" id="section-4.3.6.1-6.2.2.2">
+                    <p id="section-4.3.6.1-6.2.2.2.1">self-signed certificate mutual TLS (<span>[<a href="#RFC8705" class="cite xref">RFC8705</a>]</span> Section 2.2) with
+a certificate equal to the first certificate in the <code>x5c</code> value
+of such a key, without certificate chain validation.<a href="#section-4.3.6.1-6.2.2.2.1" class="pilcrow">¶</a></p>
+</li>
+                </ul>
+<p id="section-4.3.6.1-6.2.3">
+A first token request is in the position that
+<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §12.1.1.2 addresses for a Pushed
+Authorization Request: the client authenticates before any
+registration exists. These are that section's two client
+authentication methods (see also §12.1.1.2.1). They are narrower
+than <span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §12.1.4, under which a server
+accepts any mutually supported method, and than <span>[<a href="#RFC7523" class="cite xref">RFC7523</a>]</span>
+Section 3, which also allows the token endpoint URL as <code>aud</code>. The
+<code>aud</code> value is the issuer identifier, not an Entity Identifier,
+because the Resource Authorization Server need not be a federation
+Entity.<a href="#section-4.3.6.1-6.2.3" class="pilcrow">¶</a></p>
+<p id="section-4.3.6.1-6.2.4">
+A client that authenticates any other way does not satisfy this
+method. Keys the Resource Authorization Server knows only through
+another source, such as out-of-band registration or a client
+metadata document, do not count. If no such key set is available,
+or it cannot be retrieved or validated, the outcome is
+Indeterminate.<a href="#section-4.3.6.1-6.2.4" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-4.3.6.1-6.3">
+                <p id="section-4.3.6.1-6.3.1"><strong>Declared client metadata.</strong> The client metadata <span class="bcp14">MUST</span> declare the
+method the client authenticates with, in
+<code>token_endpoint_auth_method</code> or
+<code>token_endpoint_auth_methods_supported</code>
+(<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §12.1.4), and <span class="bcp14">MUST</span> list the token
+request's grant type in <code>grant_types</code> (<span>[<a href="#RFC7591" class="cite xref">RFC7591</a>]</span> Section 2). A
+client that omits them does not satisfy this method; the
+<span>[<a href="#RFC7591" class="cite xref">RFC7591</a>]</span> defaults, <code>client_secret_basic</code> and
+<code>authorization_code</code>, would not permit the request either. A
+Superior can constrain both through metadata policy
+(<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §6.1).<a href="#section-4.3.6.1-6.3.1" class="pilcrow">¶</a></p>
+</li>
+            </ul>
+<p id="section-4.3.6.1-7">When the Resource Authorization Server relies on this method to
+satisfy the <code>client_recognition</code> category, it <span class="bcp14">MUST NOT</span> accept the
+assertion unless client authentication verified under a key this
+method permits. Verification under any other key, such as a key from
+a client metadata document, is not client authentication for this
+method.<a href="#section-4.3.6.1-7" class="pilcrow">¶</a></p>
+<p id="section-4.3.6.1-8">The keys come from the trust chain, so the Resource Authorization
+Server resolves the client's trust chain and key set before it
+verifies client authentication. The error for a failure depends on
+the condition, not on when it is detected. When more than one
+condition applies, the first in this list determines the error:<a href="#section-4.3.6.1-8" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-4.3.6.1-9">
+<li id="section-4.3.6.1-9.1">
+                <p id="section-4.3.6.1-9.1.1"><code>invalid_client</code> (<span>[<a href="#RFC6749" class="cite xref">RFC6749</a>]</span> Section 5.2) when the <code>client_id</code>
+is not an Entity Identifier, no trust chain reaches a listed trust
+anchor, the chain or the key set is Indeterminate, the metadata
+declares neither entity type, the client authenticates with a
+method its metadata does not declare, or client authentication
+does not verify under a key in the federation key set.<a href="#section-4.3.6.1-9.1.1" class="pilcrow">¶</a></p>
+</li>
+              <li id="section-4.3.6.1-9.2">
+                <p id="section-4.3.6.1-9.2.1">Any failure of the assertion or of an issuer method gets the error
+that <a href="#rasp" class="auto internal xref">Section 5.2</a> specifies.<a href="#section-4.3.6.1-9.2.1" class="pilcrow">¶</a></p>
+</li>
+              <li id="section-4.3.6.1-9.3">
+                <p id="section-4.3.6.1-9.3.1">When the client is authenticated but not recognized, because it
+holds no Trust Mark that meets a requirement (requirement 4), the
+Trust Mark evaluation is Indeterminate, or its metadata does not
+list the request's grant type: the error that the grant profile
+defines for a client the Resource Authorization Server does not
+authorize, such as <code>access_denied</code> for <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> (§4.4.3), and
+otherwise <code>unauthorized_client</code> (<span>[<a href="#RFC6749" class="cite xref">RFC6749</a>]</span> Section 5.2). This
+error applies only when the assertion is valid and every other
+category is satisfied.<a href="#section-4.3.6.1-9.3.1" class="pilcrow">¶</a></p>
+</li>
+            </ol>
+<p id="section-4.3.6.1-10">Any token request can name an <code>https</code> <code>client_id</code>, and so cause these
+fetches before the client is authenticated, including a fetch for
+every Entity in the client's <code>authority_hints</code> (<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span>
+§18.1). Before the client is authenticated, the Resource
+Authorization Server:<a href="#section-4.3.6.1-10" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.3.6.1-11.1">
+                <p id="section-4.3.6.1-11.1.1"><span class="bcp14">MUST</span> limit the number of <code>authority_hints</code> it follows;<a href="#section-4.3.6.1-11.1.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-4.3.6.1-11.2">
+                <p id="section-4.3.6.1-11.2.1"><span class="bcp14">SHOULD</span> cache a Negative or Indeterminate outcome per <code>client_id</code>
+for a bounded period; and<a href="#section-4.3.6.1-11.2.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-4.3.6.1-11.3">
+                <p id="section-4.3.6.1-11.3.1"><span class="bcp14">SHOULD</span> rate-limit trust chain resolution for clients it has not
+seen before.<a href="#section-4.3.6.1-11.3.1" class="pilcrow">¶</a></p>
+</li>
+            </ul>
+<p id="section-4.3.6.1-12">A client that does not publish its Entity Configuration
+(<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §9) can send its trust chain in a <code>trust_chain</code>
+header parameter of its client assertion (<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span>
+§4.3). The Resource Authorization Server <span class="bcp14">MAY</span> use that chain, after
+validating it per <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §10.2, in place of resolving
+one. Without a published Entity Configuration or a valid supplied
+chain, the client does not satisfy this method.<a href="#section-4.3.6.1-12" class="pilcrow">¶</a></p>
+<p id="section-4.3.6.1-13">The Resource Authorization Server caches the client's key set no
+longer than the trust chain (<a href="#trust-method-openid-federation" class="auto internal xref">Section 4.3.4.1</a>). A
+client assertion signed with a key whose <code>kid</code> the cached key set
+lacks <span class="bcp14">MAY</span> prompt one fresh fetch of the key set, rate-limited per
+client, before the request is rejected.<a href="#section-4.3.6.1-13" class="pilcrow">¶</a></p>
+<p id="section-4.3.6.1-14">Clients registered through Explicit Registration
+(<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §12.2) receive a <code>client_id</code> that need
+not be their Entity Identifier. This method covers such a client only
+when its <code>client_id</code> is its Entity Identifier.<a href="#section-4.3.6.1-14" class="pilcrow">¶</a></p>
+<p id="section-4.3.6.1-15">A Resource Authorization Server that also has clients it registered
+itself can apply a Trust Policy without <code>client_trust_methods</code> to a
+request that authenticates as one of those clients against that
+registration (<a href="#rasp" class="auto internal xref">Section 5.2</a> step 1). It <span class="bcp14">MUST NOT</span> do so for a request whose
+<code>client_id</code> is an <code>https</code> URL, even when it holds a registration for
+that <code>client_id</code>, such as an Explicit Registration that kept the
+Entity Identifier (<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §12.2.2). A public
+client does not authenticate against its registration (<span>[<a href="#RFC6749" class="cite xref">RFC6749</a>]</span>
+Section 2.3). Every other request, including one that names a
+registered <code>client_id</code> without authenticating as that client, gets
+the policy with <code>client_trust_methods</code>. A Resource Authorization
+Server that already uses <code>https</code> URLs as <code>client_id</code> values for
+clients outside a federation cannot list <code>client_trust_methods</code>
+without rejecting those clients. This document defines no other way
+to combine registered and federation clients.
+<a href="#example-client-recognition" class="auto internal xref">Appendix F</a> walks through first contact,
+rejection, cached trust, and coexistence.<a href="#section-4.3.6.1-15" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="example-federation-dai">
+<section id="section-4.3.7">
+          <h4 id="name-worked-example-openid-feder">
+<a href="#section-4.3.7" class="section-number selfRef">4.3.7. </a><a href="#name-worked-example-openid-feder" class="section-name selfRef">Worked Example: OpenID Federation + DAI</a>
+          </h4>
+<p id="section-4.3.7-1">This non-normative example shows the two trust-evaluation
 categories used together. A SaaS Resource Authorization Server
 (<code>api.saas.example</code>) accepts identity assertions from federation
 member Assertion Issuers about users in any customer namespace;
 the customer authorizes which specific Assertion Issuer serves
-its users.<a href="#section-4.3.6-1" class="pilcrow">¶</a></p>
-<p id="section-4.3.6-2">The Resource Authorization Server publishes:<a href="#section-4.3.6-2" class="pilcrow">¶</a></p>
-<div class="lang-json sourcecode" id="section-4.3.6-3">
+its users.<a href="#section-4.3.7-1" class="pilcrow">¶</a></p>
+<p id="section-4.3.7-2">The Resource Authorization Server publishes:<a href="#section-4.3.7-2" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-4.3.7-3">
 <pre>
 {
   "resource_authorization_server": "https://api.saas.example",
@@ -2850,53 +3146,53 @@ its users.<a href="#section-4.3.6-1" class="pilcrow">¶</a></p>
     }
   ]
 }
-</pre><a href="#section-4.3.6-3" class="pilcrow">¶</a>
+</pre><a href="#section-4.3.7-3" class="pilcrow">¶</a>
 </div>
-<p id="section-4.3.6-4">Customer <code>acme.example</code> publishes a DAI record naming
+<p id="section-4.3.7-4">Customer <code>acme.example</code> publishes a DAI record naming
 <code>https://idp.example.net</code> as its authorized Assertion Issuer.
 That Assertion Issuer is also a federation member of
-<code>https://federation.example.org</code>.<a href="#section-4.3.6-4" class="pilcrow">¶</a></p>
-<p id="section-4.3.6-5">A token-request flow with an ID-JAG carrying
+<code>https://federation.example.org</code>.<a href="#section-4.3.7-4" class="pilcrow">¶</a></p>
+<p id="section-4.3.7-5">A token-request flow with an ID-JAG carrying
 <code>email: alice@acme.example</code>, <code>email_verified: true</code>,
-<code>iss: https://idp.example.net</code>:<a href="#section-4.3.6-5" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-4.3.6-6">
-<li id="section-4.3.6-6.1">
-              <p id="section-4.3.6-6.1.1">The Resource Authorization Server authenticates the client
+<code>iss: https://idp.example.net</code>:<a href="#section-4.3.7-5" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-4.3.7-6">
+<li id="section-4.3.7-6.1">
+              <p id="section-4.3.7-6.1.1">The Resource Authorization Server authenticates the client
 (<code>private_key_jwt</code>) and determines that both Trust Methods are
-applicable (the Trust Policy lists one in each category).<a href="#section-4.3.6-6.1.1" class="pilcrow">¶</a></p>
+applicable (the Trust Policy lists one in each category).<a href="#section-4.3.7-6.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-4.3.6-6.2">
-              <p id="section-4.3.6-6.2.1"><strong>Authenticity</strong> (<code>issuer_authentication</code> category): the
+            <li id="section-4.3.7-6.2">
+              <p id="section-4.3.7-6.2.1"><strong>Authenticity</strong> (<code>issuer_authentication</code> category): the
 Resource Authorization Server validates the OpenID Federation
 trust chain from <code>https://idp.example.net</code> to
 <code>https://federation.example.org</code>. This proves the Assertion
 Issuer is an authentic federation member but says nothing
-about its authority over <code>acme.example</code>.<a href="#section-4.3.6-6.2.1" class="pilcrow">¶</a></p>
+about its authority over <code>acme.example</code>.<a href="#section-4.3.7-6.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-4.3.6-6.3">
-              <p id="section-4.3.6-6.3.1"><strong>Delegation authority</strong> (<code>subject_namespace_authorization</code>
+            <li id="section-4.3.7-6.3">
+              <p id="section-4.3.7-6.3.1"><strong>Delegation authority</strong> (<code>subject_namespace_authorization</code>
 category): the Resource Authorization Server extracts
 <code>acme.example</code> from the <code>email</code> claim, looks up the DAI record
 at <code>_oauth-issuer-policy.acme.example</code>, and confirms
 <code>https://idp.example.net</code> appears in <code>authorized_issuers</code>. This
 proves Acme delegated naming authority over its namespace to
-this specific Assertion Issuer.<a href="#section-4.3.6-6.3.1" class="pilcrow">¶</a></p>
+this specific Assertion Issuer.<a href="#section-4.3.7-6.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-4.3.6-6.4">
-              <p id="section-4.3.6-6.4.1">The cross-category combination rule (<a href="#combination-rule" class="auto internal xref">Section 3.2.1</a>) is
+            <li id="section-4.3.7-6.4">
+              <p id="section-4.3.7-6.4.1">The cross-category combination rule (<a href="#combination-rule" class="auto internal xref">Section 3.2.1</a>) is
 satisfied: one Trust Method succeeded in each applicable
 category. The Resource Authorization Server proceeds with
-access-token issuance.<a href="#section-4.3.6-6.4.1" class="pilcrow">¶</a></p>
+access-token issuance.<a href="#section-4.3.7-6.4.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
-<p id="section-4.3.6-7">If the Assertion Issuer were federation-authenticated but Acme
+<p id="section-4.3.7-7">If the Assertion Issuer were federation-authenticated but Acme
 had not listed it in its DAI record, step 2 would succeed and
 step 3 would fail; the Resource Authorization Server rejects with
 <code>invalid_grant</code>.
 Federation membership alone does not establish namespace
 authority; the combination rule is what enforces this. A deeper
 walkthrough including federation trust-chain validation and Trust
-Mark satisfaction is in <a href="#example-federation-walkthrough" class="auto internal xref">Appendix E</a>.<a href="#section-4.3.6-7" class="pilcrow">¶</a></p>
+Mark satisfaction is in <a href="#example-federation-walkthrough" class="auto internal xref">Appendix E</a>.<a href="#section-4.3.7-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3125,7 +3421,10 @@ Trust Method combination rule in <a href="#rasp" class="auto internal xref">Sect
 Subject Identifiers, this usually means satisfying both an
 <code>issuer_authentication</code> method (such as federation membership) and
 a <code>subject_namespace_authorization</code> method (such as authorization
-by the Subject Authority).<a href="#section-5.1-2.4.1" class="pilcrow">¶</a></p>
+by the Subject Authority). If the Trust Policy contains
+<code>client_trust_methods</code>, the client also determines whether it
+satisfies them, for example whether its <code>client_id</code> is an Entity
+Identifier in a listed federation.<a href="#section-5.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-5.1-2.5">
             <p id="section-5.1-2.5.1">Determines whether the Assertion Issuer can produce a Subject
@@ -3160,7 +3459,15 @@ request, the Resource Authorization Server <span class="bcp14">MUST</span>:<a hr
 <ol start="1" type="1" class="normal type-1" id="section-5.2-3">
 <li id="section-5.2-3.1">
             <p id="section-5.2-3.1.1">Select and parse the Trust Policy that applies to the token request.
-If the policy document is malformed, reject the assertion.
+A Resource Authorization Server that holds more than one Trust
+Policy never selects one from a claim in the assertion
+(<a href="#category-applicability" class="auto internal xref">Section 3.2.1.1</a>). It selects one by client only when
+the request's client authentication verifies against a
+registration it holds (<a href="#trust-method-openid-federation-client" class="auto internal xref">Section 4.3.6.1</a>
+limits which registrations qualify). Any other request gets the
+policy that applies without regard to the client, such as the one
+it publishes (<a href="#metadata-publication" class="auto internal xref">Section 4.1</a>). If the policy document is
+malformed, reject the assertion.
 (Recognition of individual Trust Method objects is handled in
 step 5a.)<a href="#section-5.2-3.1.1" class="pilcrow">¶</a></p>
 </li>
@@ -3196,16 +3503,20 @@ unless the applicable grant profile defines a different format
 selection rule.<a href="#section-5.2-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-5.2-3.5">
-            <p id="section-5.2-3.5.1">Verify that the Assertion Issuer identified by <code>iss</code> satisfies the
-Trust Method combination rule:<a href="#section-5.2-3.5.1" class="pilcrow">¶</a></p>
+            <p id="section-5.2-3.5.1">Verify that the Assertion Issuer identified by <code>iss</code> and, when the
+policy contains <code>client_trust_methods</code>, the authenticated client
+satisfy the Trust Method combination rule:<a href="#section-5.2-3.5.1" class="pilcrow">¶</a></p>
 <p id="section-5.2-3.5.2">
-a. Partition the Trust Method objects in <code>issuer_trust_methods</code> by
-   category (see <a href="#trust-method-categories" class="auto internal xref">Section 4.3.2</a>). A Trust Method
-   registered with multiple categories belongs to each. If any
-   object in <code>issuer_trust_methods</code> is not recognized, is
-   malformed, or cannot be assigned to a category known to the
-   Resource Authorization Server, the Resource Authorization
-   Server <span class="bcp14">MUST</span> reject the assertion. In that case, the Resource
+a. Partition the Trust Method objects in <code>issuer_trust_methods</code> and
+   <code>client_trust_methods</code> by category (see
+   <a href="#trust-method-categories" class="auto internal xref">Section 4.3.2</a>). A Trust Method registered with
+   multiple categories belongs to each category that its member
+   allows (<a href="#trust-policy-document" class="auto internal xref">Section 4.2</a>). If any object in either
+   member is not recognized, is malformed (including a method
+   listed in the wrong member, <a href="#trust-policy-document" class="auto internal xref">Section 4.2</a>), or
+   cannot be assigned to a category known to the Resource
+   Authorization Server, the Resource Authorization Server <span class="bcp14">MUST</span>
+   reject the assertion. In that case, the Resource
    Authorization Server cannot determine whether it is evaluating
    the full set of requirements the operator declared. Silently
    ignoring the object would evaluate a strict subset (a fail-open
@@ -3216,9 +3527,10 @@ a. Partition the Trust Method objects in <code>issuer_trust_methods</code> by
 b. Each category present in the partitioned policy is applicable to
    every assertion evaluated under this policy; applicability is a
    property of the policy, not the assertion (<a href="#category-applicability" class="auto internal xref">Section 3.2.1.1</a>).
-   For each present category, the Assertion Issuer <span class="bcp14">MUST</span> satisfy at
-   least one Trust Method from that category, subject to the
-   finality rule of <a href="#multiple-sources" class="auto internal xref">Section 3.2.2</a>.<a href="#section-5.2-3.5.3" class="pilcrow">¶</a></p>
+   For each present category, the Assertion Issuer, or for the
+   <code>client_recognition</code> category the authenticated client, <span class="bcp14">MUST</span>
+   satisfy at least one Trust Method from that category, subject to
+   the finality rule of <a href="#multiple-sources" class="auto internal xref">Section 3.2.2</a>.<a href="#section-5.2-3.5.3" class="pilcrow">¶</a></p>
 <p id="section-5.2-3.5.4">
 c. When the policy contains a <code>subject_namespace_authorization</code>
    Trust Method, the assertion <span class="bcp14">MUST</span> carry a Subject Identifier from
@@ -3237,7 +3549,7 @@ c. When the policy contains a <code>subject_namespace_authorization</code>
 d. Local policy <span class="bcp14">MAY</span> require satisfaction of additional Trust
    Methods for specific clients, subjects, or scopes.<a href="#section-5.2-3.5.5" class="pilcrow">¶</a></p>
 <p id="section-5.2-3.5.6">
-e. When the policy lists only <code>issuer_authentication</code> methods and
+e. When the policy lists no <code>subject_namespace_authorization</code> method and
    the assertion carries a namespace-bound Subject Identifier, the
    Resource Authorization Server <span class="bcp14">MUST</span> reject the assertion unless
    local policy independently establishes authority over the
@@ -3248,6 +3560,15 @@ e. When the policy lists only <code>issuer_authentication</code> methods and
    namespace-bound without running a namespace method. Federation
    membership alone does not establish authority over a particular
    subject namespace.<a href="#section-5.2-3.5.6" class="pilcrow">¶</a></p>
+<p id="section-5.2-3.5.7">
+f. When the policy contains <code>client_trust_methods</code>, the Resource
+   Authorization Server <span class="bcp14">MUST</span> evaluate the <code>client_recognition</code>
+   category against the client that the request's client
+   authentication (<span>[<a href="#RFC6749" class="cite xref">RFC6749</a>]</span> Section 2.3) identifies, never
+   against a claim in the assertion. If the request carries no
+   client authentication that the Resource Authorization Server
+   accepts, it <span class="bcp14">MUST</span> reject the request with an <code>invalid_client</code>
+   error (<span>[<a href="#RFC6749" class="cite xref">RFC6749</a>]</span> Section 5.2).<a href="#section-5.2-3.5.7" class="pilcrow">¶</a></p>
 </li>
           <li id="section-5.2-3.6">
             <p id="section-5.2-3.6.1">Apply local policy (account-linking, consent, authorization,
@@ -3257,12 +3578,21 @@ this document specifies neither.<a href="#section-5.2-3.6.1" class="pilcrow">¶<
         </ol>
 <p id="section-5.2-4">Client authentication that the grant profile requires <span class="bcp14">SHOULD</span> be
 completed before step 5, so that unauthenticated requests cannot
-cause the lookups that step performs. Fetches made in step 5 follow
-<a href="#outbound-fetches" class="auto internal xref">Section 5.3</a>.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
+cause the lookups that step performs. When the policy contains
+<code>client_trust_methods</code>, the Resource Authorization Server <span class="bcp14">MUST</span>
+authenticate the client before step 2, and before then <span class="bcp14">MUST NOT</span>
+perform any lookup except those a <code>client_recognition</code> method needs
+to obtain the client's authentication keys, such as the trust chain
+and key set that <code>openid_federation_client</code> resolves. Every fetch
+made in this processing follows <a href="#outbound-fetches" class="auto internal xref">Section 5.3</a>.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
 <p id="section-5.2-5">Rejection at any of steps 1 through 5, including a malformed Trust
 Policy (step 1) or an unlisted grant profile (step 3), <span class="bcp14">MUST</span> result in
 an OAuth <code>invalid_grant</code> error unless another error is defined by
-the applicable grant profile. Detailed trust-evaluation failure state
+the applicable grant profile, by step 5f, or by the Trust Method that
+failed. A client authentication failure, from step 5f or from a
+<code>client_recognition</code> method, takes precedence over any other error.
+An error for an authenticated client that a <code>client_recognition</code>
+method does not recognize applies only when no other step fails. Detailed trust-evaluation failure state
 <span class="bcp14">MUST NOT</span> be returned to public clients in the OAuth error response;
 it is a reconnaissance target.<a href="#section-5.2-5" class="pilcrow">¶</a></p>
 </section>
@@ -3279,14 +3609,17 @@ fetch resources at locations an attacker can choose:<a href="#section-5.3-1" cla
             <p id="section-5.3-2.1.1">the Assertion Issuer's metadata and key sets;<a href="#section-5.3-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.3-2.2">
-            <p id="section-5.3-2.2.1">Entity Statements reached through a leaf's <code>authority_hints</code>;<a href="#section-5.3-2.2.1" class="pilcrow">¶</a></p>
+            <p id="section-5.3-2.2.1">a client's Entity Configuration, trust chain, and key sets;<a href="#section-5.3-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.3-2.3">
-            <p id="section-5.3-2.3.1">a Trust Mark Issuer's chain; and<a href="#section-5.3-2.3.1" class="pilcrow">¶</a></p>
+            <p id="section-5.3-2.3.1">Entity Statements reached through a leaf's <code>authority_hints</code>;<a href="#section-5.3-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.3-2.4">
-            <p id="section-5.3-2.4.1">policy documents named by a Subject Authority that the attacker
-controls.<a href="#section-5.3-2.4.1" class="pilcrow">¶</a></p>
+            <p id="section-5.3-2.4.1">a Trust Mark Issuer's chain; and<a href="#section-5.3-2.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.3-2.5">
+            <p id="section-5.3-2.5.1">policy documents named by a Subject Authority that the attacker
+controls.<a href="#section-5.3-2.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-5.3-3">For every such fetch, the Resource Authorization Server:<a href="#section-5.3-3" class="pilcrow">¶</a></p>
@@ -3308,7 +3641,7 @@ and the connection cannot redirect the fetch;<a href="#section-5.3-4.2.1" class=
 and<a href="#section-5.3-4.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.3-4.4">
-            <p id="section-5.3-4.4.1"><span class="bcp14">MUST</span> bound the number of fetches one assertion can cause; a bound
+            <p id="section-5.3-4.4.1"><span class="bcp14">MUST</span> bound the number of fetches one token request can cause; a bound
 of no more than 20 is <span class="bcp14">RECOMMENDED</span>.<a href="#section-5.3-4.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
@@ -3359,25 +3692,30 @@ cannot tell which Resource Authorization Servers evaluate such a
 method: publishing a Trust Policy is optional
 (<a href="#metadata-publication" class="auto internal xref">Section 4.1</a>), and local policy can add Trust Methods
 (<a href="#rasp" class="auto internal xref">Section 5.2</a> step 5d). This narrows <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §6.1.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
-<p id="section-6.1-3">In addition to the processing in <a href="#rasp" class="auto internal xref">Section 5.2</a>, the Resource Authorization
-Server <span class="bcp14">MUST</span>:<a href="#section-6.1-3" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-6.1-4">
-<li id="section-6.1-4.1">
-            <p id="section-6.1-4.1.1">Validate the ID-JAG per <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>.<a href="#section-6.1-4.1.1" class="pilcrow">¶</a></p>
+<p id="section-6.1-3"><span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1 lets a client that does not authenticate prove
+possession of the key in the ID-JAG's <code>cnf</code> claim instead. When the
+Trust Policy contains <code>client_trust_methods</code>, step 5f of <a href="#rasp" class="auto internal xref">Section 5.2</a>
+rejects such a request with <code>invalid_client</code>. This narrows
+<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1.<a href="#section-6.1-3" class="pilcrow">¶</a></p>
+<p id="section-6.1-4">In addition to the processing in <a href="#rasp" class="auto internal xref">Section 5.2</a>, the Resource Authorization
+Server <span class="bcp14">MUST</span>:<a href="#section-6.1-4" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-6.1-5">
+<li id="section-6.1-5.1">
+            <p id="section-6.1-5.1.1">Validate the ID-JAG per <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>.<a href="#section-6.1-5.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-6.1-4.2">
-            <p id="section-6.1-4.2.1">Verify that the <code>email</code> Subject Identifier, when the assertion
+          <li id="section-6.1-5.2">
+            <p id="section-6.1-5.2.1">Verify that the <code>email</code> Subject Identifier, when the assertion
 carries one, uses a format listed in
 <code>subject_identifier_formats_supported</code>, if that Trust Policy member
 is present. (Whether the assertion is required to carry the Subject
-Identifier at all is governed by <a href="#rasp" class="auto internal xref">Section 5.2</a> step 5c.)<a href="#section-6.1-4.2.1" class="pilcrow">¶</a></p>
+Identifier at all is governed by <a href="#rasp" class="auto internal xref">Section 5.2</a> step 5c.)<a href="#section-6.1-5.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-6.1-4.3">
-            <p id="section-6.1-4.3.1">Use the email attribution only for subject resolution and Subject
+          <li id="section-6.1-5.3">
+            <p id="section-6.1-5.3.1">Use the email attribution only for subject resolution and Subject
 Authority evaluation. The Resource Authorization Server <span class="bcp14">MUST NOT</span>
 treat the mere presence or value of the email claim as proof
 that the ID-JAG issuer is authoritative for the subject; issuer
-acceptability is established only by evaluating the Trust Methods.<a href="#section-6.1-4.3.1" class="pilcrow">¶</a></p>
+acceptability is established only by evaluating the Trust Methods.<a href="#section-6.1-5.3.1" class="pilcrow">¶</a></p>
 </li>
         </ol>
 </section>
@@ -3401,7 +3739,9 @@ grant-profile identifier; a deployment accepting this grant <span class="bcp14">
 it in <code>authorization_grant_profiles_supported</code> so <a href="#rasp" class="auto internal xref">Section 5.2</a> step 3
 applies uniformly. A Resource Authorization Server <span class="bcp14">SHOULD</span> reject a
 JWT-bearer assertion whose <code>typ</code> header identifies a different JWT
-application (<span>[<a href="#RFC8725" class="cite xref">RFC8725</a>]</span> §3.11).<a href="#section-6.2-2" class="pilcrow">¶</a></p>
+application (<span>[<a href="#RFC8725" class="cite xref">RFC8725</a>]</span> §3.11). <span>[<a href="#RFC7523" class="cite xref">RFC7523</a>]</span> Section 3.1 lets this
+grant be used without client authentication. A Trust Policy that
+contains <code>client_trust_methods</code> requires it (<a href="#rasp" class="auto internal xref">Section 5.2</a> step 5f).<a href="#section-6.2-2" class="pilcrow">¶</a></p>
 <p id="section-6.2-3">As with ID-JAG, the Subject Identifier for this binding is the
 top-level <code>email</code> claim, accompanied by <code>email_verified=true</code>,
 extracted per <a href="#subject-authority-determination" class="auto internal xref">Section 4.4</a>. The <code>sub</code> claim is
@@ -3589,7 +3929,7 @@ publication-channel compromise model.<a href="#section-7.4-2" class="pilcrow">¶
         <h3 id="name-transitive-authorization-is">
 <a href="#section-7.5" class="section-number selfRef">7.5. </a><a href="#name-transitive-authorization-is" class="section-name selfRef">Transitive Authorization is Bounded</a>
         </h3>
-<p id="section-7.5-1">The two trust categories make different transitivity choices, both
+<p id="section-7.5-1">The two issuer categories make different transitivity choices, both
 permitted within the taxonomy of <a href="#open-world" class="auto internal xref">Section 3.3</a>:<a href="#section-7.5-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-7.5-2.1">
@@ -3606,7 +3946,7 @@ latency is bounded by the Subject Authority's own cache lifetime
 and does not compound across delegations.<a href="#section-7.5-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-7.5-3">The two categories are independent: federation membership does not
+<p id="section-7.5-3">The two issuer categories are independent: federation membership does not
 establish namespace authority, and namespace authorization does not
 establish authenticity. The cross-category combination rule
 (<a href="#rasp" class="auto internal xref">Section 5.2</a>) enforces this independence at evaluation time. See
@@ -3705,89 +4045,134 @@ extension may let Authority Holders constrain acceptable audiences
 (see <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Future Extensions).<a href="#section-7.7-5" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="per-assertion-revocation">
+<div id="client-recognition-security">
 <section id="section-7.8">
-        <h3 id="name-per-assertion-revocation-is">
-<a href="#section-7.8" class="section-number selfRef">7.8. </a><a href="#name-per-assertion-revocation-is" class="section-name selfRef">Per-Assertion Revocation Is Out of Scope</a>
+        <h3 id="name-client-recognition">
+<a href="#section-7.8" class="section-number selfRef">7.8. </a><a href="#name-client-recognition" class="section-name selfRef">Client Recognition</a>
         </h3>
-<p id="section-7.8-1">This framework decides whether an Assertion Issuer is authorized.
+<p id="section-7.8-1">The <code>client_recognition</code> category evaluates the client that
+presents an identity assertion. The client is taken from the token
+request's client authentication, not from the assertion, so an
+attacker who controls an assertion's claims cannot choose which
+client is evaluated (<a href="#unverified-claim" class="auto internal xref">Section 7.2</a>). Recognition admits a
+client to the exchange. It does not authorize the client to act for
+a particular user, it says nothing about the subject or the Assertion
+Issuer, and the other categories still apply. Under the generic
+JWT-bearer binding, where the assertion names no client, any
+recognized client can present an assertion it obtained
+(<a href="#client-recognition-methods" class="auto internal xref">Section 4.3.6</a>).<a href="#section-7.8-1" class="pilcrow">¶</a></p>
+<p id="section-7.8-2"><code>openid_federation_client</code> requires the client to authenticate with
+a key its federation metadata publishes. Without that rule, a client
+could authenticate with a key the Resource Authorization Server holds
+from another source, such as a client metadata document, and be
+recognized as the federation Entity its <code>client_id</code> names. A Resource
+Authorization Server that also registers clients selects their policy
+only after they authenticate against their registration, so naming a
+registered <code>client_id</code> without authenticating as that client does not
+avoid the client method. A request whose <code>client_id</code> is an <code>https</code>
+URL gets the client method even when a registration exists for it,
+so a party holding such a registration cannot redeem an assertion
+issued to the federation Entity of that name
+(<a href="#trust-method-openid-federation-client" class="auto internal xref">Section 4.3.6.1</a>).<a href="#section-7.8-2" class="pilcrow">¶</a></p>
+<p id="section-7.8-3">A compromised intermediate or trust anchor can substitute a client's
+keys through the metadata in its Subordinate Statement
+(<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §3.1.1), as it can an Assertion Issuer's
+(<a href="#key-binding" class="auto internal xref">Section 7.6</a>), and so authenticate as any client beneath it.<a href="#section-7.8-3" class="pilcrow">¶</a></p>
+<p id="section-7.8-4">A client method that lets a client opt in by publishing evidence,
+such as a DNS record, has the same property as a namespace method:
+under the combination rule, a client that has published nothing is
+Negative, and is rejected wherever the category is listed unless
+another listed client method is satisfied. Accepting such clients
+through local policy instead needs a mechanism that this document
+does not define.<a href="#section-7.8-4" class="pilcrow">¶</a></p>
+<p id="section-7.8-5">Step 5f of <a href="#rasp" class="auto internal xref">Section 5.2</a> requires client authentication whenever the
+policy lists a client method, even where a grant profile would allow a
+request without it.<a href="#section-7.8-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="per-assertion-revocation">
+<section id="section-7.9">
+        <h3 id="name-per-assertion-revocation-is">
+<a href="#section-7.9" class="section-number selfRef">7.9. </a><a href="#name-per-assertion-revocation-is" class="section-name selfRef">Per-Assertion Revocation Is Out of Scope</a>
+        </h3>
+<p id="section-7.9-1">This framework decides whether an Assertion Issuer is authorized.
 It does not revoke individual assertions. JWT bearer tokens are
-stateless and remain valid until <code>exp</code> regardless of:<a href="#section-7.8-1" class="pilcrow">¶</a></p>
+stateless and remain valid until <code>exp</code> regardless of:<a href="#section-7.9-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-7.8-2.1">
-            <p id="section-7.8-2.1.1">session termination;<a href="#section-7.8-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-7.9-2.1">
+            <p id="section-7.9-2.1.1">session termination;<a href="#section-7.9-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.8-2.2">
-            <p id="section-7.8-2.2.1">credential revocation at the Assertion Issuer; or<a href="#section-7.8-2.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-7.9-2.2">
+            <p id="section-7.9-2.2.1">credential revocation at the Assertion Issuer; or<a href="#section-7.9-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.8-2.3">
-            <p id="section-7.8-2.3.1">Subject Authority withdrawal of the issuer's authorization via
-DAI.<a href="#section-7.8-2.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-7.9-2.3">
+            <p id="section-7.9-2.3.1">Subject Authority withdrawal of the issuer's authorization via
+DAI.<a href="#section-7.9-2.3.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-7.8-3">That withdrawal stops the Resource Authorization Server from
+<p id="section-7.9-3">That withdrawal stops the Resource Authorization Server from
 accepting further assertions once its cache expires. It does not
 revoke access or refresh tokens the Resource Authorization Server
 has already issued. Deployments requiring synchronous revocation
 need OAuth 2.0 Token Revocation <span>[<a href="#RFC7009" class="cite xref">RFC7009</a>]</span>, Token Introspection
 <span>[<a href="#RFC7662" class="cite xref">RFC7662</a>]</span>, or short assertion lifetimes at the grant-profile
-layer.<a href="#section-7.8-3" class="pilcrow">¶</a></p>
+layer.<a href="#section-7.9-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="integrity">
-<section id="section-7.9">
+<section id="section-7.10">
         <h3 id="name-policy-document-integrity">
-<a href="#section-7.9" class="section-number selfRef">7.9. </a><a href="#name-policy-document-integrity" class="section-name selfRef">Policy Document Integrity</a>
+<a href="#section-7.10" class="section-number selfRef">7.10. </a><a href="#name-policy-document-integrity" class="section-name selfRef">Policy Document Integrity</a>
         </h3>
-<p id="section-7.9-1">The Trust Policy <span class="bcp14">MUST</span> be served over HTTPS with TLS server
+<p id="section-7.10-1">The Trust Policy <span class="bcp14">MUST</span> be served over HTTPS with TLS server
 authentication, and its integrity rests on TLS. It carries no
 signature. A Resource Authorization Server enforces its Trust Policy
 from its own configuration, and a client uses the published copy
 only for discovery (<a href="#client-processing" class="auto internal xref">Section 5.1</a>). A substituted Trust
 Policy can therefore mislead a client's choice of Assertion Issuer
-but cannot change what the Resource Authorization Server accepts.<a href="#section-7.9-1" class="pilcrow">¶</a></p>
-<p id="section-7.9-2">Integrity protection for an Issuer Authorization Policy, which
+but cannot change what the Resource Authorization Server accepts.<a href="#section-7.10-1" class="pilcrow">¶</a></p>
+<p id="section-7.10-2">Integrity protection for an Issuer Authorization Policy, which
 decides acceptance, is defined by the Trust Method specification
 that defines the policy (for example, <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Signed Policy).
 Mirrored or cached copies of a Trust Policy <span class="bcp14">MUST NOT</span> be relied on
-beyond their HTTP cache lifetime (<a href="#caching" class="auto internal xref">Section 7.12</a>). Cache and stale-use
+beyond their HTTP cache lifetime (<a href="#caching" class="auto internal xref">Section 7.13</a>). Cache and stale-use
 bounds for an Issuer Authorization Policy are set by the applicable
-Trust Method specification (<a href="#trust-method-spec-requirements" class="auto internal xref">Section 4.3.3</a>).<a href="#section-7.9-2" class="pilcrow">¶</a></p>
+Trust Method specification (<a href="#trust-method-spec-requirements" class="auto internal xref">Section 4.3.3</a>).<a href="#section-7.10-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="shared-infrastructure">
-<section id="section-7.10">
+<section id="section-7.11">
         <h3 id="name-shared-infrastructure-and-h">
-<a href="#section-7.10" class="section-number selfRef">7.10. </a><a href="#name-shared-infrastructure-and-h" class="section-name selfRef">Shared Infrastructure and Hosted Well-Known Paths</a>
+<a href="#section-7.11" class="section-number selfRef">7.11. </a><a href="#name-shared-infrastructure-and-h" class="section-name selfRef">Shared Infrastructure and Hosted Well-Known Paths</a>
         </h3>
-<p id="section-7.10-1">Many deployments host <code>/.well-known/</code> resources behind third-party
+<p id="section-7.11-1">Many deployments host <code>/.well-known/</code> resources behind third-party
 Content Delivery Networks (CDNs), shared edge platforms, or
 multi-tenant cloud hosting systems. TLS server authentication proves
 that the client reached an endpoint serving the requested host name;
 it does not prove that every routing rule, origin-pull rule, cache
 rule, or tenant boundary inside the shared platform is controlled by
-the namespace owner.<a href="#section-7.10-1" class="pilcrow">¶</a></p>
-<p id="section-7.10-2">This matters most for the Subject Authority's Issuer Authorization
+the namespace owner.<a href="#section-7.11-1" class="pilcrow">¶</a></p>
+<p id="section-7.11-2">This matters most for the Subject Authority's Issuer Authorization
 Policy, which decides acceptance. If an attacker can exploit shared
 infrastructure to serve a forged policy for a victim domain, the
 attacker can attempt to authorize an Assertion Issuer for that
 victim's namespace even though the HTTPS connection itself succeeds.
 Similar risks arise from misconfigured path routing, dangling origins,
-tenant takeover, cache poisoning, or origin authentication failures.<a href="#section-7.10-2" class="pilcrow">¶</a></p>
-<p id="section-7.10-3">Administrators <span class="bcp14">SHOULD</span> avoid delegating security-critical well-known
+tenant takeover, cache poisoning, or origin authentication failures.<a href="#section-7.11-2" class="pilcrow">¶</a></p>
+<p id="section-7.11-3">Administrators <span class="bcp14">SHOULD</span> avoid delegating security-critical well-known
 paths to multi-tenant infrastructure unless they can ensure exclusive
 control over routing for those paths, authenticated origin access,
 cache invalidation, and tenant isolation. Object-level integrity for
 an Issuer Authorization Policy hosted this way is defined by the
-Trust Method specification (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Policy Hosts).<a href="#section-7.10-3" class="pilcrow">¶</a></p>
+Trust Method specification (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Policy Hosts).<a href="#section-7.11-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="downgrade">
-<section id="section-7.11">
+<section id="section-7.12">
         <h3 id="name-downgrade-attacks">
-<a href="#section-7.11" class="section-number selfRef">7.11. </a><a href="#name-downgrade-attacks" class="section-name selfRef">Downgrade Attacks</a>
+<a href="#section-7.12" class="section-number selfRef">7.12. </a><a href="#name-downgrade-attacks" class="section-name selfRef">Downgrade Attacks</a>
         </h3>
-<p id="section-7.11-1">A Resource Authorization Server that supports multiple Trust Methods
+<p id="section-7.12-1">A Resource Authorization Server that supports multiple Trust Methods
 <span class="bcp14">SHOULD</span> define local precedence rules. Resource Authorization Servers
 <span class="bcp14">MUST</span> enforce differentiated requirements at token request time
 rather than relying on the policy document alone. This is because
@@ -3798,51 +4183,51 @@ the client can be held to but a condition the Resource Authorization
 Server rejects. The cross-category combination rule in <a href="#rasp" class="auto internal xref">Section 5.2</a>
 prevents downgrade across categories (for example, satisfying only
 an <code>issuer_authentication</code> method when a
-<code>subject_namespace_authorization</code> method is also applicable).<a href="#section-7.11-1" class="pilcrow">¶</a></p>
+<code>subject_namespace_authorization</code> method is also applicable).<a href="#section-7.12-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="caching">
-<section id="section-7.12">
+<section id="section-7.13">
         <h3 id="name-trust-policy-caching">
-<a href="#section-7.12" class="section-number selfRef">7.12. </a><a href="#name-trust-policy-caching" class="section-name selfRef">Trust Policy Caching</a>
+<a href="#section-7.13" class="section-number selfRef">7.13. </a><a href="#name-trust-policy-caching" class="section-name selfRef">Trust Policy Caching</a>
         </h3>
-<p id="section-7.12-1">Consumers cache the Trust Policy using ordinary HTTP caching (see
+<p id="section-7.13-1">Consumers cache the Trust Policy using ordinary HTTP caching (see
 <span>[<a href="#RFC9111" class="cite xref">RFC9111</a>]</span> for the mechanism), bounded by a local maximum cache
 lifetime. Independent of any policy-document cache expiration,
 revocation status of validated trust evidence <span class="bcp14">MUST</span> be checked at the
-cadence required by the applicable Trust Method specification. Transport integrity is addressed in <a href="#integrity" class="auto internal xref">Section 7.9</a>.<a href="#section-7.12-1" class="pilcrow">¶</a></p>
+cadence required by the applicable Trust Method specification. Transport integrity is addressed in <a href="#integrity" class="auto internal xref">Section 7.10</a>.<a href="#section-7.13-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="observability">
-<section id="section-7.13">
+<section id="section-7.14">
         <h3 id="name-observability">
-<a href="#section-7.13" class="section-number selfRef">7.13. </a><a href="#name-observability" class="section-name selfRef">Observability</a>
+<a href="#section-7.14" class="section-number selfRef">7.14. </a><a href="#name-observability" class="section-name selfRef">Observability</a>
         </h3>
-<p id="section-7.13-1">Trust-policy evaluation is a security-critical decision. For each
-processed assertion, deployments are encouraged to log at minimum:<a href="#section-7.13-1" class="pilcrow">¶</a></p>
+<p id="section-7.14-1">Trust-policy evaluation is a security-critical decision. For each
+processed assertion, deployments are encouraged to log at minimum:<a href="#section-7.14-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-7.13-2.1">
-            <p id="section-7.13-2.1.1">the Assertion Issuer identifier;<a href="#section-7.13-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-7.14-2.1">
+            <p id="section-7.14-2.1.1">the Assertion Issuer identifier;<a href="#section-7.14-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.13-2.2">
-            <p id="section-7.13-2.2.1">the version or configuration identifier of the Trust Policy in
-effect;<a href="#section-7.13-2.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-7.14-2.2">
+            <p id="section-7.14-2.2.1">the version or configuration identifier of the Trust Policy in
+effect;<a href="#section-7.14-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.13-2.3">
-            <p id="section-7.13-2.3.1">the Trust Methods that succeeded;<a href="#section-7.13-2.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-7.14-2.3">
+            <p id="section-7.14-2.3.1">the Trust Methods that succeeded;<a href="#section-7.14-2.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.13-2.4">
-            <p id="section-7.13-2.4.1">the matched trust anchor or Issuer Authorization Policy origin;<a href="#section-7.13-2.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-7.14-2.4">
+            <p id="section-7.14-2.4.1">the matched trust anchor or Issuer Authorization Policy origin;<a href="#section-7.14-2.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.13-2.5">
-            <p id="section-7.13-2.5.1">the Subject Identifier format; and<a href="#section-7.13-2.5.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-7.14-2.5">
+            <p id="section-7.14-2.5.1">the Subject Identifier format; and<a href="#section-7.14-2.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-7.13-2.6">
-            <p id="section-7.13-2.6.1">the accept/reject outcome.<a href="#section-7.13-2.6.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-7.14-2.6">
+            <p id="section-7.14-2.6.1">the accept/reject outcome.<a href="#section-7.14-2.6.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-7.13-3">Deployments are also encouraged to support correlation across the
-issuance and verification halves of an identity-chain transaction.<a href="#section-7.13-3" class="pilcrow">¶</a></p>
+<p id="section-7.14-3">Deployments are also encouraged to support correlation across the
+issuance and verification halves of an identity-chain transaction.<a href="#section-7.14-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4014,11 +4399,11 @@ registry <span>[<a href="#RFC8615" class="cite xref">RFC8615</a>]</span>:<a href
 </div>
 <div id="iana-trust-method-categories-registry">
 <section id="section-10.1.4">
-          <h4 id="name-identity-assertion-issuer-t">
-<a href="#section-10.1.4" class="section-number selfRef">10.1.4. </a><a href="#name-identity-assertion-issuer-t" class="section-name selfRef">Identity Assertion Issuer Trust Method Categories Registry</a>
+          <h4 id="name-identity-assertion-trust-me">
+<a href="#section-10.1.4" class="section-number selfRef">10.1.4. </a><a href="#name-identity-assertion-trust-me" class="section-name selfRef">Identity Assertion Trust Method Categories Registry</a>
           </h4>
 <p id="section-10.1.4-1">IANA is requested to establish a new registry titled "Identity
-Assertion Issuer Trust Method Categories" under the "OAuth Parameters"
+Assertion Trust Method Categories" under the "OAuth Parameters"
 registry group. This registry backs the category values used by the
 Trust Methods registry and referenced by the combination rule
 (<a href="#combination-rule" class="auto internal xref">Section 3.2.1</a>).<a href="#section-10.1.4-1" class="pilcrow">¶</a></p>
@@ -4055,17 +4440,23 @@ Document this document:<a href="#section-10.1.4-5" class="pilcrow">¶</a></p>
 </td>
                 <td class="text-left" rowspan="1" colspan="1">Establishes that the Assertion Issuer is authorized by the subject's namespace owner</td>
               </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>client_recognition</code>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">Establishes that the client presenting the assertion is recognized by an authority the Resource Authorization Server accepts</td>
+              </tr>
             </tbody>
           </table>
 </section>
 </div>
 <div id="iana-trust-methods-registry">
 <section id="section-10.1.5">
-          <h4 id="name-identity-assertion-issuer-tr">
-<a href="#section-10.1.5" class="section-number selfRef">10.1.5. </a><a href="#name-identity-assertion-issuer-tr" class="section-name selfRef">Identity Assertion Issuer Trust Methods Registry</a>
+          <h4 id="name-identity-assertion-trust-met">
+<a href="#section-10.1.5" class="section-number selfRef">10.1.5. </a><a href="#name-identity-assertion-trust-met" class="section-name selfRef">Identity Assertion Trust Methods Registry</a>
           </h4>
 <p id="section-10.1.5-1">IANA is requested to establish a new registry titled "Identity
-Assertion Issuer Trust Methods" under the "OAuth Parameters"
+Assertion Trust Methods" under the "OAuth Parameters"
 registry group.<a href="#section-10.1.5-1" class="pilcrow">¶</a></p>
 <p id="section-10.1.5-2">Registration policy: Specification Required <span>[<a href="#RFC8126" class="cite xref">RFC8126</a>]</span>.<a href="#section-10.1.5-2" class="pilcrow">¶</a></p>
 <p id="section-10.1.5-3">Each registry entry contains:<a href="#section-10.1.5-3" class="pilcrow">¶</a></p>
@@ -4120,7 +4511,7 @@ and any cache-lifetime bounds, per
 methods in a way that would be ambiguous when methods are combined.<a href="#section-10.1.5-6.4.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-10.1.5-7">Initial entry:<a href="#section-10.1.5-7" class="pilcrow">¶</a></p>
+<p id="section-10.1.5-7">Initial entries:<a href="#section-10.1.5-7" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-10.1.5-8">
             <dt id="section-10.1.5-8.1">Identifier:</dt>
             <dd style="margin-left: 1.5em" id="section-10.1.5-8.2">
@@ -4146,6 +4537,32 @@ of object, <span class="bcp14">OPTIONAL</span>; see <a href="#trust-method-openi
 <dt id="section-10.1.5-8.9">Reference:</dt>
             <dd style="margin-left: 1.5em" id="section-10.1.5-8.10">
               <p id="section-10.1.5-8.10.1">This document<a href="#section-10.1.5-8.10.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-10.1.5-8.11">Identifier:</dt>
+            <dd style="margin-left: 1.5em" id="section-10.1.5-8.12">
+              <p id="section-10.1.5-8.12.1"><code>openid_federation_client</code><a href="#section-10.1.5-8.12.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-10.1.5-8.13">Categories:</dt>
+            <dd style="margin-left: 1.5em" id="section-10.1.5-8.14">
+              <p id="section-10.1.5-8.14.1"><code>client_recognition</code><a href="#section-10.1.5-8.14.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-10.1.5-8.15">Parameters:</dt>
+            <dd style="margin-left: 1.5em" id="section-10.1.5-8.16">
+              <p id="section-10.1.5-8.16.1"><code>trust_anchors</code> (array of string, <span class="bcp14">REQUIRED</span>); <code>trust_marks</code> (array
+of object, <span class="bcp14">OPTIONAL</span>; see <a href="#trust-method-openid-federation-client" class="auto internal xref">Section 4.3.6.1</a>)<a href="#section-10.1.5-8.16.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-10.1.5-8.17">Change Controller:</dt>
+            <dd style="margin-left: 1.5em" id="section-10.1.5-8.18">
+              <p id="section-10.1.5-8.18.1">IETF<a href="#section-10.1.5-8.18.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-10.1.5-8.19">Reference:</dt>
+            <dd style="margin-left: 1.5em" id="section-10.1.5-8.20">
+              <p id="section-10.1.5-8.20.1">This document<a href="#section-10.1.5-8.20.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
@@ -4242,6 +4659,12 @@ and Specification Document this document:<a href="#section-10.1.6-8" class="pilc
                   <code>issuer_trust_methods</code>
 </td>
                 <td class="text-left" rowspan="1" colspan="1">Trust Method requirements enforced for incoming identity assertions</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>client_trust_methods</code>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">Trust Method requirements enforced for the client presenting an identity assertion</td>
               </tr>
               <tr>
                 <td class="text-left" rowspan="1" colspan="1">
@@ -4377,6 +4800,10 @@ have a well-defined namespace authority.<a href="#section-10.2-6" class="pilcrow
         <dd>
 <span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Campbell, B.</span>, and <span class="refAuthor">C. Mortimore</span>, <span class="refTitle">"JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants"</span>, <span class="seriesInfo">RFC 7523</span>, <span class="seriesInfo">DOI 10.17487/RFC7523</span>, <time datetime="2015-05" class="refDate">May 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7523">https://www.rfc-editor.org/rfc/rfc7523</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="RFC7591">[RFC7591]</dt>
+        <dd>
+<span class="refAuthor">Richer, J., Ed.</span>, <span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Bradley, J.</span>, <span class="refAuthor">Machulak, M.</span>, and <span class="refAuthor">P. Hunt</span>, <span class="refTitle">"OAuth 2.0 Dynamic Client Registration Protocol"</span>, <span class="seriesInfo">RFC 7591</span>, <span class="seriesInfo">DOI 10.17487/RFC7591</span>, <time datetime="2015-07" class="refDate">July 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7591">https://www.rfc-editor.org/rfc/rfc7591</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC8126">[RFC8126]</dt>
         <dd>
 <span class="refAuthor">Cotton, M.</span>, <span class="refAuthor">Leiba, B.</span>, and <span class="refAuthor">T. Narten</span>, <span class="refTitle">"Guidelines for Writing an IANA Considerations Section in RFCs"</span>, <span class="seriesInfo">BCP 26</span>, <span class="seriesInfo">RFC 8126</span>, <span class="seriesInfo">DOI 10.17487/RFC8126</span>, <time datetime="2017-06" class="refDate">June 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8126">https://www.rfc-editor.org/rfc/rfc8126</a>&gt;</span>. </dd>
@@ -4392,6 +4819,10 @@ have a well-defined namespace authority.<a href="#section-10.2-6" class="pilcrow
 <dt id="RFC8615">[RFC8615]</dt>
         <dd>
 <span class="refAuthor">Nottingham, M.</span>, <span class="refTitle">"Well-Known Uniform Resource Identifiers (URIs)"</span>, <span class="seriesInfo">RFC 8615</span>, <span class="seriesInfo">DOI 10.17487/RFC8615</span>, <time datetime="2019-05" class="refDate">May 2019</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8615">https://www.rfc-editor.org/rfc/rfc8615</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8705">[RFC8705]</dt>
+        <dd>
+<span class="refAuthor">Campbell, B.</span>, <span class="refAuthor">Bradley, J.</span>, <span class="refAuthor">Sakimura, N.</span>, and <span class="refAuthor">T. Lodderstedt</span>, <span class="refTitle">"OAuth 2.0 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens"</span>, <span class="seriesInfo">RFC 8705</span>, <span class="seriesInfo">DOI 10.17487/RFC8705</span>, <time datetime="2020-02" class="refDate">February 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8705">https://www.rfc-editor.org/rfc/rfc8705</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8725">[RFC8725]</dt>
         <dd>
@@ -4426,9 +4857,17 @@ have a well-defined namespace authority.<a href="#section-10.2-6" class="pilcrow
         <dd>
 <span class="refTitle">"OAuth Domain-Authorized Issuer Trust Method"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer/">https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer/</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="I-D.ietf-oauth-client-id-metadata-document">[I-D.ietf-oauth-client-id-metadata-document]</dt>
+        <dd>
+<span class="refTitle">"OAuth Client ID Metadata Document"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-ietf-oauth-client-id-metadata-document/">https://datatracker.ietf.org/doc/draft-ietf-oauth-client-id-metadata-document/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="I-D.ietf-oauth-identity-chaining">[I-D.ietf-oauth-identity-chaining]</dt>
         <dd>
 <span class="refTitle">"OAuth Identity and Authorization Chaining Across Domains"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-chaining/">https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-chaining/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.shankarlingam-oauth-agent-dns-link">[I-D.shankarlingam-oauth-agent-dns-link]</dt>
+        <dd>
+<span class="refTitle">"Linking an Agent's DNS Name to its OAuth Client"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-shankarlingam-oauth-agent-dns-link/">https://datatracker.ietf.org/doc/draft-shankarlingam-oauth-agent-dns-link/</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="NOAUTH">[NOAUTH]</dt>
         <dd>
@@ -4652,12 +5091,33 @@ evidence is carried in-band;<a href="#appendix-B.2-6.1.1" class="pilcrow">¶</a>
 deployments whose requirements justify the operational cost.<a href="#appendix-B.2-7" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="actor-identity-trust-evaluation">
+<div id="additional-client-recognition-methods">
 <section id="appendix-B.3">
-        <h3 id="name-actor-identity-trust-evalua">
-<a href="#appendix-B.3" class="section-number selfRef">B.3. </a><a href="#name-actor-identity-trust-evalua" class="section-name selfRef">Actor Identity Trust Evaluation</a>
+        <h3 id="name-additional-client-recogniti">
+<a href="#appendix-B.3" class="section-number selfRef">B.3. </a><a href="#name-additional-client-recogniti" class="section-name selfRef">Additional Client Recognition Methods</a>
         </h3>
-<p id="appendix-B.3-1">OAuth assertions can carry an <code>act</code> object expressing actor
+<p id="appendix-B.3-1">Other <code>client_recognition</code> methods can follow the pattern of
+<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> for clients identified by DNS names. For example,
+<span>[<a href="#I-D.shankarlingam-oauth-agent-dns-link" class="cite xref">I-D.shankarlingam-oauth-agent-dns-link</a>]</span> publishes, under an
+agent's DNS name, the issuer and client identifier the agent uses at
+its operator's authorization server, and has the agent present a
+fresh access token issued to that client. As a Trust Method, such a mechanism
+would need to define its lookup states, including Indeterminate on
+DNS failure, bind its record to the queried name as <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>'s
+<code>authority=</code> directive does, and say how the token is carried in a
+token request. Clients registered through OpenID Federation Explicit
+Registration (<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §12.2) with a <code>client_id</code>
+other than their Entity Identifier are another gap: a method for them
+would take the Entity Identifier from the registration rather than
+from the <code>client_id</code>.<a href="#appendix-B.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="actor-identity-trust-evaluation">
+<section id="appendix-B.4">
+        <h3 id="name-actor-identity-trust-evalua">
+<a href="#appendix-B.4" class="section-number selfRef">B.4. </a><a href="#name-actor-identity-trust-evalua" class="section-name selfRef">Actor Identity Trust Evaluation</a>
+        </h3>
+<p id="appendix-B.4-1">OAuth assertions can carry an <code>act</code> object expressing actor
 delegation (a service acting on behalf of a user). A future
 extension can apply the trust-evaluation categories of
 <a href="#delegation-model" class="auto internal xref">Section 3</a> to actor identities: a Resource Authorization
@@ -4668,33 +5128,33 @@ Authority extraction procedure applicable to actor-carried
 Subject Identifiers and is therefore tied to the OAuth Actor
 Profile being progressed separately. Until that extension lands,
 trust evaluation of actor identities is governed by local policy
-at the Resource Authorization Server.<a href="#appendix-B.3-1" class="pilcrow">¶</a></p>
+at the Resource Authorization Server.<a href="#appendix-B.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="trust-policy-discovery">
-<section id="appendix-B.4">
+<section id="appendix-B.5">
         <h3 id="name-trust-policy-discovery">
-<a href="#appendix-B.4" class="section-number selfRef">B.4. </a><a href="#name-trust-policy-discovery" class="section-name selfRef">Trust Policy Discovery</a>
+<a href="#appendix-B.5" class="section-number selfRef">B.5. </a><a href="#name-trust-policy-discovery" class="section-name selfRef">Trust Policy Discovery</a>
         </h3>
-<p id="appendix-B.4-1">This document specifies how a Resource Authorization Server
+<p id="appendix-B.5-1">This document specifies how a Resource Authorization Server
 publishes its Trust Policy (via authorization server metadata or
 protected resource metadata) but assumes a client or peer that
 already knows the Resource Authorization Server's identity. In
 open-world deployments (agent runtimes, AI tools, cross-organization
 integrations), a peer may need to discover a resource operator's
-Trust Policy before any prior bilateral relationship exists.<a href="#appendix-B.4-1" class="pilcrow">¶</a></p>
-<p id="appendix-B.4-2">A future Trust Policy Discovery extension can let a resource
+Trust Policy before any prior bilateral relationship exists.<a href="#appendix-B.5-1" class="pilcrow">¶</a></p>
+<p id="appendix-B.5-2">A future Trust Policy Discovery extension can let a resource
 operator publish a DNS-named pointer at
 <code>_oauth-trust-policy.{resource-domain}</code> to its Trust Policy
 document, mirroring the DNS-authority pattern of <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> for the
 resource-side. The resource operator's domain becomes the
 publication channel for "where do I trust assertions from?", the
-dual of DAI's "who do I authorize to assert about me?".<a href="#appendix-B.4-2" class="pilcrow">¶</a></p>
-<p id="appendix-B.4-3">The extension is deferred because first contact with a Resource
+dual of DAI's "who do I authorize to assert about me?".<a href="#appendix-B.5-2" class="pilcrow">¶</a></p>
+<p id="appendix-B.5-3">The extension is deferred because first contact with a Resource
 Authorization Server whose identity the client does not already know
 is not yet a deployed need. A client that knows the Resource
 Authorization Server reads its Trust Policy through the metadata
-endpoints (<a href="#client-processing" class="auto internal xref">Section 5.1</a>).<a href="#appendix-B.4-3" class="pilcrow">¶</a></p>
+endpoints (<a href="#client-processing" class="auto internal xref">Section 5.1</a>).<a href="#appendix-B.5-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -4711,7 +5171,7 @@ ecosystem?". It does not answer "is this issuer authorized to
 assert about subjects in <em>my</em> namespace?". A federation member can
 mint an identity assertion naming any email domain; federation
 membership doesn't constrain which namespace. DAI lets the
-namespace owner publish that constraint. <a href="#example-federation-dai" class="auto internal xref">Section 4.3.6</a>
+namespace owner publish that constraint. <a href="#example-federation-dai" class="auto internal xref">Section 4.3.7</a>
 shows the two together.<a href="#appendix-C-3" class="pilcrow">¶</a></p>
 <p id="appendix-C-4"><strong>Q: What's the difference between Trust Policy and DAI?</strong><a href="#appendix-C-4" class="pilcrow">¶</a></p>
 <p id="appendix-C-5">Trust Policy is what a <strong>Resource Authorization Server</strong> publishes
@@ -4723,12 +5183,12 @@ Assertion Issuers it authorizes for its namespace (a record at
 a JSON policy document, conventionally on the dedicated host
 <code>oauth-issuer-policy.{domain}</code>). RAS-published vs
 Subject-Authority-published.<a href="#appendix-C-5" class="pilcrow">¶</a></p>
-<p id="appendix-C-6"><strong>Q: Why two independent trust categories?</strong><a href="#appendix-C-6" class="pilcrow">¶</a></p>
+<p id="appendix-C-6"><strong>Q: Why independent trust categories?</strong><a href="#appendix-C-6" class="pilcrow">¶</a></p>
 <p id="appendix-C-7">To stop "federation member" from being silently treated as
 "authoritative for any namespace." Each category answers a
 different question and the cross-category combination rule
-(<a href="#combination-rule" class="auto internal xref">Section 3.2.1</a>) requires evidence from both when both are
-configured. Conflating them is the bug
+(<a href="#combination-rule" class="auto internal xref">Section 3.2.1</a>) requires evidence from each category that
+is configured. Conflating them is the bug
 (<a href="#combination-rule" class="auto internal xref">Section 3.2.1</a>, <a href="#transitive-authz-bounded" class="auto internal xref">Section 7.5</a>).<a href="#appendix-C-7" class="pilcrow">¶</a></p>
 <p id="appendix-C-8"><strong>Q: What if my Subject Authority cannot publish DNS TXT records?</strong><a href="#appendix-C-8" class="pilcrow">¶</a></p>
 <p id="appendix-C-9">Both lookup modes require the TXT record at
@@ -4821,7 +5281,7 @@ its policy.<a href="#appendix-D-8" class="pilcrow">¶</a></p>
 <a href="#appendix-E" class="section-number selfRef">Appendix E. </a><a href="#name-openid-federation-walkthrou" class="section-name selfRef">OpenID Federation Walkthrough</a>
       </h2>
 <p id="appendix-E-1">This appendix is non-normative. It expands the high-level
-<a href="#example-federation-dai" class="auto internal xref">Section 4.3.6</a> into a concrete walkthrough including
+<a href="#example-federation-dai" class="auto internal xref">Section 4.3.7</a> into a concrete walkthrough including
 trust-chain validation, Trust Mark satisfaction, and
 federation-bound JWKS resolution.<a href="#appendix-E-1" class="pilcrow">¶</a></p>
 <p id="appendix-E-2"><strong>Cast:</strong> Resource Authorization Server
@@ -5066,63 +5526,266 @@ and <code>invalid_grant</code>.<a href="#appendix-E.2-5" class="pilcrow">¶</a><
 </div>
 </section>
 </div>
-<div id="document-history">
+<div id="example-client-recognition">
 <section id="appendix-F">
-      <h2 id="name-document-history">
-<a href="#appendix-F" class="section-number selfRef">Appendix F. </a><a href="#name-document-history" class="section-name selfRef">Document History</a>
+      <h2 id="name-client-recognition-walkthro">
+<a href="#appendix-F" class="section-number selfRef">Appendix F. </a><a href="#name-client-recognition-walkthro" class="section-name selfRef">Client Recognition Walkthrough</a>
       </h2>
-<p id="appendix-F-1">This appendix is non-normative and will be removed before publication.
-A number in parentheses is a closed issue in the
-<a href="https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues">issue tracker</a>
-for this document, which holds the details of that change.<a href="#appendix-F-1" class="pilcrow">¶</a></p>
-<p id="appendix-F-2">-01<a href="#appendix-F-2" class="pilcrow">¶</a></p>
+<p id="appendix-F-1">This appendix is non-normative. It walks through
+<code>openid_federation_client</code> (<a href="#trust-method-openid-federation-client" class="auto internal xref">Section 4.3.6.1</a>)
+from a client's first token request to later requests. It also shows
+how a Resource Authorization Server runs federation clients beside
+clients it registered itself.<a href="#appendix-F-1" class="pilcrow">¶</a></p>
+<p id="appendix-F-2"><strong>Cast:</strong><a href="#appendix-F-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="appendix-F-3.1">
-          <p id="appendix-F-3.1.1">Rename the Trust Mark requirement member <code>id</code> to
-<code>trust_mark_type</code>, and align with OpenID Federation 1.1, including
-federation-bound key sources (#20).<a href="#appendix-F-3.1.1" class="pilcrow">¶</a></p>
+          <p id="appendix-F-3.1.1">Resource Authorization Server <code>https://api.saas.example</code>, with
+token endpoint <code>https://api.saas.example/token</code>.<a href="#appendix-F-3.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-F-3.2">
-          <p id="appendix-F-3.2.1">Remove <code>signed_policy</code> and the <code>trust-policy+jwt</code> media type from
-the Trust Policy; signed-policy processing moves to <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> (#21).<a href="#appendix-F-3.2.1" class="pilcrow">¶</a></p>
+          <p id="appendix-F-3.2.1">Trust anchor <code>https://federation.example.org</code>.<a href="#appendix-F-3.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-F-3.3">
-          <p id="appendix-F-3.3.1">Forbid waivers that an Authority Holder publishes, such as a
-monitoring mode, and define how methods in one category combine
-(#22).<a href="#appendix-F-3.3.1" class="pilcrow">¶</a></p>
+          <p id="appendix-F-3.3.1">Client <code>https://agent.example</code>, an agent platform that is a
+federation Entity of type <code>oauth_client</code>. It has never contacted
+the Resource Authorization Server.<a href="#appendix-F-3.3.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-F-3.4">
-          <p id="appendix-F-3.4.1">Require an Assertion Issuer that serves several tenants under one
-issuer identifier to send <code>tenant</code> in every ID-JAG (#26).<a href="#appendix-F-3.4.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="appendix-F-3.5">
-          <p id="appendix-F-3.5.1">Return <code>invalid_grant</code> for a rejection in steps 1 through 5 of
-Resource Authorization Server processing, and recommend client
-authentication before Trust Method lookups (#28).<a href="#appendix-F-3.5.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="appendix-F-3.6">
-          <p id="appendix-F-3.6.1">Add outbound-fetch requirements, UTS #46 processing for
-internationalized domains, and a key-binding security
-consideration (#27).<a href="#appendix-F-3.6.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="appendix-F-3.7">
-          <p id="appendix-F-3.7.1">Expand the motivation, and add tables and explanations for
-readers (#29).<a href="#appendix-F-3.7.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="appendix-F-3.8">
-          <p id="appendix-F-3.8.1">Editorial changes for readability.<a href="#appendix-F-3.8.1" class="pilcrow">¶</a></p>
+          <p id="appendix-F-3.4.1">Assertion Issuer <code>https://idp.partner.example</code>, which issues the
+client an ID-JAG for <code>alice@partner.example</code> whose <code>client_id</code>
+claim is <code>https://agent.example</code>.<a href="#appendix-F-3.4.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="appendix-F-4">-00<a href="#appendix-F-4" class="pilcrow">¶</a></p>
+<p id="appendix-F-4"><strong>Trust Policy.</strong> The Resource Authorization Server publishes:<a href="#appendix-F-4" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-F-5">
+<pre>
+{
+  "resource_authorization_server": "https://api.saas.example",
+  "authorization_grant_profiles_supported": [
+    "urn:ietf:params:oauth:grant-profile:id-jag"
+  ],
+  "issuer_trust_methods": [
+    {
+      "method": "openid_federation",
+      "trust_anchors": ["https://federation.example.org"]
+    },
+    { "method": "domain_authorized_issuer" }
+  ],
+  "client_trust_methods": [
+    {
+      "method": "openid_federation_client",
+      "trust_anchors": ["https://federation.example.org"]
+    }
+  ],
+  "crit": ["client_trust_methods"]
+}
+</pre><a href="#appendix-F-5" class="pilcrow">¶</a>
+</div>
+<p id="appendix-F-6"><strong>Client metadata.</strong> The client's Entity Configuration, at
+<code>https://agent.example/.well-known/openid-federation</code>, includes:<a href="#appendix-F-6" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-F-7">
+<pre>
+{
+  "iss": "https://agent.example",
+  "sub": "https://agent.example",
+  "metadata": {
+    "oauth_client": {
+      "grant_types": ["urn:ietf:params:oauth:grant-type:jwt-bearer"],
+      "token_endpoint_auth_method": "private_key_jwt",
+      "jwks_uri": "https://agent.example/jwks.json"
+    }
+  },
+  "authority_hints": ["https://federation.example.org"]
+}
+</pre><a href="#appendix-F-7" class="pilcrow">¶</a>
+</div>
+<p id="appendix-F-8"><strong>First contact.</strong> The client's first request to the Resource
+Authorization Server is a token request:<a href="#appendix-F-8" class="pilcrow">¶</a></p>
+<div class="lang-http sourcecode" id="appendix-F-9">
+<pre>
+POST /token HTTP/1.1
+Host: api.saas.example
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
+&amp;assertion=eyJ0eXAiOiJvYXV0aC1pZC1qYWcrand0Ii...
+&amp;client_id=https%3A%2F%2Fagent.example
+&amp;client_assertion_type=
+urn:ietf:params:oauth:client-assertion-type:jwt-bearer
+&amp;client_assertion=eyJhbGciOiJFUzI1NiIsImtpZCI6...
+</pre><a href="#appendix-F-9" class="pilcrow">¶</a>
+</div>
+<p id="appendix-F-10">Line breaks in the request body are for display only. The client
+assertion's claims are:<a href="#appendix-F-10" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-F-11">
+<pre>
+{
+  "iss": "https://agent.example",
+  "sub": "https://agent.example",
+  "aud": "https://api.saas.example",
+  "exp": 1793880000,
+  "jti": "c1f0..."
+}
+</pre><a href="#appendix-F-11" class="pilcrow">¶</a>
+</div>
+<p id="appendix-F-12"><strong>Processing.</strong> The Resource Authorization Server:<a href="#appendix-F-12" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="appendix-F-13">
+<li id="appendix-F-13.1">
+          <p id="appendix-F-13.1.1">Applies the policy above, because the <code>client_id</code> is an <code>https</code>
+URL (<a href="#rasp" class="auto internal xref">Section 5.2</a> step 1).<a href="#appendix-F-13.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="appendix-F-13.2">
+          <p id="appendix-F-13.2.1">Resolves the client's Entity Configuration and a trust chain to
+<code>https://federation.example.org</code>.<a href="#appendix-F-13.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="appendix-F-13.3">
+          <p id="appendix-F-13.3.1">Checks that the policy-applied metadata declares <code>oauth_client</code>.<a href="#appendix-F-13.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="appendix-F-13.4">
+          <p id="appendix-F-13.4.1">Fetches the key set at <code>jwks_uri</code>, verifies the client assertion's
+signature with a key in it, and checks that its <code>aud</code> is
+<code>https://api.saas.example</code> and that <code>private_key_jwt</code> is the
+declared method. The client is now authenticated. Steps 2 through
+4 are the only lookups before the client is authenticated.<a href="#appendix-F-13.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="appendix-F-13.5">
+          <p id="appendix-F-13.5.1">Validates the ID-JAG, including that its <code>client_id</code> claim is
+<code>https://agent.example</code> (<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1).<a href="#appendix-F-13.5.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="appendix-F-13.6">
+          <p id="appendix-F-13.6.1">Evaluates <code>openid_federation</code> for <code>https://idp.partner.example</code>,
+<code>domain_authorized_issuer</code> for <code>partner.example</code>, and
+<code>openid_federation_client</code> for the client. Every category is
+satisfied, so it issues an access token.<a href="#appendix-F-13.6.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
+<p id="appendix-F-14"><strong>Rejections:</strong><a href="#appendix-F-14" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="appendix-F-5.1">
-          <p id="appendix-F-5.1.1">initial draft<a href="#appendix-F-5.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="appendix-F-15.1">
+          <p id="appendix-F-15.1.1">The request carries no client authentication: <code>invalid_client</code>
+(<a href="#rasp" class="auto internal xref">Section 5.2</a> step 5f).<a href="#appendix-F-15.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-F-15.2">
+          <p id="appendix-F-15.2.1">The <code>client_id</code> is not an Entity Identifier: the method is
+Negative, the request has no accepted client authentication, and
+the result is <code>invalid_client</code>.<a href="#appendix-F-15.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-F-15.3">
+          <p id="appendix-F-15.3.1">The trust chain ends at a trust anchor that is not listed:
+<code>invalid_client</code>.<a href="#appendix-F-15.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-F-15.4">
+          <p id="appendix-F-15.4.1">The client assertion is signed with a key that is not in the
+federation key set, even one published in a client metadata
+document: <code>invalid_client</code>.<a href="#appendix-F-15.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-F-15.5">
+          <p id="appendix-F-15.5.1">The Entity Configuration fetch times out or returns a 5xx status:
+the method is Indeterminate, and the result is <code>invalid_client</code>.<a href="#appendix-F-15.5.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-F-15.6">
+          <p id="appendix-F-15.6.1">The policy required a Trust Mark that the client does not hold:
+the client is authenticated but not recognized, and the result is
+<code>access_denied</code>, the code <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.3 defines for a client
+the Resource Authorization Server does not authorize.<a href="#appendix-F-15.6.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-F-15.7">
+          <p id="appendix-F-15.7.1">The client lacks a required Trust Mark and the ID-JAG has expired:
+<code>invalid_grant</code>, because <code>access_denied</code> applies only to a valid
+ID-JAG.<a href="#appendix-F-15.7.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-F-15.8">
+          <p id="appendix-F-15.8.1">The ID-JAG's <code>client_id</code> claim names a different client:
+<code>invalid_grant</code> (<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1).<a href="#appendix-F-15.8.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-F-15.9">
+          <p id="appendix-F-15.9.1">The client is recognized, but the Assertion Issuer fails an issuer
+method: <code>invalid_grant</code>.<a href="#appendix-F-15.9.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="appendix-F-16"><strong>Later requests.</strong> The Resource Authorization Server caches the
+trust chain no longer than its earliest <code>exp</code>
+(<a href="#trust-method-openid-federation" class="auto internal xref">Section 4.3.4.1</a>), and the key set no longer than
+the chain. Later requests from the client use the cached chain,
+and each request is still evaluated against the policy. When the
+client rotates its keys, a signature with a key the cached key set
+lacks can prompt one fresh fetch of the key set, rate-limited per
+client, before rejection. If
+the federation stops recognizing the client, the change takes effect
+when the cached chain expires.<a href="#appendix-F-16" class="pilcrow">¶</a></p>
+<p id="appendix-F-17"><strong>Coexistence with registered clients.</strong> The Resource Authorization
+Server also has confidential clients it registered itself, with
+opaque <code>client_id</code> values and credentials it holds. A request that
+authenticates as one of those clients gets a policy without
+<code>client_trust_methods</code> (<a href="#rasp" class="auto internal xref">Section 5.2</a> step 1). Any other request,
+including one that names a registered <code>client_id</code> without
+authenticating as that client and any request whose <code>client_id</code> is
+an <code>https</code> URL, gets the policy above and is admitted only through
+the client method. The published policy is the one above.<a href="#appendix-F-17" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="document-history">
+<section id="appendix-G">
+      <h2 id="name-document-history">
+<a href="#appendix-G" class="section-number selfRef">Appendix G. </a><a href="#name-document-history" class="section-name selfRef">Document History</a>
+      </h2>
+<p id="appendix-G-1">This appendix is non-normative and will be removed before publication.
+A number in parentheses is a closed issue in the
+<a href="https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues">issue tracker</a>
+for this document, which holds the details of that change.<a href="#appendix-G-1" class="pilcrow">¶</a></p>
+<p id="appendix-G-2">-01<a href="#appendix-G-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-G-3.1">
+          <p id="appendix-G-3.1.1">Rename the Trust Mark requirement member <code>id</code> to
+<code>trust_mark_type</code>, and align with OpenID Federation 1.1, including
+federation-bound key sources (#20).<a href="#appendix-G-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-G-3.2">
+          <p id="appendix-G-3.2.1">Remove <code>signed_policy</code> and the <code>trust-policy+jwt</code> media type from
+the Trust Policy; signed-policy processing moves to <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> (#21).<a href="#appendix-G-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-G-3.3">
+          <p id="appendix-G-3.3.1">Forbid waivers that an Authority Holder publishes, such as a
+monitoring mode, and define how methods in one category combine
+(#22).<a href="#appendix-G-3.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-G-3.4">
+          <p id="appendix-G-3.4.1">Require an Assertion Issuer that serves several tenants under one
+issuer identifier to send <code>tenant</code> in every ID-JAG (#26).<a href="#appendix-G-3.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-G-3.5">
+          <p id="appendix-G-3.5.1">Return <code>invalid_grant</code> for a rejection in steps 1 through 5 of
+Resource Authorization Server processing, and recommend client
+authentication before Trust Method lookups (#28).<a href="#appendix-G-3.5.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-G-3.6">
+          <p id="appendix-G-3.6.1">Add outbound-fetch requirements, UTS #46 processing for
+internationalized domains, and a key-binding security
+consideration (#27).<a href="#appendix-G-3.6.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-G-3.7">
+          <p id="appendix-G-3.7.1">Add a <code>client_recognition</code> category, a <code>client_trust_methods</code>
+Trust Policy member, and the <code>openid_federation_client</code> method
+(#32).<a href="#appendix-G-3.7.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-G-3.8">
+          <p id="appendix-G-3.8.1">Expand the motivation, and add tables and explanations for
+readers (#29).<a href="#appendix-G-3.8.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-G-3.9">
+          <p id="appendix-G-3.9.1">Editorial changes for readability.<a href="#appendix-G-3.9.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="appendix-G-4">-00<a href="#appendix-G-4" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-G-5.1">
+          <p id="appendix-G-5.1.1">initial draft<a href="#appendix-G-5.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
 </div>
 <div id="authors-addresses">
-<section id="appendix-G">
+<section id="appendix-H">
       <h2 id="name-authors-address">
 <a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
       </h2>

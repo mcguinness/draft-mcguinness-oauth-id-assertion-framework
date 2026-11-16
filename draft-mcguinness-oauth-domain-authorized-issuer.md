@@ -2,7 +2,7 @@
 title: "OAuth Domain-Authorized Issuer Trust Method"
 abbrev: "Domain-Authorized Issuer Trust Method"
 docname: draft-mcguinness-oauth-domain-authorized-issuer-latest
-date: 2026-10-09
+date: 2026-11-16
 category: std
 submissiontype: IETF
 v: 3

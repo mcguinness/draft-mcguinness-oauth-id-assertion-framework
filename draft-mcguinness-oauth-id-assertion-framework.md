@@ -39,6 +39,7 @@ normative:
   RFC9728:
   RFC9700:
   RFC8705:
+  RFC7591:
   RFC5891:
   RFC8126:
   OIDF-FEDERATION:
@@ -1357,6 +1358,15 @@ are replaced by the following:
   metadata document, do not count. If no such key set is available,
   or it cannot be retrieved or validated, the outcome is
   Indeterminate.
+
+- **Declared client metadata.** When the client metadata contains
+  `token_endpoint_auth_method` or
+  `token_endpoint_auth_methods_supported`
+  ({{OIDF-FEDERATION-CONNECT}} §12.1.4), the method the client
+  authenticates with MUST be one of the declared values. When it
+  contains `grant_types` ({{RFC7591}} Section 2), the token request's
+  grant type MUST be one of them. A Superior can constrain either
+  through metadata policy ({{OIDF-FEDERATION}} §6.1).
 
 When the Resource Authorization Server relies on this method to
 satisfy the `client_recognition` category, it MUST NOT accept the
@@ -3251,6 +3261,7 @@ clients it registered itself.
   "sub": "https://agent.example",
   "metadata": {
     "oauth_client": {
+      "grant_types": ["urn:ietf:params:oauth:grant-type:jwt-bearer"],
       "token_endpoint_auth_method": "private_key_jwt",
       "jwks_uri": "https://agent.example/jwks.json"
     }

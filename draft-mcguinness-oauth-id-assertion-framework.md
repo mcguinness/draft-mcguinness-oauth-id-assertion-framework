@@ -215,11 +215,13 @@ This document defines the Authority Delegation Model
 ({{delegation-model}}) and uses it to profile OAuth identity
 assertions. It is consumed by {{DAI}}, which defines one
 Subject-Authority publication mechanism. The two documents together
-are described in {{family}}. The assertion-bearer grant and chaining
-mechanics of {{ID-JAG}} and {{I-D.ietf-oauth-identity-chaining}}
-remain unchanged; this document adds the issuer-trust evaluation
-layer and one requirement on multi-tenant Assertion Issuers
-({{id-jag-profile}}).
+are described in {{family}}. This document adds a trust-evaluation
+layer to the assertion-bearer grant and chaining mechanics of
+{{ID-JAG}} and {{I-D.ietf-oauth-identity-chaining}}. Where that layer
+narrows a dependency, {{bindings}} says so: it requires client
+authentication under a policy with client methods, fixes the key
+source for the generic JWT-bearer binding, and limits which claims
+resolve the subject.
 
 ## Minimal Deployment
 
@@ -319,9 +321,10 @@ This document and {{DAI}} form a two-document set:
 - **This document**: the Authority Delegation Model
   ({{delegation-model}}) and the Identity Assertion Issuer Trust
   Policy ({{trust-policy-document}}) published by a Resource
-  Authorization Server, plus the Trust Method machinery, OAuth
-  grant profile bindings, and the Subject Authority Determination
-  concept.
+  Authorization Server, plus the Trust Method machinery, the
+  `openid_federation` and `openid_federation_client` Trust Methods,
+  OAuth grant profile bindings, and the Subject Authority
+  Determination concept.
 - **{{DAI}}**: the OAuth Domain-Authorized Issuer Trust Method, defining
   the `domain_authorized_issuer` Trust Method and the Issuer Authorization
   Policy wire format it consumes.
@@ -329,8 +332,9 @@ This document and {{DAI}} form a two-document set:
 This document does not define the Issuer Authorization Policy
 wire format or its integrity protection; those live in {{DAI}}. This
 document defines what an
-Assertion Issuer must satisfy to be accepted; DAI defines one
-class of evidence supplying that satisfaction.
+Assertion Issuer, and optionally the client that presents its
+assertion, must satisfy to be accepted; DAI defines one class of
+evidence supplying that satisfaction.
 
 ## Scope {#scope}
 
@@ -340,12 +344,15 @@ The scope of this document is:
   trust-evaluation categories, combination rule, lookup states,
   and the bounded-transitivity property profiles inherit.
 - The Trust Policy document ({{trust-policy-document}}).
-- The Trust Method machinery (categories, registry).
+- The Trust Method machinery (categories, registry), including the
+  `client_recognition` category.
+- The `openid_federation` and `openid_federation_client` Trust
+  Methods.
 - The Subject Authority Determination concept and registry.
 - The OAuth grant-profile bindings.
 
-Concrete publication mechanisms for specific Trust Methods are
-out of scope and live in dedicated specifications such as {{DAI}}.
+Other Trust Methods, and the publication mechanisms they use, live
+in dedicated specifications such as {{DAI}}.
 
 The Authority Delegation Model accommodates attribute
 authorities whose authority is not a namespace owner

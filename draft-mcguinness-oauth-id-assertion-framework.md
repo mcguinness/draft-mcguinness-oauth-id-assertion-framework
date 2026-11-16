@@ -1306,9 +1306,11 @@ this method defines that case. This method places none of the
 obligations of
 {{OIDF-FEDERATION-CONNECT}} §12.1 on the client toward the Resource
 Authorization Server, and it is evaluated for each token request that
-presents an identity assertion. A client whose `client_id` is not an
-Entity Identifier does not satisfy this method, and the lookup state
-is Negative.
+presents an identity assertion. The `client_id` MUST equal the `sub`
+of the client's Entity Configuration by simple string comparison. A
+client whose `client_id` is not an Entity Identifier
+({{OIDF-FEDERATION}} §1.2) does not satisfy this method, and the
+lookup state is Negative.
 
 The Resource Authorization Server evaluates this method as it
 evaluates `openid_federation`, with the client's Entity Identifier as

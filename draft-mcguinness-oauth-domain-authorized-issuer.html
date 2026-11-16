@@ -1771,7 +1771,7 @@ any of them is malformed:<a href="#section-3-4" class="pilcrow">¶</a></p>
               <code>subject_identifier_formats</code>
 </td>
             <td class="text-left" rowspan="1" colspan="1">array of strings, optional</td>
-            <td class="text-left" rowspan="1" colspan="1"> </td>
+            <td class="text-left" rowspan="1" colspan="1">non-empty</td>
           </tr>
           <tr>
             <td class="text-left" rowspan="1" colspan="1">
@@ -1779,7 +1779,8 @@ any of them is malformed:<a href="#section-3-4" class="pilcrow">¶</a></p>
 </td>
             <td class="text-left" rowspan="1" colspan="1">
               <span>[<a href="#RFC3339" class="cite xref">RFC3339</a>]</span> date-time, optional</td>
-            <td class="text-left" rowspan="1" colspan="1"> </td>
+            <td class="text-left" rowspan="1" colspan="1">
+              <code>valid_from</code> not later than <code>valid_until</code> when both are present</td>
           </tr>
           <tr>
             <td class="text-left" rowspan="1" colspan="1">
@@ -1852,14 +1853,17 @@ policy claims, and <span class="bcp14">MUST</span> contain <code>iat</code>. It 
 a superseded signed policy cannot be replayed indefinitely (relevant
 when the policy is hosted on shared infrastructure,
 <a href="#third-party-policy-hosts" class="auto internal xref">Section 9.5</a>). Consumers <span class="bcp14">MUST</span> reject an expired
-<code>signed_policy</code>.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
-<p id="section-3.1-4">Publishers <span class="bcp14">SHOULD</span> keep <code>exp</code> close to <code>iat</code> (for example, a few
-days), because a policy host can replay a superseded signed policy
-until its <code>exp</code> to a consumer that holds no cached copy. A consumer
-that holds a cached signed policy for the same Subject Authority
-<span class="bcp14">MUST</span> reject a <code>signed_policy</code> whose <code>iat</code> is earlier than the cached
-one's. This ensures that an older signed policy cannot be replayed
-within its validity period.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
+<code>signed_policy</code>, including a cached copy and during stale-if-error
+use (<a href="#dii-caching" class="auto internal xref">Section 7</a>).<a href="#section-3.1-3" class="pilcrow">¶</a></p>
+<p id="section-3.1-4">A policy host can replay a superseded signed policy until its <code>exp</code>
+to a consumer that has not seen a newer one. Consumers <span class="bcp14">MUST</span> reject a
+<code>signed_policy</code> whose <code>exp</code> is more than 24 hours after its <code>iat</code>. A
+consumer <span class="bcp14">MUST</span> retain the highest <code>iat</code> it has accepted for each
+Subject Authority until the <code>exp</code> of that signed policy, and <span class="bcp14">MUST</span>
+reject a <code>signed_policy</code> whose <code>iat</code> is earlier, even after the
+cached policy itself is gone. An older signed policy therefore cannot
+be replayed to a consumer that has accepted a newer one, nor to any
+consumer for more than 24 hours.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
 <p id="section-3.1-5">The JOSE header <span class="bcp14">SHOULD</span> contain a <code>kid</code> identifying the signing key.
 The JWT payload <span class="bcp14">SHOULD NOT</span> contain a <code>signed_policy</code> claim. The outer document still
 carries <code>subject_authority</code> and <code>authorized_issuers</code>
@@ -2054,7 +2058,9 @@ the HTTPS-only lookup mode publishes the policy at the default URL
 on the dedicated policy host <code>oauth-issuer-policy.{A}</code>
 (<a href="#dii-https-url" class="auto internal xref">Section 4.4</a>). The opt-in to the HTTPS-only lookup mode is a
 recognized record at <code>_oauth-issuer-policy.{A}</code> (<a href="#dii-dns-record" class="auto internal xref">Section 4.3</a>)
-whose <code>uri=</code> value is exactly the default URL. That mode requires
+whose <code>uri=</code> value is exactly the default URL: it equals, octet for
+octet, the default URL built from the lowercase A-label form of
+<code>{A}</code>. That mode requires
 such a record before it fetches from the dedicated host
 (<a href="#trust-method-https-authorized-issuer" class="auto internal xref">Section 8.2</a>). The same record directs
 canonical lookups to the same document.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
@@ -2087,13 +2093,16 @@ Determination before the prefix is prepended. DNS lookup
 names are formed without a trailing dot for comparison purposes; the
 wire-format root label is not part of the Subject Authority value.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
 <p id="section-4.3-2">The string segments of a TXT record (<span>[<a href="#RFC1035" class="cite xref">RFC1035</a>]</span>) are concatenated
-without separator and interpreted as ASCII text (a record containing
-a non-ASCII octet is malformed, since all defined directive values
-are ASCII by construction).<a href="#section-4.3-2" class="pilcrow">¶</a></p>
-<p id="section-4.3-3">A record is <em>recognized</em> if the version token <code>v=oauth-issuer-policy1</code>
-(case-sensitive) appears at the start, terminated by end of record, by
-optional whitespace, or by a <code>;</code> separator; leading whitespace before
-the token is permitted. The version token matches only that exact
+without separator and interpreted as ASCII text. A recognized record
+(defined below) that contains a non-ASCII octet is malformed, since
+all defined directive values are ASCII by construction; other records
+are ignored.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
+<p id="section-4.3-3">A record is <em>recognized</em> if, after optional leading whitespace, it
+begins with the version token <code>v=oauth-issuer-policy1</code>
+(case-sensitive) followed by end of record, whitespace, or <code>;</code>. In a
+recognized record, the version token is followed by optional
+whitespace and then end of record or a <code>;</code> separator; anything else
+makes the record malformed (<a href="#dii-failures" class="auto internal xref">Section 5.1</a>). The version token matches only that exact
 string: a different token (for example, a future
 <code>v=oauth-issuer-policy2</code>) is not recognized, so the record is treated
 as unrecognized (not malformed) and is ignored by the recognition
@@ -2117,7 +2126,9 @@ case-sensitive and preserved as written.<a href="#section-4.3-5.2.1" class="pilc
           <li class="normal" id="section-4.3-5.3">
             <p id="section-4.3-5.3.1">A directive splits into name and value at the first <code>=</code>. Subsequent
 <code>=</code> characters are part of the value. A directive with no <code>=</code> makes
-the record malformed (<a href="#dii-failures" class="auto internal xref">Section 5.1</a>).<a href="#section-4.3-5.3.1" class="pilcrow">¶</a></p>
+the record malformed (<a href="#dii-failures" class="auto internal xref">Section 5.1</a>). So does a directive whose
+name does not match the <code>name</code> production below, for example
+because whitespace precedes the <code>=</code>.<a href="#section-4.3-5.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-4.3-5.4">
             <p id="section-4.3-5.4.1">The value runs to the next <code>;</code> or end of record. The character <code>;</code>
@@ -2136,10 +2147,10 @@ intervening <code>name=value</code>) makes the record malformed
             <p id="section-4.3-5.7.1">Unrecognized directives <span class="bcp14">MUST</span> be ignored.<a href="#section-4.3-5.7.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-4.3-6">The parsing rules above are summarized in the following ABNF
-(<span>[<a href="#RFC5234" class="cite xref">RFC5234</a>]</span> with the case-sensitive string extension of <span>[<a href="#RFC7405" class="cite xref">RFC7405</a>]</span>)
-for implementer convenience; the prose above is normative if any
-disagreement exists.<a href="#section-4.3-6" class="pilcrow">¶</a></p>
+<p id="section-4.3-6">The following ABNF (<span>[<a href="#RFC5234" class="cite xref">RFC5234</a>]</span> with the case-sensitive string
+extension of <span>[<a href="#RFC7405" class="cite xref">RFC7405</a>]</span>) is normative for the record syntax, and
+the prose above agrees with it. A recognized record that does not
+match <code>record</code> is malformed (<a href="#dii-failures" class="auto internal xref">Section 5.1</a>).<a href="#section-4.3-6" class="pilcrow">¶</a></p>
 <div class="lang-abnf sourcecode" id="section-4.3-7">
 <pre>
 record        = OWS version OWS *( ";" directive ) [ ";" OWS ]
@@ -2634,9 +2645,10 @@ b. If the entry contains a <code>tenant</code> member, its value exactly
    <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §6.1) under case-sensitive string comparison. An
    entry with <code>tenant</code> does not match an assertion that lacks the
    <code>tenant</code> claim; an entry without <code>tenant</code> does not match an
-   assertion that carries a <code>tenant</code> claim. Under a grant profile that
-   carries no <code>tenant</code> claim, any <code>tenant</code> claim physically present
-   in the assertion <span class="bcp14">MUST</span> be ignored for entry matching.<a href="#section-6-2.4.3" class="pilcrow">¶</a></p>
+   assertion that carries a <code>tenant</code> claim, under any grant
+   profile. Under a grant profile that carries no <code>tenant</code> claim, a
+   <code>tenant</code> claim in the assertion is not attested, so an entry
+   with <code>tenant</code> does not match it.<a href="#section-6-2.4.3" class="pilcrow">¶</a></p>
 <p id="section-6-2.4.4">
 c. If the entry contains <code>subject_identifier_formats</code>, the Subject
    Identifier format of the assertion's subject is listed.<a href="#section-6-2.4.4" class="pilcrow">¶</a></p>
@@ -2696,8 +2708,9 @@ OAuth <code>invalid_grant</code> error.<a href="#section-6-3" class="pilcrow">¶
           </tr>
         </tbody>
       </table>
-<p id="section-6-6">Under a grant profile that carries no <code>tenant</code> claim, an assertion is
-treated as carrying none, so only entries without <code>tenant</code> match.<a href="#section-6-6" class="pilcrow">¶</a></p>
+<p id="section-6-6">Under a grant profile that carries no <code>tenant</code> claim, an entry with
+<code>tenant</code> never matches, and an entry without <code>tenant</code> matches only an
+assertion that carries no <code>tenant</code> claim.<a href="#section-6-6" class="pilcrow">¶</a></p>
 <div id="observe-before-enforce">
 <section id="section-6.1">
         <h3 id="name-observing-before-enforcing">
@@ -2760,7 +2773,10 @@ discussed in <a href="#privacy" class="auto internal xref">Section 10</a>.<a hre
           <p id="section-7-2.2.1"><strong>Unvalidated DNS.</strong> Consumers <span class="bcp14">MUST NOT</span> treat a DNS result that was
 not DNSSEC-validated as fresh for more than 1 hour, whatever its
 TTL: a spoofed answer chooses its own TTL
-(<a href="#dns-integrity-and-compromise" class="auto internal xref">Section 9.4</a>).<a href="#section-7-2.2.1" class="pilcrow">¶</a></p>
+(<a href="#dns-integrity-and-compromise" class="auto internal xref">Section 9.4</a>). A result is DNSSEC-validated
+only if the consumer validated it, or a validating resolver that
+the consumer reaches over an authenticated channel (such as DNS
+over TLS or DNS over HTTPS) reported it as validated.<a href="#section-7-2.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-7-2.3">
           <p id="section-7-2.3.1"><strong>Steady-state lifetimes.</strong> Subject Authorities <span class="bcp14">SHOULD</span> publish
@@ -2793,8 +2809,7 @@ Negative results. The lifetime of the DNS answer is the negative
 TTL (<span>[<a href="#RFC2308" class="cite xref">RFC2308</a>]</span>) for an NXDOMAIN or NODATA answer. For an answer
 that contains records but none that yields a policy, it is the
 remaining TTL of the TXT record set. Such an answer has no
-recognized record or, under the HTTPS-only lookup mode, no record
-whose <code>uri=</code> is the default URL. The short cap makes a Subject
+recognized record. The short cap makes a Subject
 Authority's first publication, and its recovery from a brief
 publication-channel takeover, visible promptly. The same cap
 <span class="bcp14">SHOULD</span> apply to a cached explicit-denial policy (<a href="#dii-document" class="auto internal xref">Section 3</a>).<a href="#section-7-2.6.1" class="pilcrow">¶</a></p>
@@ -2817,7 +2832,10 @@ TTL (<span>[<a href="#RFC1035" class="cite xref">RFC1035</a>]</span> Section 4.1
 freshness lifetime. The window is therefore up to the propagation
 time plus those upstream lifetimes, plus one consumer freshness
 lifetime and the stale-if-error hour. Steady-state lifetimes of 1
-hour or less, as recommended above, keep it to a few hours.<a href="#section-7-3" class="pilcrow">¶</a></p>
+hour or less, as recommended above, keep it to a few hours. For a
+signed policy on a host the Subject Authority does not control, the
+host can also replay the superseded policy until its <code>exp</code>, at most
+24 hours after its <code>iat</code> (<a href="#signed-policy" class="auto internal xref">Section 3.1</a>).<a href="#section-7-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="trust-methods">
@@ -2946,8 +2964,10 @@ value, or more than two distinct <code>key=</code> values, across the
 remaining records is <code>malformed</code>. A <code>negative-authoritative</code> response is
 Negative. The Subject Authority has opted in to this mode only if
 a remaining record carries a <code>uri=</code> whose value is exactly the
-default URL (<a href="#dedicated-policy-host" class="auto internal xref">Section 4.2</a>); otherwise the outcome is
-Negative. An <code>indeterminate</code> or <code>malformed</code> response is
+default URL (<a href="#dedicated-policy-host" class="auto internal xref">Section 4.2</a>). When recognized records
+remain but none does, the Subject Authority has published a
+policy this lookup mode does not retrieve, and the outcome is
+Indeterminate. An <code>indeterminate</code> or <code>malformed</code> response is
 Indeterminate. The records' <code>issuer=</code> values are not used.<a href="#section-8.2-9.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-8.2-9.3">
@@ -3186,10 +3206,13 @@ because consumers reject records lacking the matching
             <p id="section-9.4-6.2.1">Consumers <span class="bcp14">MUST</span> verify TLS for any host named by <code>uri=</code>.<a href="#section-9.4-6.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.4-6.3">
-            <p id="section-9.4-6.3.1">Consumers <span class="bcp14">MUST</span> bound cache lifetimes (<a href="#dii-caching" class="auto internal xref">Section 7</a>). A spoofed
-answer that was not DNSSEC-validated stays fresh for at most 1
-hour, and can be served for at most 1 more hour while the live
-channel is Indeterminate.<a href="#section-9.4-6.3.1" class="pilcrow">¶</a></p>
+            <p id="section-9.4-6.3.1">Consumers <span class="bcp14">MUST</span> bound cache lifetimes (<a href="#dii-caching" class="auto internal xref">Section 7</a>). In the
+consumer's own cache, a spoofed answer that was not
+DNSSEC-validated stays fresh for at most 1 hour, and can be served
+for at most 1 more hour while the live channel is Indeterminate. A
+poisoned recursive resolver can return the spoofed answer again
+when the consumer re-queries, so this bound does not cover
+recursive cache poisoning.<a href="#section-9.4-6.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-9.4-6.4">
             <p id="section-9.4-6.4.1">Consumers performing DNSSEC validation <span class="bcp14">MUST</span> treat validation
@@ -3408,12 +3431,13 @@ tenant-isolation guarantees.<a href="#section-9.9-2.2.1" class="pilcrow">¶</a><
 profile that carries no <code>tenant</code> claim, only entries that omit
 <code>tenant</code> can match, so tenant-scoped authorization is not
 expressible. The generic JWT-bearer grant (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>
-§Generic JWT-Bearer Assertion Grant) is such a profile. Any
-<code>tenant</code> claim in an assertion under such a profile is ignored for
-matching, because the grant profile does not attest it. So an
-entry without <code>tenant</code> for a shared issuer matches assertions from
-every one of its tenants, and the default above does not help
-here. A Subject Authority relying on a shared multi-tenant
+§Generic JWT-Bearer Assertion Grant) is such a profile. An entry
+with <code>tenant</code> matches no assertion under such a profile, because
+the profile does not attest the claim. An entry without <code>tenant</code>
+does not match an assertion that carries a <code>tenant</code> claim, but a
+shared issuer that omits the claim from such assertions is
+indistinguishable across its tenants, so the entry matches
+assertions from every one of them. A Subject Authority relying on a shared multi-tenant
 Assertion Issuer <span class="bcp14">SHOULD NOT</span> authorize that issuer for such a grant
 unless per-tenant issuer identifiers are used.<a href="#section-9.9-2.3.1" class="pilcrow">¶</a></p>
 </li>
@@ -4088,6 +4112,10 @@ File extension(s): N/A; Macintosh file type code(s): N/A<a href="#section-12.6-2
         <dd>
 <span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="RFC2308">[RFC2308]</dt>
+        <dd>
+<span class="refAuthor">Andrews, M.</span>, <span class="refTitle">"Negative Caching of DNS Queries (DNS NCACHE)"</span>, <span class="seriesInfo">RFC 2308</span>, <span class="seriesInfo">DOI 10.17487/RFC2308</span>, <time datetime="1998-03" class="refDate">March 1998</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2308">https://www.rfc-editor.org/rfc/rfc2308</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC3339">[RFC3339]</dt>
         <dd>
 <span class="refAuthor">Klyne, G.</span> and <span class="refAuthor">C. Newman</span>, <span class="refTitle">"Date and Time on the Internet: Timestamps"</span>, <span class="seriesInfo">RFC 3339</span>, <span class="seriesInfo">DOI 10.17487/RFC3339</span>, <time datetime="2002-07" class="refDate">July 2002</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc3339">https://www.rfc-editor.org/rfc/rfc3339</a>&gt;</span>. </dd>
@@ -4188,10 +4216,6 @@ File extension(s): N/A; Macintosh file type code(s): N/A<a href="#section-12.6-2
 <dt id="OIDF-WKB">[OIDF-WKB]</dt>
         <dd>
 <span class="refAuthor">Hardt, D.</span>, <span class="refTitle">"OpenID Federation Well-Known Binding 1.0"</span>, <time datetime="2026-11-11" class="refDate">11 November 2026</time>, <span>&lt;<a href="https://dickhardt.github.io/well-known-binding/main.html">https://dickhardt.github.io/well-known-binding/main.html</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="RFC2308">[RFC2308]</dt>
-        <dd>
-<span class="refAuthor">Andrews, M.</span>, <span class="refTitle">"Negative Caching of DNS Queries (DNS NCACHE)"</span>, <span class="seriesInfo">RFC 2308</span>, <span class="seriesInfo">DOI 10.17487/RFC2308</span>, <time datetime="1998-03" class="refDate">March 1998</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2308">https://www.rfc-editor.org/rfc/rfc2308</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC7033">[RFC7033]</dt>
         <dd>
@@ -4910,8 +4934,10 @@ the default URL on <code>oauth-issuer-policy.acme.example</code>: the TXT
 record is the opt-in.<a href="#appendix-C.7-1.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="appendix-C.7-1.3">
-            <p id="appendix-C.7-1.3.1">A wildcard record at <code>*.example</code> covering <code>acme.example</code> would
-have to carry <code>authority=acme.example</code> to be accepted. A wildcard
+            <p id="appendix-C.7-1.3.1">A wildcard record at <code>*.acme.example</code>, which DNS uses to answer a
+query for <code>_oauth-issuer-policy.acme.example</code> when no record exists
+at that name, would have to carry <code>authority=acme.example</code> to be
+accepted. A wildcard
 with a different <code>authority=</code> is discarded; if no other recognized
 record remains, the response is <code>malformed</code> (Indeterminate) and
 the assertion is rejected.<a href="#appendix-C.7-1.3.1" class="pilcrow">¶</a></p>
@@ -4937,7 +4963,8 @@ enforce a local cache ceiling per <a href="#dii-caching" class="auto internal xr
 <p id="appendix-D-1">This appendix is non-normative and will be removed before publication.
 A number in parentheses is a closed issue in the
 <a href="https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues">issue tracker</a>
-for this document, which holds the details of that change.<a href="#appendix-D-1" class="pilcrow">¶</a></p>
+that this document shares with <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>, which holds the
+details of that change.<a href="#appendix-D-1" class="pilcrow">¶</a></p>
 <p id="appendix-D-2">-01<a href="#appendix-D-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="appendix-D-3.1">
@@ -4981,7 +5008,13 @@ related mechanisms, and gloss terms borrowed from the framework
 (#29).<a href="#appendix-D-3.9.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.10">
-          <p id="appendix-D-3.10.1">Editorial changes for readability.<a href="#appendix-D-3.10.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-3.10.1">Make the record ABNF normative, cap a signed policy's validity at
+24 hours, apply tenant matching under every grant profile, and
+treat a record without the default <code>uri=</code> as Indeterminate under
+HTTPS-only lookup (#34).<a href="#appendix-D-3.10.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-D-3.11">
+          <p id="appendix-D-3.11.1">Editorial changes for readability.<a href="#appendix-D-3.11.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="appendix-D-4">-00<a href="#appendix-D-4" class="pilcrow">¶</a></p>

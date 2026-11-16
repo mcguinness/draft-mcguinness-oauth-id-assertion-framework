@@ -2500,10 +2500,10 @@ Status:
 Related Information:
 : None
 
-### Identity Assertion Issuer Trust Method Categories Registry {#iana-trust-method-categories-registry}
+### Identity Assertion Trust Method Categories Registry {#iana-trust-method-categories-registry}
 
 IANA is requested to establish a new registry titled "Identity
-Assertion Issuer Trust Method Categories" under the "OAuth Parameters"
+Assertion Trust Method Categories" under the "OAuth Parameters"
 registry group. This registry backs the category values used by the
 Trust Methods registry and referenced by the combination rule
 ({{combination-rule}}).
@@ -2530,10 +2530,10 @@ Document this document:
 | `subject_namespace_authorization` | Establishes that the Assertion Issuer is authorized by the subject's namespace owner |
 | `client_recognition` | Establishes that the client presenting the assertion is recognized by an authority the Resource Authorization Server accepts |
 
-### Identity Assertion Issuer Trust Methods Registry {#iana-trust-methods-registry}
+### Identity Assertion Trust Methods Registry {#iana-trust-methods-registry}
 
 IANA is requested to establish a new registry titled "Identity
-Assertion Issuer Trust Methods" under the "OAuth Parameters"
+Assertion Trust Methods" under the "OAuth Parameters"
 registry group.
 
 Registration policy: Specification Required {{RFC8126}}.

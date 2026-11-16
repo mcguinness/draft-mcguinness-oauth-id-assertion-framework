@@ -604,7 +604,9 @@ the HTTPS-only lookup mode publishes the policy at the default URL
 on the dedicated policy host `oauth-issuer-policy.{A}`
 ({{dii-https-url}}). The opt-in to the HTTPS-only lookup mode is a
 recognized record at `_oauth-issuer-policy.{A}` ({{dii-dns-record}})
-whose `uri=` value is exactly the default URL. That mode requires
+whose `uri=` value is exactly the default URL: it equals, octet for
+octet, the default URL built from the lowercase A-label form of
+`{A}`. That mode requires
 such a record before it fetches from the dedicated host
 ({{trust-method-https-authorized-issuer}}). The same record directs
 canonical lookups to the same document.

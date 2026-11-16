@@ -1184,8 +1184,8 @@ DNS at `_oauth-issuer-policy.{A}` is the publication channel
 for canonical lookup; under the HTTPS-only lookup mode the record
 is an opt-in and a dedicated HTTPS host serves the policy. The Trust
 Method
-registers in the Identity Assertion Issuer Trust Methods registry
-({{TRUST-FRAMEWORK}} §Identity Assertion Issuer Trust Methods Registry).
+registers in the Identity Assertion Trust Methods registry
+({{TRUST-FRAMEWORK}} §Identity Assertion Trust Methods Registry).
 
 ## domain_authorized_issuer {#trust-method-domain-authorized-issuer}
 
@@ -1855,8 +1855,8 @@ Reference:
 ## Trust Method Registrations
 
 This document registers the following entry in the Identity
-Assertion Issuer Trust Methods registry
-({{TRUST-FRAMEWORK}} §Identity Assertion Issuer Trust Methods Registry):
+Assertion Trust Methods registry
+({{TRUST-FRAMEWORK}} §Identity Assertion Trust Methods Registry):
 
 Identifier:
 : `domain_authorized_issuer`

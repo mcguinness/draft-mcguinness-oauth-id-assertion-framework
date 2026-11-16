@@ -38,6 +38,8 @@ normative:
   RFC9493:
   RFC9728:
   RFC9700:
+  RFC8705:
+  RFC7591:
   RFC5891:
   RFC8126:
   OIDF-FEDERATION:
@@ -84,6 +86,14 @@ informative:
     title: "OAuth Domain-Authorized Issuer Trust Method"
     target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer/
     date: false
+  I-D.shankarlingam-oauth-agent-dns-link:
+    title: "Linking an Agent's DNS Name to its OAuth Client"
+    target: https://datatracker.ietf.org/doc/draft-shankarlingam-oauth-agent-dns-link/
+    date: false
+  I-D.ietf-oauth-client-id-metadata-document:
+    title: "OAuth Client ID Metadata Document"
+    target: https://datatracker.ietf.org/doc/draft-ietf-oauth-client-id-metadata-document/
+    date: false
   I-D.ietf-oauth-identity-chaining:
     title: "OAuth Identity and Authorization Chaining Across Domains"
     target: https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-chaining/
@@ -119,7 +129,9 @@ that a Resource Authorization Server publishes to declare which trust
 methods it requires of an Assertion Issuer, including
 issuer-authentication methods (such as OpenID Federation) and
 subject-namespace authorization methods defined by separate
-profiles.
+profiles. The policy can also require evidence about the OAuth
+client that presents the assertion, through client-recognition
+methods.
 
 The Domain-Authorized Issuer Trust Method is defined separately as one
 subject-namespace authorization profile usable by this framework.
@@ -233,7 +245,7 @@ that policy for the asserted subject namespace.
 
 ## Trust Evaluation Categories {#two-trust-questions}
 
-This document defines two independent trust-evaluation categories
+This document defines three independent trust-evaluation categories
 for OAuth identity assertions ({{categories}}):
 
 - **`issuer_authentication`** is the Authenticity category. It
@@ -242,6 +254,12 @@ for OAuth identity assertions ({{categories}}):
 - **`subject_namespace_authorization`** is the delegation authority
   category. It asks: has the namespace owner authorized this
   issuer to assert about subjects in its namespace?
+
+- **`client_recognition`** applies the Authenticity question to the
+  client that presents the assertion. It asks: is that client
+  recognized by an authority the Resource Authorization Server
+  accepts? Recognition admits the client to the exchange. It does not
+  authorize the client to act for any particular user.
 
 Each Trust Method belongs to one or more of these categories, and
 evidence is required from each applicable category
@@ -450,8 +468,8 @@ by a Resource Authorization Server to declare its trust criteria.
 
 Trust Method:
 : A registered, named evaluation procedure by which a Validator
-tests one category of trust evidence about an Assertion Issuer
-({{trust-methods}}). A Trust Policy names the Trust Methods it
+tests one category of trust evidence about an Assertion Issuer or
+about the client presenting an Assertion ({{trust-methods}}). A Trust Policy names the Trust Methods it
 requires.
 
 Issuer Authorization Policy:
@@ -524,8 +542,8 @@ artifact, accept latency bounded by the cache window.
 
 ## Independent Trust Evaluation Categories {#categories}
 
-A Validator combines two independent trust evaluations to accept
-an Assertion. Each category answers a distinct question:
+A Validator combines two kinds of independent trust evaluation to
+accept an Assertion. Each category answers a distinct question:
 
 - **Authenticity**: is the entity that signed the Assertion
   cryptographically authentic and recognized as a member of some
@@ -537,14 +555,20 @@ an Assertion. Each category answers a distinct question:
   asserted scope delegated to this signer? Satisfied by a
   Delegation Artifact from the appropriate Authority Holder.
 
+Authenticity can be evaluated for more than one principal: the
+entity that signed the Assertion and, in OAuth, the client that
+presents it.
+
 The OAuth Trust Method categories defined in this document
 ({{trust-method-categories}}) instantiate these:
-`issuer_authentication` realizes Authenticity, and
+`issuer_authentication` realizes Authenticity for the signer,
 `subject_namespace_authorization` realizes Delegation authority
-for namespace-bound Subject Identifiers.
+for namespace-bound Subject Identifiers, and `client_recognition`
+realizes Authenticity for the OAuth client that presents an identity
+assertion.
 
 Local policy (risk scoring, scope grants, account linking, business
-rules) applies on top of these two categories and remains the final
+rules) applies on top of these categories and remains the final
 decision layer ({{rasp}} step 6).
 
 ### Cross-Category Combination Rule {#combination-rule}
@@ -567,7 +591,11 @@ signer's identity beyond what the Delegation Artifact attests.
 #### Category Applicability {#category-applicability}
 
 Category applicability is a property of the Validator's published
-Trust Policy, not of the incoming Assertion. If the Trust Policy
+Trust Policy, not of the incoming Assertion. A Validator that holds
+more than one Trust Policy never selects one from properties of the
+Assertion, and selects one by OAuth client only after authenticating
+the client against its registration ({{rasp}} step 1). If the Trust
+Policy
 declares one or more Trust Methods in a given category, that
 category is applicable to every Assertion the Validator evaluates
 within the profile's scope. The Assertion itself MUST NOT be able
@@ -607,9 +635,9 @@ against ad-hoc or fallback selection logic and the
 deterministic-selection requirement are detailed in
 {{unverified-claim}}.
 
-For `issuer_authentication`, every Authority Source the Trust
-Policy lists is equally trusted by the Validator, so a profile MAY
-accept evidence from any of them. For `openid_federation`, this
+For `issuer_authentication` and `client_recognition`, every
+Authority Source the Trust Policy lists is equally trusted by the
+Validator, so a profile MAY accept evidence from any of them. For `openid_federation`, this
 means a chain to any listed trust anchor
 ({{trust-method-openid-federation}}).
 
@@ -675,7 +703,9 @@ Delegation authority).
 ## Lookup States and Fail-Closed {#exception-handling}
 
 A Validator's lookup of a Delegation Artifact produces exactly
-one of three abstract states. Profiles MUST map every concrete
+one of three abstract states. The same states classify a lookup of
+evidence about an OAuth client in the `client_recognition` category
+({{trust-method-categories}}). Profiles MUST map every concrete
 outcome of the lookup operation onto exactly one of these states.
 
 ### Lookup States
@@ -777,6 +807,12 @@ Assertion Issuer Trust Policy in its authorization server metadata
 `identity_assertion_trust_policy_uri`
 : OPTIONAL. HTTPS URI identifying the Identity Assertion Issuer Trust
   Policy document.
+
+A Resource Authorization Server that applies different Trust Policies
+to different clients publishes the one that applies to clients
+without a prior relationship with it. How a client it registers
+learns which policy applies to that client is out of scope for this
+document.
 
 A Protected Resource that publishes OAuth 2.0 Protected Resource
 Metadata {{RFC9728}} MAY include the same member to advertise the
@@ -904,6 +940,24 @@ member is deliberately named without the `_supported` suffix used
 by capability-style OAuth metadata parameters
 ({{RFC8414}}) to signal that distinction. Local policy may add
 requirements per client, subject, or scope; see {{downgrade}}.
+An object in this member counts only toward the issuer categories,
+`issuer_authentication` and `subject_namespace_authorization`, and a
+method that belongs to no issuer category is malformed here.
+
+`client_trust_methods`
+: OPTIONAL. Non-empty JSON array of Trust Method objects
+({{trust-methods}}) whose methods belong to the
+`client_recognition` category ({{trust-method-categories}}). When
+present, it states the trust requirements the Resource Authorization
+Server enforces against the client that presents an identity
+assertion: an assertion is rejected unless the authenticated client
+satisfies the Trust Method combination rule in {{rasp}} against the
+methods listed here. An object in this member counts only toward the
+`client_recognition` category, and a method that does not belong to
+that category is malformed here. A Resource Authorization Server can
+list `client_trust_methods` in `crit` ({{critical-members}}) so that a
+client that does not implement this member does not read the policy
+as placing no requirement on clients.
 
 ## Trust Methods {#trust-methods}
 
@@ -943,6 +997,16 @@ named namespace? When a policy lists a method in this category, every
 in-scope assertion must carry a resolvable Subject Identifier and
 fails closed if it does not ({{rasp}} step 5c).
 
+`client_recognition`
+: Is the OAuth client presenting the assertion, as authenticated at
+the token endpoint, recognized by an authority the Resource
+Authorization Server accepts? Methods in this category are listed in
+`client_trust_methods` and evaluate the authenticated client, never a
+claim in the assertion ({{rasp}} step 5f). Recognition admits a client
+to assertion exchange. It does not authorize the client to act for a
+particular user; the grant profile's client binding does that (for
+ID-JAG, {{ID-JAG}} §4.4.1).
+
 Deployments accepting assertions about namespace-bound subjects
 SHOULD list at least one `subject_namespace_authorization`
 method; federation membership alone does not establish namespace
@@ -959,7 +1023,8 @@ that the deferral from this framework to the method is testable:
   belongs to ({{iana-trust-methods-registry}}).
 - The evidence the method consumes and the exact procedure by which a
   Validator decides the method is satisfied for a given (issuer,
-  subject) pair, precise enough for interoperable implementation.
+  subject) pair or, for `client_recognition`, a given authenticated
+  client, precise enough for interoperable implementation.
 - The mapping of the method's retrieval and evaluation outcomes onto
   the Affirmative / Negative / Indeterminate lookup states
   ({{exception-handling}}), including which conditions fail closed.
@@ -1191,6 +1256,207 @@ domain). The namespace-authorization trust graph is bounded to depth
 one ({{transitive-authz-bounded}}). Concrete methods in this category
 are defined by companion specifications and registered in the
 Trust Methods registry ({{iana-trust-methods-registry}}).
+
+### Client Recognition Methods {#client-recognition-methods}
+
+`client_recognition`-category methods are satisfied by evidence
+about the OAuth client that presents an identity assertion at the
+token endpoint. The client evaluated is the one that the grant
+profile's client authentication identifies ({{rasp}} step 5f). For
+ID-JAG, the assertion's `client_id` claim identifies the same client
+({{ID-JAG}} §4.4.1), so the Assertion Issuer has already named the
+client it issued the assertion to. Under the generic JWT-bearer
+binding ({{jwt-bearer-profile}}) the assertion names no client, so any
+client that satisfies the category can present an assertion it
+obtained. Recognizing a client does not
+authorize any Assertion Issuer, and authorizing an Assertion Issuer
+does not recognize any client.
+
+The OAuth Client ID Metadata Document
+{{I-D.ietf-oauth-client-id-metadata-document}} is complementary. It
+lets an authorization server obtain a client's metadata and keys
+from its `client_id` URL, but it leaves the decision to trust that
+client to the authorization server. A client recognition method could
+use it as a key source only together with evidence that the Resource
+Authorization Server trusts.
+
+#### openid_federation_client {#trust-method-openid-federation-client}
+
+The `openid_federation_client` method indicates that the client is
+acceptable if it is an OpenID Federation {{OIDF-FEDERATION}} Entity
+whose trust chain validates to a listed trust anchor and, when the
+policy requires them, holds the required Trust Marks.
+
+~~~ json
+{
+  "method": "openid_federation_client",
+  "trust_anchors": ["https://federation.example.org"]
+}
+~~~
+
+The method has the members `trust_anchors` and `trust_marks`, defined
+as for `openid_federation` ({{trust-method-openid-federation}}).
+
+The client's `client_id` is its Entity Identifier, as in Automatic
+Registration ({{OIDF-FEDERATION-CONNECT}} §12.1 and §12.4).
+{{OIDF-FEDERATION-CONNECT}} §12.1 starts Automatic Registration at an
+Authentication Request, and §12.1.5 says that bare OAuth 2.0
+deployments can use it. It does not describe a client whose first
+request is a token request with no Authentication Request before it;
+this method defines that case. This method places none of the
+obligations of
+{{OIDF-FEDERATION-CONNECT}} §12.1 on the client toward the Resource
+Authorization Server, and it is evaluated for each token request that
+presents an identity assertion. The `client_id` MUST equal the `sub`
+of the client's Entity Configuration by simple string comparison. A
+client whose `client_id` is not an Entity Identifier
+({{OIDF-FEDERATION}} §1.2) does not satisfy this method, and the
+lookup state is Negative.
+
+The Resource Authorization Server evaluates this method as it
+evaluates `openid_federation`, with the client's Entity Identifier as
+the leaf. Trust chain validation, the lookup states, caching, and
+requirements 1 and 4 apply unchanged. Where that section refers to the
+Assertion Issuer, it refers here to the client. Every requirement MUST
+hold on one trust chain: the metadata, key set, and Trust Marks used
+are those of the chain that satisfies requirement 1. Requirements 2
+and 3 are replaced by the following:
+
+- **Entity type constraint.** The leaf's policy-applied federation
+  metadata MUST declare the entity type `oauth_client` or
+  `openid_relying_party` ({{OIDF-FEDERATION-CONNECT}} §5.1.4 and
+  §5.1.1), under the type-declaration rule of requirement 2. The
+  client metadata is the policy-applied `oauth_client` metadata, or
+  the `openid_relying_party` metadata when the leaf declares no
+  `oauth_client` type ({{OIDF-FEDERATION-CONNECT}} §12 uses
+  `oauth_client` for OAuth 2.0 profiles other than OpenID Connect).
+  Metadata from the two types is never combined.
+- **Federation-bound client authentication key.** Client
+  authentication MUST verify under a key in a key set that the client
+  metadata designates through `jwks`, `jwks_uri`, or `signed_jwks_uri`
+  ({{OIDF-FEDERATION}} §5.2.1), processed as that section specifies.
+  For `jwks_uri`, the trust chain authenticates the URI, not the key
+  set it returns, which relies on HTTPS to that endpoint. The
+  permitted client authentication methods are:
+
+  - JWT client authentication ({{RFC7523}} Sections 2.2 and 3) with a
+    JWT signed by such a key, whose `aud` claim is the Resource
+    Authorization Server's issuer identifier, either as a string or
+    as an array with that single element; and
+  - self-signed certificate mutual TLS ({{RFC8705}} Section 2.2) with
+    a certificate equal to the first certificate in the `x5c` value
+    of such a key, without certificate chain validation.
+
+  A first token request is in the position that
+  {{OIDF-FEDERATION-CONNECT}} §12.1.1.2 addresses for a Pushed
+  Authorization Request: the client authenticates before any
+  registration exists. These are that section's two client
+  authentication methods (see also §12.1.1.2.1). They are narrower
+  than {{OIDF-FEDERATION-CONNECT}} §12.1.4, under which a server
+  accepts any mutually supported method, and than {{RFC7523}}
+  Section 3, which also allows the token endpoint URL as `aud`. The
+  `aud` value is the issuer identifier, not an Entity Identifier,
+  because the Resource Authorization Server need not be a federation
+  Entity.
+
+  A client that authenticates any other way does not satisfy this
+  method. Keys the Resource Authorization Server knows only through
+  another source, such as out-of-band registration or a client
+  metadata document, do not count. If no such key set is available,
+  or it cannot be retrieved or validated, the outcome is
+  Indeterminate.
+
+- **Declared client metadata.** The client metadata MUST declare the
+  method the client authenticates with, in
+  `token_endpoint_auth_method` or
+  `token_endpoint_auth_methods_supported`
+  ({{OIDF-FEDERATION-CONNECT}} §12.1.4), and MUST list the token
+  request's grant type in `grant_types` ({{RFC7591}} Section 2). A
+  client that omits them does not satisfy this method; the
+  {{RFC7591}} defaults, `client_secret_basic` and
+  `authorization_code`, would not permit the request either. A
+  Superior can constrain both through metadata policy
+  ({{OIDF-FEDERATION}} §6.1).
+
+When the Resource Authorization Server relies on this method to
+satisfy the `client_recognition` category, it MUST NOT accept the
+assertion unless client authentication verified under a key this
+method permits. Verification under any other key, such as a key from
+a client metadata document, is not client authentication for this
+method.
+
+The keys come from the trust chain, so the Resource Authorization
+Server resolves the client's trust chain and key set before it
+verifies client authentication. The error for a failure depends on
+the condition, not on when it is detected. When more than one
+condition applies, the first in this list determines the error:
+
+1. `invalid_client` ({{RFC6749}} Section 5.2) when the `client_id`
+   is not an Entity Identifier, no trust chain reaches a listed trust
+   anchor, the chain or the key set is Indeterminate, the metadata
+   declares neither entity type, the client authenticates with a
+   method its metadata does not declare, or client authentication
+   does not verify under a key in the federation key set.
+2. Any failure of the assertion or of an issuer method gets the error
+   that {{rasp}} specifies.
+3. When the client is authenticated but not recognized, because it
+   holds no Trust Mark that meets a requirement (requirement 4), the
+   Trust Mark evaluation is Indeterminate, or its metadata does not
+   list the request's grant type: the error that the grant profile
+   defines for a client the Resource Authorization Server does not
+   authorize, such as `access_denied` for {{ID-JAG}} (§4.4.3), and
+   otherwise `unauthorized_client` ({{RFC6749}} Section 5.2). This
+   error applies only when the assertion is valid and every other
+   category is satisfied.
+
+Any token request can name an `https` `client_id`, and so cause these
+fetches before the client is authenticated, including a fetch for
+every Entity in the client's `authority_hints` ({{OIDF-FEDERATION}}
+§18.1). Before the client is authenticated, the Resource
+Authorization Server:
+
+- MUST limit the number of `authority_hints` it follows;
+- SHOULD cache a Negative or Indeterminate outcome per `client_id`
+  for a bounded period; and
+- SHOULD rate-limit trust chain resolution for clients it has not
+  seen before.
+
+A client that does not publish its Entity Configuration
+({{OIDF-FEDERATION}} §9) can send its trust chain in a `trust_chain`
+header parameter of its client assertion ({{OIDF-FEDERATION}}
+§4.3). The Resource Authorization Server MAY use that chain, after
+validating it per {{OIDF-FEDERATION}} §10.2, in place of resolving
+one. Without a published Entity Configuration or a valid supplied
+chain, the client does not satisfy this method.
+
+The Resource Authorization Server caches the client's key set no
+longer than the trust chain ({{trust-method-openid-federation}}). A
+client assertion signed with a key whose `kid` the cached key set
+lacks MAY prompt one fresh fetch of the key set, rate-limited per
+client, before the request is rejected.
+
+Clients registered through Explicit Registration
+({{OIDF-FEDERATION-CONNECT}} §12.2) receive a `client_id` that need
+not be their Entity Identifier. This method covers such a client only
+when its `client_id` is its Entity Identifier.
+
+A Resource Authorization Server that also has clients it registered
+itself can apply a Trust Policy without `client_trust_methods` to a
+request that authenticates as one of those clients against that
+registration ({{rasp}} step 1). It MUST NOT do so for a request whose
+`client_id` is an `https` URL, even when it holds a registration for
+that `client_id`, such as an Explicit Registration that kept the
+Entity Identifier ({{OIDF-FEDERATION-CONNECT}} §12.2.2). A public
+client does not authenticate against its registration ({{RFC6749}}
+Section 2.3). Every other request, including one that names a
+registered `client_id` without authenticating as that client, gets
+the policy with `client_trust_methods`. A Resource Authorization
+Server that already uses `https` URLs as `client_id` values for
+clients outside a federation cannot list `client_trust_methods`
+without rejecting those clients. This document defines no other way
+to combine registered and federation clients.
+{{example-client-recognition}} walks through first contact,
+rejection, cached trust, and coexistence.
 
 ### Worked Example: OpenID Federation + DAI {#example-federation-dai}
 
@@ -1457,7 +1723,10 @@ Authorization Server:
    Subject Identifiers, this usually means satisfying both an
    `issuer_authentication` method (such as federation membership) and
    a `subject_namespace_authorization` method (such as authorization
-   by the Subject Authority).
+   by the Subject Authority). If the Trust Policy contains
+   `client_trust_methods`, the client also determines whether it
+   satisfies them, for example whether its `client_id` is an Entity
+   Identifier in a listed federation.
 
 5. Determines whether the Assertion Issuer can produce a Subject
    Identifier in a format listed in
@@ -1485,7 +1754,15 @@ When evaluating an identity assertion JWT presented in a token
 request, the Resource Authorization Server MUST:
 
 1. Select and parse the Trust Policy that applies to the token request.
-   If the policy document is malformed, reject the assertion.
+   A Resource Authorization Server that holds more than one Trust
+   Policy never selects one from a claim in the assertion
+   ({{category-applicability}}). It selects one by client only when
+   the request's client authentication verifies against a
+   registration it holds ({{trust-method-openid-federation-client}}
+   limits which registrations qualify). Any other request gets the
+   policy that applies without regard to the client, such as the one
+   it publishes ({{metadata-publication}}). If the policy document is
+   malformed, reject the assertion.
    (Recognition of individual Trust Method objects is handled in
    step 5a.)
 
@@ -1517,16 +1794,20 @@ request, the Resource Authorization Server MUST:
    unless the applicable grant profile defines a different format
    selection rule.
 
-5. Verify that the Assertion Issuer identified by `iss` satisfies the
-   Trust Method combination rule:
+5. Verify that the Assertion Issuer identified by `iss` and, when the
+   policy contains `client_trust_methods`, the authenticated client
+   satisfy the Trust Method combination rule:
 
-   a. Partition the Trust Method objects in `issuer_trust_methods` by
-      category (see {{trust-method-categories}}). A Trust Method
-      registered with multiple categories belongs to each. If any
-      object in `issuer_trust_methods` is not recognized, is
-      malformed, or cannot be assigned to a category known to the
-      Resource Authorization Server, the Resource Authorization
-      Server MUST reject the assertion. In that case, the Resource
+   a. Partition the Trust Method objects in `issuer_trust_methods` and
+      `client_trust_methods` by category (see
+      {{trust-method-categories}}). A Trust Method registered with
+      multiple categories belongs to each category that its member
+      allows ({{trust-policy-document}}). If any object in either
+      member is not recognized, is malformed (including a method
+      listed in the wrong member, {{trust-policy-document}}), or
+      cannot be assigned to a category known to the Resource
+      Authorization Server, the Resource Authorization Server MUST
+      reject the assertion. In that case, the Resource
       Authorization Server cannot determine whether it is evaluating
       the full set of requirements the operator declared. Silently
       ignoring the object would evaluate a strict subset (a fail-open
@@ -1537,9 +1818,10 @@ request, the Resource Authorization Server MUST:
    b. Each category present in the partitioned policy is applicable to
       every assertion evaluated under this policy; applicability is a
       property of the policy, not the assertion ({{category-applicability}}).
-      For each present category, the Assertion Issuer MUST satisfy at
-      least one Trust Method from that category, subject to the
-      finality rule of {{multiple-sources}}.
+      For each present category, the Assertion Issuer, or for the
+      `client_recognition` category the authenticated client, MUST
+      satisfy at least one Trust Method from that category, subject to
+      the finality rule of {{multiple-sources}}.
 
    c. When the policy contains a `subject_namespace_authorization`
       Trust Method, the assertion MUST carry a Subject Identifier from
@@ -1558,7 +1840,7 @@ request, the Resource Authorization Server MUST:
    d. Local policy MAY require satisfaction of additional Trust
       Methods for specific clients, subjects, or scopes.
 
-   e. When the policy lists only `issuer_authentication` methods and
+   e. When the policy lists no `subject_namespace_authorization` method and
       the assertion carries a namespace-bound Subject Identifier, the
       Resource Authorization Server MUST reject the assertion unless
       local policy independently establishes authority over the
@@ -1570,19 +1852,37 @@ request, the Resource Authorization Server MUST:
       membership alone does not establish authority over a particular
       subject namespace.
 
+   f. When the policy contains `client_trust_methods`, the Resource
+      Authorization Server MUST evaluate the `client_recognition`
+      category against the client that the request's client
+      authentication ({{RFC6749}} Section 2.3) identifies, never
+      against a claim in the assertion. If the request carries no
+      client authentication that the Resource Authorization Server
+      accepts, it MUST reject the request with an `invalid_client`
+      error ({{RFC6749}} Section 5.2).
+
 6. Apply local policy (account-linking, consent, authorization,
    risk) and the applicable grant profile's sender-constraining;
    this document specifies neither.
 
 Client authentication that the grant profile requires SHOULD be
 completed before step 5, so that unauthenticated requests cannot
-cause the lookups that step performs. Fetches made in step 5 follow
-{{outbound-fetches}}.
+cause the lookups that step performs. When the policy contains
+`client_trust_methods`, the Resource Authorization Server MUST
+authenticate the client before step 2, and before then MUST NOT
+perform any lookup except those a `client_recognition` method needs
+to obtain the client's authentication keys, such as the trust chain
+and key set that `openid_federation_client` resolves. Every fetch
+made in this processing follows {{outbound-fetches}}.
 
 Rejection at any of steps 1 through 5, including a malformed Trust
 Policy (step 1) or an unlisted grant profile (step 3), MUST result in
 an OAuth `invalid_grant` error unless another error is defined by
-the applicable grant profile. Detailed trust-evaluation failure state
+the applicable grant profile, by step 5f, or by the Trust Method that
+failed. A client authentication failure, from step 5f or from a
+`client_recognition` method, takes precedence over any other error.
+An error for an authenticated client that a `client_recognition`
+method does not recognize applies only when no other step fails. Detailed trust-evaluation failure state
 MUST NOT be returned to public clients in the OAuth error response;
 it is a reconnaissance target.
 
@@ -1592,6 +1892,7 @@ Evaluating Trust Methods makes the Resource Authorization Server
 fetch resources at locations an attacker can choose:
 
 - the Assertion Issuer's metadata and key sets;
+- a client's Entity Configuration, trust chain, and key sets;
 - Entity Statements reached through a leaf's `authority_hints`;
 - a Trust Mark Issuer's chain; and
 - policy documents named by a Subject Authority that the attacker
@@ -1609,7 +1910,7 @@ For every such fetch, the Resource Authorization Server:
   and the connection cannot redirect the fetch;
 - MUST apply a timeout to each fetch and MUST bound response sizes;
   and
-- MUST bound the number of fetches one assertion can cause; a bound
+- MUST bound the number of fetches one token request can cause; a bound
   of no more than 20 is RECOMMENDED.
 
 Trust Method specifications MAY add requirements; for example,
@@ -1654,6 +1955,12 @@ method: publishing a Trust Policy is optional
 ({{metadata-publication}}), and local policy can add Trust Methods
 ({{rasp}} step 5d). This narrows {{ID-JAG}} §6.1.
 
+{{ID-JAG}} §4.4.1 lets a client that does not authenticate prove
+possession of the key in the ID-JAG's `cnf` claim instead. When the
+Trust Policy contains `client_trust_methods`, step 5f of {{rasp}}
+rejects such a request with `invalid_client`. This narrows
+{{ID-JAG}} §4.4.1.
+
 In addition to the processing in {{rasp}}, the Resource Authorization
 Server MUST:
 
@@ -1688,7 +1995,9 @@ grant-profile identifier; a deployment accepting this grant MUST list
 it in `authorization_grant_profiles_supported` so {{rasp}} step 3
 applies uniformly. A Resource Authorization Server SHOULD reject a
 JWT-bearer assertion whose `typ` header identifies a different JWT
-application ({{RFC8725}} §3.11).
+application ({{RFC8725}} §3.11). {{RFC7523}} Section 3.1 lets this
+grant be used without client authentication. A Trust Policy that
+contains `client_trust_methods` requires it ({{rasp}} step 5f).
 
 As with ID-JAG, the Subject Identifier for this binding is the
 top-level `email` claim, accompanied by `email_verified=true`,
@@ -1852,7 +2161,7 @@ publication-channel compromise model.
 
 ## Transitive Authorization is Bounded {#transitive-authz-bounded}
 
-The two trust categories make different transitivity choices, both
+The two issuer categories make different transitivity choices, both
 permitted within the taxonomy of {{open-world}}:
 
 - `issuer_authentication` permits chained transitivity. The
@@ -1866,7 +2175,7 @@ permitted within the taxonomy of {{open-world}}:
   latency is bounded by the Subject Authority's own cache lifetime
   and does not compound across delegations.
 
-The two categories are independent: federation membership does not
+The two issuer categories are independent: federation membership does not
 establish namespace authority, and namespace authorization does not
 establish authenticity. The cross-category combination rule
 ({{rasp}}) enforces this independence at evaluation time. See
@@ -1941,6 +2250,51 @@ Audience binding is enforced by the assertion's `aud` claim and the
 applicable grant profile, not by the Subject Authority. A future
 extension may let Authority Holders constrain acceptable audiences
 (see {{DAI}} §Future Extensions).
+
+## Client Recognition {#client-recognition-security}
+
+The `client_recognition` category evaluates the client that
+presents an identity assertion. The client is taken from the token
+request's client authentication, not from the assertion, so an
+attacker who controls an assertion's claims cannot choose which
+client is evaluated ({{unverified-claim}}). Recognition admits a
+client to the exchange. It does not authorize the client to act for
+a particular user, it says nothing about the subject or the Assertion
+Issuer, and the other categories still apply. Under the generic
+JWT-bearer binding, where the assertion names no client, any
+recognized client can present an assertion it obtained
+({{client-recognition-methods}}).
+
+`openid_federation_client` requires the client to authenticate with
+a key its federation metadata publishes. Without that rule, a client
+could authenticate with a key the Resource Authorization Server holds
+from another source, such as a client metadata document, and be
+recognized as the federation Entity its `client_id` names. A Resource
+Authorization Server that also registers clients selects their policy
+only after they authenticate against their registration, so naming a
+registered `client_id` without authenticating as that client does not
+avoid the client method. A request whose `client_id` is an `https`
+URL gets the client method even when a registration exists for it,
+so a party holding such a registration cannot redeem an assertion
+issued to the federation Entity of that name
+({{trust-method-openid-federation-client}}).
+
+A compromised intermediate or trust anchor can substitute a client's
+keys through the metadata in its Subordinate Statement
+({{OIDF-FEDERATION}} §3.1.1), as it can an Assertion Issuer's
+({{key-binding}}), and so authenticate as any client beneath it.
+
+A client method that lets a client opt in by publishing evidence,
+such as a DNS record, has the same property as a namespace method:
+under the combination rule, a client that has published nothing is
+Negative, and is rejected wherever the category is listed unless
+another listed client method is satisfied. Accepting such clients
+through local policy instead needs a mechanism that this document
+does not define.
+
+Step 5f of {{rasp}} requires client authentication whenever the
+policy lists a client method, even where a grant profile would allow a
+request without it.
 
 ## Per-Assertion Revocation Is Out of Scope {#per-assertion-revocation}
 
@@ -2153,10 +2507,10 @@ Status:
 Related Information:
 : None
 
-### Identity Assertion Issuer Trust Method Categories Registry {#iana-trust-method-categories-registry}
+### Identity Assertion Trust Method Categories Registry {#iana-trust-method-categories-registry}
 
 IANA is requested to establish a new registry titled "Identity
-Assertion Issuer Trust Method Categories" under the "OAuth Parameters"
+Assertion Trust Method Categories" under the "OAuth Parameters"
 registry group. This registry backs the category values used by the
 Trust Methods registry and referenced by the combination rule
 ({{combination-rule}}).
@@ -2181,11 +2535,12 @@ Document this document:
 |-|-|
 | `issuer_authentication` | Establishes that the Assertion Issuer is an authentic, recognized entity |
 | `subject_namespace_authorization` | Establishes that the Assertion Issuer is authorized by the subject's namespace owner |
+| `client_recognition` | Establishes that the client presenting the assertion is recognized by an authority the Resource Authorization Server accepts |
 
-### Identity Assertion Issuer Trust Methods Registry {#iana-trust-methods-registry}
+### Identity Assertion Trust Methods Registry {#iana-trust-methods-registry}
 
 IANA is requested to establish a new registry titled "Identity
-Assertion Issuer Trust Methods" under the "OAuth Parameters"
+Assertion Trust Methods" under the "OAuth Parameters"
 registry group.
 
 Registration policy: Specification Required {{RFC8126}}.
@@ -2223,7 +2578,7 @@ Designated Expert instructions: the expert verifies that:
 - parameter names do not collide in meaning with parameters of other
   methods in a way that would be ambiguous when methods are combined.
 
-Initial entry:
+Initial entries:
 
 Identifier:
 : `openid_federation`
@@ -2234,6 +2589,22 @@ Categories:
 Parameters:
 : `trust_anchors` (array of string, REQUIRED); `trust_marks` (array
   of object, OPTIONAL; see {{trust-method-openid-federation}})
+
+Change Controller:
+: IETF
+
+Reference:
+: This document
+
+Identifier:
+: `openid_federation_client`
+
+Categories:
+: `client_recognition`
+
+Parameters:
+: `trust_anchors` (array of string, REQUIRED); `trust_marks` (array
+  of object, OPTIONAL; see {{trust-method-openid-federation-client}})
 
 Change Controller:
 : IETF
@@ -2288,6 +2659,7 @@ and Specification Document this document:
 | `authorization_grant_profiles_supported` | Supported identity assertion grant profile identifiers |
 | `subject_identifier_formats_supported` | Supported Subject Identifier formats |
 | `issuer_trust_methods` | Trust Method requirements enforced for incoming identity assertions |
+| `client_trust_methods` | Trust Method requirements enforced for the client presenting an identity assertion |
 | `crit` | Names decision-affecting members that a consumer has to understand to process the document |
 
 ## Subject Authority Extraction Procedures Registry {#iana-authority-registry}
@@ -2457,6 +2829,23 @@ would:
 Such a method is deferred as an assurance-tier extension for
 deployments whose requirements justify the operational cost.
 
+## Additional Client Recognition Methods
+
+Other `client_recognition` methods can follow the pattern of
+{{DAI}} for clients identified by DNS names. For example,
+{{I-D.shankarlingam-oauth-agent-dns-link}} publishes, under an
+agent's DNS name, the issuer and client identifier the agent uses at
+its operator's authorization server, and has the agent present a
+fresh access token issued to that client. As a Trust Method, such a mechanism
+would need to define its lookup states, including Indeterminate on
+DNS failure, bind its record to the queried name as {{DAI}}'s
+`authority=` directive does, and say how the token is carried in a
+token request. Clients registered through OpenID Federation Explicit
+Registration ({{OIDF-FEDERATION-CONNECT}} §12.2) with a `client_id`
+other than their Entity Identifier are another gap: a method for them
+would take the Entity Identifier from the registration rather than
+from the `client_id`.
+
 ## Actor Identity Trust Evaluation
 
 OAuth assertions can carry an `act` object expressing actor
@@ -2522,13 +2911,13 @@ a JSON policy document, conventionally on the dedicated host
 `oauth-issuer-policy.{domain}`). RAS-published vs
 Subject-Authority-published.
 
-**Q: Why two independent trust categories?**
+**Q: Why independent trust categories?**
 
 To stop "federation member" from being silently treated as
 "authoritative for any namespace." Each category answers a
 different question and the cross-category combination rule
-({{combination-rule}}) requires evidence from both when both are
-configured. Conflating them is the bug
+({{combination-rule}}) requires evidence from each category that
+is configured. Conflating them is the bug
 ({{combination-rule}}, {{transitive-authz-bounded}}).
 
 **Q: What if my Subject Authority cannot publish DNS TXT records?**
@@ -2858,6 +3247,164 @@ fallback. An absent binding, digest mismatch, or unsupported
 extension with no other qualifying key source yields Indeterminate
 and `invalid_grant`.
 
+# Client Recognition Walkthrough {#example-client-recognition}
+
+This appendix is non-normative. It walks through
+`openid_federation_client` ({{trust-method-openid-federation-client}})
+from a client's first token request to later requests. It also shows
+how a Resource Authorization Server runs federation clients beside
+clients it registered itself.
+
+**Cast:**
+
+- Resource Authorization Server `https://api.saas.example`, with
+  token endpoint `https://api.saas.example/token`.
+- Trust anchor `https://federation.example.org`.
+- Client `https://agent.example`, an agent platform that is a
+  federation Entity of type `oauth_client`. It has never contacted
+  the Resource Authorization Server.
+- Assertion Issuer `https://idp.partner.example`, which issues the
+  client an ID-JAG for `alice@partner.example` whose `client_id`
+  claim is `https://agent.example`.
+
+**Trust Policy.** The Resource Authorization Server publishes:
+
+~~~ json
+{
+  "resource_authorization_server": "https://api.saas.example",
+  "authorization_grant_profiles_supported": [
+    "urn:ietf:params:oauth:grant-profile:id-jag"
+  ],
+  "issuer_trust_methods": [
+    {
+      "method": "openid_federation",
+      "trust_anchors": ["https://federation.example.org"]
+    },
+    { "method": "domain_authorized_issuer" }
+  ],
+  "client_trust_methods": [
+    {
+      "method": "openid_federation_client",
+      "trust_anchors": ["https://federation.example.org"]
+    }
+  ],
+  "crit": ["client_trust_methods"]
+}
+~~~
+
+**Client metadata.** The client's Entity Configuration, at
+`https://agent.example/.well-known/openid-federation`, includes:
+
+~~~ json
+{
+  "iss": "https://agent.example",
+  "sub": "https://agent.example",
+  "metadata": {
+    "oauth_client": {
+      "grant_types": ["urn:ietf:params:oauth:grant-type:jwt-bearer"],
+      "token_endpoint_auth_method": "private_key_jwt",
+      "jwks_uri": "https://agent.example/jwks.json"
+    }
+  },
+  "authority_hints": ["https://federation.example.org"]
+}
+~~~
+
+**First contact.** The client's first request to the Resource
+Authorization Server is a token request:
+
+~~~ http
+POST /token HTTP/1.1
+Host: api.saas.example
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
+&assertion=eyJ0eXAiOiJvYXV0aC1pZC1qYWcrand0Ii...
+&client_id=https%3A%2F%2Fagent.example
+&client_assertion_type=
+urn:ietf:params:oauth:client-assertion-type:jwt-bearer
+&client_assertion=eyJhbGciOiJFUzI1NiIsImtpZCI6...
+~~~
+
+Line breaks in the request body are for display only. The client
+assertion's claims are:
+
+~~~ json
+{
+  "iss": "https://agent.example",
+  "sub": "https://agent.example",
+  "aud": "https://api.saas.example",
+  "exp": 1793880000,
+  "jti": "c1f0..."
+}
+~~~
+
+**Processing.** The Resource Authorization Server:
+
+1. Applies the policy above, because the `client_id` is an `https`
+   URL ({{rasp}} step 1).
+2. Resolves the client's Entity Configuration and a trust chain to
+   `https://federation.example.org`.
+3. Checks that the policy-applied metadata declares `oauth_client`.
+4. Fetches the key set at `jwks_uri`, verifies the client assertion's
+   signature with a key in it, and checks that its `aud` is
+   `https://api.saas.example` and that `private_key_jwt` is the
+   declared method. The client is now authenticated. Steps 2 through
+   4 are the only lookups before the client is authenticated.
+5. Validates the ID-JAG, including that its `client_id` claim is
+   `https://agent.example` ({{ID-JAG}} §4.4.1).
+6. Evaluates `openid_federation` for `https://idp.partner.example`,
+   `domain_authorized_issuer` for `partner.example`, and
+   `openid_federation_client` for the client. Every category is
+   satisfied, so it issues an access token.
+
+**Rejections:**
+
+- The request carries no client authentication: `invalid_client`
+  ({{rasp}} step 5f).
+- The `client_id` is not an Entity Identifier: the method is
+  Negative, the request has no accepted client authentication, and
+  the result is `invalid_client`.
+- The trust chain ends at a trust anchor that is not listed:
+  `invalid_client`.
+- The client assertion is signed with a key that is not in the
+  federation key set, even one published in a client metadata
+  document: `invalid_client`.
+- The Entity Configuration fetch times out or returns a 5xx status:
+  the method is Indeterminate, and the result is `invalid_client`.
+- The policy required a Trust Mark that the client does not hold:
+  the client is authenticated but not recognized, and the result is
+  `access_denied`, the code {{ID-JAG}} §4.4.3 defines for a client
+  the Resource Authorization Server does not authorize.
+- The client lacks a required Trust Mark and the ID-JAG has expired:
+  `invalid_grant`, because `access_denied` applies only to a valid
+  ID-JAG.
+- The ID-JAG's `client_id` claim names a different client:
+  `invalid_grant` ({{ID-JAG}} §4.4.1).
+- The client is recognized, but the Assertion Issuer fails an issuer
+  method: `invalid_grant`.
+
+**Later requests.** The Resource Authorization Server caches the
+trust chain no longer than its earliest `exp`
+({{trust-method-openid-federation}}), and the key set no longer than
+the chain. Later requests from the client use the cached chain,
+and each request is still evaluated against the policy. When the
+client rotates its keys, a signature with a key the cached key set
+lacks can prompt one fresh fetch of the key set, rate-limited per
+client, before rejection. If
+the federation stops recognizing the client, the change takes effect
+when the cached chain expires.
+
+**Coexistence with registered clients.** The Resource Authorization
+Server also has confidential clients it registered itself, with
+opaque `client_id` values and credentials it holds. A request that
+authenticates as one of those clients gets a policy without
+`client_trust_methods` ({{rasp}} step 1). Any other request,
+including one that names a registered `client_id` without
+authenticating as that client and any request whose `client_id` is
+an `https` URL, gets the policy above and is admitted only through
+the client method. The published policy is the one above.
+
 # Document History
 
 This appendix is non-normative and will be removed before publication.
@@ -2883,6 +3430,9 @@ for this document, which holds the details of that change.
   * Add outbound-fetch requirements, UTS #46 processing for
     internationalized domains, and a key-binding security
     consideration (#27).
+  * Add a `client_recognition` category, a `client_trust_methods`
+    Trust Policy member, and the `openid_federation_client` method
+    (#32).
   * Expand the motivation, and add tables and explanations for
     readers (#29).
   * Editorial changes for readability.

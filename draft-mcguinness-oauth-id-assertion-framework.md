@@ -1331,8 +1331,10 @@ and 3 are replaced by the following:
 - **Federation-bound client authentication key.** Client
   authentication MUST verify under a key in a key set that the client
   metadata designates through `jwks`, `jwks_uri`, or `signed_jwks_uri`
-  ({{OIDF-FEDERATION}} §5.2.1). The permitted client
-  authentication methods are:
+  ({{OIDF-FEDERATION}} §5.2.1), processed as that section specifies.
+  For `jwks_uri`, the trust chain authenticates the URI, not the key
+  set it returns, which relies on HTTPS to that endpoint. The
+  permitted client authentication methods are:
 
   - JWT client authentication ({{RFC7523}} Sections 2.2 and 3) with a
     JWT signed by such a key, whose `aud` claim is the Resource

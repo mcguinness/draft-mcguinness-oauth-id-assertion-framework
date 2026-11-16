@@ -1297,13 +1297,12 @@ The method has the members `trust_anchors` and `trust_marks`, defined
 as for `openid_federation` ({{trust-method-openid-federation}}).
 
 The client's `client_id` is its Entity Identifier, as in Automatic
-Registration ({{OIDF-FEDERATION-CONNECT}} §12.1 and §12.4). OpenID
-Federation defines Automatic Registration starting from an
-Authentication Request. This method applies the same identification
-to a client whose first request to the Resource Authorization Server
-is a token request. {{OIDF-FEDERATION-CONNECT}} §12.1.5 anticipates
-Entity Identifier client IDs at further OAuth endpoints but leaves
-such uses out of its scope. This method places none of the
+Registration ({{OIDF-FEDERATION-CONNECT}} §12.1 and §12.4).
+{{OIDF-FEDERATION-CONNECT}} §12.1 starts Automatic Registration at an
+Authentication Request, and §12.1.5 says that bare OAuth 2.0
+deployments can use it. It does not describe a client whose first
+request is a token request with no Authentication Request before it;
+this method defines that case. This method places none of the
 obligations of
 {{OIDF-FEDERATION-CONNECT}} §12.1 on the client toward the Resource
 Authorization Server, and it is evaluated for each token request that

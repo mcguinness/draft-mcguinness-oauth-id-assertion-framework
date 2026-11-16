@@ -3412,12 +3412,6 @@ A number in parentheses is a closed issue in the
 [issue tracker](https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues)
 for this document, which holds the details of that change.
 
--02
-
-  * Add a `client_recognition` category, a `client_trust_methods`
-    Trust Policy member, and the `openid_federation_client` method
-    (#32).
-
 -01
 
   * Rename the Trust Mark requirement member `id` to
@@ -3436,6 +3430,9 @@ for this document, which holds the details of that change.
   * Add outbound-fetch requirements, UTS #46 processing for
     internationalized domains, and a key-binding security
     consideration (#27).
+  * Add a `client_recognition` category, a `client_trust_methods`
+    Trust Policy member, and the `openid_federation_client` method
+    (#32).
   * Expand the motivation, and add tables and explanations for
     readers (#29).
   * Editorial changes for readability.

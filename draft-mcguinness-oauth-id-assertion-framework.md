@@ -1141,7 +1141,9 @@ Trust Mark Status endpoint ({{OIDF-FEDERATION}} §8.4) when the Trust
 Mark Issuer publishes one.
 
 The framework-specific requirements below are evaluated against an
-Affirmative chain. A chain that fails requirement 1 is Negative, as
+Affirmative chain. Every requirement MUST hold on that one chain: the
+metadata, key source, and Trust Marks used are those of the chain
+that satisfies requirement 1. A chain that fails requirement 1 is Negative, as
 above. In each case below, the leaf does not satisfy this Trust
 Method and the lookup state is unchanged:
 

@@ -3012,14 +3012,17 @@ or it cannot be retrieved or validated, the outcome is
 Indeterminate.<a href="#section-4.3.6.1-6.2.4" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-4.3.6.1-6.3">
-                <p id="section-4.3.6.1-6.3.1"><strong>Declared client metadata.</strong> When the client metadata contains
+                <p id="section-4.3.6.1-6.3.1"><strong>Declared client metadata.</strong> The client metadata <span class="bcp14">MUST</span> declare the
+method the client authenticates with, in
 <code>token_endpoint_auth_method</code> or
 <code>token_endpoint_auth_methods_supported</code>
-(<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §12.1.4), the method the client
-authenticates with <span class="bcp14">MUST</span> be one of the declared values. When it
-contains <code>grant_types</code> (<span>[<a href="#RFC7591" class="cite xref">RFC7591</a>]</span> Section 2), the token request's
-grant type <span class="bcp14">MUST</span> be one of them. A Superior can constrain either
-through metadata policy (<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §6.1).<a href="#section-4.3.6.1-6.3.1" class="pilcrow">¶</a></p>
+(<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §12.1.4), and <span class="bcp14">MUST</span> list the token
+request's grant type in <code>grant_types</code> (<span>[<a href="#RFC7591" class="cite xref">RFC7591</a>]</span> Section 2). A
+client that omits them does not satisfy this method; the
+<span>[<a href="#RFC7591" class="cite xref">RFC7591</a>]</span> defaults, <code>client_secret_basic</code> and
+<code>authorization_code</code>, would not permit the request either. A
+Superior can constrain both through metadata policy
+(<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §6.1).<a href="#section-4.3.6.1-6.3.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 <p id="section-4.3.6.1-7">When the Resource Authorization Server relies on this method to
@@ -3043,18 +3046,19 @@ method its metadata does not declare, or client authentication
 does not verify under a key in the federation key set.<a href="#section-4.3.6.1-9.1.1" class="pilcrow">¶</a></p>
 </li>
               <li id="section-4.3.6.1-9.2">
-                <p id="section-4.3.6.1-9.2.1">When the client is authenticated but not recognized, because it
-holds no Trust Mark that meets a requirement (requirement 4), the
-Trust Mark evaluation is Indeterminate, or its metadata does not
-declare the request's grant type: the error that the grant
-profile defines for a client the Resource Authorization Server
-does not authorize, such as <code>access_denied</code> for <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>
-(§4.4.3), and otherwise <code>unauthorized_client</code> (<span>[<a href="#RFC6749" class="cite xref">RFC6749</a>]</span>
-Section 5.2).<a href="#section-4.3.6.1-9.2.1" class="pilcrow">¶</a></p>
+                <p id="section-4.3.6.1-9.2.1">Any failure of the assertion or of an issuer method gets the error
+that <a href="#rasp" class="auto internal xref">Section 5.2</a> specifies.<a href="#section-4.3.6.1-9.2.1" class="pilcrow">¶</a></p>
 </li>
               <li id="section-4.3.6.1-9.3">
-                <p id="section-4.3.6.1-9.3.1">Any other failure, of the assertion or of an issuer method, gets
-the error that <a href="#rasp" class="auto internal xref">Section 5.2</a> specifies.<a href="#section-4.3.6.1-9.3.1" class="pilcrow">¶</a></p>
+                <p id="section-4.3.6.1-9.3.1">When the client is authenticated but not recognized, because it
+holds no Trust Mark that meets a requirement (requirement 4), the
+Trust Mark evaluation is Indeterminate, or its metadata does not
+list the request's grant type: the error that the grant profile
+defines for a client the Resource Authorization Server does not
+authorize, such as <code>access_denied</code> for <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> (§4.4.3), and
+otherwise <code>unauthorized_client</code> (<span>[<a href="#RFC6749" class="cite xref">RFC6749</a>]</span> Section 5.2). This
+error applies only when the assertion is valid and every other
+category is satisfied.<a href="#section-4.3.6.1-9.3.1" class="pilcrow">¶</a></p>
 </li>
             </ol>
 <p id="section-4.3.6.1-10">Any token request can name an <code>https</code> <code>client_id</code>, and so cause these
@@ -3585,8 +3589,10 @@ made in this processing follows <a href="#outbound-fetches" class="auto internal
 Policy (step 1) or an unlisted grant profile (step 3), <span class="bcp14">MUST</span> result in
 an OAuth <code>invalid_grant</code> error unless another error is defined by
 the applicable grant profile, by step 5f, or by the Trust Method that
-failed. An error from step 5f or from a <code>client_recognition</code> method
-takes precedence over any other. Detailed trust-evaluation failure state
+failed. A client authentication failure, from step 5f or from a
+<code>client_recognition</code> method, takes precedence over any other error.
+An error for an authenticated client that a <code>client_recognition</code>
+method does not recognize applies only when no other step fails. Detailed trust-evaluation failure state
 <span class="bcp14">MUST NOT</span> be returned to public clients in the OAuth error response;
 it is a reconnaissance target.<a href="#section-5.2-5" class="pilcrow">¶</a></p>
 </section>
@@ -5684,12 +5690,17 @@ the client is authenticated but not recognized, and the result is
 the Resource Authorization Server does not authorize.<a href="#appendix-F-15.6.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-F-15.7">
-          <p id="appendix-F-15.7.1">The ID-JAG's <code>client_id</code> claim names a different client:
-<code>invalid_grant</code> (<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1).<a href="#appendix-F-15.7.1" class="pilcrow">¶</a></p>
+          <p id="appendix-F-15.7.1">The client lacks a required Trust Mark and the ID-JAG has expired:
+<code>invalid_grant</code>, because <code>access_denied</code> applies only to a valid
+ID-JAG.<a href="#appendix-F-15.7.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-F-15.8">
-          <p id="appendix-F-15.8.1">The client is recognized, but the Assertion Issuer fails an issuer
-method: <code>invalid_grant</code>.<a href="#appendix-F-15.8.1" class="pilcrow">¶</a></p>
+          <p id="appendix-F-15.8.1">The ID-JAG's <code>client_id</code> claim names a different client:
+<code>invalid_grant</code> (<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1).<a href="#appendix-F-15.8.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-F-15.9">
+          <p id="appendix-F-15.9.1">The client is recognized, but the Assertion Issuer fails an issuer
+method: <code>invalid_grant</code>.<a href="#appendix-F-15.9.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="appendix-F-16"><strong>Later requests.</strong> The Resource Authorization Server caches the

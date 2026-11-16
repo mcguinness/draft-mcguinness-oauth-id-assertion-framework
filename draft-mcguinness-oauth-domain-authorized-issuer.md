@@ -1138,7 +1138,10 @@ Freshness and cache limits for the Issuer Authorization Policy:
 - **Unvalidated DNS.** Consumers MUST NOT treat a DNS result that was
   not DNSSEC-validated as fresh for more than 1 hour, whatever its
   TTL: a spoofed answer chooses its own TTL
-  ({{dns-integrity-and-compromise}}).
+  ({{dns-integrity-and-compromise}}). A result is DNSSEC-validated
+  only if the consumer validated it, or a validating resolver that
+  the consumer reaches over an authenticated channel (such as DNS
+  over TLS or DNS over HTTPS) reported it as validated.
 - **Steady-state lifetimes.** Subject Authorities SHOULD publish
   records and HTTPS policies with a freshness lifetime of at most 1
   hour, reducing it further during an active revocation.
@@ -1479,10 +1482,13 @@ Required framework defenses:
   because consumers reject records lacking the matching
   `authority=` directive.
 - Consumers MUST verify TLS for any host named by `uri=`.
-- Consumers MUST bound cache lifetimes ({{dii-caching}}). A spoofed
-  answer that was not DNSSEC-validated stays fresh for at most 1
-  hour, and can be served for at most 1 more hour while the live
-  channel is Indeterminate.
+- Consumers MUST bound cache lifetimes ({{dii-caching}}). In the
+  consumer's own cache, a spoofed answer that was not
+  DNSSEC-validated stays fresh for at most 1 hour, and can be served
+  for at most 1 more hour while the live channel is Indeterminate. A
+  poisoned recursive resolver can return the spoofed answer again
+  when the consumer re-queries, so this bound does not cover
+  recursive cache poisoning.
 - Consumers performing DNSSEC validation MUST treat validation
   failure as `indeterminate`, not `negative-authoritative`, so that a
   stripped or broken signature produces a retryable failure rather

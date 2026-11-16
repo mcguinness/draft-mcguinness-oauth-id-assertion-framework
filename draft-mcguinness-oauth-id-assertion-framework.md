@@ -1835,7 +1835,14 @@ request, the Resource Authorization Server MUST:
       Identifier. When the namespace category is present but cannot
       be evaluated, the Resource Authorization Server MUST NOT
       consume any subject or identity claim from the assertion for
-      account linking, authorization, or subject resolution.
+      account linking, authorization, or subject resolution. When the
+      category is satisfied, the Resource Authorization Server MUST
+      resolve and link the subject only from the Subject Identifier
+      the category evaluated or from issuer-scoped identifiers (`iss`
+      and `sub`, with `tenant` for a multi-tenant issuer), unless local
+      configuration trusts the Assertion Issuer for another subject
+      claim. Claims such as `aud_sub` and `sub_id` ({{ID-JAG}} §3.1)
+      are outside the namespace check.
 
    d. Local policy MAY require satisfaction of additional Trust
       Methods for specific clients, subjects, or scopes.
@@ -2239,6 +2246,13 @@ account key by itself. A Resource Authorization Server keys accounts
 on issuer-scoped identifiers (for example, `iss` with `sub`, or
 `iss`, `tenant`, and `sub` for a multi-tenant issuer) and links an
 account by email only under its own account-linking rules.
+
+Nor does namespace authorization cover any other subject claim. An
+issuer authorized for `attacker.example` can send an `email` in that
+namespace together with an `aud_sub` or `sub_id` that names an
+account elsewhere. Step 5c of {{rasp}} therefore limits subject
+resolution to the evaluated Subject Identifier and issuer-scoped
+identifiers.
 
 The authorization is also not audience-scoped. The
 `subject_namespace_authorization` category constrains which

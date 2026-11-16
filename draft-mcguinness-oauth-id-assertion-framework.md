@@ -3339,10 +3339,11 @@ assertion's claims are:
 2. Resolves the client's Entity Configuration and a trust chain to
    `https://federation.example.org`.
 3. Checks that the policy-applied metadata declares `oauth_client`.
-4. Fetches the key set at `jwks_uri` and verifies the client
-   assertion's signature with a key in it. The client is now
-   authenticated. Steps 2 through 4 are the only lookups before the
-   client is authenticated.
+4. Fetches the key set at `jwks_uri`, verifies the client assertion's
+   signature with a key in it, and checks that its `aud` is
+   `https://api.saas.example` and that `private_key_jwt` is the
+   declared method. The client is now authenticated. Steps 2 through
+   4 are the only lookups before the client is authenticated.
 5. Validates the ID-JAG, including that its `client_id` claim is
    `https://agent.example` ({{ID-JAG}} §4.4.1).
 6. Evaluates `openid_federation` for `https://idp.partner.example`,
@@ -3352,6 +3353,8 @@ assertion's claims are:
 
 **Rejections:**
 
+- The request carries no client authentication: `invalid_client`
+  ({{rasp}} step 5f).
 - The `client_id` is not an Entity Identifier: the method is
   Negative, the request has no accepted client authentication, and
   the result is `invalid_client`.

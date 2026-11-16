@@ -1401,17 +1401,15 @@ condition applies, the first in this list determines the error:
    declares neither entity type, the client authenticates with a
    method its metadata does not declare, or client authentication
    does not verify under a key in the federation key set.
-2. Any failure of the assertion or of an issuer method gets the error
+2. `unauthorized_client` ({{RFC6749}} Section 5.2) when the client is
+   authenticated but not recognized: it holds no Trust Mark that
+   meets a requirement (requirement 4), the Trust Mark evaluation is
+   Indeterminate, or its metadata does not list the request's grant
+   type. The Resource Authorization Server evaluates this before it
+   validates the assertion ({{rasp}}), so the error does not depend
+   on the assertion.
+3. Any failure of the assertion or of an issuer method gets the error
    that {{rasp}} specifies.
-3. When the client is authenticated but not recognized, because it
-   holds no Trust Mark that meets a requirement (requirement 4), the
-   Trust Mark evaluation is Indeterminate, or its metadata does not
-   list the request's grant type: the error that the grant profile
-   defines for a client the Resource Authorization Server does not
-   authorize, such as `access_denied` for {{ID-JAG}} (§4.4.3), and
-   otherwise `unauthorized_client` ({{RFC6749}} Section 5.2). This
-   error applies only when the assertion is valid and every other
-   category is satisfied.
 
 Any token request can name an `https` `client_id`, and so cause these
 fetches before the client is authenticated, including a fetch for
@@ -1881,20 +1879,20 @@ Client authentication that the grant profile requires SHOULD be
 completed before step 5, so that unauthenticated requests cannot
 cause the lookups that step performs. When the policy contains
 `client_trust_methods`, the Resource Authorization Server MUST
-authenticate the client before step 2, and before then MUST NOT
-perform any lookup except those a `client_recognition` method needs
-to obtain the client's authentication keys, such as the trust chain
-and key set that `openid_federation_client` resolves. Every fetch
+authenticate the client, and evaluate the `client_recognition`
+category (step 5f), before step 2. Before the client is
+authenticated, it MUST NOT perform any lookup except those a
+`client_recognition` method needs to obtain the client's
+authentication keys, such as the trust chain and key set that
+`openid_federation_client` resolves. Every fetch
 made in this processing follows {{outbound-fetches}}.
 
 Rejection at any of steps 1 through 5, including a malformed Trust
 Policy (step 1) or an unlisted grant profile (step 3), MUST result in
 an OAuth `invalid_grant` error unless another error is defined by
 the applicable grant profile, by step 5f, or by the Trust Method that
-failed. A client authentication failure, from step 5f or from a
-`client_recognition` method, takes precedence over any other error.
-An error for an authenticated client that a `client_recognition`
-method does not recognize applies only when no other step fails. Detailed trust-evaluation failure state
+failed. An error from step 5f or from a `client_recognition` method
+takes precedence over any other error. Detailed trust-evaluation failure state
 MUST NOT be returned to public clients in the OAuth error response;
 it is a reconnaissance target.
 
@@ -3377,14 +3375,16 @@ assertion's claims are:
 4. Fetches the key set at `jwks_uri`, verifies the client assertion's
    signature with a key in it, and checks that its `aud` is
    `https://api.saas.example` and that `private_key_jwt` is the
-   declared method. The client is now authenticated. Steps 2 through
-   4 are the only lookups before the client is authenticated.
+   declared method. The client is now authenticated, and because
+   `grant_types` lists the request's grant type, it is recognized.
+   Steps 2 through 4 are the only lookups before the client is
+   authenticated.
 5. Validates the ID-JAG, including that its `client_id` claim is
    `https://agent.example` ({{ID-JAG}} §4.4.1).
-6. Evaluates `openid_federation` for `https://idp.partner.example`,
-   `domain_authorized_issuer` for `partner.example`, and
-   `openid_federation_client` for the client. Every category is
-   satisfied, so it issues an access token.
+6. Evaluates `openid_federation` for `https://idp.partner.example`
+   and `domain_authorized_issuer` for `partner.example`. With the
+   client recognized in step 4, every category is satisfied, so it
+   issues an access token.
 
 **Rejections:**
 
@@ -3402,11 +3402,10 @@ assertion's claims are:
   the method is Indeterminate, and the result is `invalid_client`.
 - The policy required a Trust Mark that the client does not hold:
   the client is authenticated but not recognized, and the result is
-  `access_denied`, the code {{ID-JAG}} §4.4.3 defines for a client
-  the Resource Authorization Server does not authorize.
-- The client lacks a required Trust Mark and the ID-JAG has expired:
-  `invalid_grant`, because `access_denied` applies only to a valid
-  ID-JAG.
+  `unauthorized_client`.
+- The client lacks a required Trust Mark and the ID-JAG has also
+  expired: `unauthorized_client`, because client recognition is
+  evaluated before the ID-JAG.
 - The ID-JAG's `client_id` claim names a different client:
   `invalid_grant` ({{ID-JAG}} §4.4.1).
 - The client is recognized, but the Assertion Issuer fails an issuer

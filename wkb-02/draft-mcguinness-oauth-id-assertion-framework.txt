@@ -2571,12 +2571,16 @@ A.1.  Relationship to OpenID Federation
    The proposed Well-Known Binding mechanism [OIDF-WKB] lets a
    federation Entity authenticate existing well-known protocol metadata
    and keys by digest.  It illustrates how an [RFC8414] authorization
-   server can use the extension path in Section 4.3.4.1 without moving
-   its protocol metadata into Entity Statements.  This changes how
-   issuer-authentication evidence is bound, not who holds authority over
-   a subject namespace.  This framework does not adopt the
-   trust_mark_required error proposed in [OIDF-WKB]; an unsatisfied
-   Trust Mark requirement produces the error specified in Section 5.2.
+   server can use the extension path in Section 4.3.4.1 while keeping
+   its existing well-known metadata and binding the JWK Set that
+   metadata references by digest.  The server still supplies the Entity
+   Type metadata that OpenID Federation requires.  The binding changes
+   how issuer-authentication evidence is bound, not who holds authority
+   over a subject namespace.  [OIDF-WKB] §8.4 has an Entity that refuses
+   a counterparty for a missing Trust Mark return trust_mark_required,
+   which names the missing types.  A Resource Authorization Server
+   applying this framework returns the error that Section 5.2 specifies
+   instead, which keeps trust-evaluation detail from public clients.
 
 A.2.  Why Bounded-Depth-1 Namespace Authorization
 

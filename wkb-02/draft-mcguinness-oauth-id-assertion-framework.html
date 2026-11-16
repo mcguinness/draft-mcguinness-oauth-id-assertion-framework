@@ -4511,12 +4511,16 @@ them.<a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
 federation Entity authenticate existing well-known protocol metadata
 and keys by digest. It illustrates how an <span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span> authorization
 server can use the extension path in <a href="#trust-method-openid-federation" class="auto internal xref">Section 4.3.4.1</a>
-without moving its protocol metadata into Entity Statements. This
+while keeping its existing well-known metadata and binding the JWK
+Set that metadata references by digest. The server still supplies the
+Entity Type metadata that OpenID Federation requires. The binding
 changes how issuer-authentication evidence is bound, not who holds
-authority over a subject namespace. This framework does not adopt
-the <code>trust_mark_required</code> error proposed in <span>[<a href="#OIDF-WKB" class="cite xref">OIDF-WKB</a>]</span>; an
-unsatisfied Trust Mark requirement produces the error specified in
-<a href="#rasp" class="auto internal xref">Section 5.2</a>.<a href="#appendix-A.1-2" class="pilcrow">¶</a></p>
+authority over a subject namespace. <span>[<a href="#OIDF-WKB" class="cite xref">OIDF-WKB</a>]</span> §8.4 has an Entity
+that refuses a counterparty for a missing Trust Mark return
+<code>trust_mark_required</code>, which names the missing types. A Resource
+Authorization Server applying this framework returns the error that
+<a href="#rasp" class="auto internal xref">Section 5.2</a> specifies instead, which keeps trust-evaluation detail from
+public clients.<a href="#appendix-A.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="why-bounded-depth-1-namespace-authorization">

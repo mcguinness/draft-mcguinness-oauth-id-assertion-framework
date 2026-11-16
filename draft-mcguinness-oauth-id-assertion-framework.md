@@ -1082,7 +1082,7 @@ the leaf holds the required Trust Marks.
 entity identifiers.
 
 `trust_marks`
-: OPTIONAL. JSON array of Trust Mark requirement objects. When
+: OPTIONAL. Non-empty JSON array of Trust Mark requirement objects. When
 present, each requirement object listed MUST be satisfied by at least
 one Trust Mark in the leaf's Entity Configuration. Each
 requirement object has:
@@ -1931,7 +1931,8 @@ For every such fetch, the Resource Authorization Server:
 - MUST apply a timeout to each fetch and MUST bound response sizes;
   and
 - MUST bound the number of fetches one token request can cause; a bound
-  of no more than 20 is RECOMMENDED.
+  of no more than 20 is RECOMMENDED. A lookup that would exceed the
+  bound is Indeterminate.
 
 Trust Method specifications MAY add requirements; for example,
 {{DAI}} forbids following redirects for policy fetches.

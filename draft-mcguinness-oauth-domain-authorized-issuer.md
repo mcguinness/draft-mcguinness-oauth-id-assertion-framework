@@ -394,8 +394,8 @@ any of them is malformed:
 | `authorized_issuers` | array of objects, required (MAY be empty for explicit denial) | each element has `issuer` |
 | `issuer` | string, required | syntactically valid issuer identifier for the applicable grant profile |
 | `tenant` | string, optional | non-empty (see member definition) |
-| `subject_identifier_formats` | array of strings, optional | |
-| `valid_from`, `valid_until`, `last_updated` | {{RFC3339}} date-time, optional | |
+| `subject_identifier_formats` | array of strings, optional | non-empty |
+| `valid_from`, `valid_until`, `last_updated` | {{RFC3339}} date-time, optional | `valid_from` not later than `valid_until` when both are present |
 | `signed_policy` | string, optional | signed JWT as defined in {{signed-policy}} |
 | `crit` | array of strings, optional | non-empty; every listed member recognized and implemented, else malformed ({{TRUST-FRAMEWORK}} §Critical Members) |
 
@@ -453,7 +453,8 @@ policy claims, and MUST contain `iat`. It MUST contain `exp`, so that
 a superseded signed policy cannot be replayed indefinitely (relevant
 when the policy is hosted on shared infrastructure,
 {{third-party-policy-hosts}}). Consumers MUST reject an expired
-`signed_policy`.
+`signed_policy`, including a cached copy and during stale-if-error
+use ({{dii-caching}}).
 
 A policy host can replay a superseded signed policy until its `exp`
 to a consumer that has not seen a newer one. Consumers MUST reject a
@@ -638,9 +639,10 @@ names are formed without a trailing dot for comparison purposes; the
 wire-format root label is not part of the Subject Authority value.
 
 The string segments of a TXT record ({{RFC1035}}) are concatenated
-without separator and interpreted as ASCII text (a record containing
-a non-ASCII octet is malformed, since all defined directive values
-are ASCII by construction).
+without separator and interpreted as ASCII text. A recognized record
+(defined below) that contains a non-ASCII octet is malformed, since
+all defined directive values are ASCII by construction; other records
+are ignored.
 
 A record is *recognized* if, after optional leading whitespace, it
 begins with the version token `v=oauth-issuer-policy1`

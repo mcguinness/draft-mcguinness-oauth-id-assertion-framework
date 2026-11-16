@@ -616,23 +616,23 @@ Table of Contents
 
    Category applicability is a property of the Validator's published
    Trust Policy, not of the incoming Assertion.  A Validator that holds
-   more than one Trust Policy selects one per request from what it has
-   authenticated about the request, such as an OAuth client's
-   authentication against its registration (Section 5.2 step 1), never
-   from properties of the Assertion.  If the Trust Policy declares one
-   or more Trust Methods in a given category, that category is
-   applicable to every Assertion the Validator evaluates within the
-   profile's scope.  The Assertion itself MUST NOT be able to waive the
-   category.  An Assertion lacking satisfying evidence for an applicable
-   category MUST be rejected.  Profiles MUST NOT define applicability
-   conditions that depend on properties of the Assertion under
-   evaluation.  This prohibition is directional: assertion properties
-   may never _relax_ what the policy requires.  Rejection rules keyed on
-   assertion properties (such as the federation-only rule in Section 5.2
-   step 5e) only tighten it and are permitted.  Nor can a published
-   Delegation Artifact waive the category.  A profile MUST NOT define a
-   published state, such as a monitoring mode, under which an Assertion
-   whose issuer the artifact does not authorize satisfies the category.
+   more than one Trust Policy never selects one from properties of the
+   Assertion, and selects one by OAuth client only after authenticating
+   the client against its registration (Section 5.2 step 1).  If the
+   Trust Policy declares one or more Trust Methods in a given category,
+   that category is applicable to every Assertion the Validator
+   evaluates within the profile's scope.  The Assertion itself MUST NOT
+   be able to waive the category.  An Assertion lacking satisfying
+   evidence for an applicable category MUST be rejected.  Profiles MUST
+   NOT define applicability conditions that depend on properties of the
+   Assertion under evaluation.  This prohibition is directional:
+   assertion properties may never _relax_ what the policy requires.
+   Rejection rules keyed on assertion properties (such as the
+   federation-only rule in Section 5.2 step 5e) only tighten it and are
+   permitted.  Nor can a published Delegation Artifact waive the
+   category.  A profile MUST NOT define a published state, such as a
+   monitoring mode, under which an Assertion whose issuer the artifact
+   does not authorize satisfies the category.
 
    A subject_namespace_authorization method therefore does not become
    inapplicable merely because an Assertion omits a Subject Identifier.
@@ -1782,15 +1782,14 @@ Table of Contents
 
    1.  Select and parse the Trust Policy that applies to the token
        request.  A Resource Authorization Server that holds more than
-       one Trust Policy applies its default policy, the one it publishes
-       if it publishes any (Section 4.1), except to a request whose
-       client authentication verifies against a registration it holds.
-       To that request it can apply a policy chosen for that
-       registration (Section 4.3.6.1 limits which registrations
-       qualify).  It never selects a policy from a claim in the
-       assertion (Section 3.2.1.1).  If the policy document is
-       malformed, reject the assertion.  (Recognition of individual
-       Trust Method objects is handled in step 5a.)
+       one Trust Policy never selects one from a claim in the assertion
+       (Section 3.2.1.1).  It selects one by client only when the
+       request's client authentication verifies against a registration
+       it holds (Section 4.3.6.1 limits which registrations qualify).
+       Any other request gets the policy that applies without regard to
+       the client, such as the one it publishes (Section 4.1).  If the
+       policy document is malformed, reject the assertion.  (Recognition
+       of individual Trust Method objects is handled in step 5a.)
 
    2.  Validate the assertion per the applicable grant profile
        ([RFC7521], [RFC7523], [ID-JAG]).  This validation is provisional

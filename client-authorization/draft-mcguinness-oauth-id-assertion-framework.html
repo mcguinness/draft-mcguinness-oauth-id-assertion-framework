@@ -2050,10 +2050,10 @@ signer's identity beyond what the Delegation Artifact attests.<a href="#section-
             </h5>
 <p id="section-3.2.1.1-1">Category applicability is a property of the Validator's published
 Trust Policy, not of the incoming Assertion. A Validator that holds
-more than one Trust Policy selects one per request from what it has
-authenticated about the request, such as an OAuth client's
-authentication against its registration (<a href="#rasp" class="auto internal xref">Section 5.2</a> step 1), never
-from properties of the Assertion. If the Trust Policy
+more than one Trust Policy never selects one from properties of the
+Assertion, and selects one by OAuth client only after authenticating
+the client against its registration (<a href="#rasp" class="auto internal xref">Section 5.2</a> step 1). If the Trust
+Policy
 declares one or more Trust Methods in a given category, that
 category is applicable to every Assertion the Validator evaluates
 within the profile's scope. The Assertion itself <span class="bcp14">MUST NOT</span> be able
@@ -3456,14 +3456,14 @@ request, the Resource Authorization Server <span class="bcp14">MUST</span>:<a hr
 <li id="section-5.2-3.1">
             <p id="section-5.2-3.1.1">Select and parse the Trust Policy that applies to the token request.
 A Resource Authorization Server that holds more than one Trust
-Policy applies its default policy, the one it publishes if it
-publishes any (<a href="#metadata-publication" class="auto internal xref">Section 4.1</a>), except to a request whose
-client authentication verifies against a registration it holds. To
-that request it can apply a policy chosen for that registration
-(<a href="#trust-method-openid-federation-client" class="auto internal xref">Section 4.3.6.1</a> limits which
-registrations qualify). It never selects a policy from a claim in
-the assertion (<a href="#category-applicability" class="auto internal xref">Section 3.2.1.1</a>). If the policy document
-is malformed, reject the assertion.
+Policy never selects one from a claim in the assertion
+(<a href="#category-applicability" class="auto internal xref">Section 3.2.1.1</a>). It selects one by client only when
+the request's client authentication verifies against a
+registration it holds (<a href="#trust-method-openid-federation-client" class="auto internal xref">Section 4.3.6.1</a>
+limits which registrations qualify). Any other request gets the
+policy that applies without regard to the client, such as the one
+it publishes (<a href="#metadata-publication" class="auto internal xref">Section 4.1</a>). If the policy document is
+malformed, reject the assertion.
 (Recognition of individual Trust Method objects is handled in
 step 5a.)<a href="#section-5.2-3.1.1" class="pilcrow">¶</a></p>
 </li>

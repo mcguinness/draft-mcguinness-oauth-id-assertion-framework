@@ -1366,14 +1366,17 @@ and 3 are replaced by the following:
   or it cannot be retrieved or validated, the outcome is
   Indeterminate.
 
-- **Declared client metadata.** When the client metadata contains
+- **Declared client metadata.** The client metadata MUST declare the
+  method the client authenticates with, in
   `token_endpoint_auth_method` or
   `token_endpoint_auth_methods_supported`
-  ({{OIDF-FEDERATION-CONNECT}} §12.1.4), the method the client
-  authenticates with MUST be one of the declared values. When it
-  contains `grant_types` ({{RFC7591}} Section 2), the token request's
-  grant type MUST be one of them. A Superior can constrain either
-  through metadata policy ({{OIDF-FEDERATION}} §6.1).
+  ({{OIDF-FEDERATION-CONNECT}} §12.1.4), and MUST list the token
+  request's grant type in `grant_types` ({{RFC7591}} Section 2). A
+  client that omits them does not satisfy this method; the
+  {{RFC7591}} defaults, `client_secret_basic` and
+  `authorization_code`, would not permit the request either. A
+  Superior can constrain both through metadata policy
+  ({{OIDF-FEDERATION}} §6.1).
 
 When the Resource Authorization Server relies on this method to
 satisfy the `client_recognition` category, it MUST NOT accept the

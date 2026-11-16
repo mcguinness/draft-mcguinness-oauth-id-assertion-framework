@@ -1314,8 +1314,10 @@ The Resource Authorization Server evaluates this method as it
 evaluates `openid_federation`, with the client's Entity Identifier as
 the leaf. Trust chain validation, the lookup states, caching, and
 requirements 1 and 4 apply unchanged. Where that section refers to the
-Assertion Issuer, it refers here to the client. Requirements 2 and 3
-are replaced by the following:
+Assertion Issuer, it refers here to the client. Every requirement MUST
+hold on one trust chain: the metadata, key set, and Trust Marks used
+are those of the chain that satisfies requirement 1. Requirements 2
+and 3 are replaced by the following:
 
 - **Entity type constraint.** The leaf's policy-applied federation
   metadata MUST declare the entity type `oauth_client` or

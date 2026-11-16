@@ -2358,7 +2358,9 @@ The proposed Well-Known Binding mechanism {{OIDF-WKB}} lets a
 federation Entity authenticate existing well-known protocol metadata
 and keys by digest. It illustrates how an {{RFC8414}} authorization
 server can use the extension path in {{trust-method-openid-federation}}
-without moving its protocol metadata into Entity Statements. This
+while keeping its existing well-known metadata and binding the JWK
+Set that metadata references by digest. The server still supplies the
+Entity Type metadata that OpenID Federation requires. The binding
 changes how issuer-authentication evidence is bound, not who holds
 authority over a subject namespace. This framework does not adopt
 the `trust_mark_required` error proposed in {{OIDF-WKB}}; an

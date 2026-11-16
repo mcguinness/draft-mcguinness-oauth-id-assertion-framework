@@ -810,8 +810,9 @@ Assertion Issuer Trust Policy in its authorization server metadata
 
 A Resource Authorization Server that applies different Trust Policies
 to different clients publishes the one that applies to clients
-without a prior relationship with it. It tells a client it registers
-which policy applies to that client at registration.
+without a prior relationship with it. How a client it registers
+learns which policy applies to that client is out of scope for this
+document.
 
 A Protected Resource that publishes OAuth 2.0 Protected Resource
 Metadata {{RFC9728}} MAY include the same member to advertise the

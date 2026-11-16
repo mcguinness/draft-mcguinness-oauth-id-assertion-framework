@@ -638,10 +638,12 @@ without separator and interpreted as ASCII text (a record containing
 a non-ASCII octet is malformed, since all defined directive values
 are ASCII by construction).
 
-A record is *recognized* if the version token `v=oauth-issuer-policy1`
-(case-sensitive) appears at the start, terminated by end of record, by
-optional whitespace, or by a `;` separator; leading whitespace before
-the token is permitted. The version token matches only that exact
+A record is *recognized* if, after optional leading whitespace, it
+begins with the version token `v=oauth-issuer-policy1`
+(case-sensitive) followed by end of record, whitespace, or `;`. In a
+recognized record, the version token is followed by end of record, or
+by optional whitespace and a `;` separator; anything else makes the
+record malformed ({{dii-failures}}). The version token matches only that exact
 string: a different token (for example, a future
 `v=oauth-issuer-policy2`) is not recognized, so the record is treated
 as unrecognized (not malformed) and is ignored by the recognition
@@ -661,7 +663,9 @@ directives separated by `;`. Parsing rules:
   case-sensitive and preserved as written.
 - A directive splits into name and value at the first `=`. Subsequent
   `=` characters are part of the value. A directive with no `=` makes
-  the record malformed ({{dii-failures}}).
+  the record malformed ({{dii-failures}}). So does a directive whose
+  name does not match the `name` production below, for example
+  because whitespace precedes the `=`.
 - The value runs to the next `;` or end of record. The character `;`
   MUST NOT appear in a value (see the issuer-identifier constraint in
   {{dii-document}}).
@@ -671,10 +675,10 @@ directives separated by `;`. Parsing rules:
   ({{dii-failures}}).
 - Unrecognized directives MUST be ignored.
 
-The parsing rules above are summarized in the following ABNF
-({{RFC5234}} with the case-sensitive string extension of {{RFC7405}})
-for implementer convenience; the prose above is normative if any
-disagreement exists.
+The following ABNF ({{RFC5234}} with the case-sensitive string
+extension of {{RFC7405}}) is normative for the record syntax, and
+the prose above agrees with it. A recognized record that does not
+match `record` is malformed ({{dii-failures}}).
 
 ~~~ abnf
 record        = OWS version OWS *( ";" directive ) [ ";" OWS ]

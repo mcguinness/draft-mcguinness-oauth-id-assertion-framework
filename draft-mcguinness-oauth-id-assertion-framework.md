@@ -1388,21 +1388,25 @@ chain, the client does not satisfy this method.
 
 Clients registered through Explicit Registration
 ({{OIDF-FEDERATION-CONNECT}} §12.2) receive a `client_id` that need
-not be their Entity Identifier. This method does not cover them.
+not be their Entity Identifier. This method covers such a client only
+when its `client_id` is its Entity Identifier.
 
 A Resource Authorization Server that also has clients it registered
 itself can apply a Trust Policy without `client_trust_methods` to a
 request that authenticates as one of those clients against that
-registration ({{rasp}} step 1). Every other request, including one
-that names a registered `client_id` without authenticating as that
-client, gets the policy with `client_trust_methods`. Such a Resource
-Authorization Server keeps the identifiers it registers distinct from
-Entity Identifiers, for example by never registering an `https` URL
-as a `client_id`, so that a registered client cannot share an
-identifier with a federation Entity. It publishes the policy that
-applies to clients without a prior relationship, and a registered
-client learns its own policy at registration. This document defines
-no other way to combine registered and federation clients. {{example-client-recognition}} walks through first contact,
+registration ({{rasp}} step 1). It MUST NOT do so for a request whose
+`client_id` is an `https` URL, even when it holds a registration for
+that `client_id`, such as an Explicit Registration that kept the
+Entity Identifier ({{OIDF-FEDERATION-CONNECT}} §12.2.2). A public
+client does not authenticate against its registration ({{RFC6749}}
+Section 2.3). Every other request, including one that names a
+registered `client_id` without authenticating as that client, gets
+the policy with `client_trust_methods`. A Resource Authorization
+Server that already uses `https` URLs as `client_id` values for
+clients outside a federation cannot list `client_trust_methods`
+without rejecting those clients. This document defines no other way
+to combine registered and federation clients.
+{{example-client-recognition}} walks through first contact,
 rejection, cached trust, and coexistence.
 
 ### Worked Example: OpenID Federation + DAI {#example-federation-dai}
@@ -2211,7 +2215,11 @@ recognized as the federation Entity its `client_id` names. A Resource
 Authorization Server that also registers clients selects their policy
 only after they authenticate against their registration, so naming a
 registered `client_id` without authenticating as that client does not
-avoid the client method ({{client-recognition-methods}}).
+avoid the client method. A request whose `client_id` is an `https`
+URL gets the client method even when a registration exists for it,
+so a party holding such a registration cannot redeem an assertion
+issued to the federation Entity of that name
+({{trust-method-openid-federation-client}}).
 
 A client method that lets a client opt in by publishing evidence,
 such as a DNS record, has the same property as a namespace method:
@@ -2770,9 +2778,10 @@ would need to define its lookup states, including Indeterminate on
 DNS failure, bind its record to the queried name as {{DAI}}'s
 `authority=` directive does, and say how the token is carried in a
 token request. Clients registered through OpenID Federation Explicit
-Registration ({{OIDF-FEDERATION-CONNECT}} §12.2) are another gap: a
-method for them would take the Entity Identifier from the
-registration rather than from the `client_id`.
+Registration ({{OIDF-FEDERATION-CONNECT}} §12.2) with a `client_id`
+other than their Entity Identifier are another gap: a method for them
+would take the Entity Identifier from the registration rather than
+from the `client_id`.
 
 ## Actor Identity Trust Evaluation
 
@@ -3268,9 +3277,8 @@ assertion's claims are:
 
 **Processing.** The Resource Authorization Server:
 
-1. Applies the policy above, because the request does not
-   authenticate against a registration the Resource Authorization
-   Server holds ({{rasp}} step 1).
+1. Applies the policy above, because the `client_id` is an `https`
+   URL ({{rasp}} step 1).
 2. Resolves the client's Entity Configuration and a trust chain to
    `https://federation.example.org`.
 3. Checks that the policy-applied metadata declares `oauth_client`.
@@ -3317,15 +3325,14 @@ the federation stops recognizing the client, the change takes effect
 when the cached chain expires.
 
 **Coexistence with registered clients.** The Resource Authorization
-Server also has clients it registered itself, with opaque `client_id`
-values and credentials it holds, and it never registers an `https`
-URL as a `client_id`. A request that authenticates as one of those
-clients gets a policy without `client_trust_methods` ({{rasp}} step
-1). Any other request, including one that names a registered
-`client_id` without authenticating as that client, gets the policy
-above and is admitted only through the client method. The published
-policy is the one above; a registered client learns its own policy
-at registration.
+Server also has confidential clients it registered itself, with
+opaque `client_id` values and credentials it holds. A request that
+authenticates as one of those clients gets a policy without
+`client_trust_methods` ({{rasp}} step 1). Any other request,
+including one that names a registered `client_id` without
+authenticating as that client and any request whose `client_id` is
+an `https` URL, gets the policy above and is admitted only through
+the client method. The published policy is the one above.
 
 # Document History
 

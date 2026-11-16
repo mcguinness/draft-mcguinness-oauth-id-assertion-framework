@@ -1049,9 +1049,10 @@ Resource Authorization Server MUST:
       {{ID-JAG}} §6.1) under case-sensitive string comparison. An
       entry with `tenant` does not match an assertion that lacks the
       `tenant` claim; an entry without `tenant` does not match an
-      assertion that carries a `tenant` claim. Under a grant profile that
-      carries no `tenant` claim, any `tenant` claim physically present
-      in the assertion MUST be ignored for entry matching.
+      assertion that carries a `tenant` claim, under any grant
+      profile. Under a grant profile that carries no `tenant` claim, a
+      `tenant` claim in the assertion is not attested, so an entry
+      with `tenant` does not match it.
 
    c. If the entry contains `subject_identifier_formats`, the Subject
       Identifier format of the assertion's subject is listed.
@@ -1087,8 +1088,9 @@ Step 4b, for a grant profile that carries `tenant` (such as ID-JAG):
 | Yes | No | No |
 | Yes | Yes | Only if the values are equal |
 
-Under a grant profile that carries no `tenant` claim, an assertion is
-treated as carrying none, so only entries without `tenant` match.
+Under a grant profile that carries no `tenant` claim, an entry with
+`tenant` never matches, and an entry without `tenant` matches only an
+assertion that carries no `tenant` claim.
 
 ## Observing Before Enforcing {#observe-before-enforce}
 
@@ -1650,12 +1652,13 @@ following security points apply:
   profile that carries no `tenant` claim, only entries that omit
   `tenant` can match, so tenant-scoped authorization is not
   expressible. The generic JWT-bearer grant ({{TRUST-FRAMEWORK}}
-  §Generic JWT-Bearer Assertion Grant) is such a profile. Any
-  `tenant` claim in an assertion under such a profile is ignored for
-  matching, because the grant profile does not attest it. So an
-  entry without `tenant` for a shared issuer matches assertions from
-  every one of its tenants, and the default above does not help
-  here. A Subject Authority relying on a shared multi-tenant
+  §Generic JWT-Bearer Assertion Grant) is such a profile. An entry
+  with `tenant` matches no assertion under such a profile, because
+  the profile does not attest the claim. An entry without `tenant`
+  does not match an assertion that carries a `tenant` claim, but a
+  shared issuer that omits the claim from such assertions is
+  indistinguishable across its tenants, so the entry matches
+  assertions from every one of them. A Subject Authority relying on a shared multi-tenant
   Assertion Issuer SHOULD NOT authorize that issuer for such a grant
   unless per-tenant issuer identifiers are used.
 

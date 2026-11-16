@@ -2006,6 +2006,16 @@ application ({{RFC8725}} §3.11). {{RFC7523}} Section 3.1 lets this
 grant be used without client authentication. A Trust Policy that
 contains `client_trust_methods` requires it ({{rasp}} step 5f).
 
+{{RFC7523}} Section 5 leaves the exchange of verification keys out
+of scope. Under this binding, when no Trust Method the Resource
+Authorization Server relies on constrains the key source ({{rasp}}
+step 2), it MUST verify the assertion with an asymmetric key from
+the `jwks_uri` of the Assertion Issuer's {{RFC8414}} metadata whose
+`issuer` equals the assertion's `iss`, or from local configuration
+for that issuer. It MUST NOT use a key or a key location carried in
+the assertion's JOSE header, such as `jwk`, `jku`, or `x5u`
+({{RFC8725}} Section 3.10).
+
 As with ID-JAG, the Subject Identifier for this binding is the
 top-level `email` claim, accompanied by `email_verified=true`,
 extracted per {{subject-authority-determination}}. The `sub` claim is
@@ -2202,7 +2212,8 @@ every namespace that lists the issuer:
   anchor can therefore substitute the key of a listed issuer beneath
   it, and both categories then pass.
 - Without federation, the key comes from the Assertion Issuer's own
-  metadata, and whoever controls that metadata controls the key.
+  metadata ({{ID-JAG}} §4.4.1; {{jwt-bearer-profile}}), and whoever
+  controls that metadata controls the key.
 - A policy host named by a {{DAI}} `uri=` pointer controls the list
   itself, unless the Subject Authority pins the policy's signing key.
 

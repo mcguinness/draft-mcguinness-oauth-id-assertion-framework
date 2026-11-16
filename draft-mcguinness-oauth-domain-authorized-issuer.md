@@ -455,13 +455,15 @@ when the policy is hosted on shared infrastructure,
 {{third-party-policy-hosts}}). Consumers MUST reject an expired
 `signed_policy`.
 
-Publishers SHOULD keep `exp` close to `iat` (for example, a few
-days), because a policy host can replay a superseded signed policy
-until its `exp` to a consumer that holds no cached copy. A consumer
-that holds a cached signed policy for the same Subject Authority
-MUST reject a `signed_policy` whose `iat` is earlier than the cached
-one's. This ensures that an older signed policy cannot be replayed
-within its validity period.
+A policy host can replay a superseded signed policy until its `exp`
+to a consumer that has not seen a newer one. Consumers MUST reject a
+`signed_policy` whose `exp` is more than 24 hours after its `iat`. A
+consumer MUST retain the highest `iat` it has accepted for each
+Subject Authority until the `exp` of that signed policy, and MUST
+reject a `signed_policy` whose `iat` is earlier, even after the
+cached policy itself is gone. An older signed policy therefore cannot
+be replayed to a consumer that has accepted a newer one, nor to any
+consumer for more than 24 hours.
 
 The JOSE header SHOULD contain a `kid` identifying the signing key.
 The JWT payload SHOULD
@@ -1178,7 +1180,10 @@ TTL ({{RFC1035}} Section 4.1.3), and HTTP caches for the document's
 freshness lifetime. The window is therefore up to the propagation
 time plus those upstream lifetimes, plus one consumer freshness
 lifetime and the stale-if-error hour. Steady-state lifetimes of 1
-hour or less, as recommended above, keep it to a few hours.
+hour or less, as recommended above, keep it to a few hours. For a
+signed policy on a host the Subject Authority does not control, the
+host can also replay the superseded policy until its `exp`, at most
+24 hours after its `iat` ({{signed-policy}}).
 
 # Trust Methods {#trust-methods}
 

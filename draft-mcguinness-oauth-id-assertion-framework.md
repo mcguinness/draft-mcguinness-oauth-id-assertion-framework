@@ -1394,16 +1394,17 @@ condition applies, the first in this list determines the error:
    declares neither entity type, the client authenticates with a
    method its metadata does not declare, or client authentication
    does not verify under a key in the federation key set.
-2. When the client is authenticated but not recognized, because it
+2. Any failure of the assertion or of an issuer method gets the error
+   that {{rasp}} specifies.
+3. When the client is authenticated but not recognized, because it
    holds no Trust Mark that meets a requirement (requirement 4), the
    Trust Mark evaluation is Indeterminate, or its metadata does not
-   declare the request's grant type: the error that the grant
-   profile defines for a client the Resource Authorization Server
-   does not authorize, such as `access_denied` for {{ID-JAG}}
-   (§4.4.3), and otherwise `unauthorized_client` ({{RFC6749}}
-   Section 5.2).
-3. Any other failure, of the assertion or of an issuer method, gets
-   the error that {{rasp}} specifies.
+   list the request's grant type: the error that the grant profile
+   defines for a client the Resource Authorization Server does not
+   authorize, such as `access_denied` for {{ID-JAG}} (§4.4.3), and
+   otherwise `unauthorized_client` ({{RFC6749}} Section 5.2). This
+   error applies only when the assertion is valid and every other
+   category is satisfied.
 
 Any token request can name an `https` `client_id`, and so cause these
 fetches before the client is authenticated, including a fetch for
@@ -1875,8 +1876,10 @@ Rejection at any of steps 1 through 5, including a malformed Trust
 Policy (step 1) or an unlisted grant profile (step 3), MUST result in
 an OAuth `invalid_grant` error unless another error is defined by
 the applicable grant profile, by step 5f, or by the Trust Method that
-failed. An error from step 5f or from a `client_recognition` method
-takes precedence over any other. Detailed trust-evaluation failure state
+failed. A client authentication failure, from step 5f or from a
+`client_recognition` method, takes precedence over any other error.
+An error for an authenticated client that a `client_recognition`
+method does not recognize applies only when no other step fails. Detailed trust-evaluation failure state
 MUST NOT be returned to public clients in the OAuth error response;
 it is a reconnaissance target.
 
@@ -3370,6 +3373,9 @@ assertion's claims are:
   the client is authenticated but not recognized, and the result is
   `access_denied`, the code {{ID-JAG}} §4.4.3 defines for a client
   the Resource Authorization Server does not authorize.
+- The client lacks a required Trust Mark and the ID-JAG has expired:
+  `invalid_grant`, because `access_denied` applies only to a valid
+  ID-JAG.
 - The ID-JAG's `client_id` claim names a different client:
   `invalid_grant` ({{ID-JAG}} §4.4.1).
 - The client is recognized, but the Assertion Issuer fails an issuer

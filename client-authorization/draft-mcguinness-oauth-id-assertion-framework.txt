@@ -3624,11 +3624,6 @@ Appendix G.  Document History
    assertion-framework/issues) for this document, which holds the
    details of that change.
 
-   -02
-
-   *  Add a client_recognition category, a client_trust_methods Trust
-      Policy member, and the openid_federation_client method (#32).
-
    -01
 
    *  Rename the Trust Mark requirement member id to trust_mark_type,
@@ -3652,6 +3647,9 @@ Appendix G.  Document History
    *  Add outbound-fetch requirements, UTS #46 processing for
       internationalized domains, and a key-binding security
       consideration (#27).
+
+   *  Add a client_recognition category, a client_trust_methods Trust
+      Policy member, and the openid_federation_client method (#32).
 
    *  Expand the motivation, and add tables and explanations for readers
       (#29).

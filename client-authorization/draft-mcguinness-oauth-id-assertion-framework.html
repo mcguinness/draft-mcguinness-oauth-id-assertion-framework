@@ -5733,56 +5733,53 @@ the client method. The published policy is the one above.<a href="#appendix-F-17
 A number in parentheses is a closed issue in the
 <a href="https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues">issue tracker</a>
 for this document, which holds the details of that change.<a href="#appendix-G-1" class="pilcrow">¶</a></p>
-<p id="appendix-G-2">-02<a href="#appendix-G-2" class="pilcrow">¶</a></p>
+<p id="appendix-G-2">-01<a href="#appendix-G-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="appendix-G-3.1">
-          <p id="appendix-G-3.1.1">Add a <code>client_recognition</code> category, a <code>client_trust_methods</code>
+          <p id="appendix-G-3.1.1">Rename the Trust Mark requirement member <code>id</code> to
+<code>trust_mark_type</code>, and align with OpenID Federation 1.1, including
+federation-bound key sources (#20).<a href="#appendix-G-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-G-3.2">
+          <p id="appendix-G-3.2.1">Remove <code>signed_policy</code> and the <code>trust-policy+jwt</code> media type from
+the Trust Policy; signed-policy processing moves to <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> (#21).<a href="#appendix-G-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-G-3.3">
+          <p id="appendix-G-3.3.1">Forbid waivers that an Authority Holder publishes, such as a
+monitoring mode, and define how methods in one category combine
+(#22).<a href="#appendix-G-3.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-G-3.4">
+          <p id="appendix-G-3.4.1">Require an Assertion Issuer that serves several tenants under one
+issuer identifier to send <code>tenant</code> in every ID-JAG (#26).<a href="#appendix-G-3.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-G-3.5">
+          <p id="appendix-G-3.5.1">Return <code>invalid_grant</code> for a rejection in steps 1 through 5 of
+Resource Authorization Server processing, and recommend client
+authentication before Trust Method lookups (#28).<a href="#appendix-G-3.5.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-G-3.6">
+          <p id="appendix-G-3.6.1">Add outbound-fetch requirements, UTS #46 processing for
+internationalized domains, and a key-binding security
+consideration (#27).<a href="#appendix-G-3.6.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-G-3.7">
+          <p id="appendix-G-3.7.1">Add a <code>client_recognition</code> category, a <code>client_trust_methods</code>
 Trust Policy member, and the <code>openid_federation_client</code> method
-(#32).<a href="#appendix-G-3.1.1" class="pilcrow">¶</a></p>
+(#32).<a href="#appendix-G-3.7.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-G-3.8">
+          <p id="appendix-G-3.8.1">Expand the motivation, and add tables and explanations for
+readers (#29).<a href="#appendix-G-3.8.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-G-3.9">
+          <p id="appendix-G-3.9.1">Editorial changes for readability.<a href="#appendix-G-3.9.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="appendix-G-4">-01<a href="#appendix-G-4" class="pilcrow">¶</a></p>
+<p id="appendix-G-4">-00<a href="#appendix-G-4" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="appendix-G-5.1">
-          <p id="appendix-G-5.1.1">Rename the Trust Mark requirement member <code>id</code> to
-<code>trust_mark_type</code>, and align with OpenID Federation 1.1, including
-federation-bound key sources (#20).<a href="#appendix-G-5.1.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="appendix-G-5.2">
-          <p id="appendix-G-5.2.1">Remove <code>signed_policy</code> and the <code>trust-policy+jwt</code> media type from
-the Trust Policy; signed-policy processing moves to <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> (#21).<a href="#appendix-G-5.2.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="appendix-G-5.3">
-          <p id="appendix-G-5.3.1">Forbid waivers that an Authority Holder publishes, such as a
-monitoring mode, and define how methods in one category combine
-(#22).<a href="#appendix-G-5.3.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="appendix-G-5.4">
-          <p id="appendix-G-5.4.1">Require an Assertion Issuer that serves several tenants under one
-issuer identifier to send <code>tenant</code> in every ID-JAG (#26).<a href="#appendix-G-5.4.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="appendix-G-5.5">
-          <p id="appendix-G-5.5.1">Return <code>invalid_grant</code> for a rejection in steps 1 through 5 of
-Resource Authorization Server processing, and recommend client
-authentication before Trust Method lookups (#28).<a href="#appendix-G-5.5.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="appendix-G-5.6">
-          <p id="appendix-G-5.6.1">Add outbound-fetch requirements, UTS #46 processing for
-internationalized domains, and a key-binding security
-consideration (#27).<a href="#appendix-G-5.6.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="appendix-G-5.7">
-          <p id="appendix-G-5.7.1">Expand the motivation, and add tables and explanations for
-readers (#29).<a href="#appendix-G-5.7.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="appendix-G-5.8">
-          <p id="appendix-G-5.8.1">Editorial changes for readability.<a href="#appendix-G-5.8.1" class="pilcrow">¶</a></p>
-</li>
-      </ul>
-<p id="appendix-G-6">-00<a href="#appendix-G-6" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="appendix-G-7.1">
-          <p id="appendix-G-7.1.1">initial draft<a href="#appendix-G-7.1.1" class="pilcrow">¶</a></p>
+          <p id="appendix-G-5.1.1">initial draft<a href="#appendix-G-5.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>

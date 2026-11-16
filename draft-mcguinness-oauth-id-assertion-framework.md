@@ -542,8 +542,8 @@ artifact, accept latency bounded by the cache window.
 
 ## Independent Trust Evaluation Categories {#categories}
 
-A Validator combines two independent trust evaluations to accept
-an Assertion. Each category answers a distinct question:
+A Validator combines two kinds of independent trust evaluation to
+accept an Assertion. Each category answers a distinct question:
 
 - **Authenticity**: is the entity that signed the Assertion
   cryptographically authentic and recognized as a member of some
@@ -941,7 +941,8 @@ by capability-style OAuth metadata parameters
 ({{RFC8414}}) to signal that distinction. Local policy may add
 requirements per client, subject, or scope; see {{downgrade}}.
 An object in this member counts only toward the issuer categories,
-and a method that belongs to no issuer category is malformed here.
+`issuer_authentication` and `subject_namespace_authorization`, and a
+method that belongs to no issuer category is malformed here.
 
 `client_trust_methods`
 : OPTIONAL. Non-empty JSON array of Trust Method objects
@@ -2829,7 +2830,7 @@ Other `client_recognition` methods can follow the pattern of
 {{I-D.shankarlingam-oauth-agent-dns-link}} publishes, under an
 agent's DNS name, the issuer and client identifier the agent uses at
 its operator's authorization server, and has the agent present a
-fresh token from that client. As a Trust Method, such a mechanism
+fresh access token issued to that client. As a Trust Method, such a mechanism
 would need to define its lookup states, including Indeterminate on
 DNS failure, bind its record to the queried name as {{DAI}}'s
 `authority=` directive does, and say how the token is carried in a

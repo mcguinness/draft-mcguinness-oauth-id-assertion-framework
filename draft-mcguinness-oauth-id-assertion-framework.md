@@ -1042,12 +1042,12 @@ relies on, per {{OIDF-FEDERATION}}; failure of any is failure of this
 Trust Method.
 Federation `metadata_policy` constrains Entity Type metadata in
 Entity Statements; it does not constrain members carried only in
-documents bound by digest through an extension such as {{OIDF-WKB}}.
-A Superior that needs to constrain such a member, such as
-`jwks_uri`, marks it `essential`; {{OIDF-WKB}} then requires the
-leaf to carry it in Entity Type metadata, where the policy applies.
-For a key source, requirement 3 below then selects that metadata
-value.
+documents bound by digest through an extension such as {{OIDF-WKB}},
+which reads no Entity Type metadata. A Superior that needs to
+constrain such a member, such as `jwks_uri`, marks it `essential`
+({{OIDF-FEDERATION}} §6.1.3.1.7), so that the leaf's policy-applied
+Entity Type metadata must carry it. For a key source, requirement 3
+below then selects that metadata value.
 
 Lookup states ({{exception-handling}}):
 

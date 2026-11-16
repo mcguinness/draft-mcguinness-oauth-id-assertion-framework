@@ -647,9 +647,9 @@ are ignored.
 A record is *recognized* if, after optional leading whitespace, it
 begins with the version token `v=oauth-issuer-policy1`
 (case-sensitive) followed by end of record, whitespace, or `;`. In a
-recognized record, the version token is followed by end of record, or
-by optional whitespace and a `;` separator; anything else makes the
-record malformed ({{dii-failures}}). The version token matches only that exact
+recognized record, the version token is followed by optional
+whitespace and then end of record or a `;` separator; anything else
+makes the record malformed ({{dii-failures}}). The version token matches only that exact
 string: a different token (for example, a future
 `v=oauth-issuer-policy2`) is not recognized, so the record is treated
 as unrecognized (not malformed) and is ignored by the recognition

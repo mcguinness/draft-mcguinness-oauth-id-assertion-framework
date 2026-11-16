@@ -1319,13 +1319,16 @@ are replaced by the following:
 - **Entity type constraint.** The leaf's policy-applied federation
   metadata MUST declare the entity type `oauth_client` or
   `openid_relying_party` ({{OIDF-FEDERATION-CONNECT}} §5.1.4 and
-  §5.1.1), under the type-declaration rule of requirement 2.
+  §5.1.1), under the type-declaration rule of requirement 2. The
+  client metadata is the policy-applied `oauth_client` metadata, or
+  the `openid_relying_party` metadata when the leaf declares no
+  `oauth_client` type ({{OIDF-FEDERATION-CONNECT}} §12 uses
+  `oauth_client` for OAuth 2.0 profiles other than OpenID Connect).
+  Metadata from the two types is never combined.
 - **Federation-bound client authentication key.** Client
-  authentication MUST verify under a key in a key set that the leaf's
-  policy-applied `oauth_client` or `openid_relying_party` metadata
-  designates through `jwks`, `jwks_uri`, or `signed_jwks_uri`
-  ({{OIDF-FEDERATION}} §5.2.1). If both carry a key source, a key from
-  either satisfies this requirement. The permitted client
+  authentication MUST verify under a key in a key set that the client
+  metadata designates through `jwks`, `jwks_uri`, or `signed_jwks_uri`
+  ({{OIDF-FEDERATION}} §5.2.1). The permitted client
   authentication methods are:
 
   - JWT client authentication ({{RFC7523}} Section 2.2) with a JWT

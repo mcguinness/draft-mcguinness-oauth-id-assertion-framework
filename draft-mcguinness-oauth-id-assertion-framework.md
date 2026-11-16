@@ -1427,10 +1427,11 @@ every Entity in the client's `authority_hints` ({{OIDF-FEDERATION}}
 Authorization Server:
 
 - MUST limit the number of `authority_hints` it follows;
+- MUST apply a global rate limit to trust chain resolution for
+  unauthenticated requests;
 - SHOULD cache a Negative or Indeterminate outcome per `client_id`
   for a bounded period; and
-- SHOULD rate-limit trust chain resolution for clients it has not
-  seen before.
+- SHOULD also rate-limit trust chain resolution per `client_id`.
 
 A client that does not publish its Entity Configuration
 ({{OIDF-FEDERATION}} §9) can send its trust chain in a `trust_chain`

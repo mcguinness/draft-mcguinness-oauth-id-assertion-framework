@@ -3475,6 +3475,10 @@ for this document, which holds the details of that change.
     (#32).
   * Expand the motivation, and add tables and explanations for
     readers (#29).
+  * Limit subject resolution to the evaluated identifier, fix the key
+    source for the JWT-bearer binding, bound reuse of federation
+    evidence to 24 hours, and evaluate client recognition before the
+    assertion (#34).
   * Editorial changes for readability.
 
 -00

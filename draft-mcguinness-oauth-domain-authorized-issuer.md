@@ -2631,6 +2631,10 @@ details of that change.
   * Correct the relationship to the Email Verification Protocol, add
     related mechanisms, and gloss terms borrowed from the framework
     (#29).
+  * Make the record ABNF normative, cap a signed policy's validity at
+    24 hours, apply tenant matching under every grant profile, and
+    treat a record without the default `uri=` as Indeterminate under
+    HTTPS-only lookup (#34).
   * Editorial changes for readability.
 
 -00

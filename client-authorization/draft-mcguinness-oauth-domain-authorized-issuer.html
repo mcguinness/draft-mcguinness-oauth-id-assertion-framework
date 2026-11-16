@@ -1050,7 +1050,7 @@ svg {
   & :is([stroke="white"], [stroke^="#fff"]) {
     stroke: var(--background-color);
   }
-  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+  & :is([fill="black"], [fill^="#000"], :not([fill], [fill] *)) {
     fill: var(--text-color);
   }
   & :is([fill="white"], [fill^="#fff"]) {
@@ -4187,7 +4187,7 @@ File extension(s): N/A; Macintosh file type code(s): N/A<a href="#section-12.6-2
 <dd class="break"></dd>
 <dt id="OIDF-WKB">[OIDF-WKB]</dt>
         <dd>
-<span class="refAuthor">Hardt, D.</span>, <span class="refTitle">"OpenID Federation Well-Known Binding 1.0"</span>, <time datetime="2026-09-29" class="refDate">29 September 2026</time>, <span>&lt;<a href="https://dickhardt.github.io/well-known-binding/main.html">https://dickhardt.github.io/well-known-binding/main.html</a>&gt;</span>. </dd>
+<span class="refAuthor">Hardt, D.</span>, <span class="refTitle">"OpenID Federation Well-Known Binding 1.0"</span>, <time datetime="2026-11-11" class="refDate">11 November 2026</time>, <span>&lt;<a href="https://dickhardt.github.io/well-known-binding/main.html">https://dickhardt.github.io/well-known-binding/main.html</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC2308">[RFC2308]</dt>
         <dd>
@@ -4934,76 +4934,54 @@ enforce a local cache ceiling per <a href="#dii-caching" class="auto internal xr
       <h2 id="name-document-history">
 <a href="#appendix-D" class="section-number selfRef">Appendix D. </a><a href="#name-document-history" class="section-name selfRef">Document History</a>
       </h2>
-<p id="appendix-D-1">This appendix is non-normative and will be removed before publication.<a href="#appendix-D-1" class="pilcrow">¶</a></p>
+<p id="appendix-D-1">This appendix is non-normative and will be removed before publication.
+A number in parentheses is a closed issue in the
+<a href="https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues">issue tracker</a>
+for this document, which holds the details of that change.<a href="#appendix-D-1" class="pilcrow">¶</a></p>
 <p id="appendix-D-2">-01<a href="#appendix-D-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="appendix-D-3.1">
-          <p id="appendix-D-3.1.1">Make the DNS TXT record an explicit opt-in: a namespace with no
-record is Negative, with no HTTPS fallback, in both lookup modes.
-The HTTPS-only lookup mode fetches from a dedicated host,
-<code>oauth-issuer-policy.{A}</code>, instead of the apex; its opt-in is a
-record whose <code>uri=</code> names the default URL there. Policy fetches
-no longer follow redirects, and a 404 or 410 from a location a
-record names is Indeterminate.<a href="#appendix-D-3.1.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-3.1.1">Make the DNS TXT record an explicit opt-in with no HTTPS fallback;
+fetch HTTPS-only policies from the dedicated host
+<code>oauth-issuer-policy.{A}</code>; stop following redirects (#23).<a href="#appendix-D-3.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.2">
-          <p id="appendix-D-3.2.1">Remove the <code>mode</code> member and <code>mode=</code> directive (monitor mode),
-which admitted more issuers than publishing nothing.<a href="#appendix-D-3.2.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-3.2.1">Remove monitor mode: the <code>mode</code> member and <code>mode=</code> directive
+(#22).<a href="#appendix-D-3.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.3">
-          <p id="appendix-D-3.3.1">An entry without <code>tenant</code> no longer matches assertions that
-carry a <code>tenant</code> claim.<a href="#appendix-D-3.3.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-3.3.1">An entry without <code>tenant</code> no longer matches an assertion that
+carries <code>tenant</code> (#26).<a href="#appendix-D-3.3.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.4">
-          <p id="appendix-D-3.4.1">Add the <code>key=</code> directive, which pins the <code>signed_policy</code> signing
-key for a pointer record, including the HTTPS-only opt-in; allow
-two values for key rollover, with a rollover order that lets the
-new pin propagate before the signature changes.<a href="#appendix-D-3.4.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-3.4.1">Allow at most one <code>domain_authorized_issuer</code> object per Trust
+Policy and 100 entries per published policy, and constrain
+narrowing extensions (#27).<a href="#appendix-D-3.4.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.5">
-          <p id="appendix-D-3.5.1">Rewrite caching: binding freshness lifetimes, a 24-hour absolute
-ceiling, an explicit stale-if-error bound, a one-hour cap on DNS
-results that are not DNSSEC-validated, a one-hour cap on Negative
-caching with a lifetime taken from the DNS answer that produced
-it, and 304 renewal only under the same <code>uri=</code> and <code>key=</code>.<a href="#appendix-D-3.5.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-3.5.1">Add the <code>key=</code> directive, which pins the signed-policy key and
+allows rollover (#24).<a href="#appendix-D-3.5.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.6">
-          <p id="appendix-D-3.6.1">Sketch a federation-bound Issuer Authorization Policy as a
-non-normative future extension.<a href="#appendix-D-3.6.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-3.6.1">Bound every cache lifetime, and state the overall revocation
+window (#25).<a href="#appendix-D-3.6.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.7">
           <p id="appendix-D-3.7.1">Define signed-policy processing and register the
-<code>issuer-authorization-policy+jwt</code> media type in this document
-(moved from the framework), including the outcome for a consumer
-without a verification key, the binding a <code>key=</code> pin provides,
-and a signed copy of <code>crit</code>;
-describe how a spoofed negative answer can suppress a published
-denial when another namespace method is configured.<a href="#appendix-D-3.7.1" class="pilcrow">¶</a></p>
+<code>issuer-authorization-policy+jwt</code> media type here, moved from the
+framework (#21).<a href="#appendix-D-3.7.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.8">
-          <p id="appendix-D-3.8.1">Allow at most one <code>domain_authorized_issuer</code> object in a Trust
-Policy; cap published policies at 100 entries; require narrowing
-extensions to use a new version token or a member <code>crit</code> can
-name. The SSRF rules now live in the framework's outbound-fetch
-requirements.<a href="#appendix-D-3.8.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-3.8.1">Sketch a federation-bound Issuer Authorization Policy as a
+non-normative future extension (#20).<a href="#appendix-D-3.8.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.9">
-          <p id="appendix-D-3.9.1">Correct the relationship to the Email Verification Protocol,
-whose relying party also checks its record at verification time;
-add SAML scope metadata, bilateral domain verification, FastFed,
-and DNS-based OpenID discovery to the related mechanisms; bound
-the comparison between DNS control and control of email
-recovery; state that the Trust Method targets organizational
-namespaces.<a href="#appendix-D-3.9.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-3.9.1">Correct the relationship to the Email Verification Protocol, add
+related mechanisms, and gloss terms borrowed from the framework
+(#29).<a href="#appendix-D-3.9.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.10">
-          <p id="appendix-D-3.10.1">Gloss the terms borrowed from the framework; add a tenant
-matching table and the overall revocation window, including
-upstream caches; say which key
-<code>key=</code> pins.<a href="#appendix-D-3.10.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="appendix-D-3.11">
-          <p id="appendix-D-3.11.1">Editorial changes for readability.<a href="#appendix-D-3.11.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-3.10.1">Editorial changes for readability.<a href="#appendix-D-3.10.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="appendix-D-4">-00<a href="#appendix-D-4" class="pilcrow">¶</a></p>

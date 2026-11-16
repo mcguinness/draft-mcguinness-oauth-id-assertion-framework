@@ -2258,6 +2258,11 @@ so a party holding such a registration cannot redeem an assertion
 issued to the federation Entity of that name
 ({{trust-method-openid-federation-client}}).
 
+A compromised intermediate or trust anchor can substitute a client's
+keys through the metadata in its Subordinate Statement
+({{OIDF-FEDERATION}} §3.1.1), as it can an Assertion Issuer's
+({{key-binding}}), and so authenticate as any client beneath it.
+
 A client method that lets a client opt in by publishing evidence,
 such as a DNS record, has the same property as a namespace method:
 under the combination rule, a client that has published nothing is

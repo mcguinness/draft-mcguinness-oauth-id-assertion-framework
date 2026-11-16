@@ -1940,6 +1940,12 @@ method: publishing a Trust Policy is optional
 ({{metadata-publication}}), and local policy can add Trust Methods
 ({{rasp}} step 5d). This narrows {{ID-JAG}} §6.1.
 
+{{ID-JAG}} §4.4.1 lets a client that does not authenticate prove
+possession of the key in the ID-JAG's `cnf` claim instead. When the
+Trust Policy contains `client_trust_methods`, step 5f of {{rasp}}
+rejects such a request with `invalid_client`. This narrows
+{{ID-JAG}} §4.4.1.
+
 In addition to the processing in {{rasp}}, the Resource Authorization
 Server MUST:
 

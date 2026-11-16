@@ -66,7 +66,7 @@ informative:
   OIDF-WKB:
     title: "OpenID Federation Well-Known Binding 1.0"
     target: https://dickhardt.github.io/well-known-binding/main.html
-    date: 2026-09-29
+    date: 2026-11-11
     author:
       - name: Dick Hardt
         ins: D. Hardt
@@ -1042,12 +1042,12 @@ relies on, per {{OIDF-FEDERATION}}; failure of any is failure of this
 Trust Method.
 Federation `metadata_policy` constrains Entity Type metadata in
 Entity Statements; it does not constrain members carried only in
-documents bound by digest through an extension such as {{OIDF-WKB}}.
-A Superior that needs to constrain such a member, such as
-`jwks_uri`, marks it `essential`; {{OIDF-WKB}} then requires the
-leaf to carry it in Entity Type metadata, where the policy applies.
-For a key source, requirement 3 below then selects that metadata
-value.
+documents bound by digest through an extension such as {{OIDF-WKB}},
+which reads no Entity Type metadata. A Superior that needs to
+constrain such a member, such as `jwks_uri`, marks it `essential`
+({{OIDF-FEDERATION}} §6.1.3.1.7), so that the leaf's policy-applied
+Entity Type metadata must carry it. For a key source, requirement 3
+below then selects that metadata value.
 
 Lookup states ({{exception-handling}}):
 
@@ -1108,10 +1108,7 @@ requirements:
    §5.1.2 and §5.1.3). For this type-declaration check, a present
    Entity Type member whose value is an object declares that type,
    even when the object is empty. This does not waive metadata
-   validation required by the applicable federation specifications,
-   as qualified by any extension in use: {{OIDF-WKB}}, for example,
-   lets Entity Type metadata omit members that a bound document
-   carries unless a metadata policy marks them `essential`.
+   validation required by the applicable federation specifications.
    The presence of other entity types alone does not satisfy this
    requirement.
 
@@ -1132,10 +1129,11 @@ requirements:
    For `jwks_uri`, the trust chain authenticates the URI, not the key
    set it returns. The returned key set relies on HTTPS to that
    endpoint unless an extension also binds the key set. {{OIDF-WKB}},
-   for example, checks the key set retrieved from a metadata
-   `jwks_uri` against `jwks_digests` when the leaf binds a document
-   that references a JWK Set. A consumer that applies such a binding
-   treats its failure as failure to validate that key source.
+   for example, checks the JWK Set at a covered document's `jwks_uri`
+   against `jwks_digests` in the leaf's Entity Configuration. When the
+   metadata's `jwks_uri` names the URL whose key set an extension
+   binds, a consumer that applies the binding treats its failure as
+   failure to validate that key source.
 
    Specifications that extend this Trust Method MAY define additional
    key sources that satisfy it. If the policy-applied metadata carries
@@ -2360,12 +2358,16 @@ The proposed Well-Known Binding mechanism {{OIDF-WKB}} lets a
 federation Entity authenticate existing well-known protocol metadata
 and keys by digest. It illustrates how an {{RFC8414}} authorization
 server can use the extension path in {{trust-method-openid-federation}}
-without moving its protocol metadata into Entity Statements. This
+while keeping its existing well-known metadata and binding the JWK
+Set that metadata references by digest. The server still supplies the
+Entity Type metadata that OpenID Federation requires. The binding
 changes how issuer-authentication evidence is bound, not who holds
-authority over a subject namespace. This framework does not adopt
-the `trust_mark_required` error proposed in {{OIDF-WKB}}; an
-unsatisfied Trust Mark requirement produces the error specified in
-{{rasp}}.
+authority over a subject namespace. {{OIDF-WKB}} §8.4 has an Entity
+that refuses a counterparty for a missing Trust Mark return
+`trust_mark_required`, which names the missing types. A Resource
+Authorization Server applying this framework returns the error that
+{{rasp}} specifies instead, which keeps trust-evaluation detail from
+public clients.
 
 ## Why Bounded-Depth-1 Namespace Authorization
 
@@ -2805,7 +2807,8 @@ appendix, a deployment implementing the
 proposed {{OIDF-WKB}} mechanism could instead publish the following
 leaf Entity Configuration excerpt. Digest strings are placeholders;
 the full Entity Configuration also contains the required timestamps,
-Federation Entity Keys, and the same Trust Mark as above.
+Federation Entity Keys, and the same Trust Mark as above. The Entity
+Type metadata shown is abbreviated; it carries no key source.
 
 ~~~ json
 {
@@ -2834,22 +2837,23 @@ identifies `https://idp.partner.example` as its `issuer` and references
 Intermediate does not supply a protocol key source or require one
 through `metadata_policy`; the `openid_provider` policy shown above
 does not apply to this variant's `oauth_authorization_server` type.
-The Entity Type metadata carries `issuer` but no key source, so
-item 3 selects the extension-defined source. {{OIDF-WKB}} permits
-`issuer` in both places because its value must equal the Entity
-Identifier.
+The Entity Type metadata carries no key source, so item 3 selects
+the extension-defined source: the JWK Set at the covered document's
+`jwks_uri`, which `jwks_digests` binds.
 
-After validating the trust chain, the consumer verifies the covered
-metadata and JWK Set using the extension's digest rules and checks
-that the metadata's `issuer` equals the leaf's Entity Identifier.
+The consumer verifies the covered metadata and its JWK Set by the
+extension's rules, which include validating the trust chain, and
+checks that the metadata's `issuer` equals the leaf's Entity
+Identifier.
 Item 3 then permits the bound JWK Set for assertion verification.
 The Trust Mark and DAI checks are unchanged. Metadata policy does
 not constrain members carried only in the covered document.
 
 If the Intermediate's policy instead marked `jwks_uri` `essential`,
-the leaf would carry it in Entity Type metadata. Item 3 would select
-that source, and the extension would still check the retrieved key
-set against `jwks_digests`. A key mismatch never authorizes
+the leaf would carry it in Entity Type metadata, and item 3 would
+select that source. The binding covers that source only when it
+names the same URL as the covered document's `jwks_uri`; otherwise
+the key set relies on HTTPS alone. A key mismatch never authorizes
 fallback. An absent binding, digest mismatch, or unsupported
 extension with no other qualifying key source yields Indeterminate
 and `invalid_grant`.

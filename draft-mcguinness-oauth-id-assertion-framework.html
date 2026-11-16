@@ -29,7 +29,7 @@ profiles.
        The Domain-Authorized Issuer Trust Method is defined separately as one
 subject-namespace authorization profile usable by this framework. 
     " name="description">
-<meta content="xml2rfc 3.34.1" name="generator">
+<meta content="xml2rfc 3.35.0" name="generator">
 <meta content="OAuth" name="keyword">
 <meta content="JWT authorization grants" name="keyword">
 <meta content="identity assertion" name="keyword">
@@ -38,19 +38,19 @@ subject-namespace authorization profile usable by this framework.
 <meta content="authority delegation" name="keyword">
 <meta content="draft-mcguinness-oauth-id-assertion-framework-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.34.1
-    Python 3.14.8
-    ConfigArgParse 1.8.0
+  xml2rfc 3.35.0
+    Python 3.14.10
+    ConfigArgParse 1.9.0
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.12.2
+    platformdirs 4.14.3
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.9.1
+    wcwidth 0.9.4
 -->
 <link href="draft-mcguinness-oauth-id-assertion-framework.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1051,7 +1051,7 @@ svg {
   & :is([stroke="white"], [stroke^="#fff"]) {
     stroke: var(--background-color);
   }
-  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+  & :is([fill="black"], [fill^="#000"], :not([fill], [fill] *)) {
     fill: var(--text-color);
   }
   & :is([fill="white"], [fill^="#fff"]) {
@@ -5067,71 +5067,46 @@ and <code>invalid_grant</code>.<a href="#appendix-E.2-5" class="pilcrow">¶</a><
       <h2 id="name-document-history">
 <a href="#appendix-F" class="section-number selfRef">Appendix F. </a><a href="#name-document-history" class="section-name selfRef">Document History</a>
       </h2>
-<p id="appendix-F-1">This appendix is non-normative and will be removed before publication.<a href="#appendix-F-1" class="pilcrow">¶</a></p>
+<p id="appendix-F-1">This appendix is non-normative and will be removed before publication.
+A number in parentheses is a closed issue in the
+<a href="https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues">issue tracker</a>
+for this document, which holds the details of that change.<a href="#appendix-F-1" class="pilcrow">¶</a></p>
 <p id="appendix-F-2">-01<a href="#appendix-F-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="appendix-F-3.1">
-          <p id="appendix-F-3.1.1">Align federation references with OpenID Federation 1.1 and
-OpenID Federation for OpenID Connect 1.1. Rename the Trust Mark
-requirement member <code>id</code> to <code>trust_mark_type</code> and correct issuer
-matching; permit explicit trust anchor allowlists in place of a
-pinned Trust Mark issuer; require trust in the Trust Mark Issuer
-to chain to the leaf's trust anchor.<a href="#appendix-F-3.1.1" class="pilcrow">¶</a></p>
+          <p id="appendix-F-3.1.1">Rename the Trust Mark requirement member <code>id</code> to
+<code>trust_mark_type</code>, and align with OpenID Federation 1.1, including
+federation-bound key sources (#20).<a href="#appendix-F-3.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-F-3.2">
-          <p id="appendix-F-3.2.1">Include <code>signed_jwks_uri</code> and an extension path for
-federation-bound key sources, with metadata precedence and
-fail-closed resolution. Well-Known Binding is the expected
-first extension, cited informatively; an extension's digest
-check on a metadata <code>jwks_uri</code> key set validates that source.<a href="#appendix-F-3.2.1" class="pilcrow">¶</a></p>
+          <p id="appendix-F-3.2.1">Remove <code>signed_policy</code> and the <code>trust-policy+jwt</code> media type from
+the Trust Policy; signed-policy processing moves to <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> (#21).<a href="#appendix-F-3.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-F-3.3">
-          <p id="appendix-F-3.3.1">Remove <code>signed_policy</code> and the <code>trust-policy+jwt</code> media type
-from the Trust Policy, which the Resource Authorization Server
-enforces from its own configuration and clients use only for
-discovery. Move signed-policy processing (including its rollback
-rule), the issuer-policy <code>crit</code> placement rule, the note on
-critical directives for the DNS record form, and the
-<code>issuer-authorization-policy+jwt</code> media type to <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>; keep
-Trust Policy <code>crit</code> handling here. Define decision-affecting
-members in the Terminology and record them in the members
-registry; add a Trust Method checklist item for signer and key
-binding. Add trust anchor compromise guidance.<a href="#appendix-F-3.3.1" class="pilcrow">¶</a></p>
+          <p id="appendix-F-3.3.1">Forbid waivers that an Authority Holder publishes, such as a
+monitoring mode, and define how methods in one category combine
+(#22).<a href="#appendix-F-3.3.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-F-3.4">
-          <p id="appendix-F-3.4.1">Forbid Authority-Holder-published waivers such as a monitoring
-mode; define within-category or-semantics, with a Subject
-Authority's published decision final for its namespace; map
-<code>openid_federation</code> outcomes onto lookup states explicitly.<a href="#appendix-F-3.4.1" class="pilcrow">¶</a></p>
+          <p id="appendix-F-3.4.1">Require an Assertion Issuer that serves several tenants under one
+issuer identifier to send <code>tenant</code> in every ID-JAG (#26).<a href="#appendix-F-3.4.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-F-3.5">
-          <p id="appendix-F-3.5.1">Pin UTS #46 nontransitional processing, with each flag stated,
-for internationalized domains. Add outbound-fetch requirements,
-which now hold the SSRF rules formerly in <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>, and a
-security consideration on key binding.<a href="#appendix-F-3.5.1" class="pilcrow">¶</a></p>
+          <p id="appendix-F-3.5.1">Return <code>invalid_grant</code> for a rejection in steps 1 through 5 of
+Resource Authorization Server processing, and recommend client
+authentication before Trust Method lookups (#28).<a href="#appendix-F-3.5.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-F-3.6">
-          <p id="appendix-F-3.6.1">Recommend client authentication before Trust Method lookups and
-rejection of a JWT-bearer assertion whose <code>typ</code> names another
-JWT application; return <code>invalid_grant</code> for a rejection in steps
-1 through 5 of Resource Authorization Server processing.<a href="#appendix-F-3.6.1" class="pilcrow">¶</a></p>
+          <p id="appendix-F-3.6.1">Add outbound-fetch requirements, UTS #46 processing for
+internationalized domains, and a key-binding security
+consideration (#27).<a href="#appendix-F-3.6.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-F-3.7">
-          <p id="appendix-F-3.7.1">Add the cost of per-relationship issuer configuration and the
-nOAuth attack class to the Introduction, and state that
-namespace authorization does not make an email address a safe
-account key. Require an Assertion
-Issuer that serves several tenants under one issuer identifier to
-send <code>tenant</code> in every ID-JAG. Reword the Trust Policy Discovery
-deferral.<a href="#appendix-F-3.7.1" class="pilcrow">¶</a></p>
+          <p id="appendix-F-3.7.1">Expand the motivation, and add tables and explanations for
+readers (#29).<a href="#appendix-F-3.7.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-F-3.8">
-          <p id="appendix-F-3.8.1">Summarize in a table what a namespace method's outcome leaves to
-other methods; say who publishes the Trust Policy and that one
-party can be both Assertion Issuer and client.<a href="#appendix-F-3.8.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="appendix-F-3.9">
-          <p id="appendix-F-3.9.1">Editorial changes for readability.<a href="#appendix-F-3.9.1" class="pilcrow">¶</a></p>
+          <p id="appendix-F-3.8.1">Editorial changes for readability.<a href="#appendix-F-3.8.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="appendix-F-4">-00<a href="#appendix-F-4" class="pilcrow">¶</a></p>

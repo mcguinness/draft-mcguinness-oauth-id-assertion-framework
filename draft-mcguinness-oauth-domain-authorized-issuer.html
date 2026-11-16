@@ -29,7 +29,7 @@ specification owns the generic Trust Policy document, Trust Method
 category structure, cross-category combination rule, and Subject
 Authority Determination concept. 
     " name="description">
-<meta content="xml2rfc 3.34.1" name="generator">
+<meta content="xml2rfc 3.35.0" name="generator">
 <meta content="OAuth" name="keyword">
 <meta content="JWT authorization grants" name="keyword">
 <meta content="identity assertion" name="keyword">
@@ -37,19 +37,19 @@ Authority Determination concept.
 <meta content="DNS authority" name="keyword">
 <meta content="draft-mcguinness-oauth-domain-authorized-issuer-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.34.1
-    Python 3.14.8
-    ConfigArgParse 1.8.0
+  xml2rfc 3.35.0
+    Python 3.14.10
+    ConfigArgParse 1.9.0
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.12.2
+    platformdirs 4.14.3
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.9.1
+    wcwidth 0.9.4
 -->
 <link href="draft-mcguinness-oauth-domain-authorized-issuer.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1050,7 +1050,7 @@ svg {
   & :is([stroke="white"], [stroke^="#fff"]) {
     stroke: var(--background-color);
   }
-  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+  & :is([fill="black"], [fill^="#000"], :not([fill], [fill] *)) {
     fill: var(--text-color);
   }
   & :is([fill="white"], [fill^="#fff"]) {
@@ -4102,7 +4102,7 @@ File extension(s): N/A; Macintosh file type code(s): N/A<a href="#section-12.6-2
 <dd class="break"></dd>
 <dt id="RFC7405">[RFC7405]</dt>
         <dd>
-<span class="refAuthor">Kyzivat, P.</span>, <span class="refTitle">"Case-Sensitive String Support in ABNF"</span>, <span class="seriesInfo">RFC 7405</span>, <span class="seriesInfo">DOI 10.17487/RFC7405</span>, <time datetime="2014-12" class="refDate">December 2014</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7405">https://www.rfc-editor.org/rfc/rfc7405</a>&gt;</span>. </dd>
+<span class="refAuthor">Kyzivat, P.</span>, <span class="refTitle">"Case-Sensitive String Support in ABNF"</span>, <span class="seriesInfo">STD 68</span>, <span class="seriesInfo">RFC 7405</span>, <span class="seriesInfo">DOI 10.17487/RFC7405</span>, <time datetime="2014-12" class="refDate">December 2014</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7405">https://www.rfc-editor.org/rfc/rfc7405</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC7515">[RFC7515]</dt>
         <dd>
@@ -4934,76 +4934,54 @@ enforce a local cache ceiling per <a href="#dii-caching" class="auto internal xr
       <h2 id="name-document-history">
 <a href="#appendix-D" class="section-number selfRef">Appendix D. </a><a href="#name-document-history" class="section-name selfRef">Document History</a>
       </h2>
-<p id="appendix-D-1">This appendix is non-normative and will be removed before publication.<a href="#appendix-D-1" class="pilcrow">¶</a></p>
+<p id="appendix-D-1">This appendix is non-normative and will be removed before publication.
+A number in parentheses is a closed issue in the
+<a href="https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues">issue tracker</a>
+for this document, which holds the details of that change.<a href="#appendix-D-1" class="pilcrow">¶</a></p>
 <p id="appendix-D-2">-01<a href="#appendix-D-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="appendix-D-3.1">
-          <p id="appendix-D-3.1.1">Make the DNS TXT record an explicit opt-in: a namespace with no
-record is Negative, with no HTTPS fallback, in both lookup modes.
-The HTTPS-only lookup mode fetches from a dedicated host,
-<code>oauth-issuer-policy.{A}</code>, instead of the apex; its opt-in is a
-record whose <code>uri=</code> names the default URL there. Policy fetches
-no longer follow redirects, and a 404 or 410 from a location a
-record names is Indeterminate.<a href="#appendix-D-3.1.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-3.1.1">Make the DNS TXT record an explicit opt-in with no HTTPS fallback;
+fetch HTTPS-only policies from the dedicated host
+<code>oauth-issuer-policy.{A}</code>; stop following redirects (#23).<a href="#appendix-D-3.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.2">
-          <p id="appendix-D-3.2.1">Remove the <code>mode</code> member and <code>mode=</code> directive (monitor mode),
-which admitted more issuers than publishing nothing.<a href="#appendix-D-3.2.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-3.2.1">Remove monitor mode: the <code>mode</code> member and <code>mode=</code> directive
+(#22).<a href="#appendix-D-3.2.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.3">
-          <p id="appendix-D-3.3.1">An entry without <code>tenant</code> no longer matches assertions that
-carry a <code>tenant</code> claim.<a href="#appendix-D-3.3.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-3.3.1">An entry without <code>tenant</code> no longer matches an assertion that
+carries <code>tenant</code> (#26).<a href="#appendix-D-3.3.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.4">
-          <p id="appendix-D-3.4.1">Add the <code>key=</code> directive, which pins the <code>signed_policy</code> signing
-key for a pointer record, including the HTTPS-only opt-in; allow
-two values for key rollover, with a rollover order that lets the
-new pin propagate before the signature changes.<a href="#appendix-D-3.4.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-3.4.1">Allow at most one <code>domain_authorized_issuer</code> object per Trust
+Policy and 100 entries per published policy, and constrain
+narrowing extensions (#27).<a href="#appendix-D-3.4.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.5">
-          <p id="appendix-D-3.5.1">Rewrite caching: binding freshness lifetimes, a 24-hour absolute
-ceiling, an explicit stale-if-error bound, a one-hour cap on DNS
-results that are not DNSSEC-validated, a one-hour cap on Negative
-caching with a lifetime taken from the DNS answer that produced
-it, and 304 renewal only under the same <code>uri=</code> and <code>key=</code>.<a href="#appendix-D-3.5.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-3.5.1">Add the <code>key=</code> directive, which pins the signed-policy key and
+allows rollover (#24).<a href="#appendix-D-3.5.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.6">
-          <p id="appendix-D-3.6.1">Sketch a federation-bound Issuer Authorization Policy as a
-non-normative future extension.<a href="#appendix-D-3.6.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-3.6.1">Bound every cache lifetime, and state the overall revocation
+window (#25).<a href="#appendix-D-3.6.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.7">
           <p id="appendix-D-3.7.1">Define signed-policy processing and register the
-<code>issuer-authorization-policy+jwt</code> media type in this document
-(moved from the framework), including the outcome for a consumer
-without a verification key, the binding a <code>key=</code> pin provides,
-and a signed copy of <code>crit</code>;
-describe how a spoofed negative answer can suppress a published
-denial when another namespace method is configured.<a href="#appendix-D-3.7.1" class="pilcrow">¶</a></p>
+<code>issuer-authorization-policy+jwt</code> media type here, moved from the
+framework (#21).<a href="#appendix-D-3.7.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.8">
-          <p id="appendix-D-3.8.1">Allow at most one <code>domain_authorized_issuer</code> object in a Trust
-Policy; cap published policies at 100 entries; require narrowing
-extensions to use a new version token or a member <code>crit</code> can
-name. The SSRF rules now live in the framework's outbound-fetch
-requirements.<a href="#appendix-D-3.8.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-3.8.1">Sketch a federation-bound Issuer Authorization Policy as a
+non-normative future extension (#20).<a href="#appendix-D-3.8.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.9">
-          <p id="appendix-D-3.9.1">Correct the relationship to the Email Verification Protocol,
-whose relying party also checks its record at verification time;
-add SAML scope metadata, bilateral domain verification, FastFed,
-and DNS-based OpenID discovery to the related mechanisms; bound
-the comparison between DNS control and control of email
-recovery; state that the Trust Method targets organizational
-namespaces.<a href="#appendix-D-3.9.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-3.9.1">Correct the relationship to the Email Verification Protocol, add
+related mechanisms, and gloss terms borrowed from the framework
+(#29).<a href="#appendix-D-3.9.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.10">
-          <p id="appendix-D-3.10.1">Gloss the terms borrowed from the framework; add a tenant
-matching table and the overall revocation window, including
-upstream caches; say which key
-<code>key=</code> pins.<a href="#appendix-D-3.10.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="appendix-D-3.11">
-          <p id="appendix-D-3.11.1">Editorial changes for readability.<a href="#appendix-D-3.11.1" class="pilcrow">¶</a></p>
+          <p id="appendix-D-3.10.1">Editorial changes for readability.<a href="#appendix-D-3.10.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="appendix-D-4">-00<a href="#appendix-D-4" class="pilcrow">¶</a></p>

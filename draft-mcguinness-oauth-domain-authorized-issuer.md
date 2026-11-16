@@ -43,6 +43,7 @@ normative:
   RFC8615:
   RFC9493:
   RFC9111:
+  RFC2308:
   ID-JAG:
     title: "Identity Assertion JWT Authorization Grant"
     target: https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/
@@ -67,7 +68,6 @@ informative:
   RFC8461:
   RFC8659:
   RFC9728:
-  RFC2308:
   RFC8785:
   OIDC-DISCOVERY:
     title: "OpenID Connect Discovery 1.0"
@@ -394,8 +394,8 @@ any of them is malformed:
 | `authorized_issuers` | array of objects, required (MAY be empty for explicit denial) | each element has `issuer` |
 | `issuer` | string, required | syntactically valid issuer identifier for the applicable grant profile |
 | `tenant` | string, optional | non-empty (see member definition) |
-| `subject_identifier_formats` | array of strings, optional | |
-| `valid_from`, `valid_until`, `last_updated` | {{RFC3339}} date-time, optional | |
+| `subject_identifier_formats` | array of strings, optional | non-empty |
+| `valid_from`, `valid_until`, `last_updated` | {{RFC3339}} date-time, optional | `valid_from` not later than `valid_until` when both are present |
 | `signed_policy` | string, optional | signed JWT as defined in {{signed-policy}} |
 | `crit` | array of strings, optional | non-empty; every listed member recognized and implemented, else malformed ({{TRUST-FRAMEWORK}} §Critical Members) |
 
@@ -453,15 +453,18 @@ policy claims, and MUST contain `iat`. It MUST contain `exp`, so that
 a superseded signed policy cannot be replayed indefinitely (relevant
 when the policy is hosted on shared infrastructure,
 {{third-party-policy-hosts}}). Consumers MUST reject an expired
-`signed_policy`.
+`signed_policy`, including a cached copy and during stale-if-error
+use ({{dii-caching}}).
 
-Publishers SHOULD keep `exp` close to `iat` (for example, a few
-days), because a policy host can replay a superseded signed policy
-until its `exp` to a consumer that holds no cached copy. A consumer
-that holds a cached signed policy for the same Subject Authority
-MUST reject a `signed_policy` whose `iat` is earlier than the cached
-one's. This ensures that an older signed policy cannot be replayed
-within its validity period.
+A policy host can replay a superseded signed policy until its `exp`
+to a consumer that has not seen a newer one. Consumers MUST reject a
+`signed_policy` whose `exp` is more than 24 hours after its `iat`. A
+consumer MUST retain the highest `iat` it has accepted for each
+Subject Authority until the `exp` of that signed policy, and MUST
+reject a `signed_policy` whose `iat` is earlier, even after the
+cached policy itself is gone. An older signed policy therefore cannot
+be replayed to a consumer that has accepted a newer one, nor to any
+consumer for more than 24 hours.
 
 The JOSE header SHOULD contain a `kid` identifying the signing key.
 The JWT payload SHOULD
@@ -602,7 +605,9 @@ the HTTPS-only lookup mode publishes the policy at the default URL
 on the dedicated policy host `oauth-issuer-policy.{A}`
 ({{dii-https-url}}). The opt-in to the HTTPS-only lookup mode is a
 recognized record at `_oauth-issuer-policy.{A}` ({{dii-dns-record}})
-whose `uri=` value is exactly the default URL. That mode requires
+whose `uri=` value is exactly the default URL: it equals, octet for
+octet, the default URL built from the lowercase A-label form of
+`{A}`. That mode requires
 such a record before it fetches from the dedicated host
 ({{trust-method-https-authorized-issuer}}). The same record directs
 canonical lookups to the same document.
@@ -634,14 +639,17 @@ names are formed without a trailing dot for comparison purposes; the
 wire-format root label is not part of the Subject Authority value.
 
 The string segments of a TXT record ({{RFC1035}}) are concatenated
-without separator and interpreted as ASCII text (a record containing
-a non-ASCII octet is malformed, since all defined directive values
-are ASCII by construction).
+without separator and interpreted as ASCII text. A recognized record
+(defined below) that contains a non-ASCII octet is malformed, since
+all defined directive values are ASCII by construction; other records
+are ignored.
 
-A record is *recognized* if the version token `v=oauth-issuer-policy1`
-(case-sensitive) appears at the start, terminated by end of record, by
-optional whitespace, or by a `;` separator; leading whitespace before
-the token is permitted. The version token matches only that exact
+A record is *recognized* if, after optional leading whitespace, it
+begins with the version token `v=oauth-issuer-policy1`
+(case-sensitive) followed by end of record, whitespace, or `;`. In a
+recognized record, the version token is followed by optional
+whitespace and then end of record or a `;` separator; anything else
+makes the record malformed ({{dii-failures}}). The version token matches only that exact
 string: a different token (for example, a future
 `v=oauth-issuer-policy2`) is not recognized, so the record is treated
 as unrecognized (not malformed) and is ignored by the recognition
@@ -661,7 +669,9 @@ directives separated by `;`. Parsing rules:
   case-sensitive and preserved as written.
 - A directive splits into name and value at the first `=`. Subsequent
   `=` characters are part of the value. A directive with no `=` makes
-  the record malformed ({{dii-failures}}).
+  the record malformed ({{dii-failures}}). So does a directive whose
+  name does not match the `name` production below, for example
+  because whitespace precedes the `=`.
 - The value runs to the next `;` or end of record. The character `;`
   MUST NOT appear in a value (see the issuer-identifier constraint in
   {{dii-document}}).
@@ -671,10 +681,10 @@ directives separated by `;`. Parsing rules:
   ({{dii-failures}}).
 - Unrecognized directives MUST be ignored.
 
-The parsing rules above are summarized in the following ABNF
-({{RFC5234}} with the case-sensitive string extension of {{RFC7405}})
-for implementer convenience; the prose above is normative if any
-disagreement exists.
+The following ABNF ({{RFC5234}} with the case-sensitive string
+extension of {{RFC7405}}) is normative for the record syntax, and
+the prose above agrees with it. A recognized record that does not
+match `record` is malformed ({{dii-failures}}).
 
 ~~~ abnf
 record        = OWS version OWS *( ";" directive ) [ ";" OWS ]
@@ -1043,9 +1053,10 @@ Resource Authorization Server MUST:
       {{ID-JAG}} §6.1) under case-sensitive string comparison. An
       entry with `tenant` does not match an assertion that lacks the
       `tenant` claim; an entry without `tenant` does not match an
-      assertion that carries a `tenant` claim. Under a grant profile that
-      carries no `tenant` claim, any `tenant` claim physically present
-      in the assertion MUST be ignored for entry matching.
+      assertion that carries a `tenant` claim, under any grant
+      profile. Under a grant profile that carries no `tenant` claim, a
+      `tenant` claim in the assertion is not attested, so an entry
+      with `tenant` does not match it.
 
    c. If the entry contains `subject_identifier_formats`, the Subject
       Identifier format of the assertion's subject is listed.
@@ -1081,8 +1092,9 @@ Step 4b, for a grant profile that carries `tenant` (such as ID-JAG):
 | Yes | No | No |
 | Yes | Yes | Only if the values are equal |
 
-Under a grant profile that carries no `tenant` claim, an assertion is
-treated as carrying none, so only entries without `tenant` match.
+Under a grant profile that carries no `tenant` claim, an entry with
+`tenant` never matches, and an entry without `tenant` matches only an
+assertion that carries no `tenant` claim.
 
 ## Observing Before Enforcing {#observe-before-enforce}
 
@@ -1128,7 +1140,10 @@ Freshness and cache limits for the Issuer Authorization Policy:
 - **Unvalidated DNS.** Consumers MUST NOT treat a DNS result that was
   not DNSSEC-validated as fresh for more than 1 hour, whatever its
   TTL: a spoofed answer chooses its own TTL
-  ({{dns-integrity-and-compromise}}).
+  ({{dns-integrity-and-compromise}}). A result is DNSSEC-validated
+  only if the consumer validated it, or a validating resolver that
+  the consumer reaches over an authenticated channel (such as DNS
+  over TLS or DNS over HTTPS) reported it as validated.
 - **Steady-state lifetimes.** Subject Authorities SHOULD publish
   records and HTTPS policies with a freshness lifetime of at most 1
   hour, reducing it further during an active revocation.
@@ -1153,8 +1168,7 @@ Freshness and cache limits for the Issuer Authorization Policy:
   TTL ({{RFC2308}}) for an NXDOMAIN or NODATA answer. For an answer
   that contains records but none that yields a policy, it is the
   remaining TTL of the TXT record set. Such an answer has no
-  recognized record or, under the HTTPS-only lookup mode, no record
-  whose `uri=` is the default URL. The short cap makes a Subject
+  recognized record. The short cap makes a Subject
   Authority's first publication, and its recovery from a brief
   publication-channel takeover, visible promptly. The same cap
   SHOULD apply to a cached explicit-denial policy ({{dii-document}}).
@@ -1174,7 +1188,10 @@ TTL ({{RFC1035}} Section 4.1.3), and HTTP caches for the document's
 freshness lifetime. The window is therefore up to the propagation
 time plus those upstream lifetimes, plus one consumer freshness
 lifetime and the stale-if-error hour. Steady-state lifetimes of 1
-hour or less, as recommended above, keep it to a few hours.
+hour or less, as recommended above, keep it to a few hours. For a
+signed policy on a host the Subject Authority does not control, the
+host can also replay the superseded policy until its `exp`, at most
+24 hours after its `iat` ({{signed-policy}}).
 
 # Trust Methods {#trust-methods}
 
@@ -1279,8 +1296,10 @@ When evaluated, the Resource Authorization Server MUST:
    remaining records is `malformed`. A `negative-authoritative` response is
    Negative. The Subject Authority has opted in to this mode only if
    a remaining record carries a `uri=` whose value is exactly the
-   default URL ({{dedicated-policy-host}}); otherwise the outcome is
-   Negative. An `indeterminate` or `malformed` response is
+   default URL ({{dedicated-policy-host}}). When recognized records
+   remain but none does, the Subject Authority has published a
+   policy this lookup mode does not retrieve, and the outcome is
+   Indeterminate. An `indeterminate` or `malformed` response is
    Indeterminate. The records' `issuer=` values are not used.
 
 3. Fetch the Issuer Authorization Policy from the default URL
@@ -1465,10 +1484,13 @@ Required framework defenses:
   because consumers reject records lacking the matching
   `authority=` directive.
 - Consumers MUST verify TLS for any host named by `uri=`.
-- Consumers MUST bound cache lifetimes ({{dii-caching}}). A spoofed
-  answer that was not DNSSEC-validated stays fresh for at most 1
-  hour, and can be served for at most 1 more hour while the live
-  channel is Indeterminate.
+- Consumers MUST bound cache lifetimes ({{dii-caching}}). In the
+  consumer's own cache, a spoofed answer that was not
+  DNSSEC-validated stays fresh for at most 1 hour, and can be served
+  for at most 1 more hour while the live channel is Indeterminate. A
+  poisoned recursive resolver can return the spoofed answer again
+  when the consumer re-queries, so this bound does not cover
+  recursive cache poisoning.
 - Consumers performing DNSSEC validation MUST treat validation
   failure as `indeterminate`, not `negative-authoritative`, so that a
   stripped or broken signature produces a retryable failure rather
@@ -1641,12 +1663,13 @@ following security points apply:
   profile that carries no `tenant` claim, only entries that omit
   `tenant` can match, so tenant-scoped authorization is not
   expressible. The generic JWT-bearer grant ({{TRUST-FRAMEWORK}}
-  §Generic JWT-Bearer Assertion Grant) is such a profile. Any
-  `tenant` claim in an assertion under such a profile is ignored for
-  matching, because the grant profile does not attest it. So an
-  entry without `tenant` for a shared issuer matches assertions from
-  every one of its tenants, and the default above does not help
-  here. A Subject Authority relying on a shared multi-tenant
+  §Generic JWT-Bearer Assertion Grant) is such a profile. An entry
+  with `tenant` matches no assertion under such a profile, because
+  the profile does not attest the claim. An entry without `tenant`
+  does not match an assertion that carries a `tenant` claim, but a
+  shared issuer that omits the claim from such assertions is
+  indistinguishable across its tenants, so the entry matches
+  assertions from every one of them. A Subject Authority relying on a shared multi-tenant
   Assertion Issuer SHOULD NOT authorize that issuer for such a grant
   unless per-tenant issuer identifiers are used.
 
@@ -2561,8 +2584,10 @@ security properties and operational guidance for this case are in
   the default URL on `oauth-issuer-policy.acme.example`: the TXT
   record is the opt-in.
 
-- A wildcard record at `*.example` covering `acme.example` would
-  have to carry `authority=acme.example` to be accepted. A wildcard
+- A wildcard record at `*.acme.example`, which DNS uses to answer a
+  query for `_oauth-issuer-policy.acme.example` when no record exists
+  at that name, would have to carry `authority=acme.example` to be
+  accepted. A wildcard
   with a different `authority=` is discarded; if no other recognized
   record remains, the response is `malformed` (Indeterminate) and
   the assertion is rejected.
@@ -2579,7 +2604,8 @@ security properties and operational guidance for this case are in
 This appendix is non-normative and will be removed before publication.
 A number in parentheses is a closed issue in the
 [issue tracker](https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues)
-for this document, which holds the details of that change.
+that this document shares with {{TRUST-FRAMEWORK}}, which holds the
+details of that change.
 
 -01
 
@@ -2605,6 +2631,10 @@ for this document, which holds the details of that change.
   * Correct the relationship to the Email Verification Protocol, add
     related mechanisms, and gloss terms borrowed from the framework
     (#29).
+  * Make the record ABNF normative, cap a signed policy's validity at
+    24 hours, apply tenant matching under every grant profile, and
+    treat a record without the default `uri=` as Indeterminate under
+    HTTPS-only lookup (#34).
   * Editorial changes for readability.
 
 -00

@@ -40,6 +40,7 @@ normative:
   RFC9700:
   RFC8705:
   RFC7591:
+  RFC9111:
   RFC5891:
   RFC8126:
   OIDF-FEDERATION:
@@ -58,11 +59,11 @@ normative:
     title: "Public Suffix List"
     target: https://publicsuffix.org/
   UTS46:
-    title: "Unicode IDNA Compatibility Processing"
-    target: https://www.unicode.org/reports/tr46/
+    title: "Unicode IDNA Compatibility Processing (Unicode Technical Standard #46, Revision 36)"
+    target: https://www.unicode.org/reports/tr46/tr46-36.html
     author:
       - org: Unicode Consortium
-    date: false
+    date: 2026-08-31
 
 informative:
   OIDF-WKB:
@@ -215,11 +216,13 @@ This document defines the Authority Delegation Model
 ({{delegation-model}}) and uses it to profile OAuth identity
 assertions. It is consumed by {{DAI}}, which defines one
 Subject-Authority publication mechanism. The two documents together
-are described in {{family}}. The assertion-bearer grant and chaining
-mechanics of {{ID-JAG}} and {{I-D.ietf-oauth-identity-chaining}}
-remain unchanged; this document adds the issuer-trust evaluation
-layer and one requirement on multi-tenant Assertion Issuers
-({{id-jag-profile}}).
+are described in {{family}}. This document adds a trust-evaluation
+layer to the assertion-bearer grant and chaining mechanics of
+{{ID-JAG}} and {{I-D.ietf-oauth-identity-chaining}}. Where that layer
+narrows a dependency, {{bindings}} says so: it requires client
+authentication under a policy with client methods, fixes the key
+source for the generic JWT-bearer binding, and limits which claims
+resolve the subject.
 
 ## Minimal Deployment
 
@@ -319,9 +322,10 @@ This document and {{DAI}} form a two-document set:
 - **This document**: the Authority Delegation Model
   ({{delegation-model}}) and the Identity Assertion Issuer Trust
   Policy ({{trust-policy-document}}) published by a Resource
-  Authorization Server, plus the Trust Method machinery, OAuth
-  grant profile bindings, and the Subject Authority Determination
-  concept.
+  Authorization Server, plus the Trust Method machinery, the
+  `openid_federation` and `openid_federation_client` Trust Methods,
+  OAuth grant profile bindings, and the Subject Authority
+  Determination concept.
 - **{{DAI}}**: the OAuth Domain-Authorized Issuer Trust Method, defining
   the `domain_authorized_issuer` Trust Method and the Issuer Authorization
   Policy wire format it consumes.
@@ -329,8 +333,9 @@ This document and {{DAI}} form a two-document set:
 This document does not define the Issuer Authorization Policy
 wire format or its integrity protection; those live in {{DAI}}. This
 document defines what an
-Assertion Issuer must satisfy to be accepted; DAI defines one
-class of evidence supplying that satisfaction.
+Assertion Issuer, and optionally the client that presents its
+assertion, must satisfy to be accepted; DAI defines one class of
+evidence supplying that satisfaction.
 
 ## Scope {#scope}
 
@@ -340,12 +345,15 @@ The scope of this document is:
   trust-evaluation categories, combination rule, lookup states,
   and the bounded-transitivity property profiles inherit.
 - The Trust Policy document ({{trust-policy-document}}).
-- The Trust Method machinery (categories, registry).
+- The Trust Method machinery (categories, registry), including the
+  `client_recognition` category.
+- The `openid_federation` and `openid_federation_client` Trust
+  Methods.
 - The Subject Authority Determination concept and registry.
 - The OAuth grant-profile bindings.
 
-Concrete publication mechanisms for specific Trust Methods are
-out of scope and live in dedicated specifications such as {{DAI}}.
+Other Trust Methods, and the publication mechanisms they use, live
+in dedicated specifications such as {{DAI}}.
 
 The Authority Delegation Model accommodates attribute
 authorities whose authority is not a namespace owner
@@ -1075,7 +1083,7 @@ the leaf holds the required Trust Marks.
 entity identifiers.
 
 `trust_marks`
-: OPTIONAL. JSON array of Trust Mark requirement objects. When
+: OPTIONAL. Non-empty JSON array of Trust Mark requirement objects. When
 present, each requirement object listed MUST be satisfied by at least
 one Trust Mark in the leaf's Entity Configuration. Each
 requirement object has:
@@ -1132,12 +1140,18 @@ Neither Negative nor Indeterminate satisfies this Trust Method
 ({{fail-closed-requirements}}). Entity Statement caching
 follows the statements' own `exp` values per {{OIDF-FEDERATION}},
 bounded by the consumer's local cache ceiling; a cached chain MUST
-NOT be used past the earliest `exp` in the chain. A Trust Mark that
-requirement 4 relies on is re-validated whenever the chain is, and
-is not used past its own `exp`.
+NOT be used past the earliest `exp` in the chain, or more than 24
+hours after it was obtained. The same 24-hour limit applies to a key
+set obtained through requirement 3. A Trust Mark that requirement 4
+relies on is re-validated whenever the chain is, and is not used
+past its own `exp`. A Trust Mark without `exp` is re-validated at its
+Trust Mark Status endpoint ({{OIDF-FEDERATION}} §8.4) when the Trust
+Mark Issuer publishes one.
 
 The framework-specific requirements below are evaluated against an
-Affirmative chain. A chain that fails requirement 1 is Negative, as
+Affirmative chain. Every requirement MUST hold on that one chain: the
+metadata, key source, and Trust Marks used are those of the chain
+that satisfies requirement 1. A chain that fails requirement 1 is Negative, as
 above. In each case below, the leaf does not satisfy this Trust
 Method and the lookup state is unchanged:
 
@@ -1353,7 +1367,7 @@ and 3 are replaced by the following:
   registration exists. These are that section's two client
   authentication methods (see also §12.1.1.2.1). They are narrower
   than {{OIDF-FEDERATION-CONNECT}} §12.1.4, under which a server
-  accepts any mutually supported method, and than {{RFC7523}}
+  should accept any mutually supported method, and than {{RFC7523}}
   Section 3, which also allows the token endpoint URL as `aud`. The
   `aud` value is the issuer identifier, not an Entity Identifier,
   because the Resource Authorization Server need not be a federation
@@ -1397,17 +1411,15 @@ condition applies, the first in this list determines the error:
    declares neither entity type, the client authenticates with a
    method its metadata does not declare, or client authentication
    does not verify under a key in the federation key set.
-2. Any failure of the assertion or of an issuer method gets the error
+2. `unauthorized_client` ({{RFC6749}} Section 5.2) when the client is
+   authenticated but not recognized: it holds no Trust Mark that
+   meets a requirement (requirement 4), the Trust Mark evaluation is
+   Indeterminate, or its metadata does not list the request's grant
+   type. The Resource Authorization Server evaluates this before it
+   validates the assertion ({{rasp}}), so the error does not depend
+   on the assertion.
+3. Any failure of the assertion or of an issuer method gets the error
    that {{rasp}} specifies.
-3. When the client is authenticated but not recognized, because it
-   holds no Trust Mark that meets a requirement (requirement 4), the
-   Trust Mark evaluation is Indeterminate, or its metadata does not
-   list the request's grant type: the error that the grant profile
-   defines for a client the Resource Authorization Server does not
-   authorize, such as `access_denied` for {{ID-JAG}} (§4.4.3), and
-   otherwise `unauthorized_client` ({{RFC6749}} Section 5.2). This
-   error applies only when the assertion is valid and every other
-   category is satisfied.
 
 Any token request can name an `https` `client_id`, and so cause these
 fetches before the client is authenticated, including a fetch for
@@ -1416,17 +1428,19 @@ every Entity in the client's `authority_hints` ({{OIDF-FEDERATION}}
 Authorization Server:
 
 - MUST limit the number of `authority_hints` it follows;
+- MUST apply a global rate limit to trust chain resolution for
+  unauthenticated requests;
 - SHOULD cache a Negative or Indeterminate outcome per `client_id`
   for a bounded period; and
-- SHOULD rate-limit trust chain resolution for clients it has not
-  seen before.
+- SHOULD also rate-limit trust chain resolution per `client_id`.
 
 A client that does not publish its Entity Configuration
 ({{OIDF-FEDERATION}} §9) can send its trust chain in a `trust_chain`
 header parameter of its client assertion ({{OIDF-FEDERATION}}
 §4.3). The Resource Authorization Server MAY use that chain, after
 validating it per {{OIDF-FEDERATION}} §10.2, in place of resolving
-one. Without a published Entity Configuration or a valid supplied
+one. It resolves the chain itself instead when any Entity Statement
+in the supplied chain was issued more than 24 hours earlier. Without a published Entity Configuration or a valid supplied
 chain, the client does not satisfy this method.
 
 The Resource Authorization Server caches the client's key set no
@@ -1835,7 +1849,14 @@ request, the Resource Authorization Server MUST:
       Identifier. When the namespace category is present but cannot
       be evaluated, the Resource Authorization Server MUST NOT
       consume any subject or identity claim from the assertion for
-      account linking, authorization, or subject resolution.
+      account linking, authorization, or subject resolution. When the
+      category is satisfied, the Resource Authorization Server MUST
+      resolve and link the subject only from the Subject Identifier
+      the category evaluated or from issuer-scoped identifiers (`iss`
+      and `sub`, with `tenant` for a multi-tenant issuer), unless local
+      configuration trusts the Assertion Issuer for another subject
+      claim. Claims such as `aud_sub` and `sub_id` ({{ID-JAG}} §3.1)
+      are outside the namespace check.
 
    d. Local policy MAY require satisfaction of additional Trust
       Methods for specific clients, subjects, or scopes.
@@ -1869,20 +1890,20 @@ Client authentication that the grant profile requires SHOULD be
 completed before step 5, so that unauthenticated requests cannot
 cause the lookups that step performs. When the policy contains
 `client_trust_methods`, the Resource Authorization Server MUST
-authenticate the client before step 2, and before then MUST NOT
-perform any lookup except those a `client_recognition` method needs
-to obtain the client's authentication keys, such as the trust chain
-and key set that `openid_federation_client` resolves. Every fetch
+authenticate the client, and evaluate the `client_recognition`
+category (step 5f), before step 2. Before the client is
+authenticated, it MUST NOT perform any lookup except those a
+`client_recognition` method needs to obtain the client's
+authentication keys, such as the trust chain and key set that
+`openid_federation_client` resolves. Every fetch
 made in this processing follows {{outbound-fetches}}.
 
 Rejection at any of steps 1 through 5, including a malformed Trust
 Policy (step 1) or an unlisted grant profile (step 3), MUST result in
 an OAuth `invalid_grant` error unless another error is defined by
 the applicable grant profile, by step 5f, or by the Trust Method that
-failed. A client authentication failure, from step 5f or from a
-`client_recognition` method, takes precedence over any other error.
-An error for an authenticated client that a `client_recognition`
-method does not recognize applies only when no other step fails. Detailed trust-evaluation failure state
+failed. An error from step 5f or from a `client_recognition` method
+takes precedence over any other error. Detailed trust-evaluation failure state
 MUST NOT be returned to public clients in the OAuth error response;
 it is a reconnaissance target.
 
@@ -1911,7 +1932,8 @@ For every such fetch, the Resource Authorization Server:
 - MUST apply a timeout to each fetch and MUST bound response sizes;
   and
 - MUST bound the number of fetches one token request can cause; a bound
-  of no more than 20 is RECOMMENDED.
+  of no more than 20 is RECOMMENDED. A lookup that would exceed the
+  bound is Indeterminate.
 
 Trust Method specifications MAY add requirements; for example,
 {{DAI}} forbids following redirects for policy fetches.
@@ -1943,17 +1965,15 @@ method, {{rasp}} step 5c requires the ID-JAG to carry that Subject
 Identifier and requires rejection if it is absent or unresolvable.
 
 {{ID-JAG}} §6.1 requires a multi-tenant issuer to include the
-`tenant` claim when the tenant context is relevant to the Resource
-Authorization Server. Under this binding, an Assertion Issuer that
-serves more than one tenant under a single issuer identifier MUST
-include the `tenant` claim in every ID-JAG it issues. A namespace
-method can bind authorization to a tenant (for example, {{DAI}}
-§Single-Issuer Multi-Tenant Identity Providers) and cannot tell an
-issuer's tenants apart without the claim. The Assertion Issuer
-cannot tell which Resource Authorization Servers evaluate such a
-method: publishing a Trust Policy is optional
-({{metadata-publication}}), and local policy can add Trust Methods
-({{rasp}} step 5d). This narrows {{ID-JAG}} §6.1.
+`tenant` claim in every ID-JAG it issues. A namespace method can bind
+authorization to a tenant (for example, {{DAI}} §Single-Issuer
+Multi-Tenant Identity Providers) and cannot tell an issuer's tenants
+apart without the claim. A namespace method's match on `tenant`
+establishes that the Subject Authority authorized that (`iss`,
+`tenant`) pair for its namespace. It does not establish the trust in
+`iss` and `tenant` for the recipient tenant that {{ID-JAG}} §4.4.1
+requires, which remains the Resource Authorization Server's own
+configuration.
 
 {{ID-JAG}} §4.4.1 lets a client that does not authenticate prove
 possession of the key in the ID-JAG's `cnf` claim instead. When the
@@ -1999,6 +2019,16 @@ application ({{RFC8725}} §3.11). {{RFC7523}} Section 3.1 lets this
 grant be used without client authentication. A Trust Policy that
 contains `client_trust_methods` requires it ({{rasp}} step 5f).
 
+{{RFC7523}} Section 5 leaves the exchange of verification keys out
+of scope. Under this binding, when no Trust Method the Resource
+Authorization Server relies on constrains the key source ({{rasp}}
+step 2), it MUST verify the assertion with an asymmetric key from
+the `jwks_uri` of the Assertion Issuer's {{RFC8414}} metadata whose
+`issuer` equals the assertion's `iss`, or from local configuration
+for that issuer. It MUST NOT use a key or a key location carried in
+the assertion's JOSE header, such as `jwk`, `jku`, or `x5u`
+({{RFC8725}} Section 3.10).
+
 As with ID-JAG, the Subject Identifier for this binding is the
 top-level `email` claim, accompanied by `email_verified=true`,
 extracted per {{subject-authority-determination}}. The `sub` claim is
@@ -2035,7 +2065,8 @@ specified in {{DAI}} §Single-Issuer Multi-Tenant Identity Providers.
 
 This binding does not apply to JWT client authentication
 ({{RFC7523}} Section 2.2), where the Subject Identifier is the
-`client_id` registered with the authorization server and no
+`client_id` registered with the authorization server ({{RFC7523}}
+Section 3) and no
 external namespace-owner delegation exists.
 
 # Security Considerations
@@ -2046,7 +2077,7 @@ This document complements the OAuth 2.0 Security Best Current
 Practice ({{RFC9700}}). It does not duplicate or override it.
 
 The `subject_namespace_authorization` category is the wire-format
-analog of {{RFC9700}} §4.4 (AS mix-up mitigations). To the extent
+analog of {{RFC9700}} §4.4.2 (mix-up countermeasures). To the extent
 the Subject Authority's publication channel provides integrity, a
 Resource Authorization Server will not accept an assertion from an
 authorization server that the Subject Authority has not listed.
@@ -2195,7 +2226,8 @@ every namespace that lists the issuer:
   anchor can therefore substitute the key of a listed issuer beneath
   it, and both categories then pass.
 - Without federation, the key comes from the Assertion Issuer's own
-  metadata, and whoever controls that metadata controls the key.
+  metadata ({{ID-JAG}} §4.4.1; {{jwt-bearer-profile}}), and whoever
+  controls that metadata controls the key.
 - A policy host named by a {{DAI}} `uri=` pointer controls the list
   itself, unless the Subject Authority pins the policy's signing key.
 
@@ -2239,6 +2271,13 @@ account key by itself. A Resource Authorization Server keys accounts
 on issuer-scoped identifiers (for example, `iss` with `sub`, or
 `iss`, `tenant`, and `sub` for a multi-tenant issuer) and links an
 account by email only under its own account-linking rules.
+
+Nor does namespace authorization cover any other subject claim. An
+issuer authorized for `attacker.example` can send an `email` in that
+namespace together with an `aud_sub` or `sub_id` that names an
+account elsewhere. Step 5c of {{rasp}} therefore limits subject
+resolution to the evaluated Subject Identifier and issuer-scoped
+identifiers.
 
 The authorization is also not audience-scoped. The
 `subject_namespace_authorization` category constrains which
@@ -2376,7 +2415,7 @@ an `issuer_authentication` method when a
 ## Trust Policy Caching {#caching}
 
 Consumers cache the Trust Policy using ordinary HTTP caching (see
-{{?RFC9111}} for the mechanism), bounded by a local maximum cache
+{{RFC9111}} for the mechanism), bounded by a local maximum cache
 lifetime. Independent of any policy-document cache expiration,
 revocation status of validated trust evidence MUST be checked at the
 cadence required by the applicable Trust Method specification. Transport integrity is addressed in {{integrity}}.
@@ -3349,14 +3388,16 @@ assertion's claims are:
 4. Fetches the key set at `jwks_uri`, verifies the client assertion's
    signature with a key in it, and checks that its `aud` is
    `https://api.saas.example` and that `private_key_jwt` is the
-   declared method. The client is now authenticated. Steps 2 through
-   4 are the only lookups before the client is authenticated.
+   declared method. The client is now authenticated, and because
+   `grant_types` lists the request's grant type, it is recognized.
+   Steps 2 through 4 are the only lookups before the client is
+   authenticated.
 5. Validates the ID-JAG, including that its `client_id` claim is
    `https://agent.example` ({{ID-JAG}} §4.4.1).
-6. Evaluates `openid_federation` for `https://idp.partner.example`,
-   `domain_authorized_issuer` for `partner.example`, and
-   `openid_federation_client` for the client. Every category is
-   satisfied, so it issues an access token.
+6. Evaluates `openid_federation` for `https://idp.partner.example`
+   and `domain_authorized_issuer` for `partner.example`. With the
+   client recognized in step 4, every category is satisfied, so it
+   issues an access token.
 
 **Rejections:**
 
@@ -3374,11 +3415,10 @@ assertion's claims are:
   the method is Indeterminate, and the result is `invalid_client`.
 - The policy required a Trust Mark that the client does not hold:
   the client is authenticated but not recognized, and the result is
-  `access_denied`, the code {{ID-JAG}} §4.4.3 defines for a client
-  the Resource Authorization Server does not authorize.
-- The client lacks a required Trust Mark and the ID-JAG has expired:
-  `invalid_grant`, because `access_denied` applies only to a valid
-  ID-JAG.
+  `unauthorized_client`.
+- The client lacks a required Trust Mark and the ID-JAG has also
+  expired: `unauthorized_client`, because client recognition is
+  evaluated before the ID-JAG.
 - The ID-JAG's `client_id` claim names a different client:
   `invalid_grant` ({{ID-JAG}} §4.4.1).
 - The client is recognized, but the Assertion Issuer fails an issuer
@@ -3422,8 +3462,8 @@ for this document, which holds the details of that change.
   * Forbid waivers that an Authority Holder publishes, such as a
     monitoring mode, and define how methods in one category combine
     (#22).
-  * Require an Assertion Issuer that serves several tenants under one
-    issuer identifier to send `tenant` in every ID-JAG (#26).
+  * Rely on {{ID-JAG}} §6.1, which requires a multi-tenant Assertion
+    Issuer to send `tenant` in every ID-JAG (#26).
   * Return `invalid_grant` for a rejection in steps 1 through 5 of
     Resource Authorization Server processing, and recommend client
     authentication before Trust Method lookups (#28).
@@ -3435,6 +3475,10 @@ for this document, which holds the details of that change.
     (#32).
   * Expand the motivation, and add tables and explanations for
     readers (#29).
+  * Limit subject resolution to the evaluated identifier, fix the key
+    source for the JWT-bearer binding, bound reuse of federation
+    evidence to 24 hours, and evaluate client recognition before the
+    assertion (#34).
   * Editorial changes for readability.
 
 -00

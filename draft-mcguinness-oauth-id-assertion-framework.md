@@ -591,9 +591,10 @@ signer's identity beyond what the Delegation Artifact attests.
 
 Category applicability is a property of the Validator's published
 Trust Policy, not of the incoming Assertion. A Validator that holds
-more than one Trust Policy selects one per request from properties of
-the request that it has authenticated, such as an authenticated OAuth
-client ({{rasp}} step 1), never from properties of the Assertion. If the Trust Policy
+more than one Trust Policy selects one per request from what it has
+authenticated about the request, such as an OAuth client's
+authentication against its registration ({{rasp}} step 1), never
+from properties of the Assertion. If the Trust Policy
 declares one or more Trust Methods in a given category, that
 category is applicable to every Assertion the Validator evaluates
 within the profile's scope. The Assertion itself MUST NOT be able
@@ -1681,10 +1682,14 @@ request, the Resource Authorization Server MUST:
 
 1. Select and parse the Trust Policy that applies to the token request.
    A Resource Authorization Server that holds more than one Trust
-   Policy selects one from properties of the request that it has
-   authenticated, such as the authenticated client, and never from a
-   claim in the assertion ({{category-applicability}}). If the policy
-   document is malformed, reject the assertion.
+   Policy applies its default policy, the one it publishes if it
+   publishes any ({{metadata-publication}}), except to a request whose
+   client authentication verifies against a registration it holds. To
+   that request it can apply a policy chosen for that registration
+   ({{trust-method-openid-federation-client}} limits which
+   registrations qualify). It never selects a policy from a claim in
+   the assertion ({{category-applicability}}). If the policy document
+   is malformed, reject the assertion.
    (Recognition of individual Trust Method objects is handled in
    step 5a.)
 
@@ -1789,11 +1794,13 @@ request, the Resource Authorization Server MUST:
 
 Client authentication that the grant profile requires SHOULD be
 completed before step 5, so that unauthenticated requests cannot
-cause the lookups that step performs. For a client whose
-authentication keys a `client_recognition` method resolves, such as
-`openid_federation_client`, resolving those keys is the only lookup
-the Resource Authorization Server performs before the client is
-authenticated. Fetches made in step 5 follow {{outbound-fetches}}.
+cause the lookups that step performs. When the policy contains
+`client_trust_methods`, the Resource Authorization Server MUST
+authenticate the client before step 2, and before then MUST NOT
+perform any lookup except those a `client_recognition` method needs
+to obtain the client's authentication keys, such as the trust chain
+and key set that `openid_federation_client` resolves. Every fetch
+made in this processing follows {{outbound-fetches}}.
 
 Rejection at any of steps 1 through 5, including a malformed Trust
 Policy (step 1) or an unlisted grant profile (step 3), MUST result in
@@ -3241,8 +3248,9 @@ assertion's claims are:
 
 **Processing.** The Resource Authorization Server:
 
-1. Reads `client_id`. It is not a client the Resource Authorization
-   Server registered, so the policy above applies ({{rasp}} step 1).
+1. Applies the policy above, because the request does not
+   authenticate against a registration the Resource Authorization
+   Server holds ({{rasp}} step 1).
 2. Resolves the client's Entity Configuration and a trust chain to
    `https://federation.example.org`.
 3. Checks that the policy-applied metadata declares `oauth_client`.

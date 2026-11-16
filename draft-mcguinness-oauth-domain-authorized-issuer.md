@@ -1161,8 +1161,7 @@ Freshness and cache limits for the Issuer Authorization Policy:
   TTL ({{RFC2308}}) for an NXDOMAIN or NODATA answer. For an answer
   that contains records but none that yields a policy, it is the
   remaining TTL of the TXT record set. Such an answer has no
-  recognized record or, under the HTTPS-only lookup mode, no record
-  whose `uri=` is the default URL. The short cap makes a Subject
+  recognized record. The short cap makes a Subject
   Authority's first publication, and its recovery from a brief
   publication-channel takeover, visible promptly. The same cap
   SHOULD apply to a cached explicit-denial policy ({{dii-document}}).
@@ -1290,8 +1289,10 @@ When evaluated, the Resource Authorization Server MUST:
    remaining records is `malformed`. A `negative-authoritative` response is
    Negative. The Subject Authority has opted in to this mode only if
    a remaining record carries a `uri=` whose value is exactly the
-   default URL ({{dedicated-policy-host}}); otherwise the outcome is
-   Negative. An `indeterminate` or `malformed` response is
+   default URL ({{dedicated-policy-host}}). When recognized records
+   remain but none does, the Subject Authority has published a
+   policy this lookup mode does not retrieve, and the outcome is
+   Indeterminate. An `indeterminate` or `malformed` response is
    Indeterminate. The records' `issuer=` values are not used.
 
 3. Fetch the Issuer Authorization Policy from the default URL

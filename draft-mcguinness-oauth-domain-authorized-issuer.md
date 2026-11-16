@@ -43,6 +43,7 @@ normative:
   RFC8615:
   RFC9493:
   RFC9111:
+  RFC2308:
   ID-JAG:
     title: "Identity Assertion JWT Authorization Grant"
     target: https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/
@@ -67,7 +68,6 @@ informative:
   RFC8461:
   RFC8659:
   RFC9728:
-  RFC2308:
   RFC8785:
   OIDC-DISCOVERY:
     title: "OpenID Connect Discovery 1.0"
@@ -2584,8 +2584,10 @@ security properties and operational guidance for this case are in
   the default URL on `oauth-issuer-policy.acme.example`: the TXT
   record is the opt-in.
 
-- A wildcard record at `*.example` covering `acme.example` would
-  have to carry `authority=acme.example` to be accepted. A wildcard
+- A wildcard record at `*.acme.example`, which DNS uses to answer a
+  query for `_oauth-issuer-policy.acme.example` when no record exists
+  at that name, would have to carry `authority=acme.example` to be
+  accepted. A wildcard
   with a different `authority=` is discarded; if no other recognized
   record remains, the response is `malformed` (Indeterminate) and
   the assertion is rejected.
@@ -2602,7 +2604,8 @@ security properties and operational guidance for this case are in
 This appendix is non-normative and will be removed before publication.
 A number in parentheses is a closed issue in the
 [issue tracker](https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues)
-for this document, which holds the details of that change.
+that this document shares with {{TRUST-FRAMEWORK}}, which holds the
+details of that change.
 
 -01
 

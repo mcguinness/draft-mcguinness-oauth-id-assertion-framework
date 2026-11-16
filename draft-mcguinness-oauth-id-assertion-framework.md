@@ -40,6 +40,7 @@ normative:
   RFC9700:
   RFC8705:
   RFC7591:
+  RFC9111:
   RFC5891:
   RFC8126:
   OIDF-FEDERATION:
@@ -58,11 +59,11 @@ normative:
     title: "Public Suffix List"
     target: https://publicsuffix.org/
   UTS46:
-    title: "Unicode IDNA Compatibility Processing"
-    target: https://www.unicode.org/reports/tr46/
+    title: "Unicode IDNA Compatibility Processing (Unicode Technical Standard #46, Revision 36)"
+    target: https://www.unicode.org/reports/tr46/tr46-36.html
     author:
       - org: Unicode Consortium
-    date: false
+    date: 2026-08-31
 
 informative:
   OIDF-WKB:
@@ -1366,7 +1367,7 @@ and 3 are replaced by the following:
   registration exists. These are that section's two client
   authentication methods (see also §12.1.1.2.1). They are narrower
   than {{OIDF-FEDERATION-CONNECT}} §12.1.4, under which a server
-  accepts any mutually supported method, and than {{RFC7523}}
+  should accept any mutually supported method, and than {{RFC7523}}
   Section 3, which also allows the token endpoint URL as `aud`. The
   `aud` value is the issuer identifier, not an Entity Identifier,
   because the Resource Authorization Server need not be a federation
@@ -2064,7 +2065,8 @@ specified in {{DAI}} §Single-Issuer Multi-Tenant Identity Providers.
 
 This binding does not apply to JWT client authentication
 ({{RFC7523}} Section 2.2), where the Subject Identifier is the
-`client_id` registered with the authorization server and no
+`client_id` registered with the authorization server ({{RFC7523}}
+Section 3) and no
 external namespace-owner delegation exists.
 
 # Security Considerations
@@ -2075,7 +2077,7 @@ This document complements the OAuth 2.0 Security Best Current
 Practice ({{RFC9700}}). It does not duplicate or override it.
 
 The `subject_namespace_authorization` category is the wire-format
-analog of {{RFC9700}} §4.4 (AS mix-up mitigations). To the extent
+analog of {{RFC9700}} §4.4.2 (mix-up countermeasures). To the extent
 the Subject Authority's publication channel provides integrity, a
 Resource Authorization Server will not accept an assertion from an
 authorization server that the Subject Authority has not listed.
@@ -2413,7 +2415,7 @@ an `issuer_authentication` method when a
 ## Trust Policy Caching {#caching}
 
 Consumers cache the Trust Policy using ordinary HTTP caching (see
-{{?RFC9111}} for the mechanism), bounded by a local maximum cache
+{{RFC9111}} for the mechanism), bounded by a local maximum cache
 lifetime. Independent of any policy-document cache expiration,
 revocation status of validated trust evidence MUST be checked at the
 cadence required by the applicable Trust Method specification. Transport integrity is addressed in {{integrity}}.

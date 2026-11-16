@@ -1955,17 +1955,15 @@ method, {{rasp}} step 5c requires the ID-JAG to carry that Subject
 Identifier and requires rejection if it is absent or unresolvable.
 
 {{ID-JAG}} §6.1 requires a multi-tenant issuer to include the
-`tenant` claim when the tenant context is relevant to the Resource
-Authorization Server. Under this binding, an Assertion Issuer that
-serves more than one tenant under a single issuer identifier MUST
-include the `tenant` claim in every ID-JAG it issues. A namespace
-method can bind authorization to a tenant (for example, {{DAI}}
-§Single-Issuer Multi-Tenant Identity Providers) and cannot tell an
-issuer's tenants apart without the claim. The Assertion Issuer
-cannot tell which Resource Authorization Servers evaluate such a
-method: publishing a Trust Policy is optional
-({{metadata-publication}}), and local policy can add Trust Methods
-({{rasp}} step 5d). This narrows {{ID-JAG}} §6.1.
+`tenant` claim in every ID-JAG it issues. A namespace method can bind
+authorization to a tenant (for example, {{DAI}} §Single-Issuer
+Multi-Tenant Identity Providers) and cannot tell an issuer's tenants
+apart without the claim. A namespace method's match on `tenant`
+establishes that the Subject Authority authorized that (`iss`,
+`tenant`) pair for its namespace. It does not establish the trust in
+`iss` and `tenant` for the recipient tenant that {{ID-JAG}} §4.4.1
+requires, which remains the Resource Authorization Server's own
+configuration.
 
 {{ID-JAG}} §4.4.1 lets a client that does not authenticate prove
 possession of the key in the ID-JAG's `cnf` claim instead. When the
@@ -3452,8 +3450,8 @@ for this document, which holds the details of that change.
   * Forbid waivers that an Authority Holder publishes, such as a
     monitoring mode, and define how methods in one category combine
     (#22).
-  * Require an Assertion Issuer that serves several tenants under one
-    issuer identifier to send `tenant` in every ID-JAG (#26).
+  * Rely on {{ID-JAG}} §6.1, which requires a multi-tenant Assertion
+    Issuer to send `tenant` in every ID-JAG (#26).
   * Return `invalid_grant` for a rejection in steps 1 through 5 of
     Resource Authorization Server processing, and recommend client
     authentication before Trust Method lookups (#28).

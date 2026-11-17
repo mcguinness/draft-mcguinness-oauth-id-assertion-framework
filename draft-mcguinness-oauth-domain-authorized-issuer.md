@@ -1899,75 +1899,65 @@ This appendix is non-normative.
 
 ## Following Existing DNS Authority Patterns {#dns-authority-patterns}
 
-The Domain-Authorized Issuer Trust Method applies the same
-authority-publication pattern that domain owners already use for
-CAA {{RFC8659}}, MTA-STS {{RFC8461}}, SPF, DKIM, DMARC, and the Email
-Verification Protocol {{I-D.hardt-email-verification}}. {{TRUST-FRAMEWORK}}
-§Authority Delegation Model covers the abstract pattern; this
-document chooses DNS at `_oauth-issuer-policy.{domain}` as the
-authoritative publication channel. The `name=value` record syntax is
-closest to DMARC's, and DMARC's operational experience with the
-organizational-domain boundary informs the Subject Authority
-Determination approach in {{TRUST-FRAMEWORK}} §Subject Authority
-Determination. DMARC itself has since replaced its use of the Public
-Suffix List with a DNS tree walk ({{RFC9989}}); see the Public Suffix
-List discussion there.
+DAI applies the authority-publication pattern that domain owners
+already use for CAA {{RFC8659}}, MTA-STS {{RFC8461}}, SPF, DKIM,
+DMARC, and the Email Verification Protocol
+{{I-D.hardt-email-verification}}; {{TRUST-FRAMEWORK}} §Authority
+Delegation Model covers the abstract pattern. The `name=value`
+record syntax is closest to DMARC's, and DMARC's experience with the
+organizational-domain boundary informs {{TRUST-FRAMEWORK}} §Subject
+Authority Determination. DMARC has since replaced the Public Suffix
+List with a DNS tree walk ({{RFC9989}}); see the Public Suffix List
+discussion there.
 
 Unlike CAA (deployment-time), SPF/DKIM (spam-score signal), and
 MTA-STS (inbound mail), the `_oauth-issuer-policy` record is
-consumed during user sign-in; the operational consequences of that
-are covered normatively in {{operational}}.
+consumed during user sign-in ({{operational}}).
 
 Relationship to issuer discovery. WebFinger {{RFC7033}} and OpenID
-Connect Discovery answer a different question: given a user
-identifier, where does a client go to authenticate the user? This
-Trust Method is verifier-side and authorization-oriented: given an
-assertion already in hand, is its issuer authorized for the subject's
-namespace? DAI is published per namespace (not per user), over a DNS
-channel whose control establishes the authority binding. It also
-carries authorization semantics (validity windows, tenant binding,
-format restrictions) that a discovery record does not.
+Connect Discovery tell a client, given a user identifier, where to
+authenticate the user. DAI tells a verifier, given an assertion,
+whether its issuer is authorized for the subject's namespace. DAI is
+published per namespace (not per user), over a DNS channel whose
+control establishes the authority binding, and carries authorization
+semantics (validity windows, tenant binding, format restrictions)
+that a discovery record does not.
 
 An earlier proposal, {{I-D.sanz-openid-dns-discovery}}, published a
-domain's OpenID issuer in a DNS TXT record of similar shape, also for
-discovery. A deployment could layer client-side discovery on top
-(see {{assertion-issuer-discovery-client-side}}), but that is out of
-scope here.
+domain's OpenID issuer in a similar DNS TXT record, also for
+discovery. Client-side discovery layered on DAI is out of scope
+({{assertion-issuer-discovery-client-side}}).
 
 Relationship to federation-scoped and bilateral mechanisms. SAML
-federations such as InCommon constrain the namespaces an Identity
-Provider may assert with the scope metadata extension {{SHIBMD}}.
-Interfederation services such as eduGAIN {{EDUGAIN}} carry that
-metadata between federations. There, scope is attested by the
-federation operator and distributed in trusted federation metadata.
-DAI's authorization is instead published by the namespace owner,
-where any verifier can retrieve it.
+federations such as InCommon constrain an Identity Provider's
+namespaces with the scope metadata extension {{SHIBMD}}, which
+interfederation services such as eduGAIN {{EDUGAIN}} carry between
+federations. There, the federation operator attests scope. DAI's
+authorization is instead published by the namespace owner, where any
+verifier can retrieve it.
 
 Software-as-a-service providers commonly have a customer prove
 control of its domain with a one-time DNS challenge and then
-configure the customer's Identity Provider. FastFed {{FASTFED}}
-automates establishing and maintaining such a federation
-relationship between an Identity Provider and an application
-provider, with administrator approval on both sides. Both are
-bilateral configuration, held by the parties to one relationship,
-not an authorization that any verifier can retrieve.
+configure its Identity Provider. FastFed {{FASTFED}} automates such a
+relationship, with administrator approval on both sides. Both are
+bilateral configuration held by the parties to one relationship, not
+an authorization any verifier can retrieve.
 
 Relationship to the Email Verification Protocol. EVP
-{{I-D.hardt-email-verification}} also publishes, in DNS, the issuer
-for an email domain. Its relying party also checks that record at
-verification time. The relying party resolves
-`_email-verification.{domain}` itself and rejects a token whose `iss`
-does not match. The two records differ in role and in scope.
+{{I-D.hardt-email-verification}} also publishes an email domain's
+issuer in DNS: its relying party resolves
+`_email-verification.{domain}` at verification time and rejects a
+token whose `iss` does not match. The two records differ in role and
+in scope.
 
 In role, EVP names the issuer that verifies *control of an email
 address*, while DAI names the issuers *authorized to assert
 identities* in a namespace. A domain that uses one provider for mail
-and another for single sign-on can rightly give different answers to
-the two questions.
+and another for single sign-on can rightly give different answers.
 
-In scope, EVP allows exactly one issuer, identified by an HTTPS
-origin with no path, for the raw email domain and for EVP tokens
-only. DAI, in contrast:
+In scope, EVP allows exactly one issuer, an HTTPS origin with no
+path, for the raw email domain and for EVP tokens only. DAI, in
+contrast:
 
 - allows several issuers with full issuer identifiers (including
   path components);
@@ -1975,68 +1965,58 @@ only. DAI, in contrast:
 - carries authorization constraints; and
 - normalizes to the registrable domain.
 
-Convergence with EVP on a shared record or node name is possible
-future work. {{email-verification-protocol-bridge}} sketches a
-bridge.
+Convergence on a shared record or node name is possible future work
+({{email-verification-protocol-bridge}}).
 
 ## Why a Generic Record Name {#rationale-generic-name}
 
 The DNS node name, well-known URI suffix, and version token name the
 document they locate (the Issuer Authorization Policy), not the
-identity framework consuming it. The wire format is
-subject-class-agnostic: no member or directive is specific to email
-or identity assertions. The subject class is expressed through
-`subject_identifier_formats` ({{RFC9493}}). The identity-specific
+identity framework consuming it. No member or directive is specific
+to email or identity assertions; `subject_identifier_formats`
+({{RFC9493}}) expresses the subject class. The identity-specific
 machinery lives in {{TRUST-FRAMEWORK}}, whose own well-known URI is
 identity-scoped for that reason.
 
 A future Subject Identifier format with a DNS-publishable Subject
-Authority reuses `domain_authorized_issuer` and this same record
-({{TRUST-FRAMEWORK}} §Future Extensions). An identity-scoped name
-would force a second record at a second DNS name. One per-domain
-policy surface, extended through registered members rather than new
-names, follows the `oauth-authorization-server` metadata precedent.
+Authority reuses `domain_authorized_issuer` and this record
+({{TRUST-FRAMEWORK}} §Future Extensions), where an identity-scoped
+name would force a second record at a second DNS name. One
+per-domain policy surface, extended through registered members,
+follows the `oauth-authorization-server` metadata precedent.
 
 ## Why First-Class Tenant Binding
 
 Shared-issuer multi-tenant Identity Providers (Google Workspace,
-Auth0 in some configurations, Microsoft Entra B2B in some flows)
-serve many customer tenants under a single issuer URL. The
-deployment reality is that these Identity Providers are common;
-authorizing them without tenant binding effectively authorizes
-every tenant of the Identity Provider for the namespace, which is
-almost never the intent. An entry without `tenant` therefore
-matches only assertions that carry no `tenant` claim.
+Auth0 in some configurations, Microsoft Entra B2B in some flows) are
+common and serve many customer tenants under one issuer URL.
+Authorizing one without tenant binding would authorize every tenant
+of that Identity Provider for the namespace, which is almost never
+the intent. An entry without `tenant` therefore matches only
+assertions that carry no `tenant` claim.
 
-The `tenant` member on `authorized_issuers[]` entries binds
-authorization to the specific tenant identifier the Identity
-Provider populates in the top-level `tenant` claim ({{ID-JAG}}
-§3.1, §6.1). The binding makes the Subject Authority's choice
-of authorized tenant observable on the wire and verifiable per
-assertion. It does not eliminate the trust assumption on the
-Identity Provider's tenant-isolation enforcement; it makes the
-assumption explicit and auditable. See {{dii-multi-tenant}}.
+The `tenant` member of an `authorized_issuers[]` entry binds
+authorization to the tenant identifier in the top-level `tenant`
+claim ({{ID-JAG}} §3.1, §6.1). The Subject Authority's choice of
+tenant becomes observable on the wire and verifiable per assertion.
+The Identity Provider's tenant isolation is still trusted
+({{dii-multi-tenant}}).
 
-A generic claim-matching mechanism (matching arbitrary JWT claims
-against publisher-specified values) was considered as an
-alternative. First-class `tenant` was preferred because the claim
-name is standardized in {{ID-JAG}}, the deployment intent is
-unambiguous, and the wire-format expression is simpler than a
-generic claim-matching object.
+A generic claim-matching mechanism was considered instead.
+First-class `tenant` was preferred because {{ID-JAG}} standardizes
+the claim name, the deployment intent is unambiguous, and the wire
+format is simpler.
 
 ## Choosing Between DNS-Published and HTTPS-Only Authority {#rationale-https-only}
 
 Canonical DNS-first lookup and HTTPS-only lookup are not strictly
-ordered by security strength; they trade different risks.
-HTTPS-only lookup is resilient to substitution of the TXT record's
-issuers or policy location but depends on
-resolution of the dedicated host plus the public CA trust system; a
-DNS redirect combined with TLS misissuance defeats it.
-`domain_authorized_issuer` in the inline form is resilient to TLS
-misissuance because the authority artifact is the TXT record itself;
-an attacker needs DNS-write or DNSSEC-bypass capability. The DNS
-pointer form inherits TLS-misissuance risk on the pointed-at host
-while also depending on DNS for selection.
+ordered by security strength; they trade different risks
+({{transport-integrity}}, {{https-only-trust-model}}). The inline
+DNS form resists TLS misissuance; an attacker needs DNS-write or
+DNSSEC-bypass capability. HTTPS-only lookup resists substitution of
+the TXT record's issuers or policy location, but a DNS redirect
+combined with TLS misissuance defeats it. The DNS pointer form is
+exposed to both.
 
 A Subject Authority with strong DNSSEC and weak TLS-issuance
 controls favors the inline DNS form. A Subject Authority with
@@ -2048,8 +2028,8 @@ DNS favors the dedicated host and HTTPS-only lookup.
 Fetching a well-known URL on the Subject Authority's apex whenever
 DNS reports no record would make every domain DAI-covered unless it
 opted out. An attacker who could serve content on a domain's apex
-could publish a policy for a domain that never adopted DAI, with no
-DNS forgery at all. That ability can come from:
+could then publish a policy for a domain that never adopted DAI,
+with no DNS forgery, through:
 
 - a dangling address record;
 - a site builder that lets customers place files at arbitrary
@@ -2057,50 +2037,45 @@ DNS forgery at all. That ability can come from:
 - a takeover of a host the apex redirects to.
 
 This document follows MTA-STS {{RFC8461}} instead. The TXT record is
-the opt-in in both lookup modes, and for the HTTPS-only lookup mode
-its `uri=` names the dedicated host's default URL; a policy for that
-mode lives on the dedicated host; and redirects are not followed. A
-host name alone would not be an opt-in, since domains that let users
-claim subdomains could lose it ({{RFC8461}} Section 10.3). The cost
-is that a Subject Authority with no control of its DNS cannot
-participate. The full JSON policy remains available to every Subject
-Authority through the `uri=` pointer.
+the opt-in in both lookup modes; for the HTTPS-only lookup mode its
+`uri=` names the dedicated host's default URL, the policy lives on
+that host, and redirects are not followed. A host name alone is not
+an opt-in ({{dedicated-policy-host}}). The cost is that a Subject
+Authority with no control of its DNS cannot participate. The full
+JSON policy remains available to every Subject Authority through the
+`uri=` pointer.
 
 
 # Future Extensions {#future-extensions}
 
-This appendix is non-normative. It sketches features intentionally
-deferred from this document; future specifications may register them.
+This appendix is non-normative. It sketches deferred features that
+future specifications may register.
 
 ## Federation-Bound Issuer Authorization Policy
 
-For deployments where a Subject Authority is a federation Entity,
-a future extension could authenticate the Issuer Authorization Policy
-on the dedicated policy host. It would do so through a digest in the
-Entity Configuration of the Entity that serves the policy, using a
-mechanism such as the proposed Well-Known Binding specification
-{{OIDF-WKB}}. The Subject Authority would still author and publish
-the policy under `{A}`. Federation would add integrity protection,
-not transfer namespace authority to a trust anchor. The added
-protection depends on federation enrollment and key control being
-independent of the domain publication channel.
-
-Such an extension would need to define all of the following:
+Where a Subject Authority is a federation Entity, a future extension
+could authenticate the Issuer Authorization Policy on the dedicated
+policy host through a digest in the Entity Configuration of the
+Entity that serves it, using a mechanism such as the proposed
+Well-Known Binding specification {{OIDF-WKB}}. The Subject Authority
+would still author and publish the policy under `{A}`; federation
+would add integrity protection, not move namespace authority to a
+trust anchor. That protection depends on federation enrollment and
+key control being independent of the domain publication channel.
+Such an extension would need to define:
 
 - Coverage of the HTTPS-only lookup mode. Inline DNS TXT policies
-  would not be covered; a `uri=` pointer would be covered only if it
-  names the default URL.
+  would not be covered, and a `uri=` pointer only if it names the
+  default URL.
 - An exact mapping from Subject Authority `{A}` to Entity Identifier
-  `https://oauth-issuer-policy.{A}`, the dedicated host, without a
-  path or explicit port. A binding keyed to an Entity's own
-  well-known URIs ({{OIDF-WKB}}) covers documents only on the Entity
+  `https://oauth-issuer-policy.{A}`, with no path or explicit port,
+  as {{OIDF-WKB}} requires of any protocol whose peer identifier is
+  not an `https` URL. A binding keyed to an Entity's own well-known
+  URIs ({{OIDF-WKB}}) covers documents only on the Entity
   Identifier's host, and the fixed label keeps any other subdomain
-  Entity from speaking for the registrable domain. {{OIDF-WKB}}
-  requires such a mapping from any protocol whose peer identifier is
-  not an `https` URL.
-- A separate trust-anchor parameter on `domain_authorized_issuer`,
-  independent of any `openid_federation.trust_anchors` configuration
-  for the issuer-authentication category.
+  Entity from speaking for the registrable domain.
+- A trust-anchor parameter on `domain_authorized_issuer`, separate
+  from any `openid_federation.trust_anchors` configuration.
 - Indeterminate outcomes for a missing binding, digest mismatch, or
   trust-chain failure, with no fallback to an unbound policy.
 - A cache lifetime bounded by the minimum of this document's caching
@@ -2112,93 +2087,75 @@ Such an extension would need to define all of the following:
   specifies for any replacement that is a revocation, while
   accounting for residual exposure from cached Entity Configurations.
 
-This document does not define that extension or change DAI's lookup,
-authority binding, or integrity mechanisms to depend on federation.
-
 ## Critical Directives for the DNS Record Form {#crit-dns-form}
 
-The JSON document carries a `crit` member ({{dii-document}}). An
-extension that adds a decision-affecting top-level member to the
-Issuer Authorization Policy can therefore mark it critical and have
-already-deployed consumers honor it. The `crit` member does not reach
-members of `authorized_issuers` entries. An extension that narrows
-entries (for example, a `permitted_audiences` member) therefore also
-defines a top-level member for publishers to list in `crit`
-({{iana-dii-members}}).
+In the JSON document, an extension can mark a new decision-affecting
+top-level member critical with `crit` ({{dii-document}}), and
+already-deployed consumers honor it. An extension that narrows
+`authorized_issuers` entries defines a top-level member for
+publishers to list ({{iana-dii-members}}).
 
-The DNS record form has no analogous per-directive criticality
-mechanism today. Its version token ({{dii-dns-record}}) prevents
-misinterpretation of incompatible future syntax by making
-unrecognized versions ignored. As a result, a Subject Authority that
-publishes only an unrecognized version is Negative to an older
-consumer. A future extension that needs true per-directive
-fail-closed semantics in the DNS form would define a `crit=` directive
-and its recognition rules at that time.
+The DNS record form has no per-directive criticality mechanism. Its
+version token ({{dii-dns-record}}) prevents misinterpretation of
+incompatible future syntax by making unrecognized versions ignored.
+As a result, a Subject Authority that publishes only an unrecognized
+version is Negative to an older consumer. A future extension that
+needs per-directive fail-closed semantics in the DNS form would
+define a `crit=` directive and its recognition rules.
 
 ## Evaluation Reports
 
 A Subject Authority learns which assertions Resource Authorization
 Servers reject for its namespace only out of band
-({{observe-before-enforce}}). A future extension can define an
-aggregate reporting mechanism, analogous to DMARC aggregate reports
-{{RFC9990}}: a policy member naming a reporting endpoint, a report
-format (observed issuers, match and mismatch counts, time window),
-and delivery requirements. It is deferred because report formats and transport
-carry privacy and abuse considerations (a reporting endpoint learns
-which Resource Authorization Servers a namespace's users sign in to,
-concentrating the metadata discussed in {{privacy}}) that deserve
-their own document.
+({{observe-before-enforce}}). A future extension can define
+aggregate reporting like DMARC's {{RFC9990}}: a policy member naming
+a reporting endpoint, a report format (observed issuers, match and
+mismatch counts, time window), and delivery requirements. It is
+deferred because reporting carries privacy and abuse considerations
+that deserve their own document: a reporting endpoint learns which
+Resource Authorization Servers a namespace's users sign in to,
+concentrating the metadata discussed in {{privacy}}.
 
 ## Audience-Scoped Delegations
 
-An `authorized_issuers` entry authorizes an issuer for a namespace
-without constraining which Resource Authorization Servers may accept
-the resulting assertions. A compromised-but-listed issuer can assert
-the namespace's users to any consumer ({{TRUST-FRAMEWORK}} §Scope of
-Namespace Authorization). A future `permitted_audiences` member on
-entries would let a Subject Authority bound that blast radius by
-enumerating or pattern-matching acceptable audiences. It is deferred
-because audience identifiers are grant-profile-specific and an
-enumerable audience set does not exist for the open-world deployments
-this mechanism targets. A workable design likely needs audience
-patterns and an interaction rule with the assertion's `aud` claim.
+An `authorized_issuers` entry does not limit which Resource
+Authorization Servers accept the issuer's assertions, so a
+compromised but listed issuer can assert the namespace's users to any
+consumer ({{TRUST-FRAMEWORK}} §Scope of Namespace Authorization). A
+future `permitted_audiences` entry member would let a Subject
+Authority bound that blast radius by enumerating or pattern-matching
+audiences. It is deferred because audience identifiers are
+grant-profile-specific and the open-world deployments this mechanism
+targets have no enumerable audience set. A design likely needs
+audience patterns and a rule for its interaction with the
+assertion's `aud` claim.
 
 ## Email Verification Protocol Bridge {#email-verification-protocol-bridge}
 
 The Email Verification Protocol {{I-D.hardt-email-verification}}
 defines a DNS TXT record at `_email-verification.{domain}` whose
-`iss=` value names an authorized issuer for the namespace. The
-record carries a bare hostname; the issuer identifier derived from
-it is an HTTPS origin with no path, not a full HTTPS issuer
-identifier. A
-future Trust Method (provisionally `email_verification_dns`)
-could let a Resource Authorization Server honor those records
-without requiring the Subject Authority to also publish an
-`_oauth-issuer-policy` record.
-
-The bridge is deferred because it forces the reader to learn:
+`iss=` value names an authorized issuer for the namespace. A future
+Trust Method (provisionally `email_verification_dns`) could let a
+Resource Authorization Server honor those records without an
+`_oauth-issuer-policy` record. It would add:
 
 - a second record format;
-- a different issuer-identifier shape (bare-origin only, no path
-  component); and
-- a different email-domain semantics: the Email Verification
-  Protocol parses the email's raw domain part, whereas this document
-  normalizes to the registrable domain via the Public Suffix List.
+- a different issuer-identifier shape: a bare hostname, yielding an
+  HTTPS origin with no path; and
+- different email-domain semantics: the email's raw domain part
+  rather than the registrable domain.
 
-It is also deferred because {{I-D.hardt-email-verification}} is
-progressing on its own timeline independent of this document.
-Deployments wanting the bridge can either publish both records or
-wait for the future Trust Method specification. Publishing both
-means an `_oauth-issuer-policy` record satisfying
-`domain_authorized_issuer`, plus the deployment's existing
+It is deferred for that cost, and because
+{{I-D.hardt-email-verification}} progresses on its own timeline.
+Meanwhile, a deployment can publish both an `_oauth-issuer-policy`
+record satisfying `domain_authorized_issuer` and its existing
 `_email-verification` record for other consumers.
 
 ## Assertion Issuer Discovery (Client-Side) {#assertion-issuer-discovery-client-side}
 
-The same DAI records that let a Resource Authorization Server
-verify an assertion can also let a client discover which Assertion
-Issuer is authoritative for a subject identifier's namespace
-before any assertion exists. Given `alice@acme.example`, a client
+The same DAI records could let a client discover, before any
+assertion exists, which Assertion Issuer is authoritative for a
+subject identifier's namespace. Given `alice@acme.example`, a client
 can:
 
 - query `_oauth-issuer-policy.acme.example`;
@@ -2206,35 +2163,30 @@ can:
 - resolve an authorized issuer's authorization server metadata to
   find its token endpoint.
 
-Entry order carries no semantics, so issuer selection would need to
-be specified by the profiling document.
-
-This client-side use case is deferred from the first version of DAI
-for three reasons:
+Entry order carries no semantics, so a profiling document would
+specify issuer selection. The use case is deferred because:
 
 - It adds a second mental model: back-channel discovery versus
   verification at token exchange.
-- It introduces privacy concerns distinct from verification. The
-  discovery query reveals the queried Subject Authority to DNS
-  resolvers and to the policy host before any user interaction.
+- Its query reveals the Subject Authority to DNS resolvers and to the
+  policy host before any user interaction, a privacy concern
+  distinct from verification.
 - It is not on the Resource Authorization Server implementer's
   critical path.
 
-A future specification can profile the discovery flow with
-appropriate privacy guidance and integration with OAuth
-Authorization Server Metadata {{RFC8414}} and OpenID Connect
-Discovery {{OIDC-DISCOVERY}}.
+A future specification can profile it with privacy guidance and
+integration with OAuth Authorization Server Metadata {{RFC8414}} and
+OpenID Connect Discovery {{OIDC-DISCOVERY}}.
 
 
 # DNS-Based Domain-Authorized Issuer End-to-End Example
 
 This appendix is non-normative.
 
-This example walks through an end-to-end verification flow: the
-Subject Authority publishes a DAI record, an Assertion Issuer issues
-an identity assertion, and the Resource Authorization Server uses
-the record to verify that the issuer is authorized for the asserted
-namespace.
+The Subject Authority publishes a DAI record, an Assertion Issuer
+issues an identity assertion, and the Resource Authorization Server
+uses the record to verify that the issuer is authorized for the
+asserted namespace.
 
 ## Cast
 
@@ -2257,10 +2209,8 @@ _oauth-issuer-policy.acme.example. IN TXT ( "v=oauth-issuer-policy1;"
     "issuer=https://idp.example.net" )
 ~~~
 
-The quoted segments are concatenated without a separator, yielding
-one record whose directives are `v=oauth-issuer-policy1`,
-`authority=acme.example`, and `issuer=https://idp.example.net`.
-No HTTPS endpoint is operated on `acme.example`.
+The quoted segments form one record ({{dii-dns-record}}). No HTTPS
+endpoint is operated on `acme.example`.
 
 The Resource Authorization Server publishes a Trust Policy that lists
 `domain_authorized_issuer` with canonical lookup:
@@ -2282,11 +2232,10 @@ The Resource Authorization Server publishes a Trust Policy that lists
 
 ## Issuance and Token Request
 
-1. The Client is configured, by a deployment-specific mechanism
-   outside DAI, to use `https://idp.example.net` for Acme users. It
-   authenticates Alice at that issuer
-   and requests an ID-JAG with audience
-   `https://api.resource.example` carrying Alice's email:
+1. The Client, configured outside DAI to use `https://idp.example.net`
+   for Acme users, authenticates Alice at that issuer and requests an
+   ID-JAG with audience `https://api.resource.example` carrying
+   Alice's email:
 
    ~~~ json
    {
@@ -2331,15 +2280,14 @@ The Resource Authorization Server publishes a Trust Policy that lists
    a. It extracts the Subject Authority from the top-level `email`
       claim (with `email_verified=true`): `acme.example`.
 
-   b. Applying the canonical lookup procedure ({{dii-lookup}}), the
-      Resource Authorization Server queries DNS TXT at
-      `_oauth-issuer-policy.acme.example` and parses the record
-      published earlier in this example.
+   b. Applying the canonical lookup procedure ({{dii-lookup}}), it
+      queries DNS TXT at `_oauth-issuer-policy.acme.example` and
+      parses the record published above.
 
-   c. The `authority=acme.example` directive matches. No `uri=` is
-      present. The Resource Authorization Server constructs a
-      virtual policy for `acme.example` with one
-      `authorized_issuers` entry for `https://idp.example.net`.
+   c. The `authority=acme.example` directive matches and no `uri=` is
+      present, so it constructs a virtual policy for `acme.example`
+      with one `authorized_issuers` entry for
+      `https://idp.example.net`.
 
    d. The ID-JAG `iss` value `https://idp.example.net` matches
       the single entry's `issuer` value. Verification succeeds.
@@ -2382,24 +2330,19 @@ Servers that use the HTTPS-only lookup mode:
 }
 ~~~
 
-Resource Authorization Servers transparently follow the `uri=`
-directive and consume the JSON document. No verifier software
-changes are required.
 
 ## Shared Issuer Variant: Multi-Tenant Identity Provider
 
-The simple example above uses a per-tenant issuer identifier
-(`https://idp.example.net` is dedicated to Acme). Some Identity
-Providers serve every tenant under a single shared issuer (for
-example, `https://accounts.google.com`) and distinguish tenants via
+The example above uses an issuer identifier dedicated to Acme. Some
+Identity Providers serve every tenant under one shared issuer (for
+example, `https://accounts.google.com`) and distinguish tenants by
 the ID-JAG top-level `tenant` claim ({{ID-JAG}} §6.1). For these,
 the `authorized_issuers[].tenant` member binds the authorization to
-a specific tenant of the shared issuer.
+one tenant of the shared issuer.
 
-Suppose Acme uses a multi-tenant Identity Provider with shared
-issuer `https://accounts.shared.example` and Acme's tenant
-identifier in that Identity Provider is `acme-corp`. Acme publishes
-the pointer form pointing at the richer JSON:
+Suppose Acme's tenant identifier at the shared issuer
+`https://accounts.shared.example` is `acme-corp`. Acme publishes the
+pointer form, pointing at this JSON:
 
 ~~~ json
 {
@@ -2415,13 +2358,11 @@ the pointer form pointing at the richer JSON:
 }
 ~~~
 
-Verification adds one check to the simple flow: in addition to
-matching `iss`, the Resource Authorization Server requires the
-ID-JAG's top-level `tenant` claim to equal `"acme-corp"`. An
-assertion from `https://accounts.shared.example` with a different
-`tenant` value (or no `tenant`) does not match this entry. The
-security properties and operational guidance for this case are in
-{{dii-multi-tenant}}.
+Verification adds one check to the simple flow: besides matching
+`iss`, the Resource Authorization Server requires the ID-JAG's
+top-level `tenant` claim to equal `"acme-corp"`. An assertion from
+`https://accounts.shared.example` with a different `tenant` value
+(or no `tenant`) does not match this entry ({{dii-multi-tenant}}).
 
 ## Failure Variants
 
@@ -2443,12 +2384,11 @@ security properties and operational guidance for this case are in
   record remains, the response is `malformed` (Indeterminate) and
   the assertion is rejected.
 
-- If `acme.example` rotates its authorized Assertion Issuer and the
-  Resource Authorization Server has a cached virtual policy, the
-  Resource Authorization Server may continue accepting assertions
-  from the old issuer until its cache expires. Subject Authorities
-  are encouraged to use short DNS TTLs during rotation; consumers
-  enforce a local cache ceiling per {{dii-caching}}.
+- If `acme.example` rotates its authorized Assertion Issuer, a
+  Resource Authorization Server holding a cached virtual policy can
+  keep accepting assertions from the old issuer until its cache
+  expires. Short DNS TTLs during rotation shorten that window, and
+  consumers enforce a local cache ceiling per {{dii-caching}}.
 
 # Document History
 

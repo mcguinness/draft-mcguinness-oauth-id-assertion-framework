@@ -2571,126 +2571,86 @@ Initial entries:
 
 # Design Rationale
 
-This appendix is non-normative. It records the design choices that
-shaped the framework, for reviewers and implementers who want to
-understand why specific decisions were made.
+This appendix is non-normative.
 
 ## Relationship to OpenID Federation {#relationship-to-oidf}
 
-OpenID Federation {{OIDF-FEDERATION}} and this framework address
-distinct questions: federation answers "is this issuer an
-authentic ecosystem member?" via trust chains; this framework
-adds "is this issuer authorized for *this* namespace?" via Subject
-Authority publication. Federation membership feeds the
+OpenID Federation {{OIDF-FEDERATION}} answers "is this issuer an
+authentic ecosystem member?"; this framework adds "is this issuer
+authorized for *this* namespace?". Federation membership feeds the
 `issuer_authentication` category through the `openid_federation`
-Trust Method ({{trust-method-openid-federation}}); namespace
-authority comes from the orthogonal
-`subject_namespace_authorization` category. This document does
-not duplicate or replace federation mechanisms; it composes with
-them.
+Trust Method ({{trust-method-openid-federation}}). Namespace
+authority comes from the separate `subject_namespace_authorization`
+category. The framework composes with federation rather than
+replacing it.
 
-The proposed Well-Known Binding mechanism {{OIDF-WKB}} lets a
-federation Entity authenticate existing well-known protocol metadata
-and keys by digest. It illustrates how an {{RFC8414}} authorization
-server can use the extension path in {{trust-method-openid-federation}}
-while keeping its existing well-known metadata and binding the JWK
-Set that metadata references by digest. The server still supplies the
-Entity Type metadata that OpenID Federation requires. The binding
+The proposed Well-Known Binding mechanism {{OIDF-WKB}} lets an
+{{RFC8414}} authorization server bind its existing JWK Set by digest
+through the extension path in {{trust-method-openid-federation}}. It
 changes how issuer-authentication evidence is bound, not who holds
-authority over a subject namespace. {{OIDF-WKB}} §8.4 has an Entity
-that refuses a counterparty for a missing Trust Mark return
-`trust_mark_required`, which names the missing types. A Resource
-Authorization Server applying this framework returns the error that
-{{rasp}} specifies instead, which keeps trust-evaluation detail from
-public clients.
+authority over a subject namespace. Where {{OIDF-WKB}} §8.4 has an
+Entity return `trust_mark_required` for a missing Trust Mark, naming
+the missing types, a Resource Authorization Server applying this
+framework returns the error that {{rasp}} specifies, which keeps
+trust-evaluation detail from public clients.
 
 ## Why Bounded-Depth-1 Namespace Authorization
 
-The `subject_namespace_authorization` category is bounded at
-depth one: the Subject Authority lists each authorized Assertion
-Issuer directly, with no provision for "and whoever issuer X
-federates further." This is deliberate:
+The `subject_namespace_authorization` category is bounded at depth
+one: the Subject Authority lists each authorized Assertion Issuer
+directly. As a result:
 
-- A Validator never has to compute a multi-hop authorization
-  chain to evaluate a namespace claim; a single customer-published
-  policy names the Assertion Issuer.
-- Revocation latency is bounded by the Subject Authority's own
-  cache lifetime, not by the depth of a delegation chain.
-- No intermediate party (a federation operator, a delegated issuer)
-  can add an issuer the Subject Authority did not list. Parties that
-  bind keys to listed issuers, or host the list, remain trusted
-  ({{key-binding}}).
+- a Validator evaluates one customer-published policy, never a
+  multi-hop authorization chain;
+- revocation latency is bounded by the Subject Authority's own cache
+  lifetime; and
+- no intermediate party can add an issuer the Subject Authority did
+  not list. Parties that bind keys to listed issuers, or host the
+  list, remain trusted ({{key-binding}}).
 
-Federation chains for issuer authentication remain in scope under
-the `issuer_authentication` category; only the
-namespace-authorization graph is bounded.
+Federation chains remain in scope for `issuer_authentication`.
 
 # Future Extensions {#future-extensions}
 
-This appendix is non-normative. It sketches directions intentionally
-deferred from this document; future specifications may register them.
+This appendix is non-normative. It sketches deferred directions that
+future specifications may register.
 
 ## Additional Subject Identifier Formats
 
 This document registers one Subject Authority extraction procedure
-(`email`, {{subject-authority-determination}}). The policy model
-accommodates additional Subject Identifier formats. A future
-specification adding a new format would register a Subject Authority
-Extraction Procedure in {{iana-authority-registry}}. The procedure
-would define how a Subject Authority is computed from values of the
-new format. The specification would either reuse
-`domain_authorized_issuer` (when the computed Subject Authority is a
-DNS-publishable domain) or register a new
-`subject_namespace_authorization` Trust Method.
+(`email`, {{subject-authority-determination}}). A new Subject
+Identifier format would register a procedure in
+{{iana-authority-registry}} that computes its Subject Authority. It
+would then reuse `domain_authorized_issuer` when that Subject
+Authority is a DNS-publishable domain, or register a new
+`subject_namespace_authorization` Trust Method. Nothing else in the
+framework changes.
 
-The following remain unchanged across such extensions:
-
-- the Trust Policy document format;
-- the Issuer Authorization Policy document format;
-- the Trust Method category structure;
-- the combination rule; and
-- the bounded-transitivity property.
-
-Candidate formats considered as future work include URL-host
-Subject Identifiers (`url_host`), Decentralized Identifiers (`did`),
-and a subdomain-exact email variant that requires an explicit
-delegation from the registrable-domain authority to prevent
-subdomain takeover.
+Candidate formats include URL-host Subject Identifiers (`url_host`),
+Decentralized Identifiers (`did`), and a subdomain-exact email
+variant that requires an explicit delegation from the
+registrable-domain authority to prevent subdomain takeover.
 
 ## Presented Delegation Credentials
 
-The `subject_namespace_authorization` methods defined so far are
-declarative and fetched. The Validator retrieves the Authority
-Holder's published policy at verification time.
+The `subject_namespace_authorization` methods defined so far fetch
+the Authority Holder's published policy at verification time. In
+the alternative, the Authority Holder signs a delegation ("issuer X
+may assert for namespace A until time T", optionally
+audience-scoped) that the Assertion Issuer presents with the
+assertion, as with an `x5c` chain. Verification then needs no lookup
+on the token path, and the credential can express audiences, scopes,
+or delegation chains, should a future revision relax the depth-1
+bound of {{transitive-authz-bounded}}. It is deferred as an
+assurance-tier extension. Such a method would need:
 
-The complementary shape is a presented credential. The Authority
-Holder signs a delegation ("issuer X may assert for namespace A
-until time T", optionally audience-scoped) and gives it to the
-Assertion Issuer. The issuer presents it with the assertion, in the
-manner of an `x5c` chain or an OpenID Federation Subordinate
-Statement. Verification becomes offline once the Authority Holder's
-key is known. This removes the per-verification lookup from the
-token path. It also enables constraints a flat record cannot
-express, such as audiences and scopes. Delegation chains are another
-such constraint, should a future revision relax the depth-1 bound
-of {{transitive-authz-bounded}}.
-
-The costs are the mirror image:
-
-- The Authority Holder needs key management and signing automation.
-- Key discovery recurses to a DNS- or HTTPS-anchored channel.
-- Revocation requires status checking or short-lived credentials.
-
-Nothing in this framework precludes such a method. Such a method
-would:
-
-- register as a `subject_namespace_authorization` Trust Method whose
-  evidence is carried in-band;
-- satisfy the checklist in {{trust-method-spec-requirements}}; and
-- compose with existing methods under the combination rule.
-
-Such a method is deferred as an assurance-tier extension for
-deployments whose requirements justify the operational cost.
+- key management and signing automation at the Authority Holder;
+- key discovery through a DNS- or HTTPS-anchored channel;
+- status checking or short-lived credentials for revocation;
+- registration as a `subject_namespace_authorization` Trust Method
+  whose evidence is carried in-band, satisfying the checklist in
+  {{trust-method-spec-requirements}}; and
+- composition with existing methods under the combination rule.
 
 ## Additional Client Recognition Methods
 
@@ -2699,54 +2659,41 @@ Other `client_recognition` methods can follow the pattern of
 {{I-D.shankarlingam-oauth-agent-dns-link}} publishes, under an
 agent's DNS name, the issuer and client identifier the agent uses at
 its operator's authorization server, and has the agent present a
-fresh access token issued to that client. As a Trust Method, such a mechanism
-would need to define its lookup states, including Indeterminate on
-DNS failure, bind its record to the queried name as {{DAI}}'s
-`authority=` directive does, and say how the token is carried in a
-token request. Clients registered through OpenID Federation Explicit
-Registration ({{OIDF-FEDERATION-CONNECT}} §12.2) with a `client_id`
-other than their Entity Identifier are another gap: a method for them
-would take the Entity Identifier from the registration rather than
-from the `client_id`.
+fresh access token issued to that client. Such a Trust Method would
+need to define:
+
+- its lookup states, including Indeterminate on DNS failure;
+- how its record binds to the queried name, as {{DAI}}'s
+  `authority=` directive does; and
+- how the token is carried in a token request.
+
+A method for clients whose Explicit Registration
+({{OIDF-FEDERATION-CONNECT}} §12.2) `client_id` is not their Entity
+Identifier would take the Entity Identifier from the registration.
 
 ## Actor Identity Trust Evaluation
 
-OAuth assertions can carry an `act` object expressing actor
-delegation (a service acting on behalf of a user). A future
-extension can apply the trust-evaluation categories of
-{{delegation-model}} to actor identities: a Resource Authorization
-Server would evaluate, in addition to the assertion's `iss` and
-`sub`, whether the asserting issuer is entitled to attest the
-`(act.iss, act.sub)` pair. This requires registering a Subject
-Authority extraction procedure applicable to actor-carried
-Subject Identifiers and is therefore tied to the OAuth Actor
-Profile being progressed separately. Until that extension lands,
-trust evaluation of actor identities is governed by local policy
-at the Resource Authorization Server.
+An assertion's `act` object can name an actor, such as a service
+acting for a user. A future extension can apply the categories of
+{{delegation-model}} to actors, so that the Resource Authorization
+Server also evaluates whether the asserting issuer is entitled to
+attest the `(act.iss, act.sub)` pair. That needs a Subject Authority
+extraction procedure for actor-carried Subject Identifiers, so it
+depends on the separately progressed OAuth Actor Profile. Until
+then, local policy at the Resource Authorization Server governs
+trust in actor identities.
 
 ## Trust Policy Discovery
 
-This document specifies how a Resource Authorization Server
-publishes its Trust Policy (via authorization server metadata or
-protected resource metadata) but assumes a client or peer that
-already knows the Resource Authorization Server's identity. In
-open-world deployments (agent runtimes, AI tools, cross-organization
-integrations), a peer may need to discover a resource operator's
-Trust Policy before any prior bilateral relationship exists.
-
-A future Trust Policy Discovery extension can let a resource
-operator publish a DNS-named pointer at
-`_oauth-trust-policy.{resource-domain}` to its Trust Policy
-document, mirroring the DNS-authority pattern of {{DAI}} for the
-resource-side. The resource operator's domain becomes the
-publication channel for "where do I trust assertions from?", the
-dual of DAI's "who do I authorize to assert about me?".
-
-The extension is deferred because first contact with a Resource
-Authorization Server whose identity the client does not already know
-is not yet a deployed need. A client that knows the Resource
-Authorization Server reads its Trust Policy through the metadata
-endpoints ({{client-processing}}).
+A client reads a Resource Authorization Server's Trust Policy
+through its metadata endpoints ({{client-processing}}), so it needs
+the Resource Authorization Server's identity first. In open-world
+deployments (agent runtimes, AI tools, cross-organization
+integrations), a peer may need the policy before any relationship
+exists. A future extension can let a resource operator publish a DNS
+pointer to its Trust Policy at `_oauth-trust-policy.{resource-domain}`,
+the resource-side dual of {{DAI}}. It is deferred because such first
+contact is not yet a deployed need.
 
 # Frequently Asked Questions
 
@@ -2754,77 +2701,62 @@ This appendix is non-normative.
 
 **Q: I have OpenID Federation. Why do I need DAI?**
 
-Federation answers "is this issuer authentically a member of an
-ecosystem?". It does not answer "is this issuer authorized to
-assert about subjects in *my* namespace?". A federation member can
-mint an identity assertion naming any email domain; federation
-membership doesn't constrain which namespace. DAI lets the
-namespace owner publish that constraint. {{example-federation-dai}}
-shows the two together.
+Federation authenticates ecosystem members but does not limit the
+namespaces a member can assert about; DAI lets the namespace owner
+publish that limit ({{relationship-to-oidf}},
+{{example-federation-dai}}).
 
 **Q: What's the difference between Trust Policy and DAI?**
 
-Trust Policy is what a **Resource Authorization Server** publishes
-to declare what evidence it requires of an Assertion Issuer
-(metadata at `/.well-known/identity-assertion-trust-policy`). DAI
-is what a **Subject Authority** publishes to declare which
-Assertion Issuers it authorizes for its namespace (a record at
-`_oauth-issuer-policy.{domain}`, optionally pointing with `uri=` to
-a JSON policy document, conventionally on the dedicated host
-`oauth-issuer-policy.{domain}`). RAS-published vs
-Subject-Authority-published.
+The Resource Authorization Server publishes the Trust Policy,
+stating the evidence it requires ({{trust-policy-document}}). A
+Subject Authority publishes the Issuer Authorization Policy, naming
+the Assertion Issuers it authorizes ({{DAI}}).
 
 **Q: Why independent trust categories?**
 
-To stop "federation member" from being silently treated as
-"authoritative for any namespace." Each category answers a
-different question and the cross-category combination rule
-({{combination-rule}}) requires evidence from each category that
-is configured. Conflating them is the bug
-({{combination-rule}}, {{transitive-authz-bounded}}).
+So that federation membership is never silently treated as
+authority over a namespace: the combination rule requires evidence
+from each applicable category ({{combination-rule}},
+{{transitive-authz-bounded}}).
 
 **Q: What if my Subject Authority cannot publish DNS TXT records?**
 
-Both lookup modes require the TXT record at
-`_oauth-issuer-policy.{domain}`, which is the Subject Authority's
-opt-in ({{DAI}} §Lookup Procedure and §HTTPS-Only Deployment
-Variant). A Subject Authority that cannot publish TXT records cannot
-participate in DAI.
+It cannot participate in DAI: both lookup modes require the TXT
+record at `_oauth-issuer-policy.{domain}` as its opt-in ({{DAI}}
+§Lookup Procedure and §HTTPS-Only Deployment Variant).
 
 **Q: Does this work for path-bearing issuer identifiers
 (`https://login.example.com/{tenant}/v2.0`)?**
 
-Yes. `domain_authorized_issuer` uses case-sensitive URL string
-comparison and accepts any absolute HTTPS issuer identifier
-including paths. If such an issuer also sends a `tenant` claim, the
-Subject Authority lists it with that `tenant` value, which requires
-the DNS pointer form ({{DAI}} §Mechanism Limits).
+Yes. Issuer comparison is a case-sensitive URL string match, paths
+included. An issuer that also sends a `tenant` claim is listed with
+that `tenant` value, which requires the DNS pointer form ({{DAI}}
+§Mechanism Limits).
 
 **Q: How do I revoke a delegation?**
 
-Remove the entry from the Issuer Authorization Policy or set
-`valid_until` to the past. Revocation latency is bounded by cache
-lifetime; see {{DAI}} §Caching.
+Remove the entry from the Issuer Authorization Policy, or set its
+`valid_until` to the past. Cache lifetime bounds the latency
+({{DAI}} §Caching).
 
 # Agent Platform Walkthrough {#example-agent-platform}
 
-This appendix is non-normative. It walks through how the framework
-prevents an unauthorized provider from impersonating users in a
-customer's email namespace. Protection rests on a single deliberate
-choice by the customer: publishing an Issuer Authorization Policy
-that lists the specific agent platforms permitted to assert
-identities about its users.
+This appendix is non-normative. It shows how a customer's Issuer
+Authorization Policy, listing the agent platforms it authorizes,
+keeps an unauthorized provider from impersonating users in the
+customer's email namespace.
 
 **Cast:** customer `example.com` (owns the email domain); agent
 platform `https://agentprovider.example` (mints ID-JAGs after
 federated SSO from the customer's primary Identity Provider); tool
 provider `https://toolprovider.example` (the Resource Authorization
-Server); end user `alice@example.com`. The agent platform serves
-many customers and gives each its own issuer identifier, here
-`https://agentprovider.example/example-com`. A platform that served
-every customer under one issuer identifier would send `tenant` in
-every ID-JAG ({{id-jag-profile}}), and the customer would list it
-with that `tenant` value in the DNS pointer form ({{DAI}}
+Server); end user `alice@example.com`. The agent platform gives each
+customer its own issuer identifier, here
+`https://agentprovider.example/example-com`. A platform using one
+issuer identifier for every customer would send `tenant` in every
+ID-JAG ({{id-jag-profile}}), and the customer would list it with
+that `tenant` value in the DNS pointer form ({{DAI}}
 §Single-Issuer Multi-Tenant Identity Providers).
 
 **Publication.** The customer publishes:
@@ -2836,10 +2768,9 @@ _oauth-issuer-policy.example.com. IN TXT (
     "issuer=https://agentprovider.example/example-com" )
 ~~~
 
-The tool provider publishes a Trust Policy listing
-`domain_authorized_issuer`. After Alice signs in to the agent
-platform (the user-side SSO is out of scope), the agent platform
-mints an ID-JAG:
+The tool provider's Trust Policy lists `domain_authorized_issuer`.
+After Alice signs in to the agent platform (out of scope here), the
+agent platform mints an ID-JAG:
 
 ~~~ json
 {
@@ -2851,32 +2782,31 @@ mints an ID-JAG:
 }
 ~~~
 
-**Verification.** The tool provider authenticates the client
-(`private_key_jwt`), validates the ID-JAG per {{ID-JAG}}, extracts
-the Subject Authority `example.com` from the email claim, queries
-`_oauth-issuer-policy.example.com`, confirms the `iss` value matches
-an authorized issuer in the policy, and issues a token.
+**Verification.** The tool provider:
+
+- authenticates the client (`private_key_jwt`);
+- validates the ID-JAG per {{ID-JAG}};
+- extracts the Subject Authority `example.com` from the email claim;
+- queries `_oauth-issuer-policy.example.com` and confirms that the
+  `iss` value matches an authorized issuer; and
+- issues a token.
 
 **What this protects against.** Suppose `attacker.example` mints
 its own assertion claiming `email: alice@example.com,
-email_verified: true`. The signature validates against the
-attacker's own JWKS; the audience is correct; the email claim is
-self-asserted. The tool provider extracts Subject Authority
-`example.com`, looks up the customer's policy, and finds that
-`https://attacker.example` is not in `authorized_issuers`. The
-Trust Method fails; the tool provider rejects with `invalid_grant`.
-The attacker's `email_verified: true` self-claim has no force;
-trust derives from the `iss`-vs-policy check, not from the
-assertion's own statements. `attacker.example` has no path to
-impersonate users in `example.com` unless the customer lists it in
-its policy.
+email_verified: true`, with a signature that validates against its
+own JWKS and the correct audience. The tool provider extracts
+Subject Authority `example.com`, looks up the customer's policy, and
+finds that `https://attacker.example` is not in
+`authorized_issuers`. The Trust Method fails, and the tool provider
+rejects with `invalid_grant`. The self-asserted `email_verified`
+has no force: unless the customer lists `attacker.example`, it
+cannot impersonate users in `example.com`.
 
 # OpenID Federation Walkthrough {#example-federation-walkthrough}
 
-This appendix is non-normative. It expands the high-level
-{{example-federation-dai}} into a concrete walkthrough including
-trust-chain validation, Trust Mark satisfaction, and
-federation-bound JWKS resolution.
+This appendix is non-normative. It expands
+{{example-federation-dai}} with trust-chain validation, Trust Mark
+satisfaction, and federation-bound JWKS resolution.
 
 **Cast:** Resource Authorization Server
 `https://api.resource.example`; Federation Trust Anchor
@@ -3004,17 +2934,18 @@ the Resource Authorization Server:
 4. **Cross-category combination rule.** Both categories succeed;
    the Resource Authorization Server issues an access token.
 
-**Selected failure variants.** A chain not terminating at the
-listed trust anchor yields `invalid_grant`. A leaf without the required
-Trust Mark yields `invalid_grant`. A federation-resolved JWKS that
-doesn't match the ID-JAG signing key yields `invalid_grant` (the metadata
-key source takes precedence, so there is no fallback to a separate
-JWKS referenced by `.well-known/oauth-authorization-server`). Such a
-separate JWKS is eligible only when the policy-applied metadata has
-no key source and a supported extension authenticates its binding to
-the leaf, as in {{example-wkb-variant}}. `partner.example` not listing
-the Assertion Issuer in DAI yields `invalid_grant` even though
-federation membership is valid.
+**Selected failure variants:**
+
+- The chain does not terminate at the listed trust anchor:
+  `invalid_grant`.
+- The leaf lacks the required Trust Mark: `invalid_grant`.
+- The federation-resolved JWKS does not match the ID-JAG signing key:
+  `invalid_grant`. The metadata key source takes precedence, so there
+  is no fallback to a separate JWKS referenced by
+  `.well-known/oauth-authorization-server`; {{example-wkb-variant}}
+  shows when such a JWKS is eligible.
+- `partner.example` does not list the Assertion Issuer in DAI:
+  `invalid_grant`, even though federation membership is valid.
 
 ## Trust Mark Requirement Without an Issuer
 
@@ -3044,23 +2975,22 @@ Configuration, which includes (excerpt):
 ~~~
 
 The leaf's Trust Mark satisfies the requirement because its `iss`
-appears in that array. A Trust Mark of the same type issued by
-`https://assurance.example.net` would also satisfy it, provided that
-issuer's own trust chain terminates at the same trust anchor (item 4
-of {{trust-method-openid-federation}}). If the array for this type
-were empty, which {{OIDF-FEDERATION}} §3.1.2 reads as allowing any
-issuer, or if the type were absent from `trust_mark_issuers`, the
-requirement would not be satisfied.
+appears in that array. So would a Trust Mark of the same type issued
+by `https://assurance.example.net`, provided that issuer's own trust
+chain terminates at the same trust anchor (item 4 of
+{{trust-method-openid-federation}}). The requirement would not be
+satisfied if the array for this type were empty, which
+{{OIDF-FEDERATION}} §3.1.2 reads as allowing any issuer, or if the
+type were absent from `trust_mark_issuers`.
 
 ## Well-Known Binding Variant {#example-wkb-variant}
 
-With the same cast and the Trust Policy shown at the start of this
-appendix, a deployment implementing the
+With the same cast and Trust Policy, a deployment implementing the
 proposed {{OIDF-WKB}} mechanism could instead publish the following
-leaf Entity Configuration excerpt. Digest strings are placeholders;
-the full Entity Configuration also contains the required timestamps,
-Federation Entity Keys, and the same Trust Mark as above. The Entity
-Type metadata shown is abbreviated; it carries no key source.
+leaf Entity Configuration excerpt. Digest strings are placeholders.
+The full Entity Configuration also contains the required timestamps,
+Federation Entity Keys, and the same Trust Mark as above. The
+abbreviated Entity Type metadata carries no key source.
 
 ~~~ json
 {
@@ -3084,22 +3014,20 @@ Type metadata shown is abbreviated; it carries no key source.
 
 The covered {{RFC8414}} document at
 `https://idp.partner.example/.well-known/oauth-authorization-server`
-identifies `https://idp.partner.example` as its `issuer` and references
-`https://idp.partner.example/jwks` in `jwks_uri`. In this variant, the
-Intermediate does not supply a protocol key source or require one
+identifies `https://idp.partner.example` as its `issuer` and
+references `https://idp.partner.example/jwks` in `jwks_uri`. Here the
+Intermediate neither supplies a protocol key source nor requires one
 through `metadata_policy`; the `openid_provider` policy shown above
 does not apply to this variant's `oauth_authorization_server` type.
-The Entity Type metadata carries no key source, so item 3 selects
-the extension-defined source: the JWK Set at the covered document's
+With no key source in the Entity Type metadata, item 3 selects the
+extension-defined source: the JWK Set at the covered document's
 `jwks_uri`, which `jwks_digests` binds.
 
 The consumer verifies the covered metadata and its JWK Set by the
 extension's rules, which include validating the trust chain, and
 checks that the metadata's `issuer` equals the leaf's Entity
-Identifier.
-Item 3 then permits the bound JWK Set for assertion verification.
-The Trust Mark and DAI checks are unchanged. Metadata policy does
-not constrain members carried only in the covered document.
+Identifier. Item 3 then permits the bound JWK Set for assertion
+verification. The Trust Mark and DAI checks are unchanged.
 
 If the Intermediate's policy instead marked `jwks_uri` `essential`,
 the leaf would carry it in Entity Type metadata, and item 3 would
@@ -3112,11 +3040,10 @@ and `invalid_grant`.
 
 # Client Recognition Walkthrough {#example-client-recognition}
 
-This appendix is non-normative. It walks through
-`openid_federation_client` ({{trust-method-openid-federation-client}})
-from a client's first token request to later requests. It also shows
-how a Resource Authorization Server runs federation clients beside
-clients it registered itself.
+This appendix is non-normative. It follows `openid_federation_client`
+({{trust-method-openid-federation-client}}) from a client's first
+token request to later requests, and shows federation clients beside
+clients the Resource Authorization Server registered itself.
 
 **Cast:**
 
@@ -3251,11 +3178,10 @@ assertion's claims are:
 **Later requests.** The Resource Authorization Server caches the
 trust chain no longer than its earliest `exp`
 ({{trust-method-openid-federation}}), and the key set no longer than
-the chain. Later requests from the client use the cached chain,
-and each request is still evaluated against the policy. When the
-client rotates its keys, a signature with a key the cached key set
-lacks can prompt one fresh fetch of the key set, rate-limited per
-client, before rejection. If
+the chain. Later requests use the cached chain, and each is still
+evaluated against the policy. After the client rotates its keys, a
+signature with a key the cached key set lacks can prompt one fresh
+fetch of the key set, rate-limited per client, before rejection. If
 the federation stops recognizing the client, the change takes effect
 when the cached chain expires.
 
@@ -3266,8 +3192,8 @@ authenticates as one of those clients gets a policy without
 `client_trust_methods` ({{rasp}} step 1). Any other request,
 including one that names a registered `client_id` without
 authenticating as that client and any request whose `client_id` is
-an `https` URL, gets the policy above and is admitted only through
-the client method. The published policy is the one above.
+an `https` URL, gets the published policy above and is admitted only
+through the client method.
 
 # Document History
 

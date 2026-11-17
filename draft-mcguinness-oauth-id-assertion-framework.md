@@ -1706,25 +1706,29 @@ request, the Resource Authorization Server MUST:
       {{multiple-sources}}.
 
    c. When the policy contains a `subject_namespace_authorization`
-      Trust Method, the assertion MUST carry a Subject Identifier from
-      which a Subject Authority can be determined per
-      {{subject-authority-determination}} or an equivalent registry.
-      If the assertion carries no such Subject Identifier, or no
-      Subject Authority can be determined, the Resource Authorization
-      Server MUST reject the assertion. The Resource Authorization
-      Server MUST NOT treat the `subject_namespace_authorization`
-      category as inapplicable because the assertion omits a Subject
-      Identifier. When the namespace category is present but cannot
-      be evaluated, the Resource Authorization Server MUST NOT
-      consume any subject or identity claim from the assertion for
-      account linking, authorization, or subject resolution. When the
-      category is satisfied, the Resource Authorization Server MUST
-      resolve and link the subject only from the Subject Identifier
-      the category evaluated or from issuer-scoped identifiers, unless
-      local configuration trusts the Assertion Issuer for another
-      subject claim. Issuer-scoped identifiers are `iss` and `sub`,
-      with `tenant` for a multi-tenant issuer. Claims such as `aud_sub`
-      and `sub_id` ({{ID-JAG}} §3.1) are outside the namespace check.
+      Trust Method:
+
+      - The assertion MUST carry a Subject Identifier from which a
+        Subject Authority can be determined per
+        {{subject-authority-determination}} or an equivalent
+        registry. If the assertion carries no such Subject
+        Identifier, or no Subject Authority can be determined, the
+        Resource Authorization Server MUST reject the assertion.
+      - The Resource Authorization Server MUST NOT treat the
+        `subject_namespace_authorization` category as inapplicable
+        because the assertion omits a Subject Identifier.
+      - When the namespace category is present but cannot be
+        evaluated, the Resource Authorization Server MUST NOT consume
+        any subject or identity claim from the assertion for account
+        linking, authorization, or subject resolution.
+      - When the category is satisfied, the Resource Authorization
+        Server MUST resolve and link the subject only from the
+        Subject Identifier the category evaluated or from
+        issuer-scoped identifiers, unless local configuration trusts
+        the Assertion Issuer for another subject claim.
+        Issuer-scoped identifiers are `iss` and `sub`, with `tenant`
+        for a multi-tenant issuer. Claims such as `aud_sub` and
+        `sub_id` ({{ID-JAG}} §3.1) are outside the namespace check.
 
    d. Local policy MAY require satisfaction of additional Trust
       Methods for specific clients, subjects, or scopes.

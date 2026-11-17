@@ -2423,7 +2423,8 @@ details of that change.
   * Make the record ABNF normative, cap a signed policy's validity at
     24 hours, apply tenant matching under every grant profile, and
     treat a record without the default `uri=` as Indeterminate under
-    HTTPS-only lookup (#34).
+    HTTPS-only lookup, and forbid query components in OAuth issuer
+    identifiers (#34).
   * Editorial changes for readability.
 
 -00

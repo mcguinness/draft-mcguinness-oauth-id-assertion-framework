@@ -856,7 +856,7 @@ requirements apply unchanged.
 | State | DAI outcomes |
 |-|-|
 | Affirmative | A well-formed Issuer Authorization Policy was retrieved (inline DNS, DNS pointer plus HTTPS fetch, or the dedicated host under the HTTPS-only lookup mode), its `subject_authority` matches `A`, and its structural validation succeeds; this includes a policy whose `authorized_issuers` array is empty (explicit denial, evaluated in {{dii-verification}}). HTTPS responses, when applicable, are 200 OK with a media type of `application/json` or a `+json`-suffixed type. A 304 (Not Modified) response to a conditional request validating a held cached policy within the absolute ceiling of {{dii-caching}}, under the conditions of {{https-policy-document-contract}}, renews its freshness and is classified as the held policy's state; it does not reset the absolute cache-entry age. |
-| Negative | Under canonical lookup, DNS `negative-authoritative`. Under the HTTPS-only lookup mode ({{trust-method-https-authorized-issuer}}), DNS `negative-authoritative` for the opt-in record, or no remaining record whose `uri=` is the default URL. No policy is published at the location the lookup consults. |
+| Negative | Under canonical lookup, DNS `negative-authoritative`. Under the HTTPS-only lookup mode ({{trust-method-https-authorized-issuer}}), DNS `negative-authoritative` for the opt-in record. No policy is published at the location the lookup consults. A recognized record without the default `uri=` is Indeterminate ({{trust-method-https-authorized-issuer}}). |
 | Indeterminate | Any other outcome, fail-closed by default. See enumeration below. |
 
 The Indeterminate state covers:

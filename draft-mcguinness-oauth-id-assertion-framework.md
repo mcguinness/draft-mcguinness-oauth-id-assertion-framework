@@ -729,19 +729,16 @@ that relaxes the Indeterminate-rejects-hard requirement.
 
 ## Metadata Publication {#metadata-publication}
 
-A Resource Authorization Server publishes the location of its Identity
-Assertion Issuer Trust Policy in its authorization server metadata
-{{RFC8414}} using the following member:
+A Resource Authorization Server publishes the location of its Trust
+Policy in its authorization server metadata {{RFC8414}}:
 
 `identity_assertion_trust_policy_uri`
-: OPTIONAL. HTTPS URI identifying the Identity Assertion Issuer Trust
-  Policy document.
+: OPTIONAL. HTTPS URI of the Trust Policy document.
 
 A Resource Authorization Server that applies different Trust Policies
-to different clients publishes the one that applies to clients
-without a prior relationship with it. How a client it registers
-learns which policy applies to that client is out of scope for this
-document.
+to different clients publishes the one for clients without a prior
+relationship with it. How a registered client learns its own policy
+is out of scope.
 
 A Protected Resource that publishes OAuth 2.0 Protected Resource
 Metadata {{RFC9728}} MAY include the same member to advertise the
@@ -749,36 +746,31 @@ policy applied by its Resource Authorization Server. Clients that
 obtain the URI from Protected Resource Metadata MUST verify that the
 policy document's `resource_authorization_server` value identifies an
 authorization server listed in the Protected Resource's
-`authorization_servers` array. If the same member appears in both
-metadata documents, the authorization server metadata value is
-authoritative.
+`authorization_servers` array. If both metadata documents carry the
+member, the authorization server metadata value is authoritative.
 
-A Resource Authorization Server may additionally publish the trust
-policy at the well-known URI registered in
-{{iana-trust-policy-well-known}}. The well-known URI is derived from
-the Resource Authorization Server's issuer identifier by the
-transformation of {{RFC8414}} Section 3: the well-known path component
-`identity-assertion-trust-policy` is inserted between the host (and
-port, if any) and any path component of the issuer identifier. For an
-issuer with no path component this yields
-`https://{host}/.well-known/identity-assertion-trust-policy`. If both
-the metadata member and the well-known URI are available and identify
-different documents, the metadata member is authoritative.
+A Resource Authorization Server may also publish the Trust Policy at
+the well-known URI registered in {{iana-trust-policy-well-known}}. The
+URI is derived from its issuer identifier as in {{RFC8414}} Section 3:
+the well-known path component `identity-assertion-trust-policy` is
+inserted between the host (and port, if any) and any path component.
+For an issuer with no path component this yields
+`https://{host}/.well-known/identity-assertion-trust-policy`. If the
+metadata member and the well-known URI identify different documents,
+the metadata member is authoritative.
 
-A consumer retrieving a Trust Policy document (from either source)
-fetches it with an HTTP GET over HTTPS with TLS server
-authentication, subject to the following rules. The consumer MUST NOT
-act on a policy it could not retrieve and validate; such a retrieval
-failure is distinct from a successfully retrieved policy that rejects
-an assertion.
+A consumer fetches a Trust Policy document, from either source, by
+HTTP GET over HTTPS with TLS server authentication, under the rules
+below. The consumer MUST NOT act on a policy it could not retrieve
+and validate; such a retrieval failure is distinct from a retrieved
+policy that rejects an assertion.
 
 - The response MUST have status 200 and a media type of
   `application/json` or a `+json`-suffixed type.
 - Consumers MUST follow HTTPS redirects up to a limit of 5 hops;
   every redirect target MUST use the `https` scheme and MUST remain
   within the origin of the URI being fetched. A redirect to a
-  different origin, or
-  exceeding the hop limit, is a retrieval failure.
+  different origin, or beyond the hop limit, is a retrieval failure.
 - Any other status, a TLS failure, an unparseable body, or a body
   exceeding a consumer-chosen limit (which MUST allow at least
   64 KiB) is a retrieval failure.
@@ -802,15 +794,14 @@ Example authorization server metadata:
 
 ## Trust Policy Document {#trust-policy-document}
 
-The Identity Assertion Issuer Trust Policy is a JSON object served
-over HTTPS with media type `application/json` (or a media type using
-the structured `+json` suffix). Consumers MUST reject a policy whose
-required members are absent or wrong-typed, MUST reject a document
-containing duplicate member names at any object level, and MUST ignore
-unrecognized members except those named in `crit` ({{critical-members}}).
-The policy MAY include a `crit` member ({{critical-members}}). It
-carries no signature ({{integrity}}). Members are
-registered in {{iana-trust-policy-members-registry}}.
+The Identity Assertion Issuer Trust Policy is a JSON object.
+Consumers MUST reject a policy whose required members are absent or
+wrong-typed, MUST reject a document containing duplicate member names
+at any object level, and MUST ignore unrecognized members except
+those named in `crit` ({{critical-members}}). The policy MAY include
+a `crit` member ({{critical-members}}). It carries no signature
+({{integrity}}). Members are registered in
+{{iana-trust-policy-members-registry}}.
 
 Example:
 
@@ -842,34 +833,29 @@ MUST exactly match the authorization server metadata `issuer` value
 
 `authorization_grant_profiles_supported`
 : REQUIRED. JSON array of identity assertion grant profile identifiers
-supported by this policy. This member uses the same name and identifier
-space as the OAuth Authorization Server Metadata parameter defined in
-{{ID-JAG}} §7.2; each value MUST match a profile identifier listed in
-the authorization server metadata's
+this policy supports, in the identifier space of the same-named
+metadata parameter ({{ID-JAG}} §7.2). Each value MUST match a profile
+identifier listed in the authorization server metadata's
 `authorization_grant_profiles_supported` parameter, where present.
 
 `subject_identifier_formats_supported`
-: OPTIONAL. JSON array of Subject Identifier format names that the
-Resource Authorization Server accepts. Values are defined by
-{{RFC9493}}, by grant profile specifications, or by other
-specifications. This member applies to all Trust Methods; an
+: OPTIONAL. JSON array of Subject Identifier format names, defined by
+{{RFC9493}} or other specifications, that the Resource Authorization
+Server accepts. This member applies to all Trust Methods; an
 individual Trust Method MAY constrain the formats it evaluates (for
 example, `domain_authorized_issuer` evaluates only formats registered
 in {{iana-authority-registry}}).
 
 `issuer_trust_methods`
-: REQUIRED. Non-empty JSON array of Trust Method objects (see
-{{trust-methods}}). This member states the trust requirements the
-Resource Authorization Server enforces against incoming identity
-assertions, not a list of capabilities. An assertion is rejected
-unless an Assertion Issuer satisfies the Trust Method combination
-rule in {{rasp}} against the methods listed here; an issuer that
-happens to satisfy a method not listed here is not acceptable. The
-member is deliberately named without the `_supported` suffix used
-by capability-style OAuth metadata parameters
-({{RFC8414}}) to signal that distinction. Local policy may add
-requirements per client, subject, or scope; see {{downgrade}}.
-An object in this member counts only toward the issuer categories,
+: REQUIRED. Non-empty JSON array of Trust Method objects
+({{trust-methods}}). It states the trust requirements the Resource
+Authorization Server enforces against incoming identity assertions,
+not a list of capabilities. An assertion is rejected unless an
+Assertion Issuer satisfies the Trust Method combination rule in
+{{rasp}} against the methods listed here; an issuer that satisfies a
+method not listed here is not acceptable. Local policy may add
+requirements per client, subject, or scope ({{downgrade}}). An object
+in this member counts only toward the issuer categories,
 `issuer_authentication` and `subject_namespace_authorization`, and a
 method that belongs to no issuer category is malformed here.
 
@@ -878,15 +864,14 @@ method that belongs to no issuer category is malformed here.
 ({{trust-methods}}) whose methods belong to the
 `client_recognition` category ({{trust-method-categories}}). When
 present, it states the trust requirements the Resource Authorization
-Server enforces against the client that presents an identity
-assertion: an assertion is rejected unless the authenticated client
-satisfies the Trust Method combination rule in {{rasp}} against the
-methods listed here. An object in this member counts only toward the
+Server enforces against the client presenting an identity assertion:
+an assertion is rejected unless the authenticated client satisfies
+the Trust Method combination rule in {{rasp}} against the methods
+listed here. An object in this member counts only toward the
 `client_recognition` category, and a method that does not belong to
-that category is malformed here. A Resource Authorization Server can
-list `client_trust_methods` in `crit` ({{critical-members}}) so that a
-client that does not implement this member does not read the policy
-as placing no requirement on clients.
+that category is malformed here. Listing this member in `crit`
+({{critical-members}}) keeps a client that does not implement it from
+reading the policy as placing no requirement on clients.
 
 ## Trust Methods {#trust-methods}
 
@@ -899,22 +884,18 @@ identifier. An object whose required members are absent, wrong-typed,
 or out-of-constraint is malformed. Unrecognized members of a
 recognized object are ignored.
 
-How an unrecognized or malformed object is handled depends on the
-consumer's role. A client reading the policy for capability discovery
-MAY skip objects it does not recognize, since it cannot satisfy them.
-For an unrecognized or malformed object, a Resource Authorization
-Server evaluating an assertion MUST apply {{rasp}} step 5a and reject
-the assertion. It rejects because ignoring the object would silently
-evaluate a strict subset of the operator's declared requirements.
+A client reading the policy for capability discovery MAY skip
+objects it does not recognize, since it cannot satisfy them. For an
+unrecognized or malformed object, a Resource Authorization Server
+evaluating an assertion MUST apply {{rasp}} step 5a and reject the
+assertion.
 
 ### Trust Method Categories {#trust-method-categories}
 
 Each Trust Method belongs to one or more of the categories below
 (registered in {{iana-trust-method-categories-registry}}) and is
 itself registered in {{iana-trust-methods-registry}}. Evidence is
-combined across categories per {{combination-rule}}; a single
-evidence item is never counted toward more than one category, even
-if its method is registered in several ({{rasp}} step 5a).
+combined across categories per {{combination-rule}}.
 
 `issuer_authentication`
 : Is the entity identified by the JWT `iss` claim authentically a
@@ -922,55 +903,50 @@ member of a recognized ecosystem?
 
 `subject_namespace_authorization`
 : Is this Assertion Issuer entitled to assert about subjects in the
-named namespace? When a policy lists a method in this category, every
-in-scope assertion must carry a resolvable Subject Identifier and
-fails closed if it does not ({{rasp}} step 5c).
+named namespace?
 
 `client_recognition`
 : Is the OAuth client presenting the assertion, as authenticated at
 the token endpoint, recognized by an authority the Resource
 Authorization Server accepts? Methods in this category are listed in
 `client_trust_methods` and evaluate the authenticated client, never a
-claim in the assertion ({{rasp}} step 5f). Recognition admits a client
-to assertion exchange. It does not authorize the client to act for a
-particular user; the grant profile's client binding does that (for
-ID-JAG, {{ID-JAG}} §4.4.1).
+claim in the assertion ({{rasp}} step 5f). Recognition does not
+authorize the client to act for a particular user; the grant
+profile's client binding does that (for ID-JAG, {{ID-JAG}} §4.4.1).
 
 Deployments accepting assertions about namespace-bound subjects
-SHOULD list at least one `subject_namespace_authorization`
-method; federation membership alone does not establish namespace
-authority. Future specifications MAY register additional categories
+SHOULD list at least one `subject_namespace_authorization` method.
+Future specifications MAY register additional categories
 ({{iana-trust-method-categories-registry}}).
 
 ### Requirements on Trust Method Specifications {#trust-method-spec-requirements}
 
-A specification defining a new Trust Method (whether in this document
-or a companion such as {{DAI}}) MUST provide all of the following, so
-that the deferral from this framework to the method is testable:
+A specification defining a new Trust Method (in this document or a
+companion such as {{DAI}}) MUST provide all of the following, so that
+the framework's deferral to the method is testable:
 
-- The Trust Method identifier and the category or categories it
-  belongs to ({{iana-trust-methods-registry}}).
-- The evidence the method consumes and the exact procedure by which a
-  Validator decides the method is satisfied for a given (issuer,
-  subject) pair or, for `client_recognition`, a given authenticated
-  client, precise enough for interoperable implementation.
-- The mapping of the method's retrieval and evaluation outcomes onto
-  the Affirmative / Negative / Indeterminate lookup states
+- The Trust Method identifier and its categories
+  ({{iana-trust-methods-registry}}).
+- The evidence consumed and the exact procedure by which a Validator
+  decides the method is satisfied for an (issuer, subject) pair or,
+  for `client_recognition`, an authenticated client, precise enough
+  for interoperable implementation.
+- The mapping of retrieval and evaluation outcomes onto the
+  Affirmative / Negative / Indeterminate lookup states
   ({{exception-handling}}), including which conditions fail closed.
-- For methods in `subject_namespace_authorization`, the deterministic
-  binding from the assertion's Subject Identifier to the Subject
-  Authority whose evidence is consulted, consistent with the
-  single-source-selection rule ({{multiple-sources}}).
-- Cache-lifetime bounds for any retrieved evidence, including any
-  bound on serving cached evidence during an Indeterminate state, or
-  an explicit statement that the method caches nothing.
-- For a method whose evidence is signed, how the signer and the
-  verification key are bound to the Authority Holder through a
-  channel independent of the signed artifact, so that an attacker
-  who controls the artifact, or the channel that carries it, cannot
-  substitute either.
-- Any method-specific parameters, their JSON types, and whether each
-  is REQUIRED or OPTIONAL.
+- For `subject_namespace_authorization` methods, the deterministic
+  binding from the Subject Identifier to the Subject Authority
+  consulted, consistent with the single-source-selection rule
+  ({{multiple-sources}}).
+- Cache-lifetime bounds for retrieved evidence, including any bound
+  on serving cached evidence during an Indeterminate state, or an
+  explicit statement that the method caches nothing.
+- For signed evidence, how the signer and the verification key are
+  bound to the Authority Holder through a channel independent of the
+  signed artifact, so that an attacker who controls the artifact or
+  its carrying channel cannot substitute either.
+- Method-specific parameters, their JSON types, and whether each is
+  REQUIRED or OPTIONAL.
 
 ### Issuer Authentication Methods {#issuer-authentication-methods}
 
@@ -1468,26 +1444,21 @@ Mark satisfaction is in {{example-federation-walkthrough}}.
 
 ## Subject Authority Determination {#subject-authority-determination}
 
-Determining the Subject Authority has two steps: first identify which
+Determining the Subject Authority has two steps: identify which
 registered Subject Identifier format the assertion carries, then apply
 that format's extraction procedure. The grant-profile binding
 ({{bindings}}) designates which claim conveys the Subject Identifier
-and thus which format applies; for the bindings in this document, a
-top-level `email` claim (with `email_verified`) is the `email` format.
-A format is "used by the assertion" when the designated claim for that
-format is present. If the designated claim maps to no registered
-format, the `subject_namespace_authorization` category cannot be
-evaluated and processing follows {{rasp}} step 5c.
+and thus which format applies. A format is "used by the assertion"
+when the designated claim for that format is present. If the
+designated claim maps to no registered format, or to a format not
+registered in {{iana-authority-registry}}, the assertion yields no
+Subject Authority, the `subject_namespace_authorization` category
+cannot be evaluated, and processing follows {{rasp}} step 5c.
 
-The Subject Authority associated with a Subject Identifier is then
-determined as registered in {{iana-authority-registry}}. This
-document registers the `email` extraction as the initial entry. The
-extraction-procedure pattern (Subject Identifier format to Subject
-Authority) is open: future specifications register additional
-formats for service identities, decentralized identifiers,
-federated handles, and other namespaces by adding entries to the
-same registry without changes to the rest of the framework. See
-{{future-extensions}}.
+Extraction procedures are registered in {{iana-authority-registry}};
+this document registers the `email` extraction as the initial entry.
+Future specifications can register further formats without changing
+the rest of the framework ({{future-extensions}}).
 
 Initial extractions:
 
@@ -1504,12 +1475,11 @@ Initial extractions:
 
   The domain is the substring after the single `@`. Consumers MUST
   reject an `email` claim value that does not contain exactly one `@`
-  character or whose domain part is empty. This document uses the
-  simple single-`@` rule rather than the full {{RFC5321}} Mailbox
-  grammar. Quoted local-parts or address forms that do not reduce to
-  a single unquoted `@` are out of scope for the `email` extraction.
-  The local-part is not used. A trailing dot on the domain, if
-  present, is removed.
+  character or whose domain part is empty. This document uses this
+  single-`@` rule, not the full {{RFC5321}} Mailbox grammar; quoted
+  local-parts and other forms that do not reduce to a single unquoted
+  `@` are out of scope for the `email` extraction. The local-part is
+  not used. A trailing dot on the domain is removed.
 
   The domain is converted to A-label form ({{RFC5891}}) by UTS #46
   `ToASCII` processing {{UTS46}} with these flags:
@@ -1524,13 +1494,12 @@ Initial extractions:
   - `VerifyDnsLength=true`
 
   Consumers MUST reject a domain for which `ToASCII` reports an
-  error. `UseSTD3ASCIIRules` rejects characters, such as `_`, that
-  are not valid in host names, which an email domain does not need.
-  These flags pin one mapping, so that two consumers compute the same
-  A-label. Transitional processing or IDNA2003 maps some characters
+  error. `UseSTD3ASCIIRules` rejects characters not valid in host
+  names, such as `_`, which an email domain does not need. These
+  flags pin one mapping, so that two consumers compute the same
+  A-label; transitional processing or IDNA2003 maps some characters
   (such as U+00DF) differently and would select a different Subject
-  Authority. Conversion happens before any Public Suffix List
-  matching, so that comparison operates on a single canonical form.
+  Authority.
 
   The A-label domain is then normalized to its registrable domain
   ("eTLD+1") by applying the Public Suffix List matching algorithm
@@ -1545,14 +1514,8 @@ Initial extractions:
 
   The result is compared using case-insensitive ASCII comparison of
   A-labels. Consumers MUST reject an email whose domain is itself a
-  public suffix (no registrable domain exists). Registrable-domain
-  normalization prevents an attacker who controls a subdomain (for
-  example, via subdomain takeover) from overriding the legitimate
-  record at the registrable domain.
+  public suffix (no registrable domain exists).
 
-A Subject Identifier whose format is not registered in
-{{iana-authority-registry}} yields no Subject Authority; processing
-follows {{rasp}} step 5c.
 
 Subject Authority extraction MUST be exact-match: wildcard, suffix,
 regular-expression, and substring matching against Subject Authority
@@ -1562,13 +1525,12 @@ Subject Identifier format's extraction procedure.
 ### Public Suffix List Versioning {#psl-versioning}
 
 Deriving a registrable domain from a DNS name has no protocol
-solution: the IETF DBOUND working group examined the problem of
-determining administrative (organizational) boundaries in the DNS and
-concluded without a standard. The Public Suffix List is the de facto
-mechanism (browsers use it for cookie same-site rules), although
-DMARC, which originally used it for organizational-domain discovery,
-replaced it with a DNS tree walk in {{RFC9989}} (Section 4.10). This
-framework inherits the PSL's limitations knowingly; whether a DNS
+solution: the IETF DBOUND working group studied administrative
+(organizational) boundaries in the DNS and concluded without a
+standard. The Public Suffix List is the de facto mechanism (browsers
+use it for cookie same-site rules), although DMARC replaced its use
+of the list with a DNS tree walk in {{RFC9989}} (Section 4.10). This
+framework knowingly inherits the PSL's limitations; whether a DNS
 tree walk suits Subject Authority determination is left to future
 work.
 
@@ -1576,27 +1538,27 @@ The PSL {{PSL}} is updated continuously, and snapshots taken at
 different times can yield different registrable domains for the same
 email. Because the Subject Authority is the DNS name queried, two
 Resource Authorization Servers using different PSL snapshots can
-compute different Subject Authorities for the same assertion. They
-can thus query different names and reach different decisions. During
-the window in which a label's public-suffix status is changing, this
-is a deterministic-source-selection hazard ({{multiple-sources}}) and
-a security consideration, not merely an operational one. Consumers
+compute different Subject Authorities for the same assertion, query
+different names, and reach different decisions. While a label's
+public-suffix status is changing, this is a
+deterministic-source-selection hazard ({{multiple-sources}}) and a
+security consideration, not merely an operational one. Consumers
 SHOULD use a snapshot of the {{PSL}} no older than 30 days.
 
 The determinism property this framework claims holds for a given
 computed Subject Authority. Parties that require identical Subject
-Authority computation across verifiers SHOULD agree on, or pin, a PSL
-snapshot. Such parties include, for example, a Subject Authority and
-the Resource Authorization Servers that consume its policy. Subject Authorities
-SHOULD monitor PSL changes affecting their namespace.
+Authority computation across verifiers, such as a Subject Authority
+and the Resource Authorization Servers that consume its policy,
+SHOULD agree on, or pin, a PSL snapshot. Subject Authorities SHOULD
+monitor PSL changes affecting their namespace.
 
 ### Subdomain Authority {#subdomain-authority}
 
-The registrable-domain default prevents subdomain-takeover from
-capturing parent-domain authority. A subdomain-exact variant is
-sketched in {{future-extensions}} and would require the parent
-registrable-domain authority to explicitly delegate to the
-subdomain.
+The registrable-domain default prevents an attacker who controls a
+subdomain, for example through subdomain takeover, from overriding
+the record at the registrable domain. {{future-extensions}} sketches a
+subdomain-exact variant that would require explicit delegation from
+the registrable-domain authority.
 
 ## Critical Members {#critical-members}
 
@@ -1607,25 +1569,22 @@ adopt this mechanism, with the rules of this section, for the policy
 documents it defines (for example, {{DAI}}).
 
 A consumer that does not recognize, or does not implement processing
-for, any member named in `crit` MUST reject the document as malformed
-rather than ignoring the unrecognized member. Members not named in
-`crit` retain the default handling: unrecognized members are ignored.
-`crit` names members of the object that carries it. It does not reach
-members of nested objects.
+for, any member named in `crit` MUST reject the document as malformed.
+`crit` names members of the object that carries it, not members of
+nested objects.
 
-`crit`, when present, MUST be a non-empty array of strings; each string
-SHOULD name a member that is actually present in the document. A
+`crit`, when present, MUST be a non-empty array of strings; each
+string SHOULD name a member that is present in the document. A
 consumer MUST reject the document if `crit` is present but not a
 non-empty array of strings, and MUST reject if `crit` names `crit`
-itself. This is the same fail-closed pattern JWS ({{RFC7515}}
-Section 4.1.11) uses for critical header parameters.
+itself. JWS uses the same fail-closed pattern for critical header
+parameters ({{RFC7515}} Section 4.1.11).
 
-This mechanism is defined in the base specification, with no member
-named critical by default. Defining it in the base lets a future
-extension mark a new decision-affecting member critical and have
-already-deployed consumers honor it. An extension that omitted it
-from the base could not retrofit fail-closed behavior onto the
-deployed base.
+This document defines `crit` but names no member critical by
+default. Defining it in the base lets a future extension mark a new
+decision-affecting member critical and have already-deployed
+consumers honor it; an extension could not retrofit that fail-closed
+behavior onto the deployed base.
 
 # Trust Policy Processing
 

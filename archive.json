@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-08T05:15:52.622741+00:00",
+  "timestamp": "2026-11-17T07:14:08.653270+00:00",
   "repo": "mcguinness/draft-mcguinness-oauth-id-assertion-framework",
   "labels": [
     {
@@ -247,6 +247,300 @@
       "createdAt": "2026-10-08T22:07:08Z",
       "updatedAt": "2026-10-08T22:07:08Z",
       "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 20,
+      "id": "I_kwDOSla3bs8AAAABfxPk-w",
+      "title": "-01: Align with OpenID Federation 1.1 and add federation-bound key sources",
+      "url": "https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues/20",
+      "state": "CLOSED",
+      "author": "mcguinness",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Recorded after the fact so that the -01 Document History can stay short. These changes are merged; the draft's history entry points here.\n\n**Framework** (draft-mcguinness-oauth-id-assertion-framework)\n\n- Federation references cite OpenID Federation 1.1 and OpenID Federation for OpenID Connect 1.1.\n- **Breaking:** the Trust Mark requirement member `id` is renamed `trust_mark_type`, and Trust Mark issuer matching is corrected.\n- An explicit trust anchor allowlist can replace a pinned Trust Mark issuer.\n- Trust in the Trust Mark Issuer must chain to the leaf's trust anchor.\n- Key sources include `signed_jwks_uri`. An extension path covers federation-bound key sources, with metadata precedence and fail-closed resolution. Well-Known Binding is the expected first extension and is cited informatively. An extension's digest check on a metadata `jwks_uri` key set validates that source.\n- `openid_federation` outcomes map explicitly onto the lookup states.\n- New guidance on trust anchor compromise.\n- Well-Known Binding citations follow its -02 (11 November 2026): `essential` is cited to OpenID Federation 1.1 \u00a76.1.3.1.7; the extension checks the JWK Set at a covered document's `jwks_uri`, which validates a metadata `jwks_uri` only when both name the same URL; there's no permission to omit Entity Type metadata; and a Resource Authorization Server returns the framework's error rather than `trust_mark_required`.\n\n**DAI** (draft-mcguinness-oauth-domain-authorized-issuer)\n\n- A non-normative sketch of a federation-bound Issuer Authorization Policy, as a future extension.\n\n**Resolved by:** #2, #3, #31\n\n",
+      "createdAt": "2026-11-16T17:34:58Z",
+      "updatedAt": "2026-11-16T19:10:57Z",
+      "closedAt": "2026-11-16T17:35:01Z",
+      "comments": [
+        {
+          "author": "mcguinness",
+          "authorAssociation": "OWNER",
+          "body": "Resolved in -01 by #2, #3.",
+          "createdAt": "2026-11-16T17:35:00Z",
+          "updatedAt": "2026-11-16T17:35:00Z"
+        },
+        {
+          "author": "mcguinness",
+          "authorAssociation": "OWNER",
+          "body": "Updated for Well-Known Binding -02 by #31.",
+          "createdAt": "2026-11-16T19:10:57Z",
+          "updatedAt": "2026-11-16T19:10:57Z"
+        }
+      ]
+    },
+    {
+      "number": 21,
+      "id": "I_kwDOSla3bs8AAAABfxPp8Q",
+      "title": "-01: Move issuer-policy integrity into DAI and remove signed_policy from the Trust Policy",
+      "url": "https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues/21",
+      "state": "CLOSED",
+      "author": "mcguinness",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Recorded after the fact so that the -01 Document History can stay short. These changes are merged; the draft's history entry points here.\n\n**Framework** (draft-mcguinness-oauth-id-assertion-framework)\n\n- **Breaking:** `signed_policy` and the `trust-policy+jwt` media type are removed from the Trust Policy. The Resource Authorization Server enforces its Trust Policy from its own configuration, and clients use the published copy only for discovery.\n- Signed-policy processing (including its rollback rule), the issuer-policy `crit` placement rule, the note on critical directives for the DNS record form, and the `issuer-authorization-policy+jwt` media type move to DAI. Trust Policy `crit` handling stays in the framework.\n- \"Decision-affecting member\" is defined in Terminology, and the members registry records which members are decision-affecting.\n- The Trust Method checklist gains an item for signer and key binding.\n\n**DAI** (draft-mcguinness-oauth-domain-authorized-issuer)\n\n- DAI defines signed-policy processing and registers the `issuer-authorization-policy+jwt` media type, with the full RFC 6838 template.\n- It states the outcome for a consumer without a verification key, and the signer binding that a `key=` pin provides.\n- A signed policy carries its own copy of `crit`, so a host cannot strip a critical requirement.\n- Security considerations describe how a spoofed negative answer can suppress a published denial when another namespace method is configured.\n\n**Resolved by:** #3, #12, #15\n",
+      "createdAt": "2026-11-16T17:35:03Z",
+      "updatedAt": "2026-11-16T17:35:05Z",
+      "closedAt": "2026-11-16T17:35:05Z",
+      "comments": [
+        {
+          "author": "mcguinness",
+          "authorAssociation": "OWNER",
+          "body": "Resolved in -01 by #3, #12, #15.",
+          "createdAt": "2026-11-16T17:35:04Z",
+          "updatedAt": "2026-11-16T17:35:04Z"
+        }
+      ]
+    },
+    {
+      "number": 22,
+      "id": "I_kwDOSla3bs8AAAABfxPuow",
+      "title": "-01: Remove monitor mode and published waivers; define how methods in one category combine",
+      "url": "https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues/22",
+      "state": "CLOSED",
+      "author": "mcguinness",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Recorded after the fact so that the -01 Document History can stay short. These changes are merged; the draft's history entry points here.\n\n**Framework** (draft-mcguinness-oauth-id-assertion-framework)\n\n- **Breaking:** an Authority Holder cannot publish a waiver, such as a monitoring mode.\n- Methods within one category are alternatives (or-semantics). For `issuer_authentication`, every listed Authority Source is equally trusted. A Subject Authority's published decision is final for its namespace.\n\n**DAI** (draft-mcguinness-oauth-domain-authorized-issuer)\n\n- **Breaking:** the `mode` member and the `mode=` directive (monitor mode) are removed. Monitor mode admitted more issuers than publishing nothing.\n\n**Resolved by:** #3\n",
+      "createdAt": "2026-11-16T17:35:07Z",
+      "updatedAt": "2026-11-16T17:35:09Z",
+      "closedAt": "2026-11-16T17:35:09Z",
+      "comments": [
+        {
+          "author": "mcguinness",
+          "authorAssociation": "OWNER",
+          "body": "Resolved in -01 by #3.",
+          "createdAt": "2026-11-16T17:35:08Z",
+          "updatedAt": "2026-11-16T17:35:08Z"
+        }
+      ]
+    },
+    {
+      "number": 23,
+      "id": "I_kwDOSla3bs8AAAABfxPzgg",
+      "title": "-01: Make the DAI TXT record an explicit opt-in, with a dedicated policy host",
+      "url": "https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues/23",
+      "state": "CLOSED",
+      "author": "mcguinness",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Recorded after the fact so that the -01 Document History can stay short. These changes are merged; the draft's history entry points here.\n\n**DAI** (draft-mcguinness-oauth-domain-authorized-issuer)\n\n- **Breaking:** a namespace with no TXT record is Negative, with no HTTPS fallback, in both lookup modes.\n- **Breaking:** HTTPS-only lookup fetches from the dedicated host `oauth-issuer-policy.{A}` instead of the apex. Its opt-in is a TXT record whose `uri=` names the default URL on that host.\n- **Breaking:** policy fetches no longer follow redirects.\n- A 404 or 410 from a location that a record names is Indeterminate, not Negative.\n\n**Resolved by:** #3, #15\n",
+      "createdAt": "2026-11-16T17:35:11Z",
+      "updatedAt": "2026-11-16T17:35:13Z",
+      "closedAt": "2026-11-16T17:35:13Z",
+      "comments": [
+        {
+          "author": "mcguinness",
+          "authorAssociation": "OWNER",
+          "body": "Resolved in -01 by #3, #15.",
+          "createdAt": "2026-11-16T17:35:12Z",
+          "updatedAt": "2026-11-16T17:35:12Z"
+        }
+      ]
+    },
+    {
+      "number": 24,
+      "id": "I_kwDOSla3bs8AAAABfxP31Q",
+      "title": "-01: Pin the signed-policy key with the key= directive",
+      "url": "https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues/24",
+      "state": "CLOSED",
+      "author": "mcguinness",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Recorded after the fact so that the -01 Document History can stay short. These changes are merged; the draft's history entry points here.\n\n**DAI** (draft-mcguinness-oauth-domain-authorized-issuer)\n\n- A new `key=` directive pins the `signed_policy` signing key for a pointer record, including the HTTPS-only opt-in record.\n- A record can carry two `key=` values for rollover. The rollover order waits the old record's full TTL, so the new pin reaches resolver caches before the signature changes.\n- The draft says which key `key=` pins, what a mismatch yields, and what a pin protects against, and recommends a short signed-policy `exp`.\n\n**Resolved by:** #3, #15, #16, #17\n",
+      "createdAt": "2026-11-16T17:35:15Z",
+      "updatedAt": "2026-11-16T17:35:17Z",
+      "closedAt": "2026-11-16T17:35:17Z",
+      "comments": [
+        {
+          "author": "mcguinness",
+          "authorAssociation": "OWNER",
+          "body": "Resolved in -01 by #3, #15, #16, #17.",
+          "createdAt": "2026-11-16T17:35:16Z",
+          "updatedAt": "2026-11-16T17:35:16Z"
+        }
+      ]
+    },
+    {
+      "number": 25,
+      "id": "I_kwDOSla3bs8AAAABfxP8WA",
+      "title": "-01: Bound DAI cache lifetimes and state the revocation window",
+      "url": "https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues/25",
+      "state": "CLOSED",
+      "author": "mcguinness",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Recorded after the fact so that the -01 Document History can stay short. These changes are merged; the draft's history entry points here.\n\n**DAI** (draft-mcguinness-oauth-domain-authorized-issuer)\n\n- Freshness lifetimes are binding, under a 24-hour absolute ceiling.\n- Stale-if-error use has an explicit bound.\n- A DNS result that is not DNSSEC-validated is cached for at most one hour.\n- A Negative result is cached for at most one hour, for a lifetime taken from the DNS answer that produced it.\n- A 304 renews a cached policy only under the same `uri=` and `key=`.\n- The draft states the overall revocation window, including upstream caches, and distinguishes it from one cached entry's lifetime.\n\n**Resolved by:** #3, #15, #17\n",
+      "createdAt": "2026-11-16T17:35:19Z",
+      "updatedAt": "2026-11-16T17:35:21Z",
+      "closedAt": "2026-11-16T17:35:21Z",
+      "comments": [
+        {
+          "author": "mcguinness",
+          "authorAssociation": "OWNER",
+          "body": "Resolved in -01 by #3, #15, #17.",
+          "createdAt": "2026-11-16T17:35:20Z",
+          "updatedAt": "2026-11-16T17:35:20Z"
+        }
+      ]
+    },
+    {
+      "number": 26,
+      "id": "I_kwDOSla3bs8AAAABfxQA0Q",
+      "title": "-01: Tenant handling for an issuer shared by several tenants",
+      "url": "https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues/26",
+      "state": "CLOSED",
+      "author": "mcguinness",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Recorded after the fact so that the -01 Document History can stay short. These changes are merged; the draft's history entry points here.\n\n**Framework** (draft-mcguinness-oauth-id-assertion-framework)\n\n- The framework relies on ID-JAG \u00a76.1, which requires a multi-tenant issuer to send `tenant` in every ID-JAG. An earlier -01 text restated this as the framework's own requirement and said it narrowed \u00a76.1; #35 corrects that.\n\n**DAI** (draft-mcguinness-oauth-domain-authorized-issuer)\n\n- **Breaking:** an entry without `tenant` no longer matches an assertion that carries a `tenant` claim, under any grant profile (#35).\n- A table shows the tenant matching rule.\n\n**Resolved by:** #3, #13, #15, #17\n\n",
+      "createdAt": "2026-11-16T17:35:23Z",
+      "updatedAt": "2026-11-16T22:56:46Z",
+      "closedAt": "2026-11-16T17:35:25Z",
+      "comments": [
+        {
+          "author": "mcguinness",
+          "authorAssociation": "OWNER",
+          "body": "Resolved in -01 by #3, #13, #15, #17.",
+          "createdAt": "2026-11-16T17:35:24Z",
+          "updatedAt": "2026-11-16T17:35:24Z"
+        },
+        {
+          "author": "mcguinness",
+          "authorAssociation": "OWNER",
+          "body": "Updated for the pre-publication fixes in #35: ID-JAG \u00a76.1 is cited as it reads, and the tenant rule applies under every grant profile.",
+          "createdAt": "2026-11-16T22:56:45Z",
+          "updatedAt": "2026-11-16T22:56:45Z"
+        }
+      ]
+    },
+    {
+      "number": 27,
+      "id": "I_kwDOSla3bs8AAAABfxQFww",
+      "title": "-01: Domain names, outbound fetches, key binding, and policy limits",
+      "url": "https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues/27",
+      "state": "CLOSED",
+      "author": "mcguinness",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Recorded after the fact so that the -01 Document History can stay short. These changes are merged; the draft's history entry points here.\n\n**Framework** (draft-mcguinness-oauth-id-assertion-framework)\n\n- Internationalized domains use UTS #46 nontransitional processing, with each flag stated.\n- New outbound-fetch requirements, which now hold the SSRF rules formerly in DAI.\n- A security consideration on key binding.\n\n**DAI** (draft-mcguinness-oauth-domain-authorized-issuer)\n\n- **Breaking:** a Trust Policy can hold at most one `domain_authorized_issuer` object.\n- **Breaking:** a published policy can hold at most 100 entries.\n- An extension that narrows the policy must use a new version token or a member that `crit` can name.\n- The SSRF rules move to the framework's outbound-fetch requirements.\n\n**Resolved by:** #3, #15\n",
+      "createdAt": "2026-11-16T17:35:27Z",
+      "updatedAt": "2026-11-16T17:35:29Z",
+      "closedAt": "2026-11-16T17:35:29Z",
+      "comments": [
+        {
+          "author": "mcguinness",
+          "authorAssociation": "OWNER",
+          "body": "Resolved in -01 by #3, #15.",
+          "createdAt": "2026-11-16T17:35:29Z",
+          "updatedAt": "2026-11-16T17:35:29Z"
+        }
+      ]
+    },
+    {
+      "number": 28,
+      "id": "I_kwDOSla3bs8AAAABfxQKmA",
+      "title": "-01: Token request processing: client authentication first, typ check, invalid_grant",
+      "url": "https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues/28",
+      "state": "CLOSED",
+      "author": "mcguinness",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Recorded after the fact so that the -01 Document History can stay short. These changes are merged; the draft's history entry points here.\n\n**Framework** (draft-mcguinness-oauth-id-assertion-framework)\n\n- **Breaking:** a rejection in steps 1 through 5 of Resource Authorization Server processing returns `invalid_grant`.\n- Client authentication that the grant profile requires should be completed before the Trust Method lookups (step 5), so that unauthenticated requests cannot cause them.\n- A Resource Authorization Server should reject a JWT-bearer assertion whose `typ` header identifies a different JWT application (RFC 8725 Section 3.11).\n\n**Resolved by:** #3, #15\n",
+      "createdAt": "2026-11-16T17:35:31Z",
+      "updatedAt": "2026-11-16T17:35:33Z",
+      "closedAt": "2026-11-16T17:35:33Z",
+      "comments": [
+        {
+          "author": "mcguinness",
+          "authorAssociation": "OWNER",
+          "body": "Resolved in -01 by #3, #15.",
+          "createdAt": "2026-11-16T17:35:32Z",
+          "updatedAt": "2026-11-16T17:35:32Z"
+        }
+      ]
+    },
+    {
+      "number": 29,
+      "id": "I_kwDOSla3bs8AAAABfxQPQQ",
+      "title": "-01: Motivation, related mechanisms, and reader aids",
+      "url": "https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues/29",
+      "state": "CLOSED",
+      "author": "mcguinness",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Recorded after the fact so that the -01 Document History can stay short. These changes are merged; the draft's history entry points here.\n\n**Framework** (draft-mcguinness-oauth-id-assertion-framework)\n\n- The Introduction opens with the cost of per-relationship issuer configuration and the nOAuth attack class.\n- Namespace authorization does not make an email address a safe account key.\n- The Trust Policy Discovery deferral is reworded.\n- A table summarizes what a namespace method's outcome leaves to other methods.\n- The draft says who publishes the Trust Policy, and that one party can be both Assertion Issuer and client.\n\n**DAI** (draft-mcguinness-oauth-domain-authorized-issuer)\n\n- The relationship to the Email Verification Protocol is corrected: its relying party also checks its record at verification time.\n- Related mechanisms add SAML scope metadata, bilateral domain verification, FastFed, and DNS-based OpenID discovery.\n- The comparison between DNS control and control of email recovery is bounded.\n- The Trust Method targets organizational namespaces.\n- Terms borrowed from the framework are glossed.\n\n**Resolved by:** #13, #17\n",
+      "createdAt": "2026-11-16T17:35:35Z",
+      "updatedAt": "2026-11-16T17:35:37Z",
+      "closedAt": "2026-11-16T17:35:37Z",
+      "comments": [
+        {
+          "author": "mcguinness",
+          "authorAssociation": "OWNER",
+          "body": "Resolved in -01 by #13, #17.",
+          "createdAt": "2026-11-16T17:35:36Z",
+          "updatedAt": "2026-11-16T17:35:36Z"
+        }
+      ]
+    },
+    {
+      "number": 32,
+      "id": "I_kwDOSla3bs8AAAABfy6VCg",
+      "title": "-02: Client recognition: a client_recognition category and the openid_federation_client method",
+      "url": "https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues/32",
+      "state": "CLOSED",
+      "author": "mcguinness",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "The change is in progress in #19, a draft for -02. The -02 Document History entry points here, and this issue closes when #19 merges.\n\n**Framework** (draft-mcguinness-oauth-id-assertion-framework)\n\n- New `client_recognition` category. It applies the Authenticity question to the OAuth client that presents an identity assertion: is that client recognized by an authority the Resource Authorization Server accepts? Recognition admits the client to the exchange. It does not authorize the client to act for a particular user; the grant profile's client binding does that (ID-JAG \u00a74.4.1). The model keeps two categories, and the Delegate is still only the Assertion Issuer.\n- New OPTIONAL Trust Policy member `client_trust_methods`. Each method object counts only toward the categories its member allows. A Resource Authorization Server can list the member in `crit`.\n- Processing:\n  - a server with more than one Trust Policy selects one only from request properties it has authenticated, never from an assertion claim;\n  - new step 5f evaluates the category against the client that client authentication identifies, and a request without accepted client authentication gets `invalid_client`;\n  - step 5e reads \"lists no `subject_namespace_authorization` method\";\n  - the fetch bound is per token request;\n  - the JWT-bearer grant requires client authentication under such a policy.\n- New method `openid_federation_client`:\n  - the `client_id` is the client's Entity Identifier, as in Automatic Registration (OpenID Federation for OpenID Connect \u00a712.1, \u00a712.4);\n  - the client declares `oauth_client` or `openid_relying_party`;\n  - client authentication must verify under a key in the client's federation-designated key set, by JWT client authentication whose `aud` is only the server's issuer identifier, or by self-signed-certificate mutual TLS whose certificate is the `x5c` value of such a key (\u00a712.1.1);\n  - `invalid_client` for identification, chain, key set, entity type, or key failures, and `unauthorized_client` for a missing Trust Mark;\n  - a request that authenticates as a client the server registered gets a policy without client methods; every other request gets the client policy;\n  - Explicit Registration clients are not covered.\n- Security considerations (\u00a77.8), registry entries for the category, method, and member, an Appendix B note on draft-shankarlingam-oauth-agent-dns-link as a candidate method, and a Client Recognition Walkthrough appendix.\n\n**Resolved by:** #19\n",
+      "createdAt": "2026-11-16T19:13:06Z",
+      "updatedAt": "2026-11-16T22:18:43Z",
+      "closedAt": "2026-11-16T22:17:29Z",
+      "comments": [
+        {
+          "author": "mcguinness",
+          "authorAssociation": "OWNER",
+          "body": "Round 4 (fresh three-persona review) applied to #19: processing order, fetches before authentication, `https` client IDs, Connect's PAR client authentication rules, declared metadata, and error order, plus 12 minor fixes. The registries are renamed \"Identity Assertion Trust Method Categories\" and \"Identity Assertion Trust Methods\" in both drafts. Details are in the #19 description.",
+          "createdAt": "2026-11-16T21:47:12Z",
+          "updatedAt": "2026-11-16T21:47:12Z"
+        }
+      ]
+    },
+    {
+      "number": 34,
+      "id": "I_kwDOSla3bs8AAAABf2k5Cg",
+      "title": "-01: Pre-publication review fixes",
+      "url": "https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues/34",
+      "state": "CLOSED",
+      "author": "mcguinness",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Fixes from the -01 pre-publication review: a security reviewer, a two-role implementer, a document reviewer, and a citation checker. These go in -01 before submission. This issue closes when the fix PR merges, and both drafts' -01 history entries point here.\n\n**Framework** (draft-mcguinness-oauth-id-assertion-framework)\n- When a namespace method is listed, the subject is resolved only from the evaluated Subject Identifier or from issuer-scoped identifiers (`iss`, `tenant`, `sub`). It is not resolved from `aud_sub` or `sub_id` (ID-JAG \u00a73.1).\n- The generic JWT-bearer binding fixes the key source: an asymmetric key from the issuer's RFC 8414 `jwks_uri`, or local configuration. A key or key location in the JOSE header is never used.\n- Federation evidence (trust chains, key sets, and supplied `trust_chain`s) is not reused more than 24 hours after it was obtained. A Trust Mark without `exp` is re-checked at its status endpoint when the issuer publishes one.\n- ID-JAG \u00a76.1 is cited as it reads (an unconditional `tenant` requirement for multi-tenant issuers), and the framework's restated MUST is removed. A DAI `tenant` match does not establish ID-JAG \u00a74.4.1's trust for the recipient tenant.\n- Client recognition is evaluated right after client authentication and fails with `unauthorized_client`, whatever the state of the assertion.\n- `openid_federation` holds every requirement on one chain.\n- A global rate limit on trust chain resolution before authentication is required.\n- Reaching the fetch cap is Indeterminate, and `trust_marks` must be non-empty.\n- \u00a71 and the scope sections describe client recognition and the narrowings of ID-JAG and RFC 7523.\n- UTS #46 is pinned to Revision 36, RFC 9111 is normative, and several citations are corrected.\n\n**DAI** (draft-mcguinness-oauth-domain-authorized-issuer)\n- The TXT record ABNF is normative, and the prose agrees with it.\n- A `signed_policy` with `exp` more than 24 hours after `iat` is rejected. Consumers keep the highest `iat` per Subject Authority until that policy's `exp`, and the revocation window includes the replay term.\n- An entry without `tenant` does not match an assertion carrying `tenant` under any grant profile.\n- Under HTTPS-only lookup, a recognized record without the default `uri=` is Indeterminate.\n- The opt-in `uri=` is compared octet for octet.\n- \"DNSSEC-validated\" is defined, and the freshness claim is scoped to the consumer's cache.\n- The non-ASCII rule applies to recognized records, `subject_identifier_formats` must be non-empty, `valid_from` must not be after `valid_until`, and an expired signed policy is never used.\n- RFC 2308 is normative, and the wildcard example is corrected.\n",
+      "createdAt": "2026-11-16T22:51:39Z",
+      "updatedAt": "2026-11-16T23:00:35Z",
+      "closedAt": "2026-11-16T23:00:35Z",
       "comments": []
     }
   ],
@@ -508,20 +802,160 @@
       "id": "PR_kwDOSla3bs8AAAABM7xjiw",
       "title": "Add a client_recognition category and the openid_federation_client method",
       "url": "https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/pull/19",
+      "state": "MERGED",
+      "author": "mcguinness",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "**Draft: now targets -01.** The history entry is under -01. Closes #32.\n\n**Updated 2026-11-16:**\n- Merged `main` (PRs #30 and #31) into this branch. There were no conflicts, and none of this PR's text touches the Well-Known Binding passages that #31 changed.\n- Moved the history entry under a new -02 heading, in the one-line style from #30. It was later moved back under -01 when this PR was retargeted. The details are in #32, in the `-02` milestone; #32 closes when this PR merges.\n- The requirement count against `main` is unchanged at 125 \u2192 130.\n\nThis PR adds `client_recognition`, which applies the framework's Authenticity question to the OAuth client that presents an identity assertion: is that client recognized by an authority the Resource Authorization Server accepts? Recognition admits the client to the exchange. It does not authorize the client to act for any particular user; the grant profile's client binding does that (ID-JAG \u00a74.4.1).\n\nThe category ships with one deliberately narrow method, `openid_federation_client`. It covers a client whose `client_id` is its OpenID Federation Entity Identifier and that authenticates with a key from its own federation metadata.\n\n## Model and policy\n\n- **No third model category.** \u00a73.2 says Authenticity can be evaluated for more than one principal: the signer and, in OAuth, the presenting client. `client_recognition` exists only at the OAuth layer (\u00a71.2, \u00a74.3.2). The Delegate is still only the Assertion Issuer.\n- **Separate policy member.** A new OPTIONAL Trust Policy member, `client_trust_methods`, holds client methods. Each object counts only toward the categories its member allows, and a method in the wrong member is malformed. A Resource Authorization Server can list the member in `crit`.\n- **Lookup states and method checklist** now cover evidence about a client (\u00a73.4, \u00a74.3.3).\n\n## Processing (\u00a75.2, \u00a75.3, \u00a76.2)\n\n- **Step 1.** A server that holds more than one Trust Policy selects one from request properties it has authenticated, such as the authenticated client, and never from an assertion claim. \u00a73.2.1.1 says the same, and \u00a74.1 says which policy is published.\n- **Steps 5, 5a and 5b** cover the authenticated client and partition both policy members.\n- **Step 5e** now reads \"lists no `subject_namespace_authorization` method\". This keeps the federation-only rule in force when client methods are listed.\n- **New step 5f.** The category is evaluated against the client that the request's client authentication (RFC 6749 \u00a72.3) identifies. A request without accepted client authentication gets `invalid_client`.\n- **Error rule.** It now defers to step 5f and to the Trust Method that failed.\n- **\u00a75.3.** The fetch bound is per token request, and the client's Entity Configuration, chain and key set are listed as fetch targets.\n- **\u00a76.2.** The JWT-bearer grant requires client authentication under such a policy.\n\n## `openid_federation_client` (\u00a74.3.6)\n\n- **Identification.** The `client_id` is the Entity Identifier, as in Automatic Registration (Connect \u00a712.1, \u00a712.4). The method applies that identification to a first request at the token endpoint. Connect \u00a712.1.5 anticipates such uses but leaves them out of its scope, and the method places none of \u00a712.1's obligations on the client.\n- **What carries over from `openid_federation`.** Trust chain validation, the lookup states, caching, and requirements 1 and 4.\n- **Entity type.** The client must declare `oauth_client` or `openid_relying_party`.\n- **Key rule.**\n  - Client authentication MUST verify under a key in the client's federation-designated key set.\n  - Two methods are allowed, matching Automatic Registration (Connect \u00a712.1.1):\n    - JWT client authentication whose `aud` is only the server's issuer identifier;\n    - self-signed-certificate mutual TLS whose certificate is the `x5c` value of such a key.\n  - Verification under any other key, such as one from a client metadata document, does not count.\n- **Error codes by condition.**\n  - `invalid_client`: the client is not identified, its chain or key set fails, the entity type is wrong, or the key isn't in the federation set.\n  - `unauthorized_client`: the client authenticates but lacks a required Trust Mark.\n- **Coexistence with registered clients.**\n  - A request that authenticates as a client the server registered gets a policy without client methods.\n  - Every other request gets the client policy, including one that names a registered `client_id` without authenticating as that client.\n  - Registered identifiers stay distinct from Entity Identifiers.\n- **Out of scope.** Explicit Registration clients are not covered. The Client ID Metadata Document is noted as complementary: it supplies metadata and keys but not trust.\n\n## Security, registries, appendices\n\n- **\u00a77.8:**\n  - the client comes from client authentication;\n  - recognition is admission, not authorization;\n  - under the generic JWT-bearer binding, any recognized client can present an assertion it obtained;\n  - the federation-bound key rule prevents spoofing a federation Entity;\n  - per-client policy selection happens only after authentication;\n  - step 5f tightens what the grant profile allows.\n- **Registries:** the category `client_recognition`, the method `openid_federation_client`, and the member `client_trust_methods`.\n- **Appendix B** names draft-shankarlingam-oauth-agent-dns-link as a candidate method and lists what it would need.\n- **New \"Client Recognition Walkthrough\" appendix:**\n  - the Trust Policy and the client's Entity Configuration;\n  - a complete first-contact token request and client assertion;\n  - six processing steps;\n  - seven rejection cases with their error codes;\n  - cached trust and key rotation;\n  - coexistence with registered clients.\n\n## Review history\n\n1. **First implementer review** of the original version: one blocker (step 5e) and four major issues, all fixed.\n2. **Design review** (pasted): narrow the scope.\n   - The category was renamed from `client_authorization`.\n   - The third model category was removed.\n   - The bootstrap was made explicit, with a full walkthrough.\n   - Coexistence was added.\n   - The PR was marked draft for -02.\n3. **Second implementer review** of the reworked version: four major issues and twelve minor ones.\n   - Selecting a policy by `client_id` before authentication is fixed by selecting by the authenticated client.\n   - The \u00a77.8 overclaim is fixed.\n   - Error codes no longer depend on detection order.\n   - The single-published-policy question is answered: \u00a74.1 says which policy is published.\n   - The minors are fixed: walkthrough lookups, the 5xx Indeterminate case, `aud`, `exp`, `x5c` matching, `unauthorized_client`, the fetch bound, the \u00a712.1.5 citation, lookup states, the checklist, and \u00a77.8 restating that recognition is not authorization.\n\nThe round-3 fixes were checked with `normative_diff` against the reviewed tree. They were not cold-read again.\n\n## Round 4: fresh three-persona review (2026-11-16)\n\nThree reviewers who had not seen the PR read it: an OAuth working-group security reviewer, a token-endpoint implementer, and an OpenID Federation expert. Each checked citations against cached copies of the dependencies. They found no blockers, six major issues and twelve minor ones. All are fixed below, with one commit per finding (18 commits).\n\n**Major**\n1. **Processing order.** Step 1 applies the published policy to every request, except one that authenticates against a registration the server holds. When the policy has `client_trust_methods`, the server MUST authenticate the client before step 2, and before then MUST NOT perform any lookup except obtaining the client's keys.\n2. **Fetches before authentication.** The server MUST limit the `authority_hints` it follows, SHOULD cache Negative and Indeterminate results per `client_id`, and SHOULD rate-limit first contact (Federation \u00a718.1). It MAY use a `trust_chain` header on the client assertion (Federation \u00a74.3, \u00a710.2).\n3. **`https` client IDs.** A request whose `client_id` is an `https` URL MUST get the client policy, even when a registration exists for it. This closes redemption of an ID-JAG by a party that registered the same URL. An Explicit Registration that kept the Entity Identifier is covered, and a public client does not authenticate against its registration (RFC 6749 \u00a72.3).\n4. **Client authentication rules.**\n   - They now cite Connect \u00a712.1.1.2 and \u00a712.1.1.2.1 (the PAR-endpoint rules), and say how they are narrower than Connect \u00a712.1.4 and RFC 7523 \u00a73.\n   - `aud` may be a string or a one-element array.\n   - The mTLS certificate is the first in `x5c`, with no chain validation.\n5. **Declared metadata.** The authentication method used MUST be among those the client metadata declares, and the grant type MUST be in `grant_types` when that is present. RFC 7591 is added as a normative reference.\n6. **Error order.** `invalid_client` comes first. An authenticated but unrecognized client (including an Indeterminate Trust Mark) gets the grant profile's code for an unauthorized client, `access_denied` for ID-JAG \u00a74.4.3, and otherwise `unauthorized_client`. \u00a75.2 gives client errors precedence.\n\n**Minor**\n- every requirement holds on one trust chain;\n- `oauth_client` metadata is used first, `openid_relying_party` only when it is absent, and the two are never combined (Connect \u00a712);\n- requirement 3's key-set processing and the `jwks_uri` caveat are kept;\n- \u00a77.8: a compromised Superior can substitute a client's keys;\n- \u00a76.1: step 5f removes ID-JAG \u00a74.4.1's proof-of-possession path;\n- \u00a74.1: how a registered client learns its policy is out of scope;\n- the \u00a712.1.5 reading is corrected;\n- `client_id` is compared to the Entity Configuration's `sub` by simple string comparison;\n- key-set caching is bounded by the chain, with one refetch for an unknown `kid`;\n- the registries are renamed \"Identity Assertion Trust Method Categories\" and \"Identity Assertion Trust Methods\", with DAI's two references updated;\n- the walkthrough shows the `aud` check and a rejection for a request without client authentication;\n- nits.\n\n**Pushed back:**\n- *Requiring `client_trust_methods` in `crit`:* `crit` exists for future extension members, and this is a base member.\n- *A SHOULD on sender-constraint under JWT-bearer:* that exposure exists without client recognition, which narrows it.\n\n**Deferred:** `client_registration_types`; Indeterminate shown as `invalid_client`.\n\n**Dropped from the assessment:** a pre-check of required Trust Marks before chain discovery. Rejecting before authentication would conflict with the error order.\n\n**Requirement count:** 130 \u2192 141 keyword sentences against the round-3 tree. Both removals were intentional rewrites. DAI's requirement sentences are unchanged; only its registry name changed. Both drafts build.\n\n**Follow-up commit (`d66058f`):** step 1 as first rewritten would have stopped a server from choosing a Trust Policy by anything but client registration, which ruled out per-resource policies. Step 1 now constrains only selection by client: never from an assertion claim, and by client only after the client authenticates against a registration. Requirement count is unchanged at 141.\n\n## Round 5: targeted review of `9f4e357..d66058f` (2026-11-16)\n\nTwo P2 inconsistencies, both fixed:\n1. **Error precedence (`f66d1e9`).** ID-JAG \u00a74.4.3 reserves `access_denied` for a valid ID-JAG, but the round-4 order put recognition failures ahead of assertion failures. The order is now:\n   1. `invalid_client`;\n   2. assertion and issuer-method errors;\n   3. the not-recognized code, only when the assertion is valid and every other category passes.\n\n   \u00a75.2's precedence sentence now matches. The walkthrough adds the case of a missing Trust Mark plus an expired ID-JAG, which gives `invalid_grant`.\n2. **Omitted metadata (`9890ac6`).** \"When present\" conflicted with the error list. The client metadata MUST now declare the authentication method and list the grant type. RFC 7591's defaults (`client_secret_basic`, `authorization_code`) would reject the request anyway.\n\nRequirement count: 141 \u2192 140, because two conditional MUSTs merged into one sentence.\n\n## Accounting and validation\n\n- **Requirements:** `normative_diff.py` against `main` counts 125 \u2192 130 keyword sentences, all part of this feature.\n- **Builds:** every commit builds.\n- **`spec_check`:** no unresolved citations (the existing `?RFC9111` is unchanged), no uncited references, no duplicate anchors, and no artwork over 72 columns.\n- **`git diff --check` and `make lint`:** clean.\n- **xml2rfc:** reports only the stale document date (9 October 2026), which should be updated at submission.\n\n\n",
+      "createdAt": "2026-11-04T22:55:42Z",
+      "updatedAt": "2026-11-16T22:17:27Z",
+      "baseRepository": "mcguinness/draft-mcguinness-oauth-id-assertion-framework",
+      "baseRefName": "main",
+      "baseRefOid": "d07125fa888364e0c3b26123df2770c6357fbf75",
+      "headRepository": "mcguinness/draft-mcguinness-oauth-id-assertion-framework",
+      "headRefName": "client-authorization",
+      "headRefOid": "1df6fd4e66e256aafca261d7f03beb1b622c31a1",
+      "closedAt": "2026-11-16T22:17:27Z",
+      "mergedAt": "2026-11-16T22:17:27Z",
+      "mergedBy": "mcguinness",
+      "mergeCommit": {
+        "oid": "9e3ca11fc9dccd1f5a199645dac1a4e644cf7af7"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 30,
+      "id": "PR_kwDOSla3bs8AAAABPmcH-g",
+      "title": "Shorten the -01 Document History; move details to closed issues",
+      "url": "https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/pull/30",
+      "state": "MERGED",
+      "author": "mcguinness",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Shortens the -01 Document History in both drafts to one line per change. The details move to ten closed issues, #20 through #29, in the new `-01` milestone. Each issue lists the changes per document, marks the breaking ones, and links the PRs that made them.\n\n| Issue | Change | Framework | DAI |\n|---|---|---|---|\n| #20 | OpenID Federation 1.1 alignment, federation-bound key sources | \u2713 | \u2713 (sketch) |\n| #21 | Issuer-policy integrity moves to DAI; `signed_policy` leaves the Trust Policy | \u2713 | \u2713 |\n| #22 | Monitor mode and published waivers removed; within-category rules | \u2713 | \u2713 |\n| #23 | TXT record as explicit opt-in, dedicated policy host, no redirects | | \u2713 |\n| #24 | `key=` pin and rollover | | \u2713 |\n| #25 | Cache bounds and revocation window | | \u2713 |\n| #26 | `tenant` for issuers shared by several tenants | \u2713 | \u2713 |\n| #27 | Domain names, outbound fetches, key binding, policy limits | \u2713 | \u2713 |\n| #28 | Token request processing: client authentication first, `typ`, `invalid_grant` | \u2713 | |\n| #29 | Motivation, related mechanisms, reader aids | \u2713 | \u2713 |\n\nThe -01 entry goes from 373 words in 9 bullets to 139 words in 8 in the framework, and from 385 words in 11 bullets to 151 words in 10 in DAI. Each bullet is now two or three lines. \"Editorial changes for readability\" (#18) has no issue.\n\n## Decisions made for you\n\n- **Grouped by change, not by PR.** PR #15 alone touched a dozen topics, so issues follow topics. A change that spans both drafts has one issue, cited from both histories.\n- **Breaking changes stay visible in the draft.** Each bullet leads with the change that breaks a -00 implementation, such as the `trust_mark_type` rename or the opt-in record. Bullets with breaking changes come first. The issues mark them **Breaking**.\n- **One link to the tracker.** The history intro points to the issue tracker once, and bullets end with `(#NN)`. I didn't add a `venue:` block, which would add an \"About This Document\" note to the front of each draft.\n- **A `-01` milestone** groups the ten issues.\n\n## Checks\n\n- `noop_check`: the ordered requirement-keyword sequence is identical (framework 145 \u2192 145, DAI 161 \u2192 161). No fenced block, anchor, or reference changed.\n- Both drafts build with xml2rfc. The only new idnits note is the existing stale date.\n\n## Not in this PR\n\n- **Date:** both drafts still say 2026-10-09. Submissions reopened on 15 November.\n- **PR #19** adds a bullet under the -01 heading. It will conflict with this PR, and the bullet belongs under a new -02 heading.\n",
+      "createdAt": "2026-11-16T17:37:07Z",
+      "updatedAt": "2026-11-16T18:00:37Z",
+      "baseRepository": "mcguinness/draft-mcguinness-oauth-id-assertion-framework",
+      "baseRefName": "main",
+      "baseRefOid": "5fa1f7e033b40f0f05b88fe3f8803552b5f6f1a7",
+      "headRepository": "mcguinness/draft-mcguinness-oauth-id-assertion-framework",
+      "headRefName": "consolidate-history",
+      "headRefOid": "0e747eca4dc7281a24c91d309fb2877e51dbb37f",
+      "closedAt": "2026-11-16T18:00:37Z",
+      "mergedAt": "2026-11-16T18:00:37Z",
+      "mergedBy": "mcguinness",
+      "mergeCommit": {
+        "oid": "0de209be0b9cea21ce37df3ccfa00ebcc0d6cd1c"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 31,
+      "id": "PR_kwDOSla3bs8AAAABPmzzCA",
+      "title": "Align Well-Known Binding citations with its -02",
+      "url": "https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/pull/31",
+      "state": "MERGED",
+      "author": "mcguinness",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Both drafts cite [OpenID Federation Well-Known Binding](https://dickhardt.github.io/well-known-binding/main.html) as `[OIDF-WKB]`, dated 2026-09-29. That URL always serves the latest version, now -02 (published 11 November 2026). The repository has no tags or versioned copies, so the old text isn't available to cite. -02's history says it:\n\n- \"Verification reads no Entity Type metadata, Resolved Metadata, or metadata_policy \u2026 Removed the Metadata Precedence section and the permission to omit REQUIRED members from Entity Type metadata.\"\n- \"Step 6 fetches the covered document's jwks_uri after step 5, with no dependence on Resolved Metadata.\"\n\nSix framework passages described the -01 behavior. This PR updates them to -02.\n\n| Commit | Passage | Change |\n|---|---|---|\n| 1 | `openid_federation`, metadata policy paragraph | `essential` now cites OpenID Federation 1.1 \u00a76.1.3.1.7 (\"the metadata parameter MUST be present\"), not Well-Known Binding. Adds that Well-Known Binding reads no Entity Type metadata (WKB \u00a75). |\n| 2 | Requirement 2 | Removes Well-Known Binding's permission to omit Entity Type metadata members. |\n| 3 | Requirement 3 | Well-Known Binding checks the JWK Set at a covered document's `jwks_uri` (WKB \u00a76 step 6), not a metadata `jwks_uri`. |\n| 4 | Well-Known Binding Variant appendix | Removes \"permits `issuer` in both places\" (an -01 rule) and marks the example's Entity Type metadata as abbreviated. The `essential` paragraph now says the binding covers a metadata `jwks_uri` only if it names the same URL. |\n| 5 | References, both drafts | `OIDF-WKB` date 2026-11-11. |\n| 6 | Design rationale, Well-Known Binding paragraph | \"without moving its protocol metadata into Entity Statements\" now reads: keeps its well-known metadata, binds the referenced JWK Set by digest, and still supplies the Entity Type metadata OpenID Federation requires. (Review P3) |\n| 7 | Same paragraph, `trust_mark_required` | -02 \u00a78.4 says a refusing Entity SHOULD return `trust_mark_required`, and \u00a711.2 registers it for token errors. The framework no longer calls it \"proposed\"; it says the RAS returns the \u00a75.2 error instead, which keeps trust-evaluation detail from public clients. |\n\nDAI cites Well-Known Binding only in its federation-bound policy sketch. All three of those claims still hold in -02 (\u00a76.1 mapping, host scoping, \u00a79.4 revocation skips the overlap), so only DAI's reference date changes.\n\n## Decisions made for you\n\n- **Same-URL rule.** The framework still prefers a metadata key source over an extension's (requirement 3). Under -02, a passing digest check validates a metadata `jwks_uri` only when it names the URL whose key set the extension binds. A failing check is then a failure of that key source, as before.\n- **No extension waiver of metadata validation.** Requirement 2 used to qualify \"metadata validation required by the applicable federation specifications\" with \"as qualified by any extension in use\". The only extension that relaxed validation was Well-Known Binding -01, so the qualifier is gone.\n- **History unchanged.** The -01 entry (#20) already covers this. On merge, I'll add a line to issue #20 citing this PR.\n\n## Checks\n\n- `noop_check`: the requirement-keyword sequence is identical in both drafts (framework 145, DAI 161). No anchor, fenced block, or reference set changed.\n- Both drafts build. The only idnits note is the existing stale date (2026-10-09).\n",
+      "createdAt": "2026-11-16T18:03:04Z",
+      "updatedAt": "2026-11-16T19:10:44Z",
+      "baseRepository": "mcguinness/draft-mcguinness-oauth-id-assertion-framework",
+      "baseRefName": "main",
+      "baseRefOid": "0de209be0b9cea21ce37df3ccfa00ebcc0d6cd1c",
+      "headRepository": "mcguinness/draft-mcguinness-oauth-id-assertion-framework",
+      "headRefName": "wkb-02",
+      "headRefOid": "f3a59275edb32339395638462965f93c46f0bd7b",
+      "closedAt": "2026-11-16T19:10:44Z",
+      "mergedAt": "2026-11-16T19:10:44Z",
+      "mergedBy": "mcguinness",
+      "mergeCommit": {
+        "oid": "d07125fa888364e0c3b26123df2770c6357fbf75"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 33,
+      "id": "PR_kwDOSla3bs8AAAABPqjjvA",
+      "title": "Set the document date for the -01 submission",
+      "url": "https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/pull/33",
+      "state": "MERGED",
+      "author": "mcguinness",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Sets `date:` to 2026-11-16 in both drafts, replacing 2026-10-09. Both drafts build, and idnits no longer reports a stale date (DOC_DATE_IN_PAST). If submission happens on a later day, bump the date again first.",
+      "createdAt": "2026-11-16T22:19:10Z",
+      "updatedAt": "2026-11-16T23:00:17Z",
+      "baseRepository": "mcguinness/draft-mcguinness-oauth-id-assertion-framework",
+      "baseRefName": "main",
+      "baseRefOid": "9e3ca11fc9dccd1f5a199645dac1a4e644cf7af7",
+      "headRepository": "mcguinness/draft-mcguinness-oauth-id-assertion-framework",
+      "headRefName": "date-01",
+      "headRefOid": "f219fb9e9b6488528a25a0df5c3a97b16b726c65",
+      "closedAt": "2026-11-16T23:00:17Z",
+      "mergedAt": "2026-11-16T23:00:17Z",
+      "mergedBy": "mcguinness",
+      "mergeCommit": {
+        "oid": "c668b48d7aca27c305bf453118a4de764c0b42ab"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 35,
+      "id": "PR_kwDOSla3bs8AAAABPrBiyA",
+      "title": "Pre-publication review fixes for -01",
+      "url": "https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/pull/35",
+      "state": "MERGED",
+      "author": "mcguinness",
+      "authorAssociation": "OWNER",
+      "assignees": [],
+      "labels": [],
+      "body": "Applies the -01 pre-publication review: P1 items 1\u20137 and P2 items 8\u201316 from `REVIEW-prepub-01.md` in the repo root, which is untracked. Four reviewers read both drafts cold: a security reviewer, a two-role implementer, a document reviewer, and a citation checker. I checked every finding against the draft or the dependency text before including it. There is one commit per finding, 18 in all. Closes #34.\n\n## P1\n\n1. **Subject resolution (framework \u00a75.2 step 5c, \u00a77).** When a namespace method is listed, the subject is resolved and linked only from the evaluated Subject Identifier or from `iss`/`sub` (with `tenant` for a multi-tenant issuer). The only exception is when local configuration trusts the issuer for another claim. This closes namespace bypass through `aud_sub` or `sub_id`; ID-JAG -06 \u00a73.1 says the server \"MAY use these claims for subject resolution\".\n2. **DAI record syntax (DAI \u00a74.3).** The ABNF is now normative and the prose agrees with it. The version token is followed by optional whitespace and then end of record or `;`. A directive name outside the `name` production makes the record malformed.\n3. **JWT-bearer key source (framework \u00a76.2, \u00a77.6).** RFC 7523 \u00a75 leaves keys out of scope. Without a key-constraining Trust Method, the server must use an asymmetric key from the issuer's RFC 8414 `jwks_uri`, or from local configuration. It must not use `jwk`, `jku`, or `x5u` from the JOSE header (RFC 8725 \u00a73.10).\n4. **Federation evidence (framework \u00a74.3.4.1, \u00a74.3.6.1).**\n   - Chains and key sets are not used more than 24 hours after they were obtained.\n   - A Trust Mark without `exp` is re-validated at its Status endpoint (Federation \u00a78.4) when one exists.\n   - A supplied `trust_chain` with a statement older than 24 hours is resolved again instead of used.\n5. **Signed policy replay (DAI \u00a73.1, \u00a77).**\n   - Consumers reject a `signed_policy` with `exp` more than 24 hours after `iat`.\n   - Consumers keep the highest `iat` per Subject Authority until that policy's `exp`.\n   - The revocation window now includes the replay term.\n   - The publisher SHOULD (\"a few days\") is replaced by the consumer cap.\n6. **Tenant matching (DAI \u00a76 step 4b, table note, \u00a79).** An entry without `tenant` never matches an assertion that carries `tenant`, under any grant profile. The assertion's `typ` can no longer loosen matching.\n7. **ID-JAG \u00a76.1 (framework \u00a76.1).**\n   - It is now cited as it reads: an unconditional MUST for multi-tenant issuers.\n   - The framework's restated MUST is removed.\n   - A DAI `tenant` match does not establish ID-JAG \u00a74.4.1's trust in `iss` and `tenant` for the recipient tenant.\n   - The history bullet for #26 now says the framework relies on ID-JAG.\n\n## P2\n\n8. **Client recognition errors.** Client recognition is evaluated right after client authentication, before step 2, and fails with `unauthorized_client` whatever the state of the assertion. The order is `invalid_client`, then `unauthorized_client`, then assertion and issuer errors. This reverses round 4's `access_denied`, satisfies both round-5 reviewers, and removes an oracle on assertion validity. The walkthrough is updated.\n9. **HTTPS-only lookup.** A recognized record without the default `uri=` is now Indeterminate rather than Negative, so a published decision is not overridden.\n10. **`openid_federation`.** Every requirement holds on one chain.\n11. **Opt-in comparison.** The opt-in `uri=` is compared octet for octet with the default URL built from the lowercase A-label.\n12. **Introduction and scope.** \u00a71 says where the framework narrows ID-JAG and RFC 7523. \u00a71.5 and \u00a71.6 include client recognition and the two federation methods.\n13. **Rate limit.** A global rate limit on trust chain resolution before client authentication is now a MUST.\n14. **DNS definitions.** \"DNSSEC-validated\" is defined, and the spoofed-answer bound is scoped to the consumer's cache.\n15. **Smaller gaps.**\n    - DAI's non-ASCII rule applies to recognized records only.\n    - `subject_identifier_formats` and `trust_marks` must be non-empty.\n    - `valid_from` must not be later than `valid_until`.\n    - Reaching the fetch cap is Indeterminate.\n    - An expired signed policy is never used, including a cached copy or under stale-if-error.\n16. **References.**\n    - UTS #46 is pinned to Revision 36 (2026-08-31).\n    - RFC 9111 (framework) and RFC 2308 (DAI) are now normative.\n    - Corrected citations: RFC 7523 \u00a73; Connect \u00a712.1.4 (\"should accept\"); RFC 9700 \u00a74.4.2.\n    - DAI's wildcard example is corrected.\n    - DAI's history points to the shared issue tracker.\n\nA follow-up commit (`8db503b`) aligns one sentence of the version-token prose with the ABNF.\n\n## Decisions made for you\n\n- **24 hours** for both the federation evidence limit and the signed-policy validity cap. This matches DAI's absolute cache ceiling, and publishers re-sign daily.\n- **`unauthorized_client`** for an authenticated client that is not recognized, replacing `access_denied`.\n- **The HTTPS-only change also covers inline-only records.** A recognized record with `issuer=` but no default `uri=` is Indeterminate under HTTPS-only lookup. The outcome changes only when the policy lists a second namespace method.\n\n## Not done\n\n- **Item 17, replacing \"\u00a7\" with \"Section N of\":** deferred. About 32 of the 120 uses are cross-document references by section title, whose extent in running text isn't marked, so a script can't convert them safely. Converting only the numbered ones would mix two styles. idnits reports this only as a COMMENT; the RFC Editor normalizes it.\n- **Pushed back:**\n  - the `crit` trap for `signed_policy`: deliberate fail-closed behavior;\n  - a stray record: only the zone owner can create it;\n  - `-latest` docnames: the template submits the versioned -01.\n- **Deferred to -02 with working-group input:** the step 5e question for federation-only servers (`email` is OPTIONAL in ID-JAG -06), and the structural critique: proportion, the HTTPS-only mode, splitting out client recognition, and the \"Issuer Trust Policy\" name.\n\n## Checks\n\n- Requirement sentences: framework 140 \u2192 145; DAI 134 \u2192 133. `normative_diff` shows only the intended removals: rewrites, the restated `tenant` MUST, and the publisher `exp` SHOULD.\n- Both drafts build, lint is clean, every citation resolves, and no artwork line exceeds 72 characters.\n- The only idnits warning is the stale date, which PR #33 fixes; merge #33 first or after, since they don't conflict.\n",
+      "createdAt": "2026-11-16T22:55:47Z",
+      "updatedAt": "2026-11-16T23:00:34Z",
+      "baseRepository": "mcguinness/draft-mcguinness-oauth-id-assertion-framework",
+      "baseRefName": "main",
+      "baseRefOid": "9e3ca11fc9dccd1f5a199645dac1a4e644cf7af7",
+      "headRepository": "mcguinness/draft-mcguinness-oauth-id-assertion-framework",
+      "headRefName": "prepub-fixes-01",
+      "headRefOid": "8db503b73d3b15dcd8e69e2c62e645ac1fcefa4a",
+      "closedAt": "2026-11-16T23:00:33Z",
+      "mergedAt": "2026-11-16T23:00:33Z",
+      "mergedBy": "mcguinness",
+      "mergeCommit": {
+        "oid": "8bc393aed1bf9b370516cf9c5d114c8149fbdf6c"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 36,
+      "id": "PR_kwDOSla3bs8AAAABPs7Agg",
+      "title": "Editorial pass: cut, compress, and delegate (about 11% shorter, no requirement changes)",
+      "url": "https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/pull/36",
       "state": "OPEN",
       "author": "mcguinness",
       "authorAssociation": "OWNER",
       "assignees": [],
       "labels": [],
-      "body": "**Draft: target -02.** Submit -01 from `main` first, then land this.\n\nThis PR adds `client_recognition`, which applies the framework's Authenticity question to the OAuth client that presents an identity assertion: is that client recognized by an authority the Resource Authorization Server accepts? Recognition admits the client to the exchange. It does not authorize the client to act for any particular user; the grant profile's client binding does that (ID-JAG \u00a74.4.1).\n\nThe category ships with one deliberately narrow method, `openid_federation_client`. It covers a client whose `client_id` is its OpenID Federation Entity Identifier and that authenticates with a key from its own federation metadata.\n\n## Model and policy\n\n- **No third model category.** \u00a73.2 says Authenticity can be evaluated for more than one principal: the signer and, in OAuth, the presenting client. `client_recognition` exists only at the OAuth layer (\u00a71.2, \u00a74.3.2). The Delegate is still only the Assertion Issuer.\n- **Separate policy member.** A new OPTIONAL Trust Policy member, `client_trust_methods`, holds client methods. Each object counts only toward the categories its member allows, and a method in the wrong member is malformed. A Resource Authorization Server can list the member in `crit`.\n- **Lookup states and method checklist** now cover evidence about a client (\u00a73.4, \u00a74.3.3).\n\n## Processing (\u00a75.2, \u00a75.3, \u00a76.2)\n\n- **Step 1.** A server that holds more than one Trust Policy selects one from request properties it has authenticated, such as the authenticated client, and never from an assertion claim. \u00a73.2.1.1 says the same, and \u00a74.1 says which policy is published.\n- **Steps 5, 5a and 5b** cover the authenticated client and partition both policy members.\n- **Step 5e** now reads \"lists no `subject_namespace_authorization` method\". This keeps the federation-only rule in force when client methods are listed.\n- **New step 5f.** The category is evaluated against the client that the request's client authentication (RFC 6749 \u00a72.3) identifies. A request without accepted client authentication gets `invalid_client`.\n- **Error rule.** It now defers to step 5f and to the Trust Method that failed.\n- **\u00a75.3.** The fetch bound is per token request, and the client's Entity Configuration, chain and key set are listed as fetch targets.\n- **\u00a76.2.** The JWT-bearer grant requires client authentication under such a policy.\n\n## `openid_federation_client` (\u00a74.3.6)\n\n- **Identification.** The `client_id` is the Entity Identifier, as in Automatic Registration (Connect \u00a712.1, \u00a712.4). The method applies that identification to a first request at the token endpoint. Connect \u00a712.1.5 anticipates such uses but leaves them out of its scope, and the method places none of \u00a712.1's obligations on the client.\n- **What carries over from `openid_federation`.** Trust chain validation, the lookup states, caching, and requirements 1 and 4.\n- **Entity type.** The client must declare `oauth_client` or `openid_relying_party`.\n- **Key rule.**\n  - Client authentication MUST verify under a key in the client's federation-designated key set.\n  - Two methods are allowed, matching Automatic Registration (Connect \u00a712.1.1):\n    - JWT client authentication whose `aud` is only the server's issuer identifier;\n    - self-signed-certificate mutual TLS whose certificate is the `x5c` value of such a key.\n  - Verification under any other key, such as one from a client metadata document, does not count.\n- **Error codes by condition.**\n  - `invalid_client`: the client is not identified, its chain or key set fails, the entity type is wrong, or the key isn't in the federation set.\n  - `unauthorized_client`: the client authenticates but lacks a required Trust Mark.\n- **Coexistence with registered clients.**\n  - A request that authenticates as a client the server registered gets a policy without client methods.\n  - Every other request gets the client policy, including one that names a registered `client_id` without authenticating as that client.\n  - Registered identifiers stay distinct from Entity Identifiers.\n- **Out of scope.** Explicit Registration clients are not covered. The Client ID Metadata Document is noted as complementary: it supplies metadata and keys but not trust.\n\n## Security, registries, appendices\n\n- **\u00a77.8:**\n  - the client comes from client authentication;\n  - recognition is admission, not authorization;\n  - under the generic JWT-bearer binding, any recognized client can present an assertion it obtained;\n  - the federation-bound key rule prevents spoofing a federation Entity;\n  - per-client policy selection happens only after authentication;\n  - step 5f tightens what the grant profile allows.\n- **Registries:** the category `client_recognition`, the method `openid_federation_client`, and the member `client_trust_methods`.\n- **Appendix B** names draft-shankarlingam-oauth-agent-dns-link as a candidate method and lists what it would need.\n- **New \"Client Recognition Walkthrough\" appendix:**\n  - the Trust Policy and the client's Entity Configuration;\n  - a complete first-contact token request and client assertion;\n  - six processing steps;\n  - seven rejection cases with their error codes;\n  - cached trust and key rotation;\n  - coexistence with registered clients.\n\n## Review history\n\n1. **First implementer review** of the original version: one blocker (step 5e) and four major issues, all fixed.\n2. **Design review** (pasted): narrow the scope.\n   - The category was renamed from `client_authorization`.\n   - The third model category was removed.\n   - The bootstrap was made explicit, with a full walkthrough.\n   - Coexistence was added.\n   - The PR was marked draft for -02.\n3. **Second implementer review** of the reworked version: four major issues and twelve minor ones.\n   - Selecting a policy by `client_id` before authentication is fixed by selecting by the authenticated client.\n   - The \u00a77.8 overclaim is fixed.\n   - Error codes no longer depend on detection order.\n   - The single-published-policy question is answered: \u00a74.1 says which policy is published.\n   - The minors are fixed: walkthrough lookups, the 5xx Indeterminate case, `aud`, `exp`, `x5c` matching, `unauthorized_client`, the fetch bound, the \u00a712.1.5 citation, lookup states, the checklist, and \u00a77.8 restating that recognition is not authorization.\n\nThe round-3 fixes were checked with `normative_diff` against the reviewed tree. They were not cold-read again.\n\n## Accounting and validation\n\n- **Requirements:** `normative_diff.py` against `main` counts 125 \u2192 130 keyword sentences, all part of this feature.\n- **Builds:** every commit builds.\n- **`spec_check`:** no unresolved citations (the existing `?RFC9111` is unchanged), no uncited references, no duplicate anchors, and no artwork over 72 columns.\n- **`git diff --check` and `make lint`:** clean.\n- **xml2rfc:** reports only the stale document date (9 October 2026), which should be updated at submission.\n",
-      "createdAt": "2026-11-04T22:55:42Z",
-      "updatedAt": "2026-11-05T17:39:59Z",
+      "body": "An editorial pass over both drafts: cut, trim, compress, delegate, and turn prose into lists. **No requirement changes**, except two corrections to text from #35, flagged below.\n\n## Results\n\n| | Framework | DAI |\n|---|---|---|\n| Body words (rendered) | 13,427 \u2192 11,980 (\u221211%) | 10,404 \u2192 9,216 (\u221211%) |\n| Whole source (incl. appendices) | 20,556 \u2192 18,405 (\u221210.5%) | 16,702 \u2192 14,897 (\u221210.8%) |\n| Appendices | 3,471 \u2192 ~2,880 (\u221217%) | 3,116 \u2192 ~2,620 (\u221216%) |\n| Pages | 80 \u2192 75 | 65 \u2192 62 |\n| Words per BCP 14 keyword | 92 \u2192 82 | 70 \u2192 62 |\n\n**Why the reduction stops at about 11%.** Measured sentence by sentence, the drafts already sat inside the range of published OAuth RFCs: average sentence length 19, against 17 to 23 for RFC 9101, 7591, 9449, and 8705. Their bulk is mostly a matter of how much material they contain. This pass removes repetition and explanation; it stops where the next cut would remove content.\n\n## How\n\nNine editors worked in parallel, each owning one region:\n\n1. framework introduction, terminology, and Authority Delegation Model;\n2. framework Trust Policy core;\n3. framework trust methods;\n4. framework processing and bindings;\n5. framework considerations;\n6. DAI introduction to publication;\n7. DAI lookup to trust methods;\n8. DAI considerations;\n9. the appendices of both drafts.\n\nThey all worked under one frozen rule set:\n- **Cut:** restatements (keeping each fact where it is checked or defined), lead-ins, padding, and explanation inside member definitions.\n- **Compress:** enumerations into lists.\n- **Delegate:** only where the dependency's text could be quoted.\n- **Keep:** every requirement, condition, error code, number, anchor, step number, table, and fenced block.\n\nEvery edit had to match its text exactly once, inside its owner's region, without overlapping another edit. All 270 edits applied.\n\n## Verification\n\n- **Keyword order:** the ordered BCP 14 keyword sequence is identical, with line breaks normalized: framework 170 \u2192 170, DAI 164 \u2192 164. Fenced blocks and anchors are unchanged, and every citation resolves.\n- **Requirement check:** a cold reader compared all 334 recorded keyword sentences against the original, along with the conditions that neighboring sentences carry.\n  - Framework: 135 SAME, 35 RESTRUCTURED-OK.\n  - DAI: 126 SAME, 37 RESTRUCTURED-OK, 1 CHANGED.\n  - Nothing MISSING.\n  - The CHANGED item was a dropped \"only\" in DAI's `valid_from` clock-skew tolerance, now restored (`732a728`).\n  - No paragraph lost its only statement of a reason or threat. One cut reason, why query components are NOT RECOMMENDED, is also restored.\n- **Seam check:** a cold reader looked for errors at the seams between editors, and checked every \"cut because stated elsewhere\" claim. It found two medium and six low issues, all fixed in `e7e8ea1`:\n  - the scope and account-linking role of local policy, whose stated home had itself been cut;\n  - DAI's pointer for the no-fallthrough rule;\n  - the `crit` retrofit sentence;\n  - a dangling \"list in `crit`\";\n  - a doubled condition;\n  - DAI citing the framework, rather than ID-JAG \u00a76.1, for the `tenant` rule;\n  - a pronoun in the agent walkthrough;\n  - the path-bearing-issuer FAQ pointer.\n- **Unreviewed:** the fix commits after the two reads were checked by keyword sequence only, not by another full read.\n- **Builds:** both drafts build, lint is clean, and no rendered line exceeds 72 characters.\n\n## Two corrections to #35 (not editorial)\n\nThe editors flagged these leftovers from #35:\n\n- `9cb8ff0`: DAI's failure table still listed \"no record whose `uri=` is the default URL\" under **Negative** for HTTPS-only lookup, but #35 made that case **Indeterminate** in the procedure. The row now matches.\n- `cdfefcb`: DAI's Policy Hosts text still justified replay by \"the `iat` check needs a cached copy\". #35 made consumers keep the highest `iat` even after the cached copy is gone, so the text now says a host can replay \"to a consumer that has not accepted a newer one\", bounded by the 24-hour `exp` cap.\n\nThe -01 history's \"Editorial changes for readability\" covers this pass, so it adds no new history entry.\n\n## Your call (not done here)\n\nThese cut much more but change scope or structure:\n\n1. **Drop DAI's HTTPS-only lookup mode** (about 1,200 words across \u00a74.2, \u00a78.2, \u00a78.3, \u00a79.3, A.4, and the tables). It still needs the TXT record, and adds only a certificate requirement.\n2. **Move client recognition into its own draft** (about 1,800 words in the framework).\n3. **Delete the framework FAQ.** Its answers are now one line each with a pointer.\n4. **Move Future Extensions to the issue tracker** (about 900 words in the framework, about 1,000 in DAI).\n5. **Rename \"Identity Assertion Issuer Trust Policy\" to \"Identity Assertion Trust Policy\"** to match `identity_assertion_trust_policy_uri`, since the policy now covers clients too.\n6. **Replace \"\u00a7\" with \"Section N of\"** (RFC 7997). The title references need hand edits.\n",
+      "createdAt": "2026-11-17T01:37:47Z",
+      "updatedAt": "2026-11-17T01:37:47Z",
       "baseRepository": "mcguinness/draft-mcguinness-oauth-id-assertion-framework",
       "baseRefName": "main",
-      "baseRefOid": "5fa1f7e033b40f0f05b88fe3f8803552b5f6f1a7",
+      "baseRefOid": "8bc393aed1bf9b370516cf9c5d114c8149fbdf6c",
       "headRepository": "mcguinness/draft-mcguinness-oauth-id-assertion-framework",
-      "headRefName": "client-authorization",
-      "headRefOid": "7ab8a9ac57d14be59690decf23cba5b6821820e4",
+      "headRefName": "editorial-pass",
+      "headRefOid": "b659a57032669e14c279d95701718ac351361e4a",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,

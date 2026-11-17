@@ -766,7 +766,6 @@ renewing a held policy unless:
 The consumer stores those values with the cached policy. If either
 condition does not hold, it fetches without a conditional request.
 
-
 # Lookup Procedure {#dii-lookup}
 
 A Resource Authorization Server retrieves the Issuer Authorization
@@ -1005,7 +1004,6 @@ Step 4b, for a grant profile that carries `tenant` (such as ID-JAG):
 | Yes | No | No |
 | Yes | Yes | Only if the values are equal |
 
-
 ## Observing Before Enforcing {#observe-before-enforce}
 
 This document defines no mode in which a published policy is
@@ -1172,7 +1170,6 @@ Authorization Policy authorizing the Assertion Issuer.
 
 The `lookup` member is OPTIONAL. If present, its value MUST be
 `https_only`.
-
 
 This variant takes no issuers or policy location from DNS.
 
@@ -1731,7 +1728,6 @@ _NODE NAME:
 Reference:
 : This document, {{dii-dns-record}}
 
-
 ## Trust Method Registrations
 
 This document registers the following entry in the Identity
@@ -2048,7 +2044,6 @@ Authority with no control of its DNS cannot participate. The full
 JSON policy remains available to every Subject Authority through the
 `uri=` pointer.
 
-
 # Future Extensions {#future-extensions}
 
 This appendix is non-normative. It sketches deferred features that
@@ -2181,7 +2176,6 @@ specify issuer selection. The use case is deferred because:
 A future specification can profile it with privacy guidance and
 integration with OAuth Authorization Server Metadata {{RFC8414}} and
 OpenID Connect Discovery {{OIDC-DISCOVERY}}.
-
 
 # DNS-Based Domain-Authorized Issuer End-to-End Example
 
@@ -2333,7 +2327,6 @@ Servers that use the HTTPS-only lookup mode:
   "last_updated": "2026-05-29T00:00:00Z"
 }
 ~~~
-
 
 ## Shared Issuer Variant: Multi-Tenant Identity Provider
 

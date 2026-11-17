@@ -688,7 +688,6 @@ outcome of the lookup operation onto exactly one of these states.
   the profile. An Indeterminate state carries no information about
   the Authority Holder's intent.
 
-
 ### Fail-Closed Requirements {#fail-closed-requirements}
 
 A Validator MUST classify every lookup outcome into exactly one
@@ -1429,7 +1428,6 @@ step 3 would fail; the Resource Authorization Server rejects with
 `invalid_grant`. {{example-federation-walkthrough}} extends this
 example with trust-chain validation and Trust Mark satisfaction.
 
-
 ## Subject Authority Determination {#subject-authority-determination}
 
 Determining the Subject Authority has two steps: identify which
@@ -1503,7 +1501,6 @@ Initial extractions:
   The result is compared using case-insensitive ASCII comparison of
   A-labels. Consumers MUST reject an email whose domain is itself a
   public suffix (no registrable domain exists).
-
 
 Subject Authority extraction MUST be exact-match: wildcard, suffix,
 regular-expression, and substring matching against Subject Authority
@@ -2158,7 +2155,6 @@ is Negative, as under a namespace method. Under the combination
 rule, it is rejected wherever the category is listed unless another
 listed client method is satisfied. This document defines no
 mechanism for accepting such clients through local policy instead.
-
 
 ## Per-Assertion Revocation Is Out of Scope {#per-assertion-revocation}
 

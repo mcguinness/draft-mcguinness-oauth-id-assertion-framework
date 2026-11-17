@@ -141,25 +141,21 @@ subject-namespace authorization profile usable by this framework.
 
 # Introduction
 
-OAuth assertion-based authorization grants {{RFC7521}} {{RFC7523}} allow
-identity-bearing assertions issued by one authorization server to be
-presented to another. The Identity Assertion JWT Authorization Grant
-(ID-JAG) {{ID-JAG}} is one such profile, and the cross-domain delivery
-of such assertions is specified in {{I-D.ietf-oauth-identity-chaining}}.
-Those documents define how an assertion is constructed, presented, and
-consumed; they do not define whether the Resource Authorization Server
-should accept the issuer in the first place. The Resource Authorization
-Server needs to decide whether the issuer of an identity assertion is
-acceptable for subject resolution, account linking, or delegated access,
-and base specs leave that decision to local policy.
+OAuth assertion-based authorization grants {{RFC7521}} {{RFC7523}}
+allow identity-bearing assertions issued by one authorization server
+to be presented to another. The Identity Assertion JWT Authorization
+Grant (ID-JAG) {{ID-JAG}} is one such profile, and
+{{I-D.ietf-oauth-identity-chaining}} specifies cross-domain delivery.
+These documents define how an assertion is constructed, presented,
+and consumed. They leave to local policy whether the Resource
+Authorization Server accepts an assertion's issuer for subject
+resolution, account linking, or delegated access.
 
-In many deployments the set of acceptable Assertion Issuers cannot be
-enumerated in advance. It may be large, dynamic, or governed by external
-trust frameworks. A static issuer allowlist also cannot express the
-conditions under which an Assertion Issuer is acceptable: for example,
-whether the Assertion Issuer is a member of a recognized federation, or
-whether the Assertion Issuer has authority for the subject namespace
-being asserted.
+The set of acceptable Assertion Issuers is often large, dynamic, or
+governed by external trust frameworks, so it cannot be enumerated in
+advance. A static allowlist also cannot express the conditions for
+acceptance, such as membership in a recognized federation or
+authority for the asserted subject namespace.
 
 Today a Resource Authorization Server typically answers the namespace
 question through bilateral setup. Each customer:
@@ -170,59 +166,50 @@ question through bilateral setup. Each customer:
 - repeats both steps at every other Resource Authorization Server it
   uses.
 
-That configuration is held separately at each Resource Authorization
-Server, so it goes stale when the customer changes Identity
-Providers. It also does not extend to issuers, such as agent
-platforms, that have no prior relationship with each customer.
+Each copy of that configuration goes stale when the customer changes
+Identity Providers, and none extends to issuers, such as agent
+platforms, that have no prior relationship with the customer.
 
-Where that configuration is missing, a Resource Authorization Server
-that trusts a multi-tenant issuer can accept an assertion about a
-subject from a tenant with no authority over the subject's domain.
-The nOAuth disclosure {{NOAUTH}} showed account takeover by that
-path. In that attack, an application linked accounts by an email
-address that an attacker had set on a user in the attacker's own
-tenant.
+Without that configuration, a Resource Authorization Server that
+trusts a multi-tenant issuer can accept an assertion about a subject
+from a tenant with no authority over the subject's domain. In the
+nOAuth account takeover {{NOAUTH}}, an application linked accounts by
+an email address that an attacker had set on a user in the attacker's
+own tenant.
 
 Namespace authorization lets the domain owner state once which
 issuers and tenants may assert about its subjects, for every
-Resource Authorization Server to check. It complements, and does
-not replace, the defenses on the Resource Authorization Server's
-side: keying accounts on immutable issuer-scoped identifiers, and
-linking accounts by email only under explicit account-linking rules
-({{scope-of-namespace-authorization}}).
+Resource Authorization Server to check. It complements, and does not
+replace, the Resource Authorization Server's own account-linking
+defenses ({{scope-of-namespace-authorization}}).
 
-This is an open-world issuer-trust problem. The Resource
-Authorization Server may receive identity assertions from issuers
-that were not individually configured in advance, but whose
-acceptability can be evaluated from published evidence at request
-time. The purpose of this framework is not to remove policy from the
-Resource Authorization Server, but to give it a standard way to
-express which evidence it requires and how that evidence is
-evaluated.
-
-This document defines an Identity Assertion Issuer Trust Policy
-that a Resource Authorization Server publishes to describe its trust
-criteria. The Resource Authorization Server does not say "these are
-all the Assertion Issuers I trust." It says "these are the
-conditions an Assertion Issuer must satisfy." Conditions are
-evaluated by validating concrete evidence (a federation trust chain
-or a domain-authorized issuer record) when an assertion is
-presented. Despite its name, the Trust Policy is published by the
-Resource Authorization Server, not by an Assertion Issuer. A Subject
+This is an open-world issuer-trust problem: the Resource
+Authorization Server receives assertions from issuers it did not
+configure in advance, whose acceptability it can evaluate from
+published evidence at request time. This document defines an
+Identity Assertion Issuer Trust Policy, in which a Resource
+Authorization Server publishes not the list of Assertion Issuers it
+trusts but the conditions an Assertion Issuer must satisfy. Each
+condition is evaluated by validating concrete evidence (a federation
+trust chain or a domain-authorized issuer record) when an assertion
+is presented. The framework does not take policy away from the
+Resource Authorization Server; it standardizes how the server states
+which evidence it requires and how that evidence is evaluated.
+Despite its name, the Trust Policy is published by the Resource
+Authorization Server, not by an Assertion Issuer. A Subject
 Authority authorizes issuers in a separate document, the Issuer
 Authorization Policy ({{DAI}}).
 
 This document defines the Authority Delegation Model
 ({{delegation-model}}) and uses it to profile OAuth identity
-assertions. It is consumed by {{DAI}}, which defines one
-Subject-Authority publication mechanism. The two documents together
-are described in {{family}}. This document adds a trust-evaluation
-layer to the assertion-bearer grant and chaining mechanics of
-{{ID-JAG}} and {{I-D.ietf-oauth-identity-chaining}}. Where that layer
-narrows a dependency, {{bindings}} says so: it requires client
-authentication under a policy with client methods, fixes the key
-source for the generic JWT-bearer binding, and limits which claims
-resolve the subject.
+assertions. {{DAI}} defines one Subject-Authority publication
+mechanism ({{family}}). This document adds a trust-evaluation layer
+to the assertion-bearer grant and chaining mechanics of {{ID-JAG}}
+and {{I-D.ietf-oauth-identity-chaining}}. Where that layer narrows a
+dependency, {{bindings}} says so: it requires client authentication
+under a policy with client methods, fixes the key source for the
+generic JWT-bearer binding, and limits which claims resolve the
+subject.
 
 ## Minimal Deployment
 
@@ -233,16 +220,16 @@ The smallest deployment has three moving parts:
    requires.
 
 2. A Subject Authority publishes an Issuer Authorization Policy
-   ({{DAI}}) saying which
-   Assertion Issuers it authorizes for its namespace.
+   ({{DAI}}) saying which Assertion Issuers it authorizes for its
+   namespace.
 
 3. At the token endpoint, the Resource Authorization Server validates
    the assertion and requires one successful Trust Method in each
    applicable trust-evaluation category.
 
-For the common case, the Resource Authorization Server lists
-`domain_authorized_issuer`; the Subject Authority publishes a DNS TXT
-record at `_oauth-issuer-policy.{domain}`; and the Resource
+In the common case, the Trust Policy lists
+`domain_authorized_issuer`, the Subject Authority publishes a DNS TXT
+record at `_oauth-issuer-policy.{domain}`, and the Resource
 Authorization Server checks that the assertion's `iss` appears in
 that policy for the asserted subject namespace.
 
@@ -251,91 +238,68 @@ that policy for the asserted subject namespace.
 This document defines three independent trust-evaluation categories
 for OAuth identity assertions ({{categories}}):
 
-- **`issuer_authentication`** is the Authenticity category. It
-  asks: is the JWT `iss` claim a recognized signer?
+- **`issuer_authentication`** (Authenticity): is the JWT `iss` claim
+  a recognized signer?
 
-- **`subject_namespace_authorization`** is the delegation authority
-  category. It asks: has the namespace owner authorized this
-  issuer to assert about subjects in its namespace?
+- **`subject_namespace_authorization`** (delegation authority): has
+  the namespace owner authorized this issuer to assert about subjects
+  in its namespace?
 
-- **`client_recognition`** applies the Authenticity question to the
-  client that presents the assertion. It asks: is that client
-  recognized by an authority the Resource Authorization Server
-  accepts? Recognition admits the client to the exchange. It does not
-  authorize the client to act for any particular user.
+- **`client_recognition`** (Authenticity for the client that presents
+  the assertion): is that client recognized by an authority the
+  Resource Authorization Server accepts?
 
-Each Trust Method belongs to one or more of these categories, and
-evidence is required from each applicable category
+Evidence is required from each applicable category
 ({{combination-rule}}).
 
 ## Motivating Use Cases {#motivation}
 
-Deployments where the gap between issuer authentication and
-namespace authorization has practical consequences include:
+The gap between issuer authentication and namespace authorization
+matters in:
 
-- Workforce SSO into multi-vendor SaaS: per-customer bilateral
-  issuer configuration, with no wire-format check that the
-  configured Assertion Issuer is the one the customer authorizes.
-- AI agent platforms acting across tool boundaries: the tool needs
-  to know the platform is entitled to assert about users in the
-  customer's namespace ({{example-agent-platform}}).
-- B2B integrations carrying end-user identity: today these either
-  accept any authenticated Assertion Issuer or maintain manual
-  allowlists.
-- Shared-issuer multi-tenant Identity Providers: the customer's
-  choice of authorized tenant becomes observable on the wire
-  ({{DAI}} §Single-Issuer Multi-Tenant Identity Providers) rather
-  than implicit.
-
-Today's alternatives are bilateral OAuth configuration, federation
-membership treated incorrectly as a proxy for namespace authority,
-or implicit trust in tenant-domain bindings; this document provides
-a wire-format alternative.
+- Workforce SSO into multi-vendor SaaS, where per-customer issuer
+  configuration has no wire-format check that the customer
+  authorizes the configured Assertion Issuer.
+- AI agent platforms acting across tool boundaries, where the tool
+  needs to know the platform is entitled to assert about users in
+  the customer's namespace ({{example-agent-platform}}).
+- B2B integrations carrying end-user identity, which today accept
+  any authenticated Assertion Issuer or maintain manual allowlists.
+- Shared-issuer multi-tenant Identity Providers, where the
+  customer's choice of authorized tenant becomes observable on the
+  wire rather than implicit
+  ({{DAI}} §Single-Issuer Multi-Tenant Identity Providers).
 
 ## Relationship to Existing Mechanisms
 
-This policy is complementary to OpenID Federation: OpenID Federation
-can authenticate that an issuer belongs to a trusted ecosystem, while
-the Domain-Authorized Issuer Trust Method lets the namespace owner say
-which issuers may assert about subjects in that namespace. That Trust
-Method follows existing DNS authority-publication patterns such as
-CAA, MTA-STS, SPF, DKIM, and the Email Verification Protocol. Background and
-positioning details are in {{relationship-to-oidf}} and
-{{DAI}} §Following Existing DNS Authority Patterns.
+OpenID Federation can authenticate that an issuer belongs to a
+trusted ecosystem, while a `subject_namespace_authorization` method
+such as {{DAI}} lets the namespace owner say which issuers may assert
+about subjects in that namespace ({{relationship-to-oidf}}).
 
-This framework is distinct from issuer *discovery* mechanisms such as
-WebFinger {{RFC7033}} and OpenID Connect Discovery {{OIDC-DISCOVERY}},
-which answer "given a user identifier, which issuer should a client
-use?" before authentication. This framework answers the verifier-side
-question "may this issuer, having already produced an assertion, be
-trusted for this subject's namespace?" Its answer is published per
-namespace, expresses authorization rather than routing, and is
-consumed at verification time. It also differs from scope
-attestation by a federation operator and from per-relationship domain
-verification at setup time. See {{DAI}} §Following Existing DNS
-Authority Patterns.
+This framework is also distinct from issuer *discovery* mechanisms
+such as WebFinger {{RFC7033}} and OpenID Connect Discovery
+{{OIDC-DISCOVERY}}, which answer "given a user identifier, which
+issuer should a client use?" before authentication. This framework
+answers the verifier-side question "may this issuer, having already
+produced an assertion, be trusted for this subject's namespace?"
+{{DAI}} §Following Existing DNS Authority Patterns compares DAI with
+CAA, MTA-STS, SPF, DKIM, the Email Verification Protocol,
+federation-scoped attestation, and setup-time domain verification.
 
 ## Documents in the Family {#family}
 
 This document and {{DAI}} form a two-document set:
 
-- **This document**: the Authority Delegation Model
-  ({{delegation-model}}) and the Identity Assertion Issuer Trust
-  Policy ({{trust-policy-document}}) published by a Resource
-  Authorization Server, plus the Trust Method machinery, the
-  `openid_federation` and `openid_federation_client` Trust Methods,
-  OAuth grant profile bindings, and the Subject Authority
-  Determination concept.
-- **{{DAI}}**: the OAuth Domain-Authorized Issuer Trust Method, defining
-  the `domain_authorized_issuer` Trust Method and the Issuer Authorization
-  Policy wire format it consumes.
-
-This document does not define the Issuer Authorization Policy
-wire format or its integrity protection; those live in {{DAI}}. This
-document defines what an
-Assertion Issuer, and optionally the client that presents its
-assertion, must satisfy to be accepted; DAI defines one class of
-evidence supplying that satisfaction.
+- **This document** defines the Authority Delegation Model
+  ({{delegation-model}}) and the Trust Policy
+  ({{trust-policy-document}}), which states the conditions under
+  which an Assertion Issuer, and optionally the client that presents
+  its assertion, is accepted. {{scope}} lists its full contents.
+- **{{DAI}}** defines the `domain_authorized_issuer` Trust Method, one
+  class of evidence that satisfies those conditions, and the Issuer
+  Authorization Policy wire format and integrity protection that the
+  method consumes.
 
 ## Scope {#scope}
 
@@ -355,25 +319,20 @@ The scope of this document is:
 Other Trust Methods, and the publication mechanisms they use, live
 in dedicated specifications such as {{DAI}}.
 
-The Authority Delegation Model accommodates attribute
-authorities whose authority is not a namespace owner
-(government-issued credentials, professional certifications,
-employment attestations, decentralized credentials). This document
-does not register Trust Methods for attribute attestation;
-implementers needing such evaluation should look to W3C Verifiable
-Credentials, OpenID for Verifiable Credentials, and domain-specific
-frameworks. Where their attestations are conveyed as OAuth identity
-assertions whose subject is namespace-bound, this document's
-issuer-trust evaluation applies regardless of the
-attribute-attestation layer beneath it.
+The Authority Delegation Model also accommodates attribute
+authorities that are not namespace owners (government-issued
+credentials, professional certifications, employment attestations,
+decentralized credentials). This document registers no Trust Methods
+for attribute attestation; W3C Verifiable Credentials, OpenID for
+Verifiable Credentials, and domain-specific frameworks address it.
+Where such attestations are conveyed as OAuth identity assertions
+whose subject is namespace-bound, this document's issuer-trust
+evaluation still applies.
 
 The `email` Subject Identifier extraction registered in this
-document is user-identity-oriented. The Authority Delegation Model
-({{delegation-model}}) supports any Subject Identifier format with
-a registered extraction procedure; identity chaining for workload
-identities, agent identities, or other non-user subjects can be
-supported by registering additional extractions with no changes to
-the trust evaluation model ({{future-extensions}}).
+document is user-identity-oriented. Workload, agent, and other
+non-user subjects can be supported by registering additional
+extractions ({{future-extensions}}).
 
 ## Conventions
 
@@ -390,31 +349,27 @@ throughout this document.
 
 Authority:
 : The right to attest claims that a Validator will rely on, within
-a specified namespace, claim type, scope, or registration. This is
-distinct from "authority" in the access-management sense (the right
-to perform actions or access resources). The IAM access-rights
-sense of "authority" is out of scope.
+a specified namespace, claim type, scope, or registration. The
+access-management sense of "authority" (the right to perform actions
+or access resources) is out of scope.
 
 Authority Holder:
 : An entity holding authority over a namespace, claim type, scope,
 or registration. An Authority Holder may delegate that attestation
-authority to one or more Delegates. Examples: a DNS domain owner
-for an email namespace; a federation operator for federation
-membership.
+authority to one or more Delegates.
 
 Delegate:
 : An entity that has received attestation authority from an
 Authority Holder and may issue Assertions within the delegated
-scope. In this document the Delegate is the Assertion Issuer.
+scope.
 
 Delegation Artifact:
-: A profile-defined representation of a delegation: a signed
+: A profile-defined representation of a delegation, such as a signed
 document, a DNS record, a JSON document at a well-known HTTPS URL,
-an entry in published metadata, or any other profile-defined
-publication form. The Delegation Artifact MUST carry sufficient
-information to identify the Authority Holder, the Delegate, the
-delegated claim type or scope, and (when applicable) the validity
-bounds.
+or an entry in published metadata. The Delegation Artifact MUST
+carry sufficient information to identify the Authority Holder, the
+Delegate, the delegated claim type or scope, and (when applicable)
+the validity bounds.
 
 Assertion:
 : A signed statement made by a Delegate about a Subject within the
@@ -424,20 +379,16 @@ delegated scope. In OAuth contexts this is typically a JWT
 Validator:
 : The component that performs the trust evaluation: retrieves the
 Delegation Artifact, validates the Assertion, applies the
-combination rules, and produces an accept-or-reject result. In
-this document the Validator is the Resource Authorization Server.
-The Validator is conceptually distinct from the party that acts on
-its result, paralleling the Verifier and Relying Party distinction in
-the RATS Architecture ({{RFC9334}}).
+combination rules, and produces an accept-or-reject result. It is
+distinct from the party that acts on its result, as the Verifier is
+from the Relying Party in the RATS Architecture ({{RFC9334}}).
 
 Authority Source:
 : A trust root, registry, publication channel, or configured source
-from which a Validator accepts Delegation Artifacts. In many cases
-the Authority Source and the Authority Holder are the same entity
-(for example, a domain publishing its own DNS record). In others
-they differ (for example, a federation trust anchor as the
-Authority Source for Subordinate Statements issued by
-intermediates).
+from which a Validator accepts Delegation Artifacts. It can be the
+Authority Holder itself (a domain publishing its own DNS record) or
+another entity (a federation trust anchor for Subordinate Statements
+issued by intermediates).
 
 Profile:
 : A specification that applies the Authority Delegation Model to a
@@ -451,19 +402,17 @@ The following terms are specific to OAuth identity assertions.
 
 Resource Authorization Server (RAS):
 : The OAuth authorization server that receives an identity
-assertion as a grant, evaluates the Trust Policy, and issues
-access tokens for a protected resource. Not a new OAuth protocol
-role; OAuth readers may read it as "the authorization server
-receiving the assertion grant." The RAS is the Validator.
+assertion as a grant, evaluates the Trust Policy, and issues access
+tokens for a protected resource. It is not a new OAuth protocol
+role. The RAS is the Validator.
 
 Assertion Issuer:
 : The service issuing an identity-bearing assertion, identified by
 the JWT `iss` claim. The same string is the `issuer` value in
-OAuth Authorization Server Metadata {{RFC8414}}, OpenID Connect
-Discovery {{OIDC-DISCOVERY}}, and the federation entity identifier
-in {{OIDF-FEDERATION}}. The Assertion Issuer is the Delegate.
-It is a separate role from the client that presents the assertion,
-but one party, such as an agent platform, can play both.
+{{RFC8414}} and {{OIDC-DISCOVERY}} metadata and the federation entity
+identifier in {{OIDF-FEDERATION}}. The Assertion Issuer is the
+Delegate. It is a separate role from the client that presents the
+assertion, but one party, such as an agent platform, can play both.
 
 Subject Authority:
 : The Authority Holder for a Subject Identifier namespace. The term
@@ -477,15 +426,14 @@ by a Resource Authorization Server to declare its trust criteria.
 Trust Method:
 : A registered, named evaluation procedure by which a Validator
 tests one category of trust evidence about an Assertion Issuer or
-about the client presenting an Assertion ({{trust-methods}}). A Trust Policy names the Trust Methods it
-requires.
+about the client presenting an Assertion ({{trust-methods}}). A
+Trust Policy names the Trust Methods it requires.
 
 Issuer Authorization Policy:
 : The Delegation Artifact by which a Subject Authority declares the
-Assertion Issuers it authorizes for its namespace. Concrete
-representations (wire format, publication channel, integrity
-protection) are supplied by
-individual `subject_namespace_authorization` Trust Method specifications.
+Assertion Issuers it authorizes for its namespace. Its wire format,
+publication channel, and integrity protection are defined by each
+`subject_namespace_authorization` Trust Method specification.
 
 Consumer:
 : Any party that retrieves and processes a policy document (Trust
@@ -504,11 +452,9 @@ members, and any member whose registration says otherwise.
 
 # Authority Delegation Model {#delegation-model}
 
-This section defines the model that the Trust Policy
-machinery ({{trust-policy-document}}, {{trust-methods}}) and
-profiles such as {{DAI}} instantiate. The vocabulary
-(Authority Holder, Delegate, Delegation Artifact, Assertion,
-Validator, Authority Source) is defined in {{terminology}}.
+The Trust Policy machinery ({{trust-policy-document}},
+{{trust-methods}}) and profiles such as {{DAI}} instantiate this
+model, using the vocabulary defined in {{terminology}}.
 
 ## Pattern Overview
 
@@ -527,31 +473,27 @@ Validator
 ~~~
 
 The Authority Holder publishes the Delegation Artifact through a
-profile-defined channel: a DNS record under its domain, an HTTPS
-document at a well-known URL on its host, a signed subordinate
-statement in a federation, or another profile-defined form.
-Control of that publication channel is itself the authority binding:
-whoever can publish at the channel is the Authority Holder for
-the namespace, claim type, or scope. The Validator validates the
-Delegation Artifact (which says "Authority Holder authorized
-Delegate") and the Assertion (which says "Delegate asserts
-something about Subject"). Both validations are required.
+profile-defined channel, such as a DNS record under its domain, an
+HTTPS document at a well-known URL on its host, or a signed
+subordinate statement in a federation. Control of that channel is
+itself the authority binding: whoever can publish at the channel is
+the Authority Holder for the namespace, claim type, or scope. The
+Validator validates the Delegation Artifact ("Authority Holder
+authorized Delegate") and the Assertion ("Delegate asserts something
+about Subject"). Both validations are required.
 
-A delegation has a lifecycle: the Authority Holder establishes
-the artifact, publishes it, the Delegate uses it to mint
-Assertions, and revocation occurs by removing or expiring the
-artifact. The framework provides no remote cache-invalidation
+The Authority Holder revokes a delegation by removing or expiring
+the artifact. The framework provides no remote cache-invalidation
 mechanism; revocation latency is bounded by the profile's cache
 lifetime. Subject Authorities that need fast revocation operate
 with short steady-state cache lifetimes. Planned transfers
 (provider migrations, acquisitions) and unplanned revocations
-(security incidents) follow the same publication path: update the
-artifact, accept latency bounded by the cache window.
+(security incidents) follow the same path, with the same latency.
 
 ## Independent Trust Evaluation Categories {#categories}
 
-A Validator combines two kinds of independent trust evaluation to
-accept an Assertion. Each category answers a distinct question:
+To accept an Assertion, a Validator combines two independent kinds
+of trust evaluation, each answering a distinct question:
 
 - **Authenticity**: is the entity that signed the Assertion
   cryptographically authentic and recognized as a member of some
@@ -563,21 +505,17 @@ accept an Assertion. Each category answers a distinct question:
   asserted scope delegated to this signer? Satisfied by a
   Delegation Artifact from the appropriate Authority Holder.
 
-Authenticity can be evaluated for more than one principal: the
-entity that signed the Assertion and, in OAuth, the client that
-presents it.
+The OAuth Trust Method categories ({{trust-method-categories}})
+instantiate these, evaluating Authenticity for two principals:
 
-The OAuth Trust Method categories defined in this document
-({{trust-method-categories}}) instantiate these:
-`issuer_authentication` realizes Authenticity for the signer,
-`subject_namespace_authorization` realizes Delegation authority
-for namespace-bound Subject Identifiers, and `client_recognition`
-realizes Authenticity for the OAuth client that presents an identity
-assertion.
+- `issuer_authentication`: Authenticity for the signer;
+- `subject_namespace_authorization`: Delegation authority for
+  namespace-bound Subject Identifiers; and
+- `client_recognition`: Authenticity for the OAuth client that
+  presents the identity assertion.
 
-Local policy (risk scoring, scope grants, account linking, business
-rules) applies on top of these categories and remains the final
-decision layer ({{rasp}} step 6).
+Local policy applies on top of these categories and remains the
+final decision layer ({{rasp}} step 6).
 
 ### Cross-Category Combination Rule {#combination-rule}
 
@@ -591,10 +529,9 @@ evidence item is sufficient, subject to the finality rule of
 categories, *or* within a category.
 
 Satisfying one category MUST NOT be treated as satisfying
-another. A signer authenticated by federation membership has not
-been delegated namespace authority by that fact; an Authority
-Holder's delegation to a signer does not authenticate the
-signer's identity beyond what the Delegation Artifact attests.
+another. Federation membership does not delegate namespace authority
+to a signer, and an Authority Holder's delegation does not
+authenticate the signer beyond what the Delegation Artifact attests.
 
 #### Category Applicability {#category-applicability}
 
@@ -603,21 +540,20 @@ Trust Policy, not of the incoming Assertion. A Validator that holds
 more than one Trust Policy never selects one from properties of the
 Assertion, and selects one by OAuth client only after authenticating
 the client against its registration ({{rasp}} step 1). If the Trust
-Policy
-declares one or more Trust Methods in a given category, that
+Policy declares one or more Trust Methods in a given category, that
 category is applicable to every Assertion the Validator evaluates
 within the profile's scope. The Assertion itself MUST NOT be able
 to waive the category. An Assertion lacking satisfying evidence
 for an applicable category MUST be rejected. Profiles MUST NOT
 define applicability conditions that depend on properties of the
 Assertion under evaluation. This prohibition is directional:
-assertion properties may never *relax* what the policy requires.
-Rejection rules keyed on assertion properties (such as the
-federation-only rule in {{rasp}} step 5e) only tighten it and are
-permitted. Nor can a published Delegation Artifact waive the
-category. A profile MUST NOT define a published state, such as a
-monitoring mode, under which an Assertion whose issuer the artifact
-does not authorize satisfies the category.
+assertion properties never *relax* what the policy requires, while
+rejection rules keyed on them, such as the federation-only rule in
+{{rasp}} step 5e, only tighten it and are permitted. Nor can a
+published Delegation Artifact waive the category. A profile
+MUST NOT define a published state, such as a monitoring mode, under
+which an Assertion whose issuer the artifact does not authorize
+satisfies the category.
 
 A `subject_namespace_authorization` method therefore does not
 become inapplicable merely because an Assertion omits a Subject
@@ -636,17 +572,14 @@ anchors). For `subject_namespace_authorization`, a profile MUST
 define deterministic source selection: a binding function from
 Assertion + request context to exactly one Authority Source (or
 deterministic failure), invariant under attacker-controlled inputs
-outside the binding function. This is because that category's
-Authority Source is chosen from the Assertion's own claims before
-the Assertion is authenticated against any delegation. The attack
-against ad-hoc or fallback selection logic and the
-deterministic-selection requirement are detailed in
-{{unverified-claim}}.
+outside the binding function. {{unverified-claim}} details the
+attack against ad-hoc or fallback selection logic and the
+deterministic-selection requirement.
 
 For `issuer_authentication` and `client_recognition`, every
 Authority Source the Trust Policy lists is equally trusted by the
-Validator, so a profile MAY accept evidence from any of them. For `openid_federation`, this
-means a chain to any listed trust anchor
+Validator, so a profile MAY accept evidence from any of them. For
+`openid_federation`, this means a chain to any listed trust anchor
 ({{trust-method-openid-federation}}).
 
 Within one Trust Method's evaluation, a Validator MUST NOT fall
@@ -685,34 +618,29 @@ consults the Subject Authority's own publication:
 ## Open-World Delegation and Bounded Transitivity {#open-world}
 
 This document targets **open-world delegation**: the Authority
-Holder is an entity independent of the Validator (a customer's
-domain, a federation operator) and the Validator retrieves
-Delegation Artifacts through the profile's publication channel at
-evaluation time. Open-world does not mean open acceptance; the
-Validator publishes (or locally configures) which Authority
-Sources it accepts. Closed-world delegation (Validator and
-Authority Holder are the same party, evidence is local
-configuration) is the degenerate case and remains compatible with
-the model.
+Holder is independent of the Validator (a customer's domain, a
+federation operator), and the Validator retrieves Delegation
+Artifacts through the profile's publication channel at evaluation
+time. Open-world does not mean open acceptance: the Validator
+publishes or locally configures which Authority Sources it accepts.
+Closed-world delegation (Validator and Authority Holder are the same
+party, evidence is local configuration) is the degenerate case and
+remains compatible with the model.
 
 The `subject_namespace_authorization` methods of this framework,
 including {{DAI}}'s, are bounded at depth one: the Authority Holder
 directly lists every authorized Delegate; no further delegation is
-permitted. Depth one keeps revocation latency bounded by one cache
-and means no third party can add a Delegate to the list. It does not
-stop a party that controls a listed Delegate's keys, or that hosts
-the list, from acting within it ({{key-binding}}). OpenID Federation
-{{OIDF-FEDERATION}} is the
-notable chained-delegation profile in the OAuth ecosystem; the
-cross-category combination rule still applies independently of
-transitivity (a federation chain establishes Authenticity, not
-Delegation authority).
+permitted ({{transitive-authz-bounded}}, {{key-binding}}). OpenID
+Federation {{OIDF-FEDERATION}} is the notable chained-delegation
+profile in the OAuth ecosystem. A federation chain establishes
+Authenticity, not Delegation authority, so the cross-category
+combination rule applies regardless of transitivity.
 
 ## Lookup States and Fail-Closed {#exception-handling}
 
 A Validator's lookup of a Delegation Artifact produces exactly
-one of three abstract states. The same states classify a lookup of
-evidence about an OAuth client in the `client_recognition` category
+one of three abstract states. The same states classify lookups of
+client evidence in the `client_recognition` category
 ({{trust-method-categories}}). Profiles MUST map every concrete
 outcome of the lookup operation onto exactly one of these states.
 
@@ -725,24 +653,23 @@ outcome of the lookup operation onto exactly one of these states.
   Assertion against the artifact's contents.
 
 - **Negative**: the publication channel authoritatively reports
-  the absence of a Delegation Artifact. Examples include DNS
-  NXDOMAIN or NODATA with a valid (possibly DNSSEC-signed)
-  authoritative answer where DNS is the profile's sole or final
-  publication channel. For `openid_federation`, another example is
-  HTTP 404 for the leaf's Entity Configuration
+  the absence of a Delegation Artifact. Examples: DNS NXDOMAIN or
+  NODATA with a valid (possibly DNSSEC-signed) authoritative answer
+  where DNS is the profile's sole or final publication channel; for
+  `openid_federation`, HTTP 404 for the leaf's Entity Configuration
   ({{trust-method-openid-federation}}).
 
   A profile with multiple publication channels for the same
   Authority Source reaches Negative only when the channels its
   lookup procedure consults authoritatively report no delegation. A
   profile MAY additionally define an explicitly published denial.
-  Whether such a denial maps to Negative or to an Affirmative
-  retrieval whose evaluation yields no matching delegation is the
-  profile's choice under its state mapping. Within the profile's
-  evaluation, a Negative state is the Authority Holder's decision
-  that no delegation is in effect through that channel, and it is
-  final for that Trust Method. {{multiple-sources}} states the
-  effect of a Negative state on other methods.
+  The profile's state mapping decides whether such a denial maps to
+  Negative or to an Affirmative retrieval whose evaluation yields no
+  matching delegation. Within the profile's evaluation, a Negative
+  state is the Authority Holder's decision that no delegation is in
+  effect through that channel, and it is final for that Trust
+  Method. {{multiple-sources}} states the effect of a Negative state
+  on other methods.
 
 - **Indeterminate**: the lookup did not produce an authoritative
   Affirmative or Negative result. Examples include:
@@ -761,10 +688,6 @@ outcome of the lookup operation onto exactly one of these states.
   the profile. An Indeterminate state carries no information about
   the Authority Holder's intent.
 
-The Affirmative / Negative / Indeterminate taxonomy is
-structural: Negative is the Authority Holder's affirmative
-non-delegation; Indeterminate is information the Validator could
-not obtain.
 
 ### Fail-Closed Requirements {#fail-closed-requirements}
 
@@ -778,9 +701,7 @@ states: neither state satisfies the Trust Method that produced it.
 On a Negative or Indeterminate state, the access decision MUST be
 reject unless another Trust Method satisfies the same category as
 {{multiple-sources}} permits. Profiles MUST NOT permit any condition
-under which an Indeterminate state is treated as Affirmative. Doing
-so converts the fail-closed property into an availability-driven
-downgrade attack surface.
+under which an Indeterminate state is treated as Affirmative.
 
 A Validator MAY rely on a cached Affirmative Delegation Artifact
 during a transient Indeterminate state on the live publication
@@ -791,12 +712,12 @@ stated maximum. If the cache expires while the live channel remains
 Indeterminate, the Trust Method is not satisfied, and the access
 decision follows the fail-closed rule above ({{multiple-sources}}).
 
-Falling through to a different Authority Source within one Trust
-Method's evaluation is forbidden ({{multiple-sources}}): fallthrough
-on non-Affirmative states is the same downgrade as
-extended-cache-on-Indeterminate: both convert a hard denial into
-a soft one driven by adversary-controllable availability of the
-authoritative publication channel.
+Treating Indeterminate as Affirmative, extending a cache across
+Indeterminate states, and falling through to a different Authority
+Source within one Trust Method's evaluation ({{multiple-sources}})
+are the same downgrade: each turns a hard denial into a soft one
+driven by adversary-controllable availability of the authoritative
+publication channel.
 
 Profiles MAY define additional lookup states (for example, a
 "stale-but-signed" state for transparency-log-bound artifacts)

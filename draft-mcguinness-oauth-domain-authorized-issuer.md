@@ -373,8 +373,8 @@ failing any of them is malformed:
 | `crit` | array of strings, optional | non-empty; every listed member recognized and implemented, else malformed ({{TRUST-FRAMEWORK}} §Critical Members) |
 
 For OAuth authorization server issuer identifiers, a non-HTTPS URL,
-a relative URL, or a URL with a fragment component is a malformed
-`issuer` value.
+a relative URL, or a URL with a query or fragment component is a
+malformed `issuer` value ({{RFC8414}} Section 2).
 
 Example:
 

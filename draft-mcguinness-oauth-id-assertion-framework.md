@@ -957,10 +957,10 @@ subject namespace.
 
 #### openid_federation {#trust-method-openid-federation}
 
-The `openid_federation` method indicates that the Assertion Issuer is
+Under the `openid_federation` method, the Assertion Issuer is
 acceptable if its OpenID Federation {{OIDF-FEDERATION}} trust chain
-validates to a listed trust anchor and (when required by the policy)
-the leaf holds the required Trust Marks.
+validates to a listed trust anchor and the leaf holds any Trust Marks
+the policy requires.
 
 ~~~ json
 {
@@ -995,10 +995,8 @@ requirement object has:
   the terminal trust anchor's `trust_mark_issuers` claim gives for
   that Trust Mark type. If the trust anchor gives no such array,
   or an empty one, the requirement is not satisfied. This
-  deliberately narrows OpenID Federation's allowance for any
-  issuer when no issuer restriction is published; omitting
-  `issuer` here delegates issuer selection to an explicit trust
-  anchor allowlist, not to an unrestricted set of issuers.
+  deliberately narrows OpenID Federation, which allows any issuer
+  when no issuer restriction is published.
 
 The Trust Policy governs Trust Mark requirements for identity
 assertions. A Resource Authorization Server that also advertises
@@ -1009,15 +1007,14 @@ do not replace enforcement of its Trust Method requirements.
 The Resource Authorization Server MUST validate the federation
 trust chain, metadata policy, and the Trust Marks that requirement 4
 relies on, per {{OIDF-FEDERATION}}; failure of any is failure of this
-Trust Method.
-Federation `metadata_policy` constrains Entity Type metadata in
-Entity Statements; it does not constrain members carried only in
-documents bound by digest through an extension such as {{OIDF-WKB}},
-which reads no Entity Type metadata. A Superior that needs to
-constrain such a member, such as `jwks_uri`, marks it `essential`
-({{OIDF-FEDERATION}} §6.1.3.1.7), so that the leaf's policy-applied
-Entity Type metadata must carry it. For a key source, requirement 3
-below then selects that metadata value.
+Trust Method. Federation `metadata_policy` constrains Entity Type
+metadata in Entity Statements, not members carried only in documents
+that an extension such as {{OIDF-WKB}}, which reads no Entity Type
+metadata, binds by digest. A Superior that needs to constrain such a
+member, such as `jwks_uri`, marks it `essential` ({{OIDF-FEDERATION}}
+§6.1.3.1.7), so that the leaf's policy-applied Entity Type metadata
+must carry it. For a key source, requirement 3 then selects that
+value.
 
 Lookup states ({{exception-handling}}):
 
@@ -1048,9 +1045,9 @@ Mark Issuer publishes one.
 The framework-specific requirements below are evaluated against an
 Affirmative chain. Every requirement MUST hold on that one chain: the
 metadata, key source, and Trust Marks used are those of the chain
-that satisfies requirement 1. A chain that fails requirement 1 is Negative, as
-above. In each case below, the leaf does not satisfy this Trust
-Method and the lookup state is unchanged:
+that satisfies requirement 1. A chain that fails requirement 1 is
+Negative, as above. In each case below, the leaf does not satisfy
+this Trust Method and the lookup state is unchanged:
 
 - It does not declare a required entity type (requirement 2).
 - Its assertion signature does not verify under the permitted key
@@ -1059,12 +1056,11 @@ Method and the lookup state is unchanged:
 
 A Trust Mark that fails validation per {{OIDF-FEDERATION}} §7.3 does
 not meet a requirement. Only a retrieval the method needs and cannot
-complete is Indeterminate. Such a retrieval targets one of the
-following:
+complete is Indeterminate, namely a retrieval of:
 
-- The permitted key source.
-- A Trust Mark Issuer's chain.
-- A Trust Mark Status endpoint the Resource Authorization Server
+- the permitted key source;
+- a Trust Mark Issuer's chain; or
+- a Trust Mark Status endpoint the Resource Authorization Server
   relies on.
 
 In addition to the procedures in {{OIDF-FEDERATION}}, the Resource
@@ -1104,12 +1100,10 @@ requirements:
 
    For `jwks_uri`, the trust chain authenticates the URI, not the key
    set it returns. The returned key set relies on HTTPS to that
-   endpoint unless an extension also binds the key set. {{OIDF-WKB}},
-   for example, checks the JWK Set at a covered document's `jwks_uri`
-   against `jwks_digests` in the leaf's Entity Configuration. When the
-   metadata's `jwks_uri` names the URL whose key set an extension
-   binds, a consumer that applies the binding treats its failure as
-   failure to validate that key source.
+   endpoint unless an extension, such as {{OIDF-WKB}}, also binds the
+   key set. When the metadata's `jwks_uri` names the URL whose key set
+   an extension binds, a consumer that applies the binding treats its
+   failure as failure to validate that key source.
 
    Specifications that extend this Trust Method MAY define additional
    key sources that satisfy it. If the policy-applied metadata carries
@@ -1149,24 +1143,21 @@ requirements:
 The proposed Well-Known Binding mechanism {{OIDF-WKB}} illustrates
 the additional key-source path in item 3: it binds a JWK Set to the
 Entity Identifier by listing its digest in the leaf's Entity
-Configuration. Support for that mechanism is not required by this
-document; a consumer without a supported qualifying key source
-returns Indeterminate. See {{example-wkb-variant}} for an
-illustrative variant.
+Configuration ({{example-wkb-variant}}). This document does not
+require support for it; a consumer without a supported qualifying
+key source returns Indeterminate.
 
-For OpenID Federation deployments, this Trust Method is the primary
-integration point between the federation and this framework; see
-{{relationship-to-oidf}} for positioning.
+See {{relationship-to-oidf}} for positioning against OpenID
+Federation.
 
 ### Subject Namespace Authorization Methods {#subject-namespace-authorization-methods}
 
 `subject_namespace_authorization`-category methods are satisfied
-by evidence originating from the Subject Authority itself (typically
-a DNS or HTTPS record published under the Subject Authority's
-domain). The namespace-authorization trust graph is bounded to depth
-one ({{transitive-authz-bounded}}). Concrete methods in this category
-are defined by companion specifications and registered in the
-Trust Methods registry ({{iana-trust-methods-registry}}).
+by evidence from the Subject Authority itself, typically a DNS or
+HTTPS record published under its domain. The namespace-authorization
+trust graph is bounded to depth one ({{transitive-authz-bounded}}).
+Companion specifications define the concrete methods in this
+category and register them in {{iana-trust-methods-registry}}.
 
 ### Client Recognition Methods {#client-recognition-methods}
 
@@ -1174,29 +1165,28 @@ Trust Methods registry ({{iana-trust-methods-registry}}).
 about the OAuth client that presents an identity assertion at the
 token endpoint. The client evaluated is the one that the grant
 profile's client authentication identifies ({{rasp}} step 5f). For
-ID-JAG, the assertion's `client_id` claim identifies the same client
-({{ID-JAG}} §4.4.1), so the Assertion Issuer has already named the
-client it issued the assertion to. Under the generic JWT-bearer
-binding ({{jwt-bearer-profile}}) the assertion names no client, so any
-client that satisfies the category can present an assertion it
-obtained. Recognizing a client does not
+ID-JAG, the assertion's `client_id` claim, set by the Assertion
+Issuer, identifies the same client ({{ID-JAG}} §4.4.1). Under the
+generic JWT-bearer binding ({{jwt-bearer-profile}}) the assertion
+names no client, so any client that satisfies the category can
+present an assertion it obtained. Recognizing a client does not
 authorize any Assertion Issuer, and authorizing an Assertion Issuer
 does not recognize any client.
 
 The OAuth Client ID Metadata Document
-{{I-D.ietf-oauth-client-id-metadata-document}} is complementary. It
+{{I-D.ietf-oauth-client-id-metadata-document}} is complementary: it
 lets an authorization server obtain a client's metadata and keys
-from its `client_id` URL, but it leaves the decision to trust that
-client to the authorization server. A client recognition method could
-use it as a key source only together with evidence that the Resource
-Authorization Server trusts.
+from its `client_id` URL but leaves the trust decision to that
+server. A client recognition method could use it as a key source
+only together with evidence that the Resource Authorization Server
+trusts.
 
 #### openid_federation_client {#trust-method-openid-federation-client}
 
-The `openid_federation_client` method indicates that the client is
-acceptable if it is an OpenID Federation {{OIDF-FEDERATION}} Entity
-whose trust chain validates to a listed trust anchor and, when the
-policy requires them, holds the required Trust Marks.
+Under the `openid_federation_client` method, the client is acceptable
+if it is an OpenID Federation {{OIDF-FEDERATION}} Entity whose trust
+chain validates to a listed trust anchor and that holds any Trust
+Marks the policy requires.
 
 ~~~ json
 {
@@ -1212,17 +1202,15 @@ The client's `client_id` is its Entity Identifier, as in Automatic
 Registration ({{OIDF-FEDERATION-CONNECT}} §12.1 and §12.4).
 {{OIDF-FEDERATION-CONNECT}} §12.1 starts Automatic Registration at an
 Authentication Request, and §12.1.5 says that bare OAuth 2.0
-deployments can use it. It does not describe a client whose first
-request is a token request with no Authentication Request before it;
-this method defines that case. This method places none of the
-obligations of
-{{OIDF-FEDERATION-CONNECT}} §12.1 on the client toward the Resource
-Authorization Server, and it is evaluated for each token request that
-presents an identity assertion. The `client_id` MUST equal the `sub`
-of the client's Entity Configuration by simple string comparison. A
-client whose `client_id` is not an Entity Identifier
-({{OIDF-FEDERATION}} §1.2) does not satisfy this method, and the
-lookup state is Negative.
+deployments can use it. This method defines the case §12.1 does not
+describe: a client whose first request is a token request. This
+method places none of the obligations of {{OIDF-FEDERATION-CONNECT}}
+§12.1 on the client toward the Resource Authorization Server, and it
+is evaluated for each token request that presents an identity
+assertion. The `client_id` MUST equal the `sub` of the client's
+Entity Configuration by simple string comparison. A client whose
+`client_id` is not an Entity Identifier ({{OIDF-FEDERATION}} §1.2)
+does not satisfy this method, and the lookup state is Negative.
 
 The Resource Authorization Server evaluates this method as it
 evaluates `openid_federation`, with the client's Entity Identifier as
@@ -1258,11 +1246,10 @@ and 3 are replaced by the following:
     a certificate equal to the first certificate in the `x5c` value
     of such a key, without certificate chain validation.
 
-  A first token request is in the position that
-  {{OIDF-FEDERATION-CONNECT}} §12.1.1.2 addresses for a Pushed
-  Authorization Request: the client authenticates before any
-  registration exists. These are that section's two client
-  authentication methods (see also §12.1.1.2.1). They are narrower
+  These are the two methods that {{OIDF-FEDERATION-CONNECT}}
+  §12.1.1.2 (see also §12.1.1.2.1) names for a Pushed Authorization
+  Request, where, as on a first token request, the client
+  authenticates before any registration exists. They are narrower
   than {{OIDF-FEDERATION-CONNECT}} §12.1.4, under which a server
   should accept any mutually supported method, and than {{RFC7523}}
   Section 3, which also allows the token endpoint URL as `aud`. The
@@ -1292,9 +1279,7 @@ and 3 are replaced by the following:
 When the Resource Authorization Server relies on this method to
 satisfy the `client_recognition` category, it MUST NOT accept the
 assertion unless client authentication verified under a key this
-method permits. Verification under any other key, such as a key from
-a client metadata document, is not client authentication for this
-method.
+method permits.
 
 The keys come from the trust chain, so the Resource Authorization
 Server resolves the client's trust chain and key set before it
@@ -1302,19 +1287,24 @@ verifies client authentication. The error for a failure depends on
 the condition, not on when it is detected. When more than one
 condition applies, the first in this list determines the error:
 
-1. `invalid_client` ({{RFC6749}} Section 5.2) when the `client_id`
-   is not an Entity Identifier, no trust chain reaches a listed trust
-   anchor, the chain or the key set is Indeterminate, the metadata
-   declares neither entity type, the client authenticates with a
-   method its metadata does not declare, or client authentication
-   does not verify under a key in the federation key set.
+1. `invalid_client` ({{RFC6749}} Section 5.2) when any of the
+   following holds:
+
+   - the `client_id` is not an Entity Identifier;
+   - no trust chain reaches a listed trust anchor;
+   - the chain or the key set is Indeterminate;
+   - the metadata declares neither entity type;
+   - the client authenticates with a method its metadata does not
+     declare; or
+   - client authentication does not verify under a key in the
+     federation key set.
+
 2. `unauthorized_client` ({{RFC6749}} Section 5.2) when the client is
    authenticated but not recognized: it holds no Trust Mark that
    meets a requirement (requirement 4), the Trust Mark evaluation is
    Indeterminate, or its metadata does not list the request's grant
-   type. The Resource Authorization Server evaluates this before it
-   validates the assertion ({{rasp}}), so the error does not depend
-   on the assertion.
+   type.
+
 3. Any failure of the assertion or of an issuer method gets the error
    that {{rasp}} specifies.
 
@@ -1337,8 +1327,9 @@ header parameter of its client assertion ({{OIDF-FEDERATION}}
 §4.3). The Resource Authorization Server MAY use that chain, after
 validating it per {{OIDF-FEDERATION}} §10.2, in place of resolving
 one. It resolves the chain itself instead when any Entity Statement
-in the supplied chain was issued more than 24 hours earlier. Without a published Entity Configuration or a valid supplied
-chain, the client does not satisfy this method.
+in the supplied chain was issued more than 24 hours earlier. Without
+a published Entity Configuration or a valid supplied chain, the
+client does not satisfy this method.
 
 The Resource Authorization Server caches the client's key set no
 longer than the trust chain ({{trust-method-openid-federation}}). A
@@ -1435,11 +1426,8 @@ A token-request flow with an ID-JAG carrying
 If the Assertion Issuer were federation-authenticated but Acme
 had not listed it in its DAI record, step 2 would succeed and
 step 3 would fail; the Resource Authorization Server rejects with
-`invalid_grant`.
-Federation membership alone does not establish namespace
-authority; the combination rule is what enforces this. A deeper
-walkthrough including federation trust-chain validation and Trust
-Mark satisfaction is in {{example-federation-walkthrough}}.
+`invalid_grant`. {{example-federation-walkthrough}} extends this
+example with trust-chain validation and Trust Mark satisfaction.
 
 
 ## Subject Authority Determination {#subject-authority-determination}

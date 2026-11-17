@@ -155,40 +155,36 @@ Table of Contents
    this Assertion Issuer authorized to assert about subjects in this
    namespace?".  Such grants include the Identity Assertion JWT
    Authorization Grant (ID-JAG) and generic JWT-bearer assertions
-   carrying an identity claim (see [TRUST-FRAMEWORK]).  An issuer
-   authenticated by federation membership is not, by that membership
-   alone, entitled to assert about subjects in any particular namespace.
-   The namespace owner is the only authoritative source of that
-   delegation.
+   carrying an identity claim ([TRUST-FRAMEWORK]).  Federation
+   membership authenticates an issuer but does not by itself entitle it
+   to assert about any particular namespace.  Only the namespace owner
+   can authoritatively delegate that.
 
    The Domain-Authorized Issuer (DAI) Trust Method lets the owner of a
-   DNS-namable subject namespace publish, in DNS, the set of Assertion
-   Issuers it authorizes for its namespace.  The DNS record can carry
-   the authorized issuers inline (for simple deployments) or point at an
-   HTTPS-hosted JSON document containing richer policy (validity
-   windows, format restrictions, tenant binding, multiple issuers).  A
-   Resource Authorization Server that does not take issuers or a policy
-   location from DNS can instead fetch the policy from a dedicated HTTPS
-   host, oauth-issuer-policy.{domain}. In both cases the DNS record is
-   the Subject Authority's explicit opt-in.  A namespace that publishes
-   no record is not covered.
+   DNS-namable subject namespace publish, in DNS, the Assertion Issuers
+   it authorizes for its namespace.  The DNS record lists the issuers
+   inline or points at an HTTPS-hosted JSON document with richer policy
+   (validity windows, format restrictions, tenant binding).  A Resource
+   Authorization Server that does not take issuers or a policy location
+   from DNS can instead fetch the policy from a dedicated HTTPS host,
+   oauth-issuer-policy.{domain}. Either way, the DNS record is the
+   Subject Authority's explicit opt-in; a namespace that publishes no
+   record is not covered.
 
-   Authority is established by control of the publication channel.
-   Whoever can publish at _oauth-issuer-policy.{domain} is itself the
-   Subject Authority for {domain}. The pattern follows CAA [RFC8659],
-   MTA-STS [RFC8461], SPF, and DKIM (Appendix A.1).
+   Authority is established by control of the publication channel:
+   whoever can publish at _oauth-issuer-policy.{domain} is the Subject
+   Authority for {domain}. The pattern follows CAA [RFC8659], MTA-STS
+   [RFC8461], SPF, and DKIM (Appendix A.1).
 
-   DAI is consumed by Resource Authorization Servers at assertion
-   verification time: given an identity assertion, the RAS uses the
-   Subject Authority's published policy to decide whether the asserting
-   issuer is authorized for the subject's namespace.
+   A Resource Authorization Server applies DAI when it verifies an
+   identity assertion: the Subject Authority's published policy decides
+   whether the asserting issuer is authorized for the subject's
+   namespace.
 
-   DAI is non-transitive by design.  The Issuer Authorization Policy is
-   a flat list of Assertion Issuer identifiers; a Subject Authority that
-   wants to authorize an Assertion Issuer publishes its identifier
-   directly.  The depth-1 bound and its security implications are
-   covered in [TRUST-FRAMEWORK] §Open-World Delegation and Bounded
-   Transitivity and §Transitive Authorization is Bounded.
+   DAI is non-transitive: a Subject Authority directly lists each
+   Assertion Issuer it authorizes ([TRUST-FRAMEWORK] §Open-World
+   Delegation and Bounded Transitivity and §Transitive Authorization is
+   Bounded).
 
    DAI is also independent of OpenID Federation: a Subject Authority can
    publish DAI records and a Resource Authorization Server can evaluate
@@ -213,14 +209,21 @@ Table of Contents
 
    DAI extends [TRUST-FRAMEWORK], which owns the Trust Policy document
    format, Trust Method machinery, Subject Authority Determination, and
-   OAuth grant-profile bindings.  This document defines the Issuer
-   Authorization Policy document (Section 3), the DNS and HTTPS
-   publication channels (Section 4.1), the lookup procedure (Section 5),
-   the verification rules (Section 6), the domain_authorized_issuer
-   Trust Method, and an HTTPS-only deployment variant (Section 8.2).  A
-   bridge to the Email Verification Protocol's DNS records and a client-
-   side discovery use case are sketched as future extensions in
-   Appendix B.
+   OAuth grant-profile bindings.  This document defines:
+
+   *  the Issuer Authorization Policy document (Section 3);
+
+   *  the DNS and HTTPS publication channels (Section 4.1);
+
+   *  the lookup procedure (Section 5);
+
+   *  the verification rules (Section 6); and
+
+   *  the domain_authorized_issuer Trust Method, with an HTTPS-only
+      deployment variant (Section 8.2).
+
+   A bridge to the Email Verification Protocol's DNS records and a
+   client-side discovery use case are sketched in Appendix B.
 
 1.2.  Conventions
 
@@ -232,8 +235,7 @@ Table of Contents
 
 2.  Terminology
 
-   This document uses terminology from [TRUST-FRAMEWORK], which defines
-   each term.  In brief:
+   This document uses these terms as defined in [TRUST-FRAMEWORK]:
 
    *  *Subject Authority*: the owner of a subject namespace, such as the
       DNS domain acme.example for alice@acme.example.
@@ -248,7 +250,7 @@ Table of Contents
       Server states the Trust Methods it requires.
 
    *  *Trust Method*: a procedure for evaluating evidence about an
-      Assertion Issuer.  This document defines one.
+      Assertion Issuer.
 
    *  *Issuer Authorization Policy*: the document in which a Subject
       Authority lists the Assertion Issuers it authorizes (Section 3).
@@ -266,30 +268,25 @@ Table of Contents
 
    Subject Identifier formats follow [RFC9493].
 
-   Two terms are specific to this document:
+   This document defines two terms:
 
-   Domain-Authorized Issuer (DAI):  The Trust Method defined by this
-      document, in which a Subject Authority publishes, over DNS and
-      HTTPS, the set of Assertion Issuers it authorizes for its
-      namespace.
+   Domain-Authorized Issuer (DAI):  The Trust Method defined here, in
+      which a Subject Authority publishes, over DNS and HTTPS, the
+      Assertion Issuers it authorizes for its namespace.
 
    Publisher:  The Subject Authority, or a policy host acting for it,
       when it publishes a DNS record or an Issuer Authorization Policy.
 
 3.  Issuer Authorization Policy Document
 
-   The Issuer Authorization Policy is a Delegation Artifact: a Subject
-   Authority (Authority Holder for a subject namespace) uses it to
-   delegate the right to assert identities in its namespace to one or
-   more named Assertion Issuers.  Each authorized_issuers entry is a
-   delegation; valid_from and valid_until bound the delegation in time;
-   tenant constrains the delegation to a specific tenant of a shared
-   issuer; subject_identifier_formats constrains the delegation to
-   specific Subject Identifier formats.  The verification procedure
-   (Section 6) validates whether a given identity assertion is covered
-   by a current delegation; absent a matching delegation, the Assertion
-   Issuer is not authorized for the asserted namespace regardless of any
-   other property of the assertion.
+   The Issuer Authorization Policy is a Delegation Artifact: with it, a
+   Subject Authority delegates the right to assert identities in its
+   namespace to named Assertion Issuers.  Each authorized_issuers entry
+   is a delegation, which valid_from, valid_until, tenant, and
+   subject_identifier_formats can constrain.  Absent a current
+   delegation matching the assertion (Section 6), the Assertion Issuer
+   is not authorized for the asserted namespace, regardless of any other
+   property of the assertion.
 
    The Issuer Authorization Policy is a JSON object served over HTTPS.
    Publishers MUST serve it with media type application/json; consumers
@@ -307,25 +304,21 @@ Table of Contents
 
    authorized_issuers  REQUIRED.  JSON array of authorized issuer
       objects, which MAY be empty.  An empty array is an explicit
-      denial: the Subject Authority authoritatively authorizes no
-      issuer.  The retrieval of such a policy is Affirmative
-      (Section 5.1); the denial takes effect at verification, where no
-      entry can match (Section 6).  Consumers MUST NOT fall through to
-      any other channel on encountering a denial.  Each object has:
+      denial: retrieval is Affirmative (Section 5.1), but no entry can
+      match (Section 6).  Consumers MUST NOT fall through to any other
+      channel on encountering a denial.  Each object has:
 
       issuer  REQUIRED.  String.  The Assertion Issuer identifier.  For
          OAuth authorization server issuer identifiers, this value MUST
          be an absolute HTTPS URL with no fragment component.  The URL
          MAY contain a path component.
 
-         No normalization is applied before comparison.  The value and
-         the JWT iss claim are compared by exact case-sensitive string
-         equality (octet-for-octet), consistent with [RFC8414] issuer-
-         identifier comparison.  Consequently https://a and https://a/
-         are distinct issuers, and no trailing-slash or percent-encoding
-         normalization is performed.
+         The value and the JWT iss claim are compared by exact case-
+         sensitive string equality (octet-for-octet), with no
+         normalization, consistent with [RFC8414] issuer-identifier
+         comparison: https://a and https://a/ are distinct issuers.
 
-         Query components are NOT RECOMMENDED because many issuer
+         Query components are NOT RECOMMENDED, because many issuer
          metadata profiles do not use them.  Issuer identifiers whose
          string form contains a ; cannot be expressed in the inline DNS
          form (Section 4.3) and MUST be published via the HTTPS document
@@ -341,33 +334,28 @@ Table of Contents
          match this entry.
 
          When absent, the entry matches only assertions that carry no
-         top-level tenant claim.  Consequently, under a grant profile
-         that carries tenant, listing a shared issuer without tenant
-         authorizes none of its tenants.  Grant profiles that do not
-         carry a tenant claim (e.g., the generic JWT-bearer grant of
-         [RFC7523]) match only entries that omit tenant, as Section 9.9
-         discusses.
+         top-level tenant claim.  Under a grant profile that carries no
+         tenant claim (for example, the generic JWT-bearer grant of
+         [RFC7523]), only entries that omit tenant can match
+         (Section 9.9).
 
          Tenant values are issuer-specific and MUST NOT be compared
          across issuers.  To authorize multiple tenants of the same
          shared issuer, publish one entry per (issuer, tenant) pair.
-         Guidance for shared-issuer multi-tenant Identity Providers is
-         in Section 9.9.
 
       subject_identifier_formats  OPTIONAL.  JSON array of Subject
          Identifier format names ([RFC9493]) this Assertion Issuer is
          authorized for.  If omitted, the Assertion Issuer is authorized
          for any format that resolves to this Subject Authority,
          including formats whose extraction procedures are registered
-         after the policy is published; a Subject Authority that wants
-         to exclude future formats lists the formats it authorizes.
+         after the policy is published.
 
       valid_from  OPTIONAL.  [RFC3339] date-time.  The delegation MUST
          NOT be treated as valid before this time.  A consumer MAY apply
-         a small clock-skew tolerance (at most 5 minutes), consistent
-         with JWT nbf conventions ([RFC7519] Section 4.1.5).  This
-         tolerance applies only to valid_from; it MUST NOT be applied to
-         valid_until to extend a delegation past its stated end.
+         a clock-skew tolerance of at most 5 minutes, consistent with
+         JWT nbf conventions ([RFC7519] Section 4.1.5).  This tolerance
+         applies only to valid_from and MUST NOT be applied to
+         valid_until.
 
       valid_until  OPTIONAL.  [RFC3339] date-time.  The delegation MUST
          NOT be treated as valid at or after this time.  No clock-skew
@@ -377,13 +365,8 @@ Table of Contents
       last published.  It is not decision-affecting ([TRUST-FRAMEWORK]
       §Terminology).
 
-   signed_policy  OPTIONAL.  Signed JWT containing policy members as
-      claims (Section 3.1).  This member follows the signed metadata
-      pattern used by [RFC8414] and [RFC9728].  Its presence does not by
-      itself require all consumers to support signed policy processing;
-      consumers apply Section 3.1 and any local policy that requires
-      object-level integrity.  A Subject Authority that needs to force
-      signature processing lists signed_policy in crit.
+   signed_policy  OPTIONAL.  String.  A signed JWT containing policy
+      members as claims (Section 3.1).
 
    crit  OPTIONAL.  Array of member names a consumer MUST understand to
       process the policy safely, as defined in [TRUST-FRAMEWORK]
@@ -391,10 +374,9 @@ Table of Contents
       not implement processing for, one or more listed members MUST
       treat the policy as malformed.
 
-      Publishers MUST place crit in the outer (unsigned) document.  A
-      crit present only in a signed_policy JWT payload is invisible to
-      consumers that do not process signatures and therefore has no
-      effect on them.  When the document carries signed_policy,
+      Publishers MUST place crit in the outer (unsigned) document, since
+      consumers that do not process signatures cannot see a crit carried
+      only in the JWT.  When the document carries signed_policy,
       publishers MUST also include the same crit as a claim in the
       signed JWT, so that a party that can alter the outer document
       cannot remove it (Section 3.1).  The DNS record form does not
@@ -479,12 +461,11 @@ Table of Contents
 
 3.1.  Signed Policy
 
-   The signed_policy member provides cryptographic integrity for the
-   policy members it carries as claims.  When the signed JWT contains
-   every decision-affecting member ([TRUST-FRAMEWORK] §Terminology), it
-   provides object-level integrity for the whole document.  It follows
-   the signed metadata pattern defined for authorization server metadata
-   in [RFC8414] and protected resource metadata in [RFC9728].
+   The signed_policy member protects the integrity of the policy members
+   it carries as claims.  When the signed JWT contains every decision-
+   affecting member ([TRUST-FRAMEWORK] §Terminology), it provides
+   object-level integrity for the whole document.  It follows the signed
+   metadata pattern of [RFC8414] and [RFC9728].
 
    A consumer processes signed_policy only when it has an acceptable
    verification key for it: the key a key= directive pins, or a key
@@ -492,50 +473,42 @@ Table of Contents
    one MUST treat the policy as malformed if crit lists signed_policy or
    its local policy requires object-level integrity for the Subject
    Authority; otherwise it ignores signed_policy and evaluates the
-   unsigned members.  Such a consumer gets no object-level integrity
-   from the signature: it cannot detect a modified outer document, an
-   expired signed_policy, or a replayed older one.  The requirements on
-   consumers in the rest of this section apply to a consumer that
-   processes signed_policy.
+   unsigned members.  Such a consumer cannot detect a modified outer
+   document, an expired signed_policy, or a replayed older one.  The
+   consumer requirements in the rest of this section apply to a consumer
+   that processes signed_policy.
 
    The signed_policy value is a JWT [RFC7519] in JWS Compact
    Serialization [RFC7515] containing policy members as claims.  The JWT
-   MUST be digitally signed using an asymmetric algorithm.  It MUST
-   contain an iss claim identifying the party attesting to the signed
-   policy claims, and MUST contain iat.  It MUST contain exp, so that a
-   superseded signed policy cannot be replayed indefinitely (relevant
-   when the policy is hosted on shared infrastructure, Section 9.5).
-   Consumers MUST reject an expired signed_policy, including a cached
-   copy and during stale-if-error use (Section 7).
+   MUST be signed with an asymmetric algorithm.  It MUST contain an iss
+   claim identifying the party attesting to the signed policy claims,
+   and MUST contain iat.  It MUST contain exp, which bounds replay of a
+   superseded signed policy (Section 9.5).  Consumers MUST reject an
+   expired signed_policy, including a cached copy and during stale-if-
+   error use (Section 7).
 
-   A policy host can replay a superseded signed policy until its exp to
-   a consumer that has not seen a newer one.  Consumers MUST reject a
-   signed_policy whose exp is more than 24 hours after its iat.  A
-   consumer MUST retain the highest iat it has accepted for each Subject
-   Authority until the exp of that signed policy, and MUST reject a
-   signed_policy whose iat is earlier, even after the cached policy
-   itself is gone.  An older signed policy therefore cannot be replayed
-   to a consumer that has accepted a newer one, nor to any consumer for
-   more than 24 hours.
+   Consumers MUST reject a signed_policy whose exp is more than 24 hours
+   after its iat.  A consumer MUST retain the highest iat it has
+   accepted for each Subject Authority until the exp of that signed
+   policy, and MUST reject a signed_policy whose iat is earlier, even
+   after the cached policy itself is gone.
 
    The JOSE header SHOULD contain a kid identifying the signing key.
    The JWT payload SHOULD NOT contain a signed_policy claim.  The outer
-   document still carries subject_authority and authorized_issuers
-   (Section 3) when the JWT repeats them.
+   document carries subject_authority and authorized_issuers (Section 3)
+   even when the JWT repeats them.
 
    Algorithms: [RFC8725] (JWT Best Current Practices) applies unchanged.
-   In addition, the JWT MUST NOT use a MAC algorithm (HS256/384/512);
-   verification keys are widely distributed and a MAC scheme would
-   require sharing the signing key with every Validator, defeating the
-   authority binding.  Implementations MUST support ES256 and SHOULD
-   support EdDSA and ES384; RS256 with >=2048-bit keys MAY be supported
-   for compatibility.
+   In addition, the JWT MUST NOT use a MAC algorithm (HS256/384/512),
+   since a MAC scheme would require sharing the signing key with every
+   Validator.  Implementations MUST support ES256 and SHOULD support
+   EdDSA and ES384; RS256 with >=2048-bit keys MAY be supported for
+   compatibility.
 
    Per [RFC8725] §3.11 (cross-context confusion), the JWT typ header
-   MUST be issuer-authorization-policy+jwt.  This is the registered
-   media subtype with the application/ prefix omitted, per the [RFC8725]
-   §3.11 convention; the corresponding media type is registered in
-   Section 12.6.
+   MUST be issuer-authorization-policy+jwt.  This is the media type
+   registered in Section 12.6, with the application/ prefix omitted per
+   the [RFC8725] §3.11 convention.
 
    The JWT payload MUST contain subject_authority.  When a key=
    directive pins the verification key, a signature that verifies with
@@ -552,23 +525,19 @@ Table of Contents
    of the one that carried the policy document, and MUST be one of:
 
    *  a key whose thumbprint the Subject Authority publishes in a key=
-      directive of its DNS pointer record (Section 4.3).  A key=
-      thumbprint binds the document to what the consumer already trusts
-      DNS for: it defeats substitution by the policy host or a shared
-      edge in front of it, not compromise of DNS, which already selects
-      the policy host; DNSSEC raises that bound.
+      directive of its DNS pointer record (Section 4.3).  This defeats
+      substitution by the policy host or a shared edge in front of it,
+      but not compromise of DNS, which already selects the policy host;
+      DNSSEC raises that bound.
 
    *  a key configured out of band at the consumer, which rests on the
       consumer's own key-provisioning process.
 
-   Under the HTTPS-only lookup mode, a key= directive in the opt-in
-   record applies as it does to any pointer record (Section 8.2).  An
-   attacker who controls the publication channel can substitute both the
-   policy and, if the key is fetched over that same channel, the key.
-   Absent an independent channel, the signature provides integrity no
-   stronger than channel control (which already establishes authority),
-   and consumers MUST NOT rely on it to defend against compromise of
-   that channel.
+   An attacker who controls the publication channel can substitute both
+   the policy and, if the key is fetched over that same channel, the
+   key.  Absent an independent channel, the signature provides integrity
+   no stronger than channel control, and consumers MUST NOT rely on it
+   to defend against compromise of that channel.
 
    If both unsigned policy members and signed_policy are present, the
    signed policy claims MUST be used as the policy values for all claims
@@ -578,24 +547,22 @@ Table of Contents
 
    A conflict exists when a member name appears in both the unsigned
    outer document and the signed JWT payload AND the two values are not
-   equal when compared as parsed JSON values.  The comparison ignores
-   member order and insignificant whitespace.  Equivalently, the values
-   are unequal when their JSON Canonicalization Scheme [RFC8785]
-   serializations differ.  Consumers MUST reject a policy that contains
-   any such conflict.  Otherwise, an attacker who can modify the outer
-   document but not the signed JWT has a lever to inject visible-but-
-   ignored members that may mislead operators or downstream tooling.
+   equal as parsed JSON values, ignoring member order and insignificant
+   whitespace; equivalently, when their JSON Canonicalization Scheme
+   [RFC8785] serializations differ.  Consumers MUST reject a policy that
+   contains any such conflict.  Otherwise, an attacker who can modify
+   the outer document but not the signed JWT could inject visible-but-
+   ignored members that mislead operators or downstream tooling.
 
-   A Subject Authority that needs to require signed_policy processing by
-   all conforming consumers lists signed_policy in crit.  A consumer
-   that does not implement signed_policy processing then rejects the
-   document rather than silently ignoring the signature.  Absent a crit
-   entry, the presence of signed_policy provides integrity only:
+   To require signed_policy processing by all conforming consumers, a
+   Subject Authority lists signed_policy in crit.  A consumer that does
+   not implement that processing then rejects the document rather than
+   silently ignoring the signature.  Absent a crit entry, signed_policy
+   provides integrity only:
 
    *  for consumers that support and verify it;
 
-   *  for deployments where local policy requires signed policy
-      processing; or
+   *  where local policy requires signed policy processing; or
 
    *  for lookups where a key= directive requires it (Section 4.3).
 
@@ -626,23 +593,14 @@ Table of Contents
    A Subject Authority publishes the Issuer Authorization Policy through
    one of the publication channels defined in Section 4.1.  Throughout
    this document, {A} denotes the Subject Authority rendered as a DNS
-   name (A-label form, Section 4.3).  DNS publication uses the TXT
-   record at _oauth-issuer-policy.{A}, following the pattern of CAA,
-   MTA-STS, SPF, and DKIM (Appendix A.1).  For Resource Authorization
-   Servers that take no issuers or policy location from DNS, the policy
-   is also served at the default URL on a dedicated policy host, oauth-
-   issuer-policy.{A} (Section 4.4); a TXT record whose uri= names that
-   URL is the opt-in.
+   name (A-label form, Section 4.3).
 
 4.1.  Publication Channels
 
    This document defines three publication channels.  A Subject
    Authority chooses based on operational constraints; all carry the
    same document model (Section 3), although the inline form expresses
-   only part of it (Section 9.7).  The canonical lookup procedure
-   (Section 5) consults only DNS and the uri= target a DNS record names,
-   which can be the dedicated policy host; the HTTPS-only lookup mode
-   (Section 8.2) fetches only from the dedicated policy host.
+   only part of it (Section 9.7).
 
    +=========+==========+===================+===========+==============+
    |Channel  |DNS form  | Document          |Authority  |When to use   |
@@ -690,22 +648,21 @@ Table of Contents
    A Subject Authority that serves Resource Authorization Servers using
    the HTTPS-only lookup mode publishes the policy at the default URL on
    the dedicated policy host oauth-issuer-policy.{A} (Section 4.4).  The
-   opt-in to the HTTPS-only lookup mode is a recognized record at
-   _oauth-issuer-policy.{A} (Section 4.3) whose uri= value is exactly
-   the default URL: it equals, octet for octet, the default URL built
-   from the lowercase A-label form of {A}. That mode requires such a
-   record before it fetches from the dedicated host (Section 8.2).  The
-   same record directs canonical lookups to the same document.
+   opt-in to that mode is a recognized record at _oauth-issuer-
+   policy.{A} (Section 4.3) whose uri= value is exactly the default URL:
+   it equals, octet for octet, the default URL built from the lowercase
+   A-label form of {A}. That mode requires such a record before it
+   fetches from the dedicated host (Section 8.2).  The same record
+   directs canonical lookups to the same document.
 
-   The host name alone is not an opt-in.  Some domains let untrusted
+   The host name alone is not an opt-in: some domains let untrusted
    users claim subdomains or serve content on them, and an attacker
    could claim oauth-issuer-policy ([RFC8461] Section 10.3).  Subject
    Authorities whose domains let others claim subdomains SHOULD also
    reserve the oauth-issuer-policy label, in addition to publishing the
-   opt-in record.  Not every TXT record at _oauth-issuer-policy.{A} is
-   an opt-in either.  A Subject Authority that publishes only an inline
-   record, or a pointer to another host, has not set up the dedicated
-   host.
+   opt-in record.  Nor is every TXT record at _oauth-issuer-policy.{A}
+   an opt-in: an inline record, or a pointer to another host, does not
+   set up the dedicated host.
 
    Unlike the apex, the dedicated host can be delegated to a hosting
    provider (for example, by a CNAME record) without giving that
@@ -716,12 +673,11 @@ Table of Contents
 4.3.  DNS Record
 
    The Subject Authority publishes one or more DNS TXT records at
-   _oauth-issuer-policy.{A}, where {A} is the Subject Authority rendered
-   as a DNS name.  Internationalized names are converted to A-labels by
-   the procedure of [TRUST-FRAMEWORK] §Subject Authority Determination
-   before the prefix is prepended.  DNS lookup names are formed without
-   a trailing dot for comparison purposes; the wire-format root label is
-   not part of the Subject Authority value.
+   _oauth-issuer-policy.{A}. Internationalized names are converted to
+   A-labels by the procedure of [TRUST-FRAMEWORK] §Subject Authority
+   Determination before the prefix is prepended.  DNS lookup names are
+   formed without a trailing dot for comparison purposes; the wire-
+   format root label is not part of the Subject Authority value.
 
    The string segments of a TXT record ([RFC1035]) are concatenated
    without separator and interpreted as ASCII text.  A recognized record
@@ -734,22 +690,19 @@ Table of Contents
    followed by end of record, whitespace, or ;. In a recognized record,
    the version token is followed by optional whitespace and then end of
    record or a ; separator; anything else makes the record malformed
-   (Section 5.1).  The version token matches only that exact string: a
-   different token (for example, a future v=oauth-issuer-policy2) is not
-   recognized, so the record is treated as unrecognized (not malformed)
-   and is ignored by the recognition rule.  Records that do not begin
-   with a supported version token MUST be ignored.  A v= directive
-   appearing anywhere other than the start of a recognized record makes
-   the record malformed (Section 5.1).
+   (Section 5.1).  A record that begins with a different version token
+   (for example, a future v=oauth-issuer-policy2) is unrecognized, not
+   malformed.  Records that do not begin with a supported version token
+   MUST be ignored.  A v= directive appearing anywhere other than the
+   start of a recognized record makes the record malformed
+   (Section 5.1).
 
    The remainder of a recognized record is a sequence of name=value
    directives separated by ;. Parsing rules:
 
    *  Whitespace (space and horizontal tab) immediately before and after
       each directive is ignored.  A value MUST NOT contain whitespace or
-      non-ASCII characters; the directive values defined here (domain
-      names in A-label form and absolute HTTPS URLs) are ASCII by
-      construction.
+      non-ASCII characters.
 
    *  Directive names are case-insensitive ASCII.  Values are case-
       sensitive and preserved as written.
@@ -772,9 +725,9 @@ Table of Contents
    *  Unrecognized directives MUST be ignored.
 
    The following ABNF ([RFC5234] with the case-sensitive string
-   extension of [RFC7405]) is normative for the record syntax, and the
-   prose above agrees with it.  A recognized record that does not match
-   record is malformed (Section 5.1).
+   extension of [RFC7405]) is normative for the record syntax.  A
+   recognized record that does not match record is malformed
+   (Section 5.1).
 
    record        = OWS version OWS *( ";" directive ) [ ";" OWS ]
    version       = %s"v=oauth-issuer-policy1"
@@ -792,9 +745,9 @@ Table of Contents
       Subject Authority computed from the query name (also in A-label
       form) using the case-insensitive ASCII comparison rules in
       [TRUST-FRAMEWORK] §Subject Authority Determination.  Records whose
-      authority= value does not match are discarded (see the lookup
-      procedure in Section 5).  A recognized record containing more than
-      one authority= directive is malformed (Section 5.1).
+      authority= value does not match are discarded (Section 5).  A
+      recognized record containing more than one authority= directive is
+      malformed (Section 5.1).
 
    uri=URL  OPTIONAL.  An HTTPS URL identifying an Issuer Authorization
       Policy document.  The URL MAY be on a different host than A.  MUST
@@ -808,16 +761,14 @@ Table of Contents
 
    key=THUMBPRINT  OPTIONAL.  The JWK SHA-256 thumbprint [RFC7638],
       base64url-encoded without padding, of the key that signs the
-      signed_policy of the document named by uri=. The thumbprint is a
-      hash of the public key's JSON Web Key form.  That key is the
+      signed_policy of the document named by uri=. That key is the
       Subject Authority's policy-signing key, not an Assertion Issuer's
       assertion-signing key.
 
-      The directive is valid only in a record that carries uri=. In any
-      other record it is malformed.  At most two distinct key= values
-      may appear across the remaining records, so that a Subject
-      Authority can publish an old and a new key during a rollover.
-      More than two is malformed.
+      The directive is valid only in a record that carries uri=; in any
+      other record it is malformed.  Two distinct key= values across the
+      remaining records let a Subject Authority publish an old and a new
+      key during a rollover; more than two is malformed.
 
       When key= is present:
 
@@ -846,8 +797,7 @@ Table of Contents
 
    A Subject Authority MUST publish records for at most one version of
    this mechanism at a time.  This document defines only oauth-issuer-
-   policy1.  Future versions that are not understood by a consumer are
-   ignored by the recognition rule above.
+   policy1.
 
 4.4.  HTTPS Document URL
 
@@ -855,33 +805,28 @@ Table of Contents
 
    https://oauth-issuer-policy.{A}/.well-known/oauth-issuer-policy
 
-   where {A} is the Subject Authority rendered as a DNS name (A-label
-   form).  The URL uses the https scheme, the host oauth-issuer-
-   policy.{A}, the default HTTPS port (443), and the well-known path
-   [RFC8615]; it has no userinfo, port, query, or fragment component.  A
-   Subject Authority whose form has no DNS-name representation (none is
-   defined in this document beyond the email-derived DNS domain) cannot
-   use the dedicated host.  Consumers fetch this URL with an HTTP GET
-   over HTTPS with TLS server authentication and interpret the response
-   body as the JSON document defined in Section 3.
+   The URL's path is a well-known URI [RFC8615], and the URL has no
+   userinfo, port, query, or fragment component.  A Subject Authority
+   whose form has no DNS-name representation (none is defined in this
+   document beyond the email-derived DNS domain) cannot use the
+   dedicated host.  Consumers fetch this URL with an HTTP GET over HTTPS
+   with TLS server authentication and interpret the response body as the
+   JSON document defined in Section 3.
 
-   A URL obtained from a DNS uri= directive is fetched the same way; the
-   host serving the URL is responsible for TLS server authentication of
-   itself, not of A.
+   A URL obtained from a DNS uri= directive is fetched the same way; TLS
+   authenticates the host serving that URL, not A.
 
-   Every policy fetch defined here (the default URL and a uri= target)
-   is an outbound fetch subject to [TRUST-FRAMEWORK] §Outbound Fetches;
-   see also Section 9.10.
+   Every policy fetch defined here is an outbound fetch subject to
+   [TRUST-FRAMEWORK] §Outbound Fetches; see also Section 9.10.
 
    Consumers MUST NOT follow HTTP redirects when fetching a policy, as
    in MTA-STS ([RFC8461] Section 3.3): a 3xx response other than a 304
    validating a held cached policy is Indeterminate (Section 5.1).
    Policy hosting on another host is expressed only through the uri=
-   pointer, where the delegation is published in DNS and visible to the
-   Subject Authority.  The response MUST have HTTP status 200 and a
-   media type of application/json or any media type using the structured
-   +json suffix (media type parameters ignored); any other status is
-   classified per Section 5.1.
+   pointer, which publishes the delegation in DNS.  The response MUST
+   have HTTP status 200 and a media type of application/json or any
+   media type using the structured +json suffix (media type parameters
+   ignored); any other status is classified per Section 5.1.
 
 4.5.  HTTPS Policy Document Contract
 
@@ -920,21 +865,16 @@ Table of Contents
    The consumer stores those values with the cached policy.  If either
    condition does not hold, it fetches without a conditional request.
 
-   The document's shape and members are defined, with an example, in
-   Section 3.
-
 5.  Lookup Procedure
 
-   To retrieve the Issuer Authorization Policy for a Subject Authority
-   A, a Resource Authorization Server performs the following steps.  The
-   procedure consults DNS only, plus the uri= target a DNS record names.
-   The TXT record is the Subject Authority's opt-in: its absence is
-   Negative, and no other channel is consulted.
-
-   This is the canonical procedure used by the domain_authorized_issuer
-   Trust Method.  The HTTPS-only lookup mode defined in Section 8.2 uses
-   the DNS record as the opt-in and for any key= pin, and fetches the
-   policy only from the dedicated policy host.
+   A Resource Authorization Server retrieves the Issuer Authorization
+   Policy for a Subject Authority A with the following steps, the
+   canonical lookup procedure of the domain_authorized_issuer Trust
+   Method.  The procedure consults only DNS and the uri= target a DNS
+   record names.  The TXT record is the Subject Authority's opt-in: its
+   absence is Negative, and no other channel is consulted.  The HTTPS-
+   only lookup mode (Section 8.2) instead fetches the policy only from
+   the dedicated policy host; Section 8.3 covers the choice of mode.
 
    1.  Query the DNS TXT resource record set at _oauth-issuer-
        policy.{A}. Classify the response as:
@@ -953,45 +893,39 @@ Table of Contents
 
        a.  Discard recognized records whose authority= directive does
        not match A under the Subject Authority comparison rules in
-       [TRUST-FRAMEWORK] §Subject Authority Determination.  If any
-       recognized record is missing an authority= directive, treat the
-       response as malformed.  If all recognized records are discarded
-       because of authority= mismatch, treat the response as malformed.
-       (A malformed outcome is classified as Indeterminate,
-       Section 5.1.)  Finding a record's authority= directive requires
-       only splitting the record into directives at ;; a record
-       discarded for authority= mismatch is not otherwise validated.
+       [TRUST-FRAMEWORK] §Subject Authority Determination.  The response
+       is malformed if any recognized record lacks an authority=
+       directive, or if all recognized records are discarded for
+       authority= mismatch.  A malformed outcome is Indeterminate
+       (Section 5.1).  Finding a record's authority= directive requires
+       only splitting the record into directives at ;; a discarded
+       record is not otherwise validated.
 
-       Before continuing, validate the remaining recognized records
-       against the directive rules in Section 4.3.  This includes
-       rejecting malformed uri= or issuer= values, and records with
-       neither uri= nor issuer=. Any such condition is a malformed
-       outcome.
+       Then validate the remaining recognized records against the
+       directive rules in Section 4.3.  A malformed uri= or issuer=
+       value, a record with neither, or any other violation is
+       malformed.
 
        b.  If any remaining record contains a uri= directive:
 
        *  If more than one distinct uri= value is present across the
           remaining records, treat as malformed.
 
-       *  Otherwise fetch the JSON policy from that URL per Section 4.4.
-          The fetched document is the Issuer Authorization Policy.  All
-          issuer= directives across all records are ignored: their
-          values do not contribute to the policy, but the directive-
-          validity rules of Section 4.3 were already applied in step 2a,
-          so a record set malformed under those rules never reaches this
-          step.  If a key= directive is present, the document is
-          verified as that directive requires.
+       *  Otherwise fetch the Issuer Authorization Policy from that URL
+          per Section 4.4.  All issuer= directives across all records
+          are ignored; step 2a has already applied their validity rules.
+          If a key= directive is present, the document is verified as
+          that directive requires.
 
        c.  Otherwise (no uri= present), construct a virtual Issuer
-       Authorization Policy, one built from the records rather than
-       fetched, with subject_authority set to A and one entry in
-       authorized_issuers for each distinct issuer= value across the
-       remaining records.  Entry order carries no semantics (Section 6);
-       the deduplicated values form a set.  Entries have no tenant,
+       Authorization Policy from the records, with subject_authority set
+       to A and one entry in authorized_issuers for each distinct
+       issuer= value across the remaining records.  Entry order carries
+       no semantics (Section 6).  Entries have no tenant,
        subject_identifier_formats, valid_from, or valid_until.  The
        virtual policy is processed identically to one fetched over
-       HTTPS, except that its cache lifetime is derived from DNS TTLs as
-       described in Section 7.
+       HTTPS, except that its cache lifetime is derived from DNS TTLs
+       (Section 7).
 
    3.  If the DNS response is negative-authoritative, the lookup is
        Negative (Section 5.1): the Subject Authority has not published a
@@ -1004,22 +938,18 @@ Table of Contents
        force the consumer onto a path the attacker has compromised
        separately.
 
-   Under the HTTPS-only lookup mode, a Subject Authority is found only
-   if it publishes both a record whose uri= is the default URL and a
-   policy on the dedicated host (Section 8.3).  A Resource Authorization
-   Server that cannot resolve DNS (resolver failure, untrusted
-   resolution path) classifies the lookup as Indeterminate
-   (Section 5.1).
+   A Resource Authorization Server that cannot resolve DNS (resolver
+   failure, untrusted resolution path) classifies the lookup as
+   Indeterminate (Section 5.1).
 
 5.1.  Failure Handling
 
-   DAI lookup outcomes map onto the Affirmative / Negative /
+   DAI lookup outcomes map onto the Affirmative, Negative, and
    Indeterminate lookup states of the Authority Delegation Model
-   ([TRUST-FRAMEWORK] §Lookup States and Fail-Closed).  The normative
-   requirements (fail closed on Negative and Indeterminate; no fallback
-   to a different Authority Source; bounded cache reuse on transient
-   Indeterminate) apply unchanged; this section maps the concrete DAI
-   outcomes onto those states.
+   ([TRUST-FRAMEWORK] §Lookup States and Fail-Closed), whose
+   requirements apply unchanged, as does the prohibition on falling
+   through to another Authority Source ([TRUST-FRAMEWORK] §Multiple
+   Authority Sources Within a Category).
 
    +===============+==================================================+
    | State         | DAI outcomes                                     |
@@ -1044,9 +974,10 @@ Table of Contents
    | Negative      | Under canonical lookup, DNS negative-            |
    |               | authoritative.  Under the HTTPS-only lookup mode |
    |               | (Section 8.2), DNS negative-authoritative for    |
-   |               | the opt-in record, or no remaining record whose  |
-   |               | uri= is the default URL.  No policy is published |
-   |               | at the location the lookup consults.             |
+   |               | the opt-in record.  No policy is published at    |
+   |               | the location the lookup consults.  A recognized  |
+   |               | record without the default uri= is Indeterminate |
+   |               | (Section 8.2).                                   |
    +---------------+--------------------------------------------------+
    | Indeterminate | Any other outcome, fail-closed by default.  See  |
    |               | enumeration below.                               |
@@ -1114,22 +1045,19 @@ Table of Contents
 
    The following deterministic conflict rules apply:
 
-   *  Multiple recognized TXT records containing no uri= directive are
-      merged into a single virtual policy. issuer= values across records
-      are deduplicated into a set; order carries no semantics
+   *  Multiple recognized TXT records containing no uri= directive merge
+      into one virtual policy whose issuer= values form an unordered set
       (Section 5, step 2c).
 
-   *  If any recognized record contains a uri= directive after
-      authority= filtering, the HTTPS document at the single uri= target
-      is authoritative and all issuer= directives across all records are
-      ignored (Section 5, step 2b).  More than one distinct uri= value
-      is malformed.
+   *  If any remaining record contains a uri= directive, the HTTPS
+      document at the single uri= target is authoritative and all
+      issuer= directives are ignored; more than one distinct uri= value
+      is malformed (Section 5, step 2b).
 
-   *  Canonical lookup takes the policy from the DNS record and the uri=
-      target it names; the HTTPS-only lookup mode requires a record
-      whose uri= is the default URL and takes the policy only from that
-      URL.  Because the opt-in record directs canonical lookup to the
-      same URL, both modes retrieve the same document (Section 4.2).
+   *  Both lookup modes retrieve the same document: the HTTPS-only
+      lookup mode requires a record whose uri= is the default URL, and
+      that record directs canonical lookup to the same URL
+      (Section 4.2).
 
    *  Multiple authorized_issuers entries for the same issuer value but
       different tenant values are independent authorizations.  Entries
@@ -1175,8 +1103,8 @@ Table of Contents
    4.  Determine whether any entry in authorized_issuers matches.  An
        entry matches when all of the following hold:
 
-       a. issuer equals the JWT iss claim under case-sensitive URL
-       string comparison (the comparison rule fixed in Section 3).
+       a. issuer equals the JWT iss claim under the case-sensitive
+       string comparison of Section 3.
 
        b.  If the entry contains a tenant member, its value exactly
        matches the assertion's top-level tenant claim (in ID-JAG,
@@ -1196,11 +1124,9 @@ Table of Contents
 
        The Trust Method is satisfied when step 3 succeeds and at least
        one entry matches under (a)-(d).  Entry order in
-       authorized_issuers carries no semantics: the outcome is the
-       boolean "does any entry match," so two consumers evaluating the
-       same policy against the same assertion reach the same result
-       regardless of array order or of which matching entry they examine
-       first.
+       authorized_issuers carries no semantics: the result does not
+       depend on array order or on which matching entry a consumer
+       examines first.
 
    If step 1 fails, the assertion is rejected ([TRUST-FRAMEWORK]
    §Resource Authorization Server Processing, step 5c).  If step 2 does
@@ -1230,29 +1156,24 @@ Table of Contents
 
                                  Table 4
 
-   Under a grant profile that carries no tenant claim, an entry with
-   tenant never matches, and an entry without tenant matches only an
-   assertion that carries no tenant claim.
-
 6.1.  Observing Before Enforcing
 
    This document defines no mode in which a published policy is
    evaluated without being enforced.  Under fail-closed evaluation, a
    namespace with no policy gets no authorization from this Trust Method
-   (Section 5.1), so a Subject Authority's first publication withdraws
-   nothing that this method granted.  A mode that accepted assertions
-   despite a mismatch would instead admit more issuers than publishing
-   nothing.
+   (Section 5.1), so a first publication withdraws nothing this method
+   granted.  A mode that accepted mismatched assertions would admit more
+   issuers than publishing nothing.
 
    A Resource Authorization Server introducing domain_authorized_issuer
-   can observe before it enforces: it evaluates the Trust Method for
-   incoming assertions and logs the outcome (Subject Authority,
-   Assertion Issuer, matched or not) while its Trust Policy does not yet
-   list the method.  Because only listed methods are applicable
-   ([TRUST-FRAMEWORK] §Category Applicability), observation does not
-   affect acceptance.  The Resource Authorization Server can share what
-   it observes with affected Subject Authorities out of band; a
-   reporting mechanism is sketched in Appendix B.
+   can observe before it enforces: it evaluates the Trust Method and
+   logs each outcome (Subject Authority, Assertion Issuer, matched or
+   not) while its Trust Policy does not yet list the method.  Because
+   only listed methods are applicable ([TRUST-FRAMEWORK] §Category
+   Applicability), observation does not affect acceptance.  The Resource
+   Authorization Server can share what it observes with affected Subject
+   Authorities out of band; a reporting mechanism is sketched in
+   Appendix B.
 
 7.  Caching
 
@@ -1312,61 +1233,58 @@ Table of Contents
       answer that produced them.  A cache lifetime of 5 minutes is
       RECOMMENDED for Negative results.  The lifetime of the DNS answer
       is the negative TTL ([RFC2308]) for an NXDOMAIN or NODATA answer.
-      For an answer that contains records but none that yields a policy,
-      it is the remaining TTL of the TXT record set.  Such an answer has
-      no recognized record.  The short cap makes a Subject Authority's
-      first publication, and its recovery from a brief publication-
-      channel takeover, visible promptly.  The same cap SHOULD apply to
-      a cached explicit-denial policy (Section 3).
+      For an answer with records but no recognized record, it is the
+      remaining TTL of the TXT record set.  The short cap makes a
+      Subject Authority's first publication, and its recovery from a
+      brief publication-channel takeover, visible promptly.  The same
+      cap SHOULD apply to a cached explicit-denial policy (Section 3).
 
    *  Indeterminate outcomes MAY be cached for a short period (no more
       than 5 minutes is RECOMMENDED) to absorb retry storms; an
       Indeterminate cache entry MUST NOT be treated as a policy and
       never satisfies the Trust Method.
 
-   After a Subject Authority removes an issuer, each cached entry at a
-   consumer remains usable for its remaining freshness lifetime plus up
-   to 1 hour of stale-if-error use, never beyond the absolute ceiling.
-   The overall revocation window is longer than one entry's lifetime.
-   The change has to reach every authoritative server.  Upstream caches
-   can also keep serving the old authorization when a consumer
-   refreshes: recursive resolvers for the old record's full advertised
-   TTL ([RFC1035] Section 4.1.3), and HTTP caches for the document's
-   freshness lifetime.  The window is therefore up to the propagation
-   time plus those upstream lifetimes, plus one consumer freshness
-   lifetime and the stale-if-error hour.  Steady-state lifetimes of 1
-   hour or less, as recommended above, keep it to a few hours.  For a
-   signed policy on a host the Subject Authority does not control, the
-   host can also replay the superseded policy until its exp, at most 24
-   hours after its iat (Section 3.1).
+   After a Subject Authority removes an issuer, consumers can still
+   accept it for up to the sum of:
+
+   *  the time for the change to reach every authoritative server;
+
+   *  upstream cache lifetimes: recursive resolvers can serve the old
+      record for its full advertised TTL ([RFC1035] Section 4.1.3), and
+      HTTP caches the old document for its freshness lifetime; and
+
+   *  one consumer freshness lifetime plus up to 1 hour of stale-if-
+      error use, never beyond the absolute ceiling.
+
+   Steady-state lifetimes of 1 hour or less, as recommended above, keep
+   this window to a few hours.  For a signed policy on a host the
+   Subject Authority does not control, the host can also replay the
+   superseded policy until its exp, at most 24 hours after its iat
+   (Section 3.1).
 
 8.  Trust Methods
 
    This document defines domain_authorized_issuer as a
-   subject_namespace_authorization Trust Method of [TRUST-FRAMEWORK].
-   DNS at _oauth-issuer-policy.{A} is the publication channel for
-   canonical lookup; under the HTTPS-only lookup mode the record is an
-   opt-in and a dedicated HTTPS host serves the policy.  The Trust
-   Method registers in the Identity Assertion Trust Methods registry
+   subject_namespace_authorization Trust Method of [TRUST-FRAMEWORK],
+   registered in the Identity Assertion Trust Methods registry
    ([TRUST-FRAMEWORK] §Identity Assertion Trust Methods Registry).
 
 8.1.  domain_authorized_issuer
 
    The domain_authorized_issuer method indicates that the Assertion
    Issuer is acceptable if the Subject Authority identified by the
-   assertion's Subject Identifier authorizes the Assertion Issuer to
-   assert identities in that namespace.  The method uses the publication
-   channels (Section 4.1), lookup procedure (Section 5), and
-   verification rules (Section 6) of this document.
+   assertion's Subject Identifier authorizes it to assert identities in
+   that namespace.  It uses the publication channels (Section 4.1),
+   lookup procedure (Section 5), and verification rules (Section 6) of
+   this document.
 
-   This Trust Method natively expresses authorization for either form of
-   multi-tenant Assertion Issuer:
+   This Trust Method expresses authorization for either form of multi-
+   tenant Assertion Issuer:
 
    *  *Per-tenant issuer identifiers* (for example,
-      https://login.microsoftonline.com/{tenant-id}/v2.0): the
-      authorized_issuers[].issuer field accepts any absolute HTTPS URL
-      issuer identifier, and case-sensitive comparison against the JWT
-      iss claim distinguishes tenants under the same host.  Each
+      https://login.microsoftonline.com/{tenant-id}/v2.0): case-
+      sensitive comparison of issuer against the JWT iss claim
+      (Section 3) distinguishes tenants under the same host, so each
       authorized tenant is one authorized_issuers entry.  If such an
       issuer also sends a tenant claim, the entry carries the same
       tenant value (Section 6, step 4b), which only the pointer form can
@@ -1375,33 +1293,31 @@ Table of Contents
    *  *Shared issuer with a tenant claim* (for example,
       https://accounts.google.com serving every Google Workspace tenant
       via the top-level tenant claim of [ID-JAG] §6.1): the
-      authorized_issuers[].tenant field binds the authorization to a
-      specific tenant of the shared issuer, with the security properties
-      described in Section 9.9.
+      authorized_issuers[].tenant field binds the authorization to one
+      tenant of the shared issuer, with the security properties in
+      Section 9.9.
 
    {
      "method": "domain_authorized_issuer"
    }
 
-   With no additional members, the Resource Authorization Server
-   retrieves the Issuer Authorization Policy by applying the canonical
-   lookup procedure in Section 5: a DNS query at _oauth-issuer-
-   policy.{A}, with no HTTPS fallback.  The optional lookup member is
-   used only for the HTTPS-only deployment variant in Section 8.2.
+   With no additional members, the Resource Authorization Server applies
+   the canonical lookup procedure (Section 5).  The optional lookup
+   member selects the HTTPS-only deployment variant (Section 8.2).
 
 8.2.  HTTPS-Only Deployment Variant
 
    Some deployments will not take issuers or a policy location from DNS.
-   Those deployments can use the same Issuer Authorization Policy
-   document format, retrieved over HTTPS from the Subject Authority's
-   dedicated policy host (Section 4.2), with the DNS record serving as
-   the Subject Authority's opt-in.  This is a deployment variant of the
-   DAI mechanism, not a second Trust Method registered by this document.
+   They can retrieve the same Issuer Authorization Policy (Section 3)
+   over HTTPS from the Subject Authority's dedicated policy host
+   (Section 4.2), with the DNS record serving as the Subject Authority's
+   opt-in.  This is a deployment variant of the DAI mechanism, not a
+   second Trust Method registered by this document.
 
    Under this variant, the Assertion Issuer is acceptable if the Subject
    Authority identified by the assertion's Subject Identifier publishes
-   the opt-in record and an Issuer Authorization Policy on its dedicated
-   policy host authorizing the Assertion Issuer.
+   the opt-in record and, on its dedicated policy host, an Issuer
+   Authorization Policy authorizing the Assertion Issuer.
 
    {
      "method": "domain_authorized_issuer",
@@ -1410,21 +1326,6 @@ Table of Contents
 
    The lookup member is OPTIONAL.  If present, its value MUST be
    https_only.
-
-   This variant reuses:
-
-   *  the Issuer Authorization Policy document format (Section 3);
-
-   *  the Subject Authority determination rules ([TRUST-FRAMEWORK]
-      §Subject Authority Determination);
-
-   *  the HTTPS document URL (Section 4.4);
-
-   *  the verification rules (Section 6);
-
-   *  the caching rules (Section 7); and
-
-   *  the DNS query of Section 5, for the opt-in.
 
    This variant takes no issuers or policy location from DNS.
 
@@ -1442,11 +1343,11 @@ Table of Contents
        records is malformed.  A negative-authoritative response is
        Negative.  The Subject Authority has opted in to this mode only
        if a remaining record carries a uri= whose value is exactly the
-       default URL (Section 4.2).  When recognized records remain but
-       none does, the Subject Authority has published a policy this
-       lookup mode does not retrieve, and the outcome is Indeterminate.
-       An indeterminate or malformed response is Indeterminate.  The
-       records' issuer= values are not used.
+       default URL (Section 4.2).  If recognized records remain but none
+       does, the outcome is Indeterminate: the Subject Authority has
+       published a policy this mode does not retrieve.  An indeterminate
+       or malformed response is Indeterminate.  The records' issuer=
+       values are not used.
 
    3.  Fetch the Issuer Authorization Policy from the default URL
        https://oauth-issuer-policy.{A}/.well-known/oauth-issuer-policy
@@ -1467,42 +1368,26 @@ Table of Contents
    5.  Verify the fetched policy and match the Assertion Issuer against
        authorized_issuers using steps 3 and 4 of Section 6.
 
-   A Resource Authorization Server uses this variant when it requires
-   the policy itself to come over HTTPS and does not accept policy
-   content published in DNS (inline or DNS pointer).  Compared to
-   canonical DNS-first lookup, this mode:
-
-   *  Removes the TXT record's issuers and policy location from the
-      trust path.  The record remains the opt-in and can pin the
-      policy's signing key with key=. DNS integrity still matters,
-      because the dedicated host is still located through DNS and
-      issuance of its TLS certificate typically relies on DNS-based
-      validation.  What changes is that an attacker must also obtain a
-      certificate for the host, not only answer a TXT query.
-
-   *  Ignores inline issuers and any uri= other than the default URL.
-      Using either would require trusting DNS to select the issuers or
-      the policy host.
-
-   *  Requires the Subject Authority to provision the dedicated host,
-      which it can delegate to a hosting provider without giving up
-      control of its apex web origin.
+   Compared to canonical lookup, this mode removes the TXT record's
+   issuers and policy location from the trust path and requires the
+   Subject Authority to provision the dedicated host (Section 4.2).  DNS
+   integrity still matters: DNS locates the dedicated host, and issuance
+   of its TLS certificate typically relies on DNS-based validation.
+   What changes is that an attacker must also obtain a certificate for
+   the host, not only answer a TXT query (Section 9.3).
 
 8.3.  Choosing the Lookup Mode
 
    Within domain_authorized_issuer, a Resource Authorization Server
    selects one lookup mode:
 
-   *  *Canonical DNS-first lookup* is the default.  The Resource
-      Authorization Server queries _oauth-issuer-policy.{A} and consults
-      nothing else except the uri= target that record names (Section 5).
+   *  *Canonical DNS-first lookup* (Section 5) is the default.
 
-   *  *HTTPS-only lookup* is an explicit deployment variant.  Use it
-      when local policy distrusts issuers or policy locations published
-      in DNS and requires the policy itself to come over TLS-
-      authenticated HTTPS from the dedicated host.  The DNS record is
-      still required, as the opt-in, and its uri= names the default URL;
-      its inline issuers are not used.
+   *  *HTTPS-only lookup* (Section 8.2) is an explicit deployment
+      variant for local policy that distrusts issuers or policy
+      locations published in DNS and requires the policy itself to come
+      over TLS-authenticated HTTPS from the dedicated host.  It still
+      requires the DNS record as the opt-in.
 
    A Trust Policy MUST NOT list more than one domain_authorized_issuer
    object; a Resource Authorization Server treats a policy that does as
@@ -1517,36 +1402,34 @@ Table of Contents
 
 9.  Security Considerations
 
-   The Issuer Authorization Policy is a security-critical document.  Its
-   integrity determines which Assertion Issuers can assert identities in
-   the Subject Authority's namespace.
+   The Issuer Authorization Policy is security-critical: its integrity
+   determines which Assertion Issuers can assert identities in the
+   Subject Authority's namespace.
 
 9.1.  Namespace Authority Bootstrap
 
    DAI's authority binding is DNS control of the registrable domain and,
    under the HTTPS-only lookup mode, of the dedicated policy host name
-   under it.  This follows the bootstrap model of CAA [RFC8659] and MTA-
-   STS [RFC8461]: an explicit DNS opt-in, a dedicated policy host, and
-   no redirects.  Pre-existing DNS realities (typosquatting, expired-
-   domain takeover, registrar account compromise) apply unchanged and
-   are not introduced by this document.  The registrable-domain default
-   contains subdomain-takeover impact ([TRUST-FRAMEWORK] §Subject
-   Authority Determination); identity binding beyond DNS control (legal-
-   entity verification) requires out-of-band mechanisms.
+   under it.  As in CAA [RFC8659] and MTA-STS [RFC8461], bootstrap uses
+   an explicit DNS opt-in, a dedicated policy host, and no redirects.
+   Pre-existing DNS risks (typosquatting, expired-domain takeover,
+   registrar account compromise) apply unchanged.  The registrable-
+   domain default contains subdomain-takeover impact ([TRUST-FRAMEWORK]
+   §Subject Authority Determination).  Identity binding beyond DNS
+   control (legal-entity verification) requires out-of-band mechanisms.
 
-   DNS control is also, in practice, control of the domain's mail.
-   Whoever controls the zone can change its MX records and receive
-   password-reset and account-recovery messages for its addresses.
-   Where email-based recovery alone is enough to take over an account at
-   a Resource Authorization Server, an attacker who controls the
-   domain's DNS gains little from this Trust Method that it did not
-   already have.  [I-D.hardt-email-verification] makes the same
-   observation about its own DNS delegation.  Where accounts are
-   protected by stronger recovery (for example, phishing-resistant
-   authenticators or administrator-approved recovery), DNS control is
-   not equivalent to account takeover.  For such accounts, this Trust
-   Method makes DNS control a direct route to asserting identities in
-   the namespace.
+   DNS control is in practice also control of the domain's mail: whoever
+   controls the zone can change its MX records and receive password-
+   reset and account-recovery messages for its addresses.  Where email-
+   based recovery alone can take over an account at a Resource
+   Authorization Server, an attacker who controls the domain's DNS gains
+   little from this Trust Method that it did not already have;
+   [I-D.hardt-email-verification] makes the same observation about its
+   own DNS delegation.  Where accounts have stronger recovery (for
+   example, phishing-resistant authenticators or administrator-approved
+   recovery), DNS control alone does not take them over, but this Trust
+   Method makes it a direct route to asserting identities in the
+   namespace.
 
 9.2.  Transport Integrity
 
@@ -1559,9 +1442,8 @@ Table of Contents
 9.3.  HTTPS-Only Authority Trust Model
 
    The HTTPS-only lookup mode (Section 8.2) substitutes TLS-server
-   authentication for DNS-published authority.  The threat surfaces
-   differ from the canonical DNS-first lookup of
-   domain_authorized_issuer:
+   authentication for DNS-published authority.  Its threat surfaces
+   differ from those of canonical DNS-first lookup:
 
    *  DNS-record attacks (Section 9.4) can create or remove the opt-in,
       or publish a key= that makes retrieval fail (Indeterminate), but
@@ -1580,25 +1462,22 @@ Table of Contents
       CAA records and Certificate Transparency monitoring are the
       primary defenses (Section 9.2).
 
-   *  The policy is served from the Subject Authority's dedicated host,
-      so the risk is that of whoever operates that host (Section 9.5),
-      unless a key= directive pins the policy's signing key.
+   *  The policy's integrity rests on whoever operates the dedicated
+      host (Section 9.5) unless a key= directive pins the policy's
+      signing key.
 
    *  Because the dedicated host is a separate name, a Subject Authority
-      whose apex is hosted on a marketing site or CDN it does not
-      control can still participate, by provisioning or delegating that
-      name.
+      whose apex is on a marketing site or CDN it does not control can
+      still participate by provisioning or delegating it.
 
-   The trade-off between the two lookup modes is discussed in
-   Appendix A.4.
+   Appendix A.4 discusses the trade-off between the two lookup modes.
 
 9.4.  DNS Integrity and Compromise
 
-   An adversary who can substitute a forged DNS response can substitute
-   the Subject Authority's policy.  Such responses come from off-path
-   resolver spoofing, authoritative nameserver hijack, registrar account
-   compromise, BGP hijack, or recursive cache poisoning.  The adversary
-   can:
+   An adversary who can forge DNS responses, through off-path resolver
+   spoofing, authoritative nameserver hijack, registrar account
+   compromise, BGP hijack, or recursive cache poisoning, can substitute
+   the Subject Authority's policy.  It can:
 
    *  add an attacker-controlled Assertion Issuer to the inline form;
 
@@ -1607,9 +1486,8 @@ Table of Contents
    *  force indeterminate outcomes to benefit a cached attacker-friendly
       policy.
 
-   The pointer form additionally depends on TLS authentication of the
-   pointed-at host: TLS does not mitigate the DNS compromise that
-   selected that host.
+   For the pointer form, TLS authentication of the pointed-at host does
+   not mitigate the DNS compromise that selected that host.
 
    Absent DNSSEC or an authenticated resolver path, the inline DNS
    form's integrity is no stronger than the recursive resolver path
@@ -1649,37 +1527,44 @@ Table of Contents
       vetted resolver).
 
    Forged negative answers: a negative-authoritative DNS result is
-   Negative (Section 5).  When domain_authorized_issuer is the only
-   subject_namespace_authorization method the Trust Policy lists, an
-   attacker who spoofs a negative answer can deny service for the
-   namespace but cannot substitute a policy.  Because Negative caching
-   is capped (Section 7), the denial ends soon after the spoofing does.
+   Negative (Section 5).  When domain_authorized_issuer is the Trust
+   Policy's only subject_namespace_authorization method, an attacker who
+   spoofs a negative answer can deny service for the namespace but
+   cannot substitute a policy.  Negative caching is capped (Section 7),
+   so the denial ends soon after the spoofing does.
 
    When the Trust Policy also lists another namespace method, a Negative
    lets that method supply evidence ([TRUST-FRAMEWORK] §Multiple
-   Authority Sources Within a Category).  A spoofed negative answer can
-   then suppress a published policy that does not authorize the issuer
-   and let the other method authorize it.  In that configuration a
-   consumer protects the Subject Authority's denial only if it
-   authenticates the absence, for example by validating DNSSEC.  Signing
-   the zone does not help a consumer that accepts unvalidated negative
-   answers.  The cache cap limits reuse of one forged answer, not an
-   attacker who keeps forging fresh ones.
+   Authority Sources Within a Category), so a spoofed negative answer
+   can suppress a published policy that does not authorize the issuer
+   and let the other method authorize it.  In that configuration, only a
+   consumer that authenticates the absence, for example by validating
+   DNSSEC, protects the Subject Authority's denial; signing the zone
+   does not help a consumer that accepts unvalidated negative answers.
+   The cache cap limits reuse of one forged answer, not an attacker who
+   keeps forging fresh ones.
 
-   Operational defenses Subject Authorities are encouraged to apply:
-   registrar account lock; monitoring of the record set and policy
-   document for unexpected changes; cross-region/cross-resolver checks
-   to detect localized substitution; avoiding wildcard TXT records in
-   zones participating in this mechanism.
+   Subject Authorities are encouraged to apply these operational
+   defenses:
+
+   *  registrar account lock;
+
+   *  monitoring of the record set and policy document for unexpected
+      changes;
+
+   *  cross-region and cross-resolver checks to detect localized
+      substitution; and
+
+   *  avoiding wildcard TXT records in zones participating in this
+      mechanism.
 
 9.5.  Policy Hosts
 
-   The DNS pointer form lets the Subject Authority move rich policy from
-   DNS into an HTTPS document.  In this version, the pointed-to host is
-   expected to be under the Subject Authority's operational control.
-   General shared-infrastructure risks (multi-tenant CDNs, cache rules,
-   dangling origins) are covered in [TRUST-FRAMEWORK] §Shared
-   Infrastructure and Hosted Well-Known Paths.  DAI-specific points:
+   The DNS pointer form moves rich policy from DNS into an HTTPS
+   document.  General shared-infrastructure risks (multi-tenant CDNs,
+   cache rules, dangling origins) are covered in [TRUST-FRAMEWORK]
+   §Shared Infrastructure and Hosted Well-Known Paths.  DAI-specific
+   points:
 
    *  The pointer target is trusted fully for the policy contents and is
       appropriate only when the host is operated for, or otherwise
@@ -1699,11 +1584,11 @@ Table of Contents
       is operated by a provider, can publish a key= thumbprint
       (Section 4.3) so that the host cannot alter the policy, provided
       the Subject Authority, not the host, holds the signing key.  The
-      host can still withhold the policy, and can replay an older signed
-      policy whose exp has not passed to a consumer that holds no cached
-      copy, since the iat check of Section 3.1 needs one.  A short exp
-      bounds that replay; removing a hostile host takes a key= rotation
-      or a new uri=.
+      host can still withhold the policy.  It can also replay an older
+      signed policy whose exp has not passed to a consumer that has not
+      accepted a newer one (Section 3.1).  The 24-hour cap on exp bounds
+      that replay; removing a hostile host takes a key= rotation or a
+      new uri=.
 
    A Subject Authority that hosts its Issuer Authorization Policy on
    shared infrastructure it does not control end to end SHOULD publish
@@ -1712,13 +1597,12 @@ Table of Contents
    thumbprint (Section 3.1).
 
    Publisher-side criticality does not defend against stripping by an
-   on-path or edge attacker.  The crit member is itself carried in the
-   unsigned document, so an attacker who can strip signed_policy can
-   strip crit with it.  A signature is effective against such an
-   attacker only if consumers require it, through local configuration or
-   a key= directive.  Such consumers take crit from the signed JWT
-   (Section 3.1), so the attacker cannot remove a critical requirement
-   either.
+   on-path or edge attacker: crit is itself carried in the unsigned
+   document, so an attacker who can strip signed_policy can strip crit
+   with it.  A signature defeats such an attacker only if consumers
+   require it, through local configuration or a key= directive.  Such
+   consumers take crit from the signed JWT (Section 3.1), so the
+   attacker cannot remove a critical requirement either.
 
    A consumer configured to require signed_policy for a Subject
    Authority:
@@ -1733,18 +1617,15 @@ Table of Contents
 
 9.6.  Policy Conflicts and Determinism
 
-   The lookup procedure (Section 5) is deterministic across the common
-   conflict scenarios that arise when multiple records or sources
-   coexist.  Determinism is a security property: two verifiers receiving
-   the same DNS and HTTPS responses, using the same Public Suffix List
-   snapshot ([TRUST-FRAMEWORK] §Public Suffix List Versioning), and
-   within the limits of Section 4.5, reach the same conclusion about
-   what (if any) policy applies.  An attacker with partial control of
-   one publication channel cannot exploit interpretive ambiguity at the
-   consumer.
-
-   Common conflict scenarios and their deterministic dispositions are
-   specified in Section 5.1.
+   The lookup procedure (Section 5) resolves the common conflicts among
+   coexisting records or sources deterministically, as specified in
+   Section 5.1.  Determinism is a security property: two verifiers that
+   receive the same DNS and HTTPS responses, use the same Public Suffix
+   List snapshot ([TRUST-FRAMEWORK] §Public Suffix List Versioning), and
+   stay within the limits of Section 4.5 reach the same conclusion about
+   what policy, if any, applies.  An attacker with partial control of
+   one publication channel therefore cannot exploit interpretive
+   ambiguity at the consumer.
 
 9.7.  Mechanism Limits
 
@@ -1769,97 +1650,91 @@ Table of Contents
 9.8.  Email Local-Part Is Not Authenticated
 
    domain_authorized_issuer evaluates only the email's registrable
-   domain.  The local-part is unauthenticated by this Trust Method: it
-   attests that the Assertion Issuer may assert about emails in the
-   namespace, not that any specific local-part is correct.  Resource
-   Authorization Servers that normalize local-parts (case folding, plus-
-   address stripping, alias collapsing) inherit those assumptions from
-   the Assertion Issuer; an attacker controlling an issuer-accepted
-   alias can land on a different normalized user.  Either disable local-
-   part normalization or verify the local-part through a mechanism
-   outside this document.  See also [TRUST-FRAMEWORK] §Scope of
-   Namespace Authorization.
+   domain and does not authenticate the local-part: it attests that the
+   Assertion Issuer may assert about emails in the namespace, not that
+   any specific local-part is correct.  A Resource Authorization Server
+   that normalizes local-parts (case folding, plus-address stripping,
+   alias collapsing) inherits those assumptions from the Assertion
+   Issuer, so an attacker controlling an issuer-accepted alias can land
+   on a different normalized user.  Either disable local-part
+   normalization or verify the local-part through a mechanism outside
+   this document.  See also [TRUST-FRAMEWORK] §Scope of Namespace
+   Authorization.
 
 9.9.  Single-Issuer Multi-Tenant Identity Providers
 
-   The shared-issuer case and its tenant binding are demonstrated in the
-   Shared Issuer Variant of the End-to-End Example.  The following
-   security points apply:
+   The Shared Issuer Variant of the End-to-End Example demonstrates the
+   shared-issuer case and its tenant binding.  Security points:
 
    *  *Shared issuers are authorized per tenant.* Under a grant profile
       that carries tenant, an entry without tenant matches only
-      assertions that carry no tenant claim (Section 6).  Under such a
-      profile, listing a shared issuer without tenant, including in the
-      inline DNS form, authorizes none of its tenants.  Instead, a
-      Subject Authority authorizes a tenant by listing the (issuer,
-      tenant) pair.  This relies on the Identity Provider sending the
-      tenant claim whenever it is multi-tenant, which [TRUST-FRAMEWORK]
-      §ID-JAG requires of every shared issuer.  A shared issuer that
-      omits the claim anyway would again match an entry without tenant,
-      so Subject Authorities SHOULD list a shared issuer only with
-      tenant.
+      assertions that carry no tenant claim (Section 6), so listing a
+      shared issuer without tenant, including in the inline DNS form,
+      authorizes none of its tenants.  A Subject Authority instead
+      authorizes a tenant by listing the (issuer, tenant) pair.  This
+      relies on the Identity Provider sending the tenant claim whenever
+      it is multi-tenant, as [ID-JAG] §6.1 requires.  A shared issuer
+      that omits the claim anyway would again match an entry without
+      tenant, so Subject Authorities SHOULD list a shared issuer only
+      with tenant.
 
    *  *Tenant-isolation dependency.* The tenant binding is a wire-format
       expression of trust, not a cryptographic guarantee.  The Resource
-      Authorization Server verifies match against the Subject
-      Authority's chosen tenant value, but cannot verify the Identity
-      Provider's tenant-isolation implementation.  A tenant-isolation
-      defect (cross-tenant minting bug, misconfigured admin operation)
-      defeats the wire-format check.  Subject Authorities SHOULD prefer
-      per-tenant issuer identifiers where offered and treat shared-
-      issuer listings as long-lived delegations requiring due diligence
-      on the Identity Provider's tenant-isolation guarantees.
+      Authorization Server checks the claim against the Subject
+      Authority's chosen tenant value but cannot verify the Identity
+      Provider's tenant isolation; a tenant-isolation defect (cross-
+      tenant minting bug, misconfigured admin operation) defeats the
+      wire-format check.  Subject Authorities SHOULD prefer per-tenant
+      issuer identifiers where offered and treat shared-issuer listings
+      as long-lived delegations requiring due diligence on the Identity
+      Provider's tenant-isolation guarantees.
 
    *  *Grant profiles without a tenant claim.* Under a grant profile
-      that carries no tenant claim, only entries that omit tenant can
-      match, so tenant-scoped authorization is not expressible.  The
-      generic JWT-bearer grant ([TRUST-FRAMEWORK] §Generic JWT-Bearer
-      Assertion Grant) is such a profile.  An entry with tenant matches
-      no assertion under such a profile, because the profile does not
-      attest the claim.  An entry without tenant does not match an
-      assertion that carries a tenant claim, but a shared issuer that
-      omits the claim from such assertions is indistinguishable across
-      its tenants, so the entry matches assertions from every one of
-      them.  A Subject Authority relying on a shared multi-tenant
-      Assertion Issuer SHOULD NOT authorize that issuer for such a grant
-      unless per-tenant issuer identifiers are used.
+      that carries no tenant claim, such as the generic JWT-bearer grant
+      ([TRUST-FRAMEWORK] §Generic JWT-Bearer Assertion Grant), tenant-
+      scoped authorization is not expressible: an entry with tenant
+      matches no assertion, because the profile does not attest the
+      claim.  An entry without tenant matches only assertions that carry
+      no tenant claim, but a shared issuer that omits the claim under
+      such a profile is indistinguishable across its tenants, so the
+      entry matches assertions from every one of them.  A Subject
+      Authority relying on a shared multi-tenant Assertion Issuer SHOULD
+      NOT authorize that issuer for such a grant unless per-tenant
+      issuer identifiers are used.
 
 9.10.  Denial of Service, Amplification, and SSRF
 
-   The domain_authorized_issuer lookup can be triggered before the
-   Assertion Issuer is known to be trustworthy: the assertion signature
-   validates against the issuer's own key, which an attacker operating
-   their own authorization server controls.  An attacker can therefore
-   drive lookups at will, creating three risks:
+   The domain_authorized_issuer lookup can run before the Assertion
+   Issuer is known to be trustworthy: an attacker operating its own
+   authorization server controls the key that validates the assertion
+   signature.  An attacker can therefore drive lookups at will, creating
+   three risks:
 
    *  *Reflection/amplification and cache exhaustion.* A flood of
-      assertions carrying distinct Subject Authorities (email:
+      assertions with distinct Subject Authorities (email:
       x@{random}.example) makes the Resource Authorization Server issue
-      a live DNS query per distinct authority (and an HTTPS fetch when
-      the record names a uri= target).  The flood turns the Resource
-      Authorization Server into a request amplifier aimed at third-party
-      DNS/HTTPS infrastructure and fills its own cache with distinct-
-      authority entries.  Consumers MUST bound lookup work: enforce per-
-      Subject-Authority and global rate limits and bound concurrent
-      outstanding lookups.  Consumers SHOULD cache Negative outcomes,
-      and MAY cache Indeterminate outcomes, per Section 7.  Consumers
-      MAY impose a maximum number of distinct-authority lookups per unit
-      time, shedding load by treating excess as Indeterminate (fail-
-      closed).
+      a live DNS query per authority, plus an HTTPS fetch per uri=
+      target.  The flood turns the Resource Authorization Server into a
+      request amplifier aimed at third-party DNS and HTTPS
+      infrastructure and fills its cache with distinct-authority
+      entries.  Consumers MUST bound lookup work: enforce per-Subject-
+      Authority and global rate limits and bound concurrent outstanding
+      lookups.  Consumers SHOULD cache Negative outcomes, and MAY cache
+      Indeterminate outcomes, per Section 7.  Consumers MAY impose a
+      maximum number of distinct-authority lookups per unit time,
+      shedding load by treating excess as Indeterminate (fail-closed).
 
    *  *Server-Side Request Forgery.* Every HTTPS policy fetch resolves a
       host the attacker may control: the uri= target named by a Subject
       Authority under the attacker's control, or the dedicated host
       under the HTTPS-only mode.  For the dedicated host, the attacker
-      presents an assertion whose namespace is a domain it owns, then
-      points the host's A/AAAA records at an internal address.  The
-      fetch occurs regardless of whether the body validates, enabling
-      blind internal probing through timing and error differentials.
-      Every such fetch follows [TRUST-FRAMEWORK] §Outbound Fetches,
-      which forbids connecting to addresses that are not globally
-      routable and requires timeouts and size bounds.  Because redirects
-      are not followed (Section 4.4), the target is always the host the
-      lookup named.
+      presents an assertion in a namespace it owns and points the host's
+      A/AAAA records at an internal address.  The fetch occurs whether
+      or not the body validates, enabling blind internal probing through
+      timing and error differentials.  Every such fetch follows the
+      address, timeout, and size rules of [TRUST-FRAMEWORK] §Outbound
+      Fetches.  Redirects are not followed (Section 4.4), so the target
+      is always the host the lookup named.
 
    *  *Cost asymmetry.* A single small assertion can cause a full
       DNS+HTTPS round trip.  Consumers SHOULD prefer cached results and
@@ -1875,28 +1750,28 @@ Table of Contents
 
    *  *To the resolver path.* A DNS query for _oauth-issuer-policy.{A}
       exposes the Subject Authority {A} being evaluated (and its timing)
-      to every resolver and on-path observer.  It does not carry the
-      full subject identifier for formats such as email, but the
-      authority plus timing can reveal organizational relationships and
-      login activity.  Resource Authorization Servers SHOULD use a
-      privacy-preserving resolver path (DNS over HTTPS or DNS over TLS
-      to a vetted resolver) and SHOULD NOT perform the lookup until it
-      is needed for a concrete verification decision.
+      to every resolver and on-path observer.  It omits the full subject
+      identifier for formats such as email, but the authority plus
+      timing can reveal organizational relationships and login activity.
+      Resource Authorization Servers SHOULD use a privacy-preserving
+      resolver path (DNS over HTTPS or DNS over TLS to a vetted
+      resolver) and SHOULD NOT perform the lookup until it is needed for
+      a concrete verification decision.
 
    *  *To the Subject Authority.* For the dedicated-host and uri=
       channels, the Subject Authority's own server (or its chosen policy
       host) observes the Resource Authorization Server's egress IP
       address and the timing of each fetch.  That server or host thereby
       learns which Resource Authorization Servers the namespace's users
-      are authenticating to.  The authoritative DNS operator for {A}
-      observes per-lookup timing over DNS.  An employer acting as its
-      own Subject Authority can thereby obtain a near-real-time signal
-      of where employees sign in.  Caching (Section 7) is the primary
-      mitigation: it coarsens timing and collapses repeated lookups, so
-      consumers SHOULD cache to the bounds permitted rather than re-
-      fetching per verification.  A consumer that applies the minimum
-      freshness lifetime of Section 7 keeps a Subject Authority from
-      observing every sign-in through a very short TTL.
+      authenticate to, and the authoritative DNS operator for {A}
+      observes per-lookup timing.  An employer acting as its own Subject
+      Authority can thus obtain a near-real-time signal of where
+      employees sign in.  Caching (Section 7) is the primary mitigation:
+      it coarsens timing and collapses repeated lookups, so consumers
+      SHOULD cache to the bounds permitted rather than re-fetching per
+      verification.  A consumer that applies the minimum freshness
+      lifetime of Section 7 keeps a Subject Authority from observing
+      every sign-in through a very short TTL.
 
    *  *Policy contents.* A published policy is public.  It reveals the
       Subject Authority's Identity Providers, tenant identifiers, and,
@@ -1906,26 +1781,26 @@ Table of Contents
 
 11.  Operational Considerations
 
-   Publishing a DAI record makes DNS/HTTPS control a real-time input to
-   sign-in authorization: a lapse in the record or its host can stop
-   legitimate assertions from being accepted, and an unauthorized change
-   can authorize an attacker.  Subject Authorities SHOULD operate the
-   record and any policy host with the same rigor as other sign-in-path
-   infrastructure.  Specific guidance:
+   Publishing a DAI record makes DNS and HTTPS control a real-time input
+   to sign-in authorization: a lapse in the record or its host can block
+   legitimate assertions, and an unauthorized change can authorize an
+   attacker.  Subject Authorities SHOULD operate the record and any
+   policy host with the same rigor as other sign-in-path infrastructure.
+   Specific guidance:
 
    *  *Rollout.* A first publication withdraws no acceptance that this
       Trust Method granted, since a namespace without a policy is
       Negative (Section 5.1).  At a Resource Authorization Server that
       also lists another namespace method, however, the new policy
       becomes final for the namespace ([TRUST-FRAMEWORK] §Multiple
-      Authority Sources Within a Category).  There, the policy therefore
-      needs to list every issuer that method accepted.  Check the issuer
-      list for completeness before publishing.  Forgotten regional
-      tenants and departing Identity Providers are the usual omissions,
-      and they surface as rejections at such servers.  Subject
-      Authorities SHOULD sign the zone with DNSSEC or publish via the
-      pointer form, since every published decision carries the full
-      weight of the publication channel's integrity (Section 9.4).
+      Authority Sources Within a Category), so it needs to list every
+      issuer that method accepted.  Before publishing, check the issuer
+      list for completeness: forgotten regional tenants and departing
+      Identity Providers are the usual omissions, and they surface as
+      rejections at such servers.  Subject Authorities SHOULD sign the
+      zone with DNSSEC or publish via the pointer form, since every
+      published decision carries the full weight of the publication
+      channel's integrity (Section 9.4).
 
    *  *Change management and TTLs.* Reduce DNS TTLs in advance of any
       planned change to the record or uri= pointer (Section 9.5), and
@@ -1955,19 +1830,15 @@ Table of Contents
       lookups Indeterminate, so consumers can keep using a cached policy
       within the stale-if-error bound of Section 7.
 
-   *  *Monitoring.* Monitor the record set and any HTTPS policy document
-      for unexpected changes, and perform cross-region/cross-resolver
-      checks to detect localized substitution (Section 9.4).
-
-   *  *Availability.* Because Negative and Indeterminate outcomes fail
-      closed (Section 5.1), loss of the record or policy host blocks
-      sign-in for the namespace; provision the authoritative DNS and any
-      policy host for availability accordingly.
-
-   *  *Zone hygiene.* Avoid wildcard TXT records in zones participating
-      in this mechanism (Section 9.4); a wildcard with a non-matching
+   *  *Monitoring and zone hygiene.* Apply the operational defenses of
+      Section 9.4, including monitoring for unexpected changes and
+      avoiding wildcard TXT records.  A wildcard with a non-matching
       authority= causes recognized-but-discarded records and can push a
       lookup to Indeterminate.
+
+   *  *Availability.* Negative and Indeterminate outcomes fail closed
+      (Section 5.1), so provision the authoritative DNS and any policy
+      host for availability.
 
    *  *Media type.* Serve the policy document with Content-Type:
       application/json.  Static hosts often label a file without an
@@ -1975,15 +1846,15 @@ Table of Contents
       Indeterminate (Section 5.1).
 
    *  *Stable issuer identifiers.* Issuer comparison is octet-for-octet
-      (Section 3), so an Identity Provider operator that changes an
-      issuer identifier breaks every Subject Authority that lists it
-      until each republishes.  Identity Provider operators keep issuer
-      identifiers stable and announce changes ahead of time.
+      (Section 3), so changing an issuer identifier breaks every Subject
+      Authority that lists it until each republishes.  Identity Provider
+      operators keep issuer identifiers stable and announce changes
+      ahead of time.
 
-   *  *Many domains.* Each registrable domain is its own Subject
-      Authority with its own policy (subject_authority names exactly
-      one).  An organization with many domains publishes a record, and
-      for the pointer form a document, for each.
+   *  *Many domains.* Each registrable domain is a separate Subject
+      Authority (subject_authority names exactly one), so an
+      organization with many domains publishes a record, and for the
+      pointer form a document, for each.
 
    *  *Users from other namespaces.* An assertion about a user whose
       email is in another organization's namespace (for example, a guest
@@ -2210,9 +2081,7 @@ Table of Contents
 
    IANA is requested to register the following media type in the "Media
    Types" registry for the signed Issuer Authorization Policy
-   (Section 3.1).  Following [RFC8725] §3.11, the JWT typ header value
-   is the media subtype with the application/ prefix omitted (issuer-
-   authorization-policy+jwt), as required in Section 3.1.
+   (Section 3.1).
 
    Type name:  application
 
@@ -2430,74 +2299,63 @@ Appendix A.  Design Rationale
 
 A.1.  Following Existing DNS Authority Patterns
 
-   The Domain-Authorized Issuer Trust Method applies the same authority-
-   publication pattern that domain owners already use for CAA [RFC8659],
-   MTA-STS [RFC8461], SPF, DKIM, DMARC, and the Email Verification
-   Protocol [I-D.hardt-email-verification].  [TRUST-FRAMEWORK]
-   §Authority Delegation Model covers the abstract pattern; this
-   document chooses DNS at _oauth-issuer-policy.{domain} as the
-   authoritative publication channel.  The name=value record syntax is
-   closest to DMARC's, and DMARC's operational experience with the
-   organizational-domain boundary informs the Subject Authority
-   Determination approach in [TRUST-FRAMEWORK] §Subject Authority
-   Determination.  DMARC itself has since replaced its use of the Public
-   Suffix List with a DNS tree walk ([RFC9989]); see the Public Suffix
-   List discussion there.
+   DAI applies the authority-publication pattern that domain owners
+   already use for CAA [RFC8659], MTA-STS [RFC8461], SPF, DKIM, DMARC,
+   and the Email Verification Protocol [I-D.hardt-email-verification];
+   [TRUST-FRAMEWORK] §Authority Delegation Model covers the abstract
+   pattern.  The name=value record syntax is closest to DMARC's, and
+   DMARC's experience with the organizational-domain boundary informs
+   [TRUST-FRAMEWORK] §Subject Authority Determination.  DMARC has since
+   replaced the Public Suffix List with a DNS tree walk ([RFC9989]); see
+   the Public Suffix List discussion there.
 
    Unlike CAA (deployment-time), SPF/DKIM (spam-score signal), and MTA-
    STS (inbound mail), the _oauth-issuer-policy record is consumed
-   during user sign-in; the operational consequences of that are covered
-   normatively in Section 11.
+   during user sign-in (Section 11).
 
    Relationship to issuer discovery.  WebFinger [RFC7033] and OpenID
-   Connect Discovery answer a different question: given a user
-   identifier, where does a client go to authenticate the user?  This
-   Trust Method is verifier-side and authorization-oriented: given an
-   assertion already in hand, is its issuer authorized for the subject's
-   namespace?  DAI is published per namespace (not per user), over a DNS
-   channel whose control establishes the authority binding.  It also
-   carries authorization semantics (validity windows, tenant binding,
-   format restrictions) that a discovery record does not.
+   Connect Discovery tell a client, given a user identifier, where to
+   authenticate the user.  DAI tells a verifier, given an assertion,
+   whether its issuer is authorized for the subject's namespace.  DAI is
+   published per namespace (not per user), over a DNS channel whose
+   control establishes the authority binding, and carries authorization
+   semantics (validity windows, tenant binding, format restrictions)
+   that a discovery record does not.
 
    An earlier proposal, [I-D.sanz-openid-dns-discovery], published a
-   domain's OpenID issuer in a DNS TXT record of similar shape, also for
-   discovery.  A deployment could layer client-side discovery on top
-   (see Appendix B.6), but that is out of scope here.
+   domain's OpenID issuer in a similar DNS TXT record, also for
+   discovery.  Client-side discovery layered on DAI is out of scope
+   (Appendix B.6).
 
    Relationship to federation-scoped and bilateral mechanisms.  SAML
-   federations such as InCommon constrain the namespaces an Identity
-   Provider may assert with the scope metadata extension [SHIBMD].
-   Interfederation services such as eduGAIN [EDUGAIN] carry that
-   metadata between federations.  There, scope is attested by the
-   federation operator and distributed in trusted federation metadata.
-   DAI's authorization is instead published by the namespace owner,
-   where any verifier can retrieve it.
+   federations such as InCommon constrain an Identity Provider's
+   namespaces with the scope metadata extension [SHIBMD], which
+   interfederation services such as eduGAIN [EDUGAIN] carry between
+   federations.  There, the federation operator attests scope.  DAI's
+   authorization is instead published by the namespace owner, where any
+   verifier can retrieve it.
 
    Software-as-a-service providers commonly have a customer prove
    control of its domain with a one-time DNS challenge and then
-   configure the customer's Identity Provider.  FastFed [FASTFED]
-   automates establishing and maintaining such a federation relationship
-   between an Identity Provider and an application provider, with
-   administrator approval on both sides.  Both are bilateral
-   configuration, held by the parties to one relationship, not an
-   authorization that any verifier can retrieve.
+   configure its Identity Provider.  FastFed [FASTFED] automates such a
+   relationship, with administrator approval on both sides.  Both are
+   bilateral configuration held by the parties to one relationship, not
+   an authorization any verifier can retrieve.
 
    Relationship to the Email Verification Protocol.  EVP
-   [I-D.hardt-email-verification] also publishes, in DNS, the issuer for
-   an email domain.  Its relying party also checks that record at
-   verification time.  The relying party resolves _email-
-   verification.{domain} itself and rejects a token whose iss does not
-   match.  The two records differ in role and in scope.
+   [I-D.hardt-email-verification] also publishes an email domain's
+   issuer in DNS: its relying party resolves _email-
+   verification.{domain} at verification time and rejects a token whose
+   iss does not match.  The two records differ in role and in scope.
 
    In role, EVP names the issuer that verifies _control of an email
    address_, while DAI names the issuers _authorized to assert
    identities_ in a namespace.  A domain that uses one provider for mail
-   and another for single sign-on can rightly give different answers to
-   the two questions.
+   and another for single sign-on can rightly give different answers.
 
-   In scope, EVP allows exactly one issuer, identified by an HTTPS
-   origin with no path, for the raw email domain and for EVP tokens
-   only.  DAI, in contrast:
+   In scope, EVP allows exactly one issuer, an HTTPS origin with no
+   path, for the raw email domain and for EVP tokens only.  DAI, in
+   contrast:
 
    *  allows several issuers with full issuer identifiers (including
       path components);
@@ -2508,65 +2366,56 @@ A.1.  Following Existing DNS Authority Patterns
 
    *  normalizes to the registrable domain.
 
-   Convergence with EVP on a shared record or node name is possible
-   future work.  Appendix B.5 sketches a bridge.
+   Convergence on a shared record or node name is possible future work
+   (Appendix B.5).
 
 A.2.  Why a Generic Record Name
 
    The DNS node name, well-known URI suffix, and version token name the
    document they locate (the Issuer Authorization Policy), not the
-   identity framework consuming it.  The wire format is subject-class-
-   agnostic: no member or directive is specific to email or identity
-   assertions.  The subject class is expressed through
-   subject_identifier_formats ([RFC9493]).  The identity-specific
+   identity framework consuming it.  No member or directive is specific
+   to email or identity assertions; subject_identifier_formats
+   ([RFC9493]) expresses the subject class.  The identity-specific
    machinery lives in [TRUST-FRAMEWORK], whose own well-known URI is
    identity-scoped for that reason.
 
    A future Subject Identifier format with a DNS-publishable Subject
-   Authority reuses domain_authorized_issuer and this same record
-   ([TRUST-FRAMEWORK] §Future Extensions).  An identity-scoped name
+   Authority reuses domain_authorized_issuer and this record
+   ([TRUST-FRAMEWORK] §Future Extensions), where an identity-scoped name
    would force a second record at a second DNS name.  One per-domain
-   policy surface, extended through registered members rather than new
-   names, follows the oauth-authorization-server metadata precedent.
+   policy surface, extended through registered members, follows the
+   oauth-authorization-server metadata precedent.
 
 A.3.  Why First-Class Tenant Binding
 
    Shared-issuer multi-tenant Identity Providers (Google Workspace,
-   Auth0 in some configurations, Microsoft Entra B2B in some flows)
-   serve many customer tenants under a single issuer URL.  The
-   deployment reality is that these Identity Providers are common;
-   authorizing them without tenant binding effectively authorizes every
-   tenant of the Identity Provider for the namespace, which is almost
-   never the intent.  An entry without tenant therefore matches only
+   Auth0 in some configurations, Microsoft Entra B2B in some flows) are
+   common and serve many customer tenants under one issuer URL.
+   Authorizing one without tenant binding would authorize every tenant
+   of that Identity Provider for the namespace, which is almost never
+   the intent.  An entry without tenant therefore matches only
    assertions that carry no tenant claim.
 
-   The tenant member on authorized_issuers[] entries binds authorization
-   to the specific tenant identifier the Identity Provider populates in
-   the top-level tenant claim ([ID-JAG] §3.1, §6.1).  The binding makes
-   the Subject Authority's choice of authorized tenant observable on the
-   wire and verifiable per assertion.  It does not eliminate the trust
-   assumption on the Identity Provider's tenant-isolation enforcement;
-   it makes the assumption explicit and auditable.  See Section 9.9.
+   The tenant member of an authorized_issuers[] entry binds
+   authorization to the tenant identifier in the top-level tenant claim
+   ([ID-JAG] §3.1, §6.1).  The Subject Authority's choice of tenant
+   becomes observable on the wire and verifiable per assertion.  The
+   Identity Provider's tenant isolation is still trusted (Section 9.9).
 
-   A generic claim-matching mechanism (matching arbitrary JWT claims
-   against publisher-specified values) was considered as an alternative.
-   First-class tenant was preferred because the claim name is
-   standardized in [ID-JAG], the deployment intent is unambiguous, and
-   the wire-format expression is simpler than a generic claim-matching
-   object.
+   A generic claim-matching mechanism was considered instead.  First-
+   class tenant was preferred because [ID-JAG] standardizes the claim
+   name, the deployment intent is unambiguous, and the wire format is
+   simpler.
 
 A.4.  Choosing Between DNS-Published and HTTPS-Only Authority
 
    Canonical DNS-first lookup and HTTPS-only lookup are not strictly
-   ordered by security strength; they trade different risks.  HTTPS-only
-   lookup is resilient to substitution of the TXT record's issuers or
-   policy location but depends on resolution of the dedicated host plus
-   the public CA trust system; a DNS redirect combined with TLS
-   misissuance defeats it. domain_authorized_issuer in the inline form
-   is resilient to TLS misissuance because the authority artifact is the
-   TXT record itself; an attacker needs DNS-write or DNSSEC-bypass
-   capability.  The DNS pointer form inherits TLS-misissuance risk on
-   the pointed-at host while also depending on DNS for selection.
+   ordered by security strength; they trade different risks
+   (Section 9.2, Section 9.3).  The inline DNS form resists TLS
+   misissuance; an attacker needs DNS-write or DNSSEC-bypass capability.
+   HTTPS-only lookup resists substitution of the TXT record's issuers or
+   policy location, but a DNS redirect combined with TLS misissuance
+   defeats it.  The DNS pointer form is exposed to both.
 
    A Subject Authority with strong DNSSEC and weak TLS-issuance controls
    favors the inline DNS form.  A Subject Authority with strong CAA/CT
@@ -2578,8 +2427,8 @@ A.5.  Why a DNS Opt-In and a Dedicated Policy Host
    Fetching a well-known URL on the Subject Authority's apex whenever
    DNS reports no record would make every domain DAI-covered unless it
    opted out.  An attacker who could serve content on a domain's apex
-   could publish a policy for a domain that never adopted DAI, with no
-   DNS forgery at all.  That ability can come from:
+   could then publish a policy for a domain that never adopted DAI, with
+   no DNS forgery, through:
 
    *  a dangling address record;
 
@@ -2589,51 +2438,45 @@ A.5.  Why a DNS Opt-In and a Dedicated Policy Host
    *  a takeover of a host the apex redirects to.
 
    This document follows MTA-STS [RFC8461] instead.  The TXT record is
-   the opt-in in both lookup modes, and for the HTTPS-only lookup mode
-   its uri= names the dedicated host's default URL; a policy for that
-   mode lives on the dedicated host; and redirects are not followed.  A
-   host name alone would not be an opt-in, since domains that let users
-   claim subdomains could lose it ([RFC8461] Section 10.3).  The cost is
-   that a Subject Authority with no control of its DNS cannot
-   participate.  The full JSON policy remains available to every Subject
-   Authority through the uri= pointer.
+   the opt-in in both lookup modes; for the HTTPS-only lookup mode its
+   uri= names the dedicated host's default URL, the policy lives on that
+   host, and redirects are not followed.  A host name alone is not an
+   opt-in (Section 4.2).  The cost is that a Subject Authority with no
+   control of its DNS cannot participate.  The full JSON policy remains
+   available to every Subject Authority through the uri= pointer.
 
 Appendix B.  Future Extensions
 
-   This appendix is non-normative.  It sketches features intentionally
-   deferred from this document; future specifications may register them.
+   This appendix is non-normative.  It sketches deferred features that
+   future specifications may register.
 
 B.1.  Federation-Bound Issuer Authorization Policy
 
-   For deployments where a Subject Authority is a federation Entity, a
-   future extension could authenticate the Issuer Authorization Policy
-   on the dedicated policy host.  It would do so through a digest in the
-   Entity Configuration of the Entity that serves the policy, using a
-   mechanism such as the proposed Well-Known Binding specification
-   [OIDF-WKB].  The Subject Authority would still author and publish the
-   policy under {A}. Federation would add integrity protection, not
-   transfer namespace authority to a trust anchor.  The added protection
-   depends on federation enrollment and key control being independent of
-   the domain publication channel.
-
-   Such an extension would need to define all of the following:
+   Where a Subject Authority is a federation Entity, a future extension
+   could authenticate the Issuer Authorization Policy on the dedicated
+   policy host through a digest in the Entity Configuration of the
+   Entity that serves it, using a mechanism such as the proposed Well-
+   Known Binding specification [OIDF-WKB].  The Subject Authority would
+   still author and publish the policy under {A}; federation would add
+   integrity protection, not move namespace authority to a trust anchor.
+   That protection depends on federation enrollment and key control
+   being independent of the domain publication channel.  Such an
+   extension would need to define:
 
    *  Coverage of the HTTPS-only lookup mode.  Inline DNS TXT policies
-      would not be covered; a uri= pointer would be covered only if it
-      names the default URL.
+      would not be covered, and a uri= pointer only if it names the
+      default URL.
 
    *  An exact mapping from Subject Authority {A} to Entity Identifier
-      https://oauth-issuer-policy.{A}, the dedicated host, without a
-      path or explicit port.  A binding keyed to an Entity's own well-
-      known URIs ([OIDF-WKB]) covers documents only on the Entity
-      Identifier's host, and the fixed label keeps any other subdomain
-      Entity from speaking for the registrable domain.  [OIDF-WKB]
-      requires such a mapping from any protocol whose peer identifier is
-      not an https URL.
+      https://oauth-issuer-policy.{A}, with no path or explicit port, as
+      [OIDF-WKB] requires of any protocol whose peer identifier is not
+      an https URL.  A binding keyed to an Entity's own well-known URIs
+      ([OIDF-WKB]) covers documents only on the Entity Identifier's
+      host, and the fixed label keeps any other subdomain Entity from
+      speaking for the registrable domain.
 
-   *  A separate trust-anchor parameter on domain_authorized_issuer,
-      independent of any openid_federation.trust_anchors configuration
-      for the issuer-authentication category.
+   *  A trust-anchor parameter on domain_authorized_issuer, separate
+      from any openid_federation.trust_anchors configuration.
 
    *  Indeterminate outcomes for a missing binding, digest mismatch, or
       trust-chain failure, with no fallback to an unbound policy.
@@ -2649,92 +2492,77 @@ B.1.  Federation-Bound Issuer Authorization Policy
       while accounting for residual exposure from cached Entity
       Configurations.
 
-   This document does not define that extension or change DAI's lookup,
-   authority binding, or integrity mechanisms to depend on federation.
-
 B.2.  Critical Directives for the DNS Record Form
 
-   The JSON document carries a crit member (Section 3).  An extension
-   that adds a decision-affecting top-level member to the Issuer
-   Authorization Policy can therefore mark it critical and have already-
-   deployed consumers honor it.  The crit member does not reach members
-   of authorized_issuers entries.  An extension that narrows entries
-   (for example, a permitted_audiences member) therefore also defines a
-   top-level member for publishers to list in crit (Section 12.5).
+   In the JSON document, an extension can mark a new decision-affecting
+   top-level member critical with crit (Section 3), and already-deployed
+   consumers honor it.  An extension that narrows authorized_issuers
+   entries defines a top-level member for publishers to list in crit,
+   since crit does not reach entry members (Section 12.5).
 
-   The DNS record form has no analogous per-directive criticality
-   mechanism today.  Its version token (Section 4.3) prevents
-   misinterpretation of incompatible future syntax by making
-   unrecognized versions ignored.  As a result, a Subject Authority that
-   publishes only an unrecognized version is Negative to an older
-   consumer.  A future extension that needs true per-directive fail-
-   closed semantics in the DNS form would define a crit= directive and
-   its recognition rules at that time.
+   The DNS record form has no per-directive criticality mechanism.  Its
+   version token (Section 4.3) prevents misinterpretation of
+   incompatible future syntax by making unrecognized versions ignored.
+   As a result, a Subject Authority that publishes only an unrecognized
+   version is Negative to an older consumer.  A future extension that
+   needs per-directive fail-closed semantics in the DNS form would
+   define a crit= directive and its recognition rules.
 
 B.3.  Evaluation Reports
 
    A Subject Authority learns which assertions Resource Authorization
    Servers reject for its namespace only out of band (Section 6.1).  A
-   future extension can define an aggregate reporting mechanism,
-   analogous to DMARC aggregate reports [RFC9990]: a policy member
-   naming a reporting endpoint, a report format (observed issuers, match
-   and mismatch counts, time window), and delivery requirements.  It is
-   deferred because report formats and transport carry privacy and abuse
-   considerations (a reporting endpoint learns which Resource
-   Authorization Servers a namespace's users sign in to, concentrating
-   the metadata discussed in Section 10) that deserve their own
-   document.
+   future extension can define aggregate reporting like DMARC's
+   [RFC9990]: a policy member naming a reporting endpoint, a report
+   format (observed issuers, match and mismatch counts, time window),
+   and delivery requirements.  It is deferred because reporting carries
+   privacy and abuse considerations that deserve their own document: a
+   reporting endpoint learns which Resource Authorization Servers a
+   namespace's users sign in to, concentrating the metadata discussed in
+   Section 10.
 
 B.4.  Audience-Scoped Delegations
 
-   An authorized_issuers entry authorizes an issuer for a namespace
-   without constraining which Resource Authorization Servers may accept
-   the resulting assertions.  A compromised-but-listed issuer can assert
-   the namespace's users to any consumer ([TRUST-FRAMEWORK] §Scope of
-   Namespace Authorization).  A future permitted_audiences member on
-   entries would let a Subject Authority bound that blast radius by
-   enumerating or pattern-matching acceptable audiences.  It is deferred
-   because audience identifiers are grant-profile-specific and an
-   enumerable audience set does not exist for the open-world deployments
-   this mechanism targets.  A workable design likely needs audience
-   patterns and an interaction rule with the assertion's aud claim.
+   An authorized_issuers entry does not limit which Resource
+   Authorization Servers accept the issuer's assertions, so a
+   compromised but listed issuer can assert the namespace's users to any
+   consumer ([TRUST-FRAMEWORK] §Scope of Namespace Authorization).  A
+   future permitted_audiences entry member would let a Subject Authority
+   bound that blast radius by enumerating or pattern-matching audiences.
+   It is deferred because audience identifiers are grant-profile-
+   specific and the open-world deployments this mechanism targets have
+   no enumerable audience set.  A design likely needs audience patterns
+   and a rule for its interaction with the assertion's aud claim.
 
 B.5.  Email Verification Protocol Bridge
 
    The Email Verification Protocol [I-D.hardt-email-verification]
    defines a DNS TXT record at _email-verification.{domain} whose iss=
-   value names an authorized issuer for the namespace.  The record
-   carries a bare hostname; the issuer identifier derived from it is an
-   HTTPS origin with no path, not a full HTTPS issuer identifier.  A
-   future Trust Method (provisionally email_verification_dns) could let
-   a Resource Authorization Server honor those records without requiring
-   the Subject Authority to also publish an _oauth-issuer-policy record.
-
-   The bridge is deferred because it forces the reader to learn:
+   value names an authorized issuer for the namespace.  A future Trust
+   Method (provisionally email_verification_dns) could let a Resource
+   Authorization Server honor those records without an _oauth-issuer-
+   policy record.  It would add:
 
    *  a second record format;
 
-   *  a different issuer-identifier shape (bare-origin only, no path
-      component); and
+   *  a different issuer-identifier shape: a bare hostname, yielding an
+      HTTPS origin with no path; and
 
-   *  a different email-domain semantics: the Email Verification
-      Protocol parses the email's raw domain part, whereas this document
-      normalizes to the registrable domain via the Public Suffix List.
+   *  different email-domain semantics: the email's raw domain part
+      rather than the registrable domain.
 
-   It is also deferred because [I-D.hardt-email-verification] is
-   progressing on its own timeline independent of this document.
-   Deployments wanting the bridge can either publish both records or
-   wait for the future Trust Method specification.  Publishing both
-   means an _oauth-issuer-policy record satisfying
-   domain_authorized_issuer, plus the deployment's existing _email-
+   It is deferred for that cost, and because
+   [I-D.hardt-email-verification] progresses on its own timeline.
+   Meanwhile, a deployment can publish both an _oauth-issuer-policy
+   record satisfying domain_authorized_issuer and its existing _email-
    verification record for other consumers.
 
 B.6.  Assertion Issuer Discovery (Client-Side)
 
-   The same DAI records that let a Resource Authorization Server verify
-   an assertion can also let a client discover which Assertion Issuer is
-   authoritative for a subject identifier's namespace before any
-   assertion exists.  Given alice@acme.example, a client can:
+   The same DAI records could let a client discover, before any
+   assertion exists, which Assertion Issuer is authoritative for a
+   subject identifier's namespace.  Given alice@acme.example, a client
+   can:
 
    *  query _oauth-issuer-policy.acme.example;
 
@@ -2743,36 +2571,31 @@ B.6.  Assertion Issuer Discovery (Client-Side)
    *  resolve an authorized issuer's authorization server metadata to
       find its token endpoint.
 
-   Entry order carries no semantics, so issuer selection would need to
-   be specified by the profiling document.
-
-   This client-side use case is deferred from the first version of DAI
-   for three reasons:
+   Entry order carries no semantics, so a profiling document would
+   specify issuer selection.  The use case is deferred because:
 
    *  It adds a second mental model: back-channel discovery versus
       verification at token exchange.
 
-   *  It introduces privacy concerns distinct from verification.  The
-      discovery query reveals the queried Subject Authority to DNS
-      resolvers and to the policy host before any user interaction.
+   *  Its query reveals the Subject Authority to DNS resolvers and to
+      the policy host before any user interaction, a privacy concern
+      distinct from verification.
 
    *  It is not on the Resource Authorization Server implementer's
       critical path.
 
-   A future specification can profile the discovery flow with
-   appropriate privacy guidance and integration with OAuth Authorization
-   Server Metadata [RFC8414] and OpenID Connect Discovery
-   [OIDC-DISCOVERY].
+   A future specification can profile it with privacy guidance and
+   integration with OAuth Authorization Server Metadata [RFC8414] and
+   OpenID Connect Discovery [OIDC-DISCOVERY].
 
 Appendix C.  DNS-Based Domain-Authorized Issuer End-to-End Example
 
    This appendix is non-normative.
 
-   This example walks through an end-to-end verification flow: the
-   Subject Authority publishes a DAI record, an Assertion Issuer issues
-   an identity assertion, and the Resource Authorization Server uses the
-   record to verify that the issuer is authorized for the asserted
-   namespace.
+   The Subject Authority publishes a DAI record, an Assertion Issuer
+   issues an identity assertion, and the Resource Authorization Server
+   uses the record to verify that the issuer is authorized for the
+   asserted namespace.
 
 C.1.  Cast
 
@@ -2797,10 +2620,8 @@ C.2.  Publication
        "authority=acme.example;"
        "issuer=https://idp.example.net" )
 
-   The quoted segments are concatenated without a separator, yielding
-   one record whose directives are v=oauth-issuer-policy1,
-   authority=acme.example, and issuer=https://idp.example.net.  No HTTPS
-   endpoint is operated on acme.example.
+   The quoted segments form one record (Section 4.3).  No HTTPS endpoint
+   is operated on acme.example.
 
    The Resource Authorization Server publishes a Trust Policy that lists
    domain_authorized_issuer with canonical lookup:
@@ -2820,10 +2641,10 @@ C.2.  Publication
 
 C.3.  Issuance and Token Request
 
-   1.  The Client is configured, by a deployment-specific mechanism
-       outside DAI, to use https://idp.example.net for Acme users.  It
-       authenticates Alice at that issuer and requests an ID-JAG with
-       audience https://api.resource.example carrying Alice's email:
+   1.  The Client, configured outside DAI to use https://idp.example.net
+       for Acme users, authenticates Alice at that issuer and requests
+       an ID-JAG with audience https://api.resource.example carrying
+       Alice's email:
 
       {
         "iss": "https://idp.example.net",
@@ -2864,15 +2685,13 @@ C.4.  Verification (Resource Authorization Server Side)
        a.  It extracts the Subject Authority from the top-level email
        claim (with email_verified=true): acme.example.
 
-       b.  Applying the canonical lookup procedure (Section 5), the
-       Resource Authorization Server queries DNS TXT at _oauth-issuer-
-       policy.acme.example and parses the record published earlier in
-       this example.
+       b.  Applying the canonical lookup procedure (Section 5), it
+       queries DNS TXT at _oauth-issuer-policy.acme.example and parses
+       the record published above.
 
-       c.  The authority=acme.example directive matches.  No uri= is
-       present.  The Resource Authorization Server constructs a virtual
-       policy for acme.example with one authorized_issuers entry for
-       https://idp.example.net.
+       c.  The authority=acme.example directive matches and no uri= is
+       present, so it constructs a virtual policy for acme.example with
+       one authorized_issuers entry for https://idp.example.net.
 
        d.  The ID-JAG iss value https://idp.example.net matches the
        single entry's issuer value.  Verification succeeds.
@@ -2911,24 +2730,18 @@ C.5.  Migration Variant: Pointer Form
      "last_updated": "2026-05-29T00:00:00Z"
    }
 
-   Resource Authorization Servers transparently follow the uri=
-   directive and consume the JSON document.  No verifier software
-   changes are required.
-
 C.6.  Shared Issuer Variant: Multi-Tenant Identity Provider
 
-   The simple example above uses a per-tenant issuer identifier
-   (https://idp.example.net is dedicated to Acme).  Some Identity
-   Providers serve every tenant under a single shared issuer (for
-   example, https://accounts.google.com) and distinguish tenants via the
+   The example above uses an issuer identifier dedicated to Acme.  Some
+   Identity Providers serve every tenant under one shared issuer (for
+   example, https://accounts.google.com) and distinguish tenants by the
    ID-JAG top-level tenant claim ([ID-JAG] §6.1).  For these, the
-   authorized_issuers[].tenant member binds the authorization to a
-   specific tenant of the shared issuer.
+   authorized_issuers[].tenant member binds the authorization to one
+   tenant of the shared issuer.
 
-   Suppose Acme uses a multi-tenant Identity Provider with shared issuer
-   https://accounts.shared.example and Acme's tenant identifier in that
-   Identity Provider is acme-corp.  Acme publishes the pointer form
-   pointing at the richer JSON:
+   Suppose Acme's tenant identifier at the shared issuer
+   https://accounts.shared.example is acme-corp.  Acme publishes the
+   pointer form, pointing at this JSON:
 
    {
      "subject_authority": "acme.example",
@@ -2942,12 +2755,11 @@ C.6.  Shared Issuer Variant: Multi-Tenant Identity Provider
      "last_updated": "2026-05-29T00:00:00Z"
    }
 
-   Verification adds one check to the simple flow: in addition to
-   matching iss, the Resource Authorization Server requires the ID-JAG's
-   top-level tenant claim to equal "acme-corp".  An assertion from
+   Verification adds one check to the simple flow: besides matching iss,
+   the Resource Authorization Server requires the ID-JAG's top-level
+   tenant claim to equal "acme-corp".  An assertion from
    https://accounts.shared.example with a different tenant value (or no
-   tenant) does not match this entry.  The security properties and
-   operational guidance for this case are in Section 9.9.
+   tenant) does not match this entry (Section 9.9).
 
 C.7.  Failure Variants
 
@@ -2967,12 +2779,11 @@ C.7.  Failure Variants
       no other recognized record remains, the response is malformed
       (Indeterminate) and the assertion is rejected.
 
-   *  If acme.example rotates its authorized Assertion Issuer and the
-      Resource Authorization Server has a cached virtual policy, the
-      Resource Authorization Server may continue accepting assertions
-      from the old issuer until its cache expires.  Subject Authorities
-      are encouraged to use short DNS TTLs during rotation; consumers
-      enforce a local cache ceiling per Section 7.
+   *  If acme.example rotates its authorized Assertion Issuer, a
+      Resource Authorization Server holding a cached virtual policy can
+      keep accepting assertions from the old issuer until its cache
+      expires.  Short DNS TTLs during rotation shorten that window, and
+      consumers enforce a local cache ceiling per Section 7.
 
 Appendix D.  Document History
 

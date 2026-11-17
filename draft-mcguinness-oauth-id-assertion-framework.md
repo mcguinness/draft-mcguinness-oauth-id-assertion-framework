@@ -1018,9 +1018,9 @@ Trust Mark requirements through discovery metadata SHOULD keep those
 advertisements consistent with this policy. Discovery advertisements
 do not replace enforcement of its Trust Method requirements.
 
-The Resource Authorization Server MUST validate the federation
-trust chain, metadata policy, and the Trust Marks that requirement 4
-relies on, per {{OIDF-FEDERATION}}. If any fails, this Trust Method
+Trust chain validation, metadata policy resolution, and validation
+of the Trust Marks that requirement 4 relies on follow
+{{OIDF-FEDERATION}} §10.2 and §7.3. If any fails, this Trust Method
 fails. Federation `metadata_policy` constrains Entity Type metadata
 in Entity Statements, not members carried only in documents that an
 extension binds by digest. {{OIDF-WKB}} is such an extension and

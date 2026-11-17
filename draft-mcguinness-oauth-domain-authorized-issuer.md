@@ -1245,38 +1245,35 @@ defeating the fail-closed property of the DNS-first lookup.
 
 # Security Considerations {#dii-security}
 
-The Issuer Authorization Policy is a security-critical document. Its
-integrity determines which Assertion Issuers can assert identities in
-the Subject Authority's namespace.
+The Issuer Authorization Policy is security-critical: its integrity
+determines which Assertion Issuers can assert identities in the
+Subject Authority's namespace.
 
 ## Namespace Authority Bootstrap
 
 DAI's authority binding is DNS control of the registrable domain
 and, under the HTTPS-only lookup mode, of the dedicated policy host
-name under it. This follows the
-bootstrap model of CAA {{RFC8659}} and MTA-STS {{RFC8461}}: an
-explicit DNS opt-in, a dedicated policy host, and no redirects.
-Pre-existing DNS
-realities (typosquatting, expired-domain takeover, registrar
-account compromise) apply unchanged and are not introduced by
-this document. The registrable-domain default contains
-subdomain-takeover impact ({{TRUST-FRAMEWORK}} §Subject Authority
-Determination); identity binding beyond DNS control (legal-entity
-verification) requires out-of-band mechanisms.
+name under it. As in CAA {{RFC8659}} and MTA-STS {{RFC8461}},
+bootstrap uses an explicit DNS opt-in, a dedicated policy host, and
+no redirects. Pre-existing DNS risks (typosquatting, expired-domain
+takeover, registrar account compromise) apply unchanged. The
+registrable-domain default contains subdomain-takeover impact
+({{TRUST-FRAMEWORK}} §Subject Authority Determination). Identity
+binding beyond DNS control (legal-entity verification) requires
+out-of-band mechanisms.
 
-DNS control is also, in practice, control of the domain's mail.
-Whoever controls the zone can change its MX records and receive
+DNS control is in practice also control of the domain's mail:
+whoever controls the zone can change its MX records and receive
 password-reset and account-recovery messages for its addresses.
-Where email-based recovery alone is enough to take over an account
-at a Resource Authorization Server, an attacker who controls the
-domain's DNS gains little from this Trust Method that it did not
-already have. {{I-D.hardt-email-verification}} makes the same
-observation about its own DNS delegation. Where accounts are
-protected by stronger recovery (for example, phishing-resistant
-authenticators or administrator-approved recovery), DNS control is
-not equivalent to account takeover. For such accounts, this Trust
-Method makes DNS control a direct route to asserting identities in
-the namespace.
+Where email-based recovery alone can take over an account at a
+Resource Authorization Server, an attacker who controls the domain's
+DNS gains little from this Trust Method that it did not already
+have; {{I-D.hardt-email-verification}} makes the same observation
+about its own DNS delegation. Where accounts have stronger recovery
+(for example, phishing-resistant authenticators or
+administrator-approved recovery), DNS control alone does not take
+them over, but this Trust Method makes it a direct route to
+asserting identities in the namespace.
 
 ## Transport Integrity {#transport-integrity}
 
@@ -1291,9 +1288,8 @@ Certificate Transparency logs.
 
 The HTTPS-only lookup mode
 ({{trust-method-https-authorized-issuer}}) substitutes TLS-server
-authentication for DNS-published authority. The threat surfaces
-differ from the canonical DNS-first lookup of
-`domain_authorized_issuer`:
+authentication for DNS-published authority. Its threat surfaces
+differ from those of canonical DNS-first lookup:
 
 - DNS-record attacks ({{dns-integrity-and-compromise}}) can create
   or remove the opt-in, or publish a `key=` that makes retrieval fail
@@ -1310,34 +1306,30 @@ differ from the canonical DNS-first lookup of
   of that host combined with TLS misissuance substitutes the
   policy; CAA records and Certificate Transparency monitoring are
   the primary defenses ({{transport-integrity}}).
-- The policy is served from the Subject Authority's dedicated
-  host, so the risk is that of whoever operates that host
-  ({{third-party-policy-hosts}}), unless a `key=` directive pins the
-  policy's signing key.
+- The policy's integrity rests on whoever operates the dedicated
+  host ({{third-party-policy-hosts}}) unless a `key=` directive pins
+  the policy's signing key.
 - Because the dedicated host is a separate name, a Subject
-  Authority whose apex is hosted on a marketing site or CDN it does
-  not control can still participate, by provisioning or delegating
-  that name.
+  Authority whose apex is on a marketing site or CDN it does not
+  control can still participate by provisioning or delegating it.
 
-The trade-off between the two lookup modes is discussed in
-{{rationale-https-only}}.
+{{rationale-https-only}} discusses the trade-off between the two
+lookup modes.
 
 ## DNS Integrity and Compromise {#dns-integrity-and-compromise}
 
-An adversary who can substitute a forged DNS response can substitute
-the Subject Authority's policy. Such responses come from off-path
-resolver spoofing, authoritative nameserver hijack, registrar
-account compromise, BGP hijack, or recursive cache poisoning. The
-adversary can:
+An adversary who can forge DNS responses, through off-path resolver
+spoofing, authoritative nameserver hijack, registrar account
+compromise, BGP hijack, or recursive cache poisoning, can substitute
+the Subject Authority's policy. It can:
 
 - add an attacker-controlled Assertion Issuer to the inline form;
 - redirect a `uri=` pointer; or
 - force `indeterminate` outcomes to benefit a cached
   attacker-friendly policy.
 
-The pointer form additionally depends on TLS authentication of the
-pointed-at host: TLS does not mitigate the DNS compromise that
-selected that host.
+For the pointer form, TLS authentication of the pointed-at host does
+not mitigate the DNS compromise that selected that host.
 
 Absent DNSSEC or an authenticated resolver path, the inline DNS form's
 integrity is no stronger than the recursive resolver path between
@@ -1373,36 +1365,38 @@ Required framework defenses:
   vetted resolver).
 
 Forged negative answers: a `negative-authoritative` DNS result is
-Negative ({{dii-lookup}}). When `domain_authorized_issuer` is the only
-`subject_namespace_authorization` method the Trust Policy lists, an
+Negative ({{dii-lookup}}). When `domain_authorized_issuer` is the
+Trust Policy's only `subject_namespace_authorization` method, an
 attacker who spoofs a negative answer can deny service for the
-namespace but cannot substitute a policy. Because Negative caching
-is capped ({{dii-caching}}), the denial ends soon after the spoofing
-does.
+namespace but cannot substitute a policy. Negative caching is capped
+({{dii-caching}}), so the denial ends soon after the spoofing does.
 
 When the Trust Policy also lists another namespace method, a
 Negative lets that method supply evidence ({{TRUST-FRAMEWORK}}
-§Multiple Authority Sources Within a Category). A spoofed negative
-answer can then suppress a published policy that does not authorize
-the issuer and let the other method authorize it. In that
-configuration a consumer protects the Subject Authority's denial only
-if it authenticates the absence, for example by validating DNSSEC.
-Signing the zone does not help a consumer that accepts unvalidated
-negative answers. The cache cap limits reuse of one forged answer,
-not an attacker who keeps forging fresh ones.
+§Multiple Authority Sources Within a Category), so a spoofed
+negative answer can suppress a published policy that does not
+authorize the issuer and let the other method authorize it. In that
+configuration, only a consumer that authenticates the absence, for
+example by validating DNSSEC, protects the Subject Authority's
+denial; signing the zone does not help a consumer that accepts
+unvalidated negative answers. The cache cap limits reuse of one
+forged answer, not an attacker who keeps forging fresh ones.
 
-Operational defenses Subject Authorities are encouraged to apply:
-registrar account lock; monitoring of the record set and policy
-document for unexpected changes; cross-region/cross-resolver
-checks to detect localized substitution; avoiding wildcard TXT
-records in zones participating in this mechanism.
+Subject Authorities are encouraged to apply these operational
+defenses:
+
+- registrar account lock;
+- monitoring of the record set and policy document for unexpected
+  changes;
+- cross-region and cross-resolver checks to detect localized
+  substitution; and
+- avoiding wildcard TXT records in zones participating in this
+  mechanism.
 
 ## Policy Hosts {#third-party-policy-hosts}
 
-The DNS pointer form lets the Subject Authority move rich policy
-from DNS into an HTTPS document. In this version, the pointed-to
-host is expected to be under the Subject Authority's operational
-control. General shared-infrastructure risks (multi-tenant CDNs,
+The DNS pointer form moves rich policy from DNS into an HTTPS
+document. General shared-infrastructure risks (multi-tenant CDNs,
 cache rules, dangling origins) are covered in {{TRUST-FRAMEWORK}}
 §Shared Infrastructure and Hosted Well-Known Paths. DAI-specific
 points:
@@ -1422,11 +1416,11 @@ points:
   is operated by a provider, can publish a `key=` thumbprint
   ({{dii-dns-record}}) so that the host cannot alter the policy,
   provided the Subject Authority, not the host, holds the signing
-  key. The host can still withhold the policy, and can replay an older signed
-  policy whose `exp` has not passed to a consumer that holds no
-  cached copy, since the `iat` check of {{signed-policy}} needs one.
-  A short `exp` bounds that replay; removing a hostile host takes a
-  `key=` rotation or a new `uri=`.
+  key. The host can still withhold the policy. It can also replay an
+  older signed policy whose `exp` has not passed to a consumer
+  holding no cached copy, since the `iat` check of {{signed-policy}}
+  needs one. A short `exp` bounds that replay; removing a hostile
+  host takes a `key=` rotation or a new `uri=`.
 
 A Subject Authority that hosts its Issuer Authorization Policy on
 shared infrastructure it does not control end to end SHOULD publish
@@ -1435,11 +1429,11 @@ and resolvable through a channel independent of it, such as a `key=`
 thumbprint ({{signed-policy}}).
 
 Publisher-side criticality does not defend against stripping by an
-on-path or edge attacker. The `crit` member is itself carried in the
-unsigned document, so an attacker who can strip `signed_policy` can
-strip `crit` with it. A signature is effective against such an
-attacker only if consumers require it, through local configuration
-or a `key=` directive. Such consumers take `crit` from the signed JWT
+on-path or edge attacker: `crit` is itself carried in the unsigned
+document, so an attacker who can strip `signed_policy` can strip
+`crit` with it. A signature defeats such an attacker only if
+consumers require it, through local configuration or a `key=`
+directive. Such consumers take `crit` from the signed JWT
 ({{signed-policy}}), so the attacker cannot remove a critical
 requirement either.
 
@@ -1454,19 +1448,16 @@ Authority:
 
 ## Policy Conflicts and Determinism {#policy-conflicts}
 
-The lookup procedure ({{dii-lookup}}) is deterministic across the
-common conflict scenarios that arise when multiple records or
-sources coexist. Determinism is a security property: two verifiers
-receiving the same DNS and HTTPS responses, using the same Public
-Suffix List snapshot ({{TRUST-FRAMEWORK}} §Public Suffix List
-Versioning), and within the limits of
-{{https-policy-document-contract}}, reach the same conclusion
-about what (if any) policy applies. An attacker with
-partial control of one publication channel cannot exploit
-interpretive ambiguity at the consumer.
-
-Common conflict scenarios and their deterministic dispositions are
-specified in {{dii-failures}}.
+The lookup procedure ({{dii-lookup}}) resolves the common conflicts
+among coexisting records or sources deterministically, as specified
+in {{dii-failures}}. Determinism is a security property: two
+verifiers that receive the same DNS and HTTPS responses, use the
+same Public Suffix List snapshot ({{TRUST-FRAMEWORK}} §Public Suffix
+List Versioning), and stay within the limits of
+{{https-policy-document-contract}} reach the same conclusion about
+what policy, if any, applies. An attacker with partial control of
+one publication channel therefore cannot exploit interpretive
+ambiguity at the consumer.
 
 ## Mechanism Limits {#mechanism-limits}
 
@@ -1489,78 +1480,77 @@ specified in {{dii-failures}}.
 ## Email Local-Part Is Not Authenticated {#email-local-part}
 
 `domain_authorized_issuer` evaluates only the email's registrable
-domain. The local-part is unauthenticated by this Trust Method: it
-attests that the Assertion Issuer may assert about emails in the
-namespace, not that any specific local-part is correct. Resource
-Authorization Servers that normalize local-parts (case folding,
-plus-address stripping, alias collapsing) inherit those assumptions
-from the Assertion Issuer; an attacker controlling an
-issuer-accepted alias can land on a different normalized user.
-Either disable local-part normalization or verify the local-part
-through a mechanism outside this document. See also
-{{TRUST-FRAMEWORK}} §Scope of Namespace Authorization.
+domain and does not authenticate the local-part: it attests that the
+Assertion Issuer may assert about emails in the namespace, not that
+any specific local-part is correct. A Resource Authorization Server
+that normalizes local-parts (case folding, plus-address stripping,
+alias collapsing) inherits those assumptions from the Assertion
+Issuer, so an attacker controlling an issuer-accepted alias can land
+on a different normalized user. Either disable local-part
+normalization or verify the local-part through a mechanism outside
+this document. See also {{TRUST-FRAMEWORK}} §Scope of Namespace
+Authorization.
 
 ## Single-Issuer Multi-Tenant Identity Providers {#dii-multi-tenant}
 
-The shared-issuer case and its `tenant` binding are demonstrated
-in the Shared Issuer Variant of the End-to-End Example. The
-following security points apply:
+The Shared Issuer Variant of the End-to-End Example demonstrates
+the shared-issuer case and its `tenant` binding. Security points:
 
 - **Shared issuers are authorized per tenant.** Under a grant
   profile that carries `tenant`, an entry without `tenant` matches
-  only assertions that carry no `tenant` claim ({{dii-verification}}).
-  Under such a profile, listing a shared issuer without `tenant`,
-  including in the inline DNS form, authorizes none of its tenants.
-  Instead, a Subject Authority authorizes a tenant by listing the
-  (issuer, tenant) pair. This relies on the Identity Provider
-  sending the `tenant` claim whenever it is multi-tenant, which
-  {{TRUST-FRAMEWORK}} §ID-JAG requires of every shared issuer. A shared
-  issuer that omits the claim anyway would again match an entry
-  without `tenant`, so Subject Authorities SHOULD list a shared
-  issuer only with `tenant`.
+  only assertions that carry no `tenant` claim ({{dii-verification}}),
+  so listing a shared issuer without `tenant`, including in the
+  inline DNS form, authorizes none of its tenants. A Subject
+  Authority instead authorizes a tenant by listing the (issuer,
+  tenant) pair. This relies on the Identity Provider sending the
+  `tenant` claim whenever it is multi-tenant, as {{TRUST-FRAMEWORK}}
+  §ID-JAG requires of every shared issuer. A shared issuer that
+  omits the claim anyway would again match an entry without
+  `tenant`, so Subject Authorities SHOULD list a shared issuer only
+  with `tenant`.
 
 - **Tenant-isolation dependency.** The `tenant` binding is a
   wire-format expression of trust, not a cryptographic guarantee.
-  The Resource Authorization Server verifies match against the
-  Subject Authority's chosen tenant value, but cannot verify the
-  Identity Provider's tenant-isolation implementation. A
-  tenant-isolation defect (cross-tenant minting bug,
-  misconfigured admin operation) defeats the wire-format check.
-  Subject Authorities SHOULD prefer per-tenant issuer identifiers
+  The Resource Authorization Server checks the claim against the
+  Subject Authority's chosen tenant value but cannot verify the
+  Identity Provider's tenant isolation; a tenant-isolation defect
+  (cross-tenant minting bug, misconfigured admin operation) defeats
+  the wire-format check. Subject Authorities SHOULD prefer
+  per-tenant issuer identifiers
   where offered and treat shared-issuer listings as long-lived
   delegations requiring due diligence on the Identity Provider's
   tenant-isolation guarantees.
 
 - **Grant profiles without a `tenant` claim.** Under a grant
-  profile that carries no `tenant` claim, only entries that omit
-  `tenant` can match, so tenant-scoped authorization is not
-  expressible. The generic JWT-bearer grant ({{TRUST-FRAMEWORK}}
-  §Generic JWT-Bearer Assertion Grant) is such a profile. An entry
-  with `tenant` matches no assertion under such a profile, because
-  the profile does not attest the claim. An entry without `tenant`
-  does not match an assertion that carries a `tenant` claim, but a
-  shared issuer that omits the claim from such assertions is
+  profile that carries no `tenant` claim, such as the generic
+  JWT-bearer grant ({{TRUST-FRAMEWORK}}
+  §Generic JWT-Bearer Assertion Grant), tenant-scoped authorization
+  is not expressible: an entry with `tenant` matches no assertion,
+  because the profile does not attest the claim. An entry without
+  `tenant` matches only assertions that carry no `tenant` claim, but
+  a shared issuer that omits the claim under such a profile is
   indistinguishable across its tenants, so the entry matches
-  assertions from every one of them. A Subject Authority relying on a shared multi-tenant
-  Assertion Issuer SHOULD NOT authorize that issuer for such a grant
-  unless per-tenant issuer identifiers are used.
+  assertions from every one of them. A Subject Authority relying on
+  a shared multi-tenant Assertion Issuer SHOULD NOT authorize that
+  issuer for such a grant unless per-tenant issuer identifiers are
+  used.
 
 ## Denial of Service, Amplification, and SSRF {#dos-ssrf}
 
-The `domain_authorized_issuer` lookup can be triggered before the
-Assertion Issuer is known to be trustworthy: the assertion signature
-validates against the issuer's own key, which an attacker operating
-their own authorization server controls. An attacker can therefore
-drive lookups at will, creating three risks:
+The `domain_authorized_issuer` lookup can run before the Assertion
+Issuer is known to be trustworthy: an attacker operating its own
+authorization server controls the key that validates the assertion
+signature. An attacker can therefore drive lookups at will, creating
+three risks:
 
 - **Reflection/amplification and cache exhaustion.** A flood of
-  assertions carrying distinct Subject Authorities
+  assertions with distinct Subject Authorities
   (`email: x@{random}.example`) makes the Resource Authorization
-  Server issue a live DNS query per distinct authority (and an HTTPS
-  fetch when the record names a `uri=` target). The flood turns the
-  Resource Authorization Server into a request amplifier aimed at
-  third-party DNS/HTTPS infrastructure and fills its own cache with
-  distinct-authority entries. Consumers MUST bound lookup work:
+  Server issue a live DNS query per authority, plus an HTTPS fetch
+  per `uri=` target. The flood turns the Resource Authorization
+  Server into a request amplifier aimed at third-party DNS and HTTPS
+  infrastructure and fills its cache with distinct-authority
+  entries. Consumers MUST bound lookup work:
   enforce per-Subject-Authority and global rate limits and bound
   concurrent outstanding lookups. Consumers SHOULD cache Negative
   outcomes, and MAY cache Indeterminate outcomes, per
@@ -1571,16 +1561,13 @@ drive lookups at will, creating three risks:
   a host the attacker may control: the `uri=` target named by a
   Subject Authority under the attacker's control, or the dedicated
   host under the HTTPS-only mode. For the dedicated host, the
-  attacker presents an assertion whose namespace is a domain it owns,
-  then points the host's A/AAAA records at an internal address. The
-  fetch occurs regardless of whether the body validates, enabling
-  blind internal probing through timing and error differentials.
-  Every such fetch follows
-  {{TRUST-FRAMEWORK}} §Outbound Fetches, which forbids connecting to
-  addresses that are not globally routable and requires timeouts and
-  size bounds. Because redirects are not followed
-  ({{dii-https-url}}), the target is always the host the lookup
-  named.
+  attacker presents an assertion in a namespace it owns and points
+  the host's A/AAAA records at an internal address. The fetch occurs
+  whether or not the body validates, enabling blind internal probing
+  through timing and error differentials. Every such fetch follows
+  the address, timeout, and size rules of {{TRUST-FRAMEWORK}}
+  §Outbound Fetches. Redirects are not followed ({{dii-https-url}}),
+  so the target is always the host the lookup named.
 - **Cost asymmetry.** A single small assertion can cause a full
   DNS+HTTPS round trip. Consumers SHOULD prefer cached results and
   SHOULD NOT perform a live lookup until the client is authenticated
@@ -1596,27 +1583,26 @@ in two directions, and the policy itself is public:
 - **To the resolver path.** A DNS query for
   `_oauth-issuer-policy.{A}` exposes the Subject Authority `{A}` being
   evaluated (and its timing) to every resolver and on-path observer.
-  It does not carry the full subject identifier for formats such as
-  `email`, but the authority plus timing can reveal organizational
+  It omits the full subject identifier for formats such as `email`,
+  but the authority plus timing can reveal organizational
   relationships and login activity. Resource Authorization Servers
   SHOULD use a privacy-preserving resolver path (DNS over HTTPS or
-  DNS over TLS to a vetted resolver) and SHOULD NOT perform the lookup until it is needed for a
-  concrete verification decision.
+  DNS over TLS to a vetted resolver) and SHOULD NOT perform the
+  lookup until it is needed for a concrete verification decision.
 - **To the Subject Authority.** For the dedicated-host and `uri=`
   channels, the Subject Authority's own server (or its chosen policy
   host) observes the Resource Authorization Server's egress IP address
   and the timing of each fetch. That server or host thereby learns
-  which Resource Authorization Servers the namespace's users are
-  authenticating to. The authoritative DNS operator for `{A}`
-  observes per-lookup timing over DNS. An employer acting as its own
-  Subject Authority can thereby obtain a near-real-time signal of
-  where employees sign in. Caching
-  ({{dii-caching}}) is the primary mitigation: it coarsens timing and
-  collapses repeated lookups, so consumers SHOULD cache to the bounds
-  permitted rather than re-fetching per verification. A consumer
-  that applies the minimum freshness lifetime of {{dii-caching}}
-  keeps a Subject Authority from observing every sign-in through a
-  very short TTL.
+  which Resource Authorization Servers the namespace's users
+  authenticate to, and the authoritative DNS operator for `{A}`
+  observes per-lookup timing. An employer acting as its own Subject
+  Authority can thus obtain a near-real-time signal of where
+  employees sign in. Caching ({{dii-caching}}) is the primary
+  mitigation: it coarsens timing and collapses repeated lookups, so
+  consumers SHOULD cache to the bounds permitted rather than
+  re-fetching per verification. A consumer that applies the minimum
+  freshness lifetime of {{dii-caching}} keeps a Subject Authority
+  from observing every sign-in through a very short TTL.
 - **Policy contents.** A published policy is public. It reveals the
   Subject Authority's Identity Providers, tenant identifiers, and,
   through `valid_until`, when its contracts end. Subject Authorities
@@ -1624,11 +1610,11 @@ in two directions, and the policy itself is public:
 
 # Operational Considerations {#operational}
 
-Publishing a DAI record makes DNS/HTTPS control a real-time input to
-sign-in authorization: a lapse in the record or its host can stop
-legitimate assertions from being accepted, and an unauthorized change
-can authorize an attacker. Subject Authorities SHOULD operate the
-record and any policy host with the same rigor as other sign-in-path
+Publishing a DAI record makes DNS and HTTPS control a real-time
+input to sign-in authorization: a lapse in the record or its host
+can block legitimate assertions, and an unauthorized change can
+authorize an attacker. Subject Authorities SHOULD operate the record
+and any policy host with the same rigor as other sign-in-path
 infrastructure. Specific guidance:
 
 - **Rollout.** A first publication withdraws no acceptance that this
@@ -1636,15 +1622,14 @@ infrastructure. Specific guidance:
   Negative ({{dii-failures}}). At a Resource Authorization Server
   that also lists another namespace method, however, the new policy
   becomes final for the namespace ({{TRUST-FRAMEWORK}} §Multiple
-  Authority Sources Within a Category). There, the policy therefore
-  needs to list every issuer that method accepted. Check the issuer
-  list for completeness before publishing. Forgotten regional
-  tenants and departing Identity Providers are the usual omissions,
-  and they surface as rejections at such servers. Subject
-  Authorities SHOULD sign the zone with DNSSEC or publish via the
-  pointer form, since every published decision carries the
-  full weight of the publication channel's integrity
-  ({{dns-integrity-and-compromise}}).
+  Authority Sources Within a Category), so it needs to list every
+  issuer that method accepted. Before publishing, check the issuer
+  list for completeness: forgotten regional tenants and departing
+  Identity Providers are the usual omissions, and they surface as
+  rejections at such servers. Subject Authorities SHOULD sign the
+  zone with DNSSEC or publish via the pointer form, since every
+  published decision carries the full weight of the publication
+  channel's integrity ({{dns-integrity-and-compromise}}).
 - **Change management and TTLs.** Reduce DNS TTLs in advance of any
   planned change to the record or `uri=` pointer ({{third-party-policy-hosts}}),
   and choose steady-state TTLs balancing propagation speed against
@@ -1669,30 +1654,27 @@ infrastructure. Specific guidance:
   (explicit denial). Deleting the policy document instead makes
   lookups Indeterminate, so consumers can keep using a cached policy
   within the stale-if-error bound of {{dii-caching}}.
-- **Monitoring.** Monitor the record set and any HTTPS policy document
-  for unexpected changes, and perform cross-region/cross-resolver
-  checks to detect localized substitution ({{dns-integrity-and-compromise}}).
-- **Availability.** Because Negative and Indeterminate outcomes fail
-  closed ({{dii-failures}}), loss of the record or policy host blocks
-  sign-in for the namespace; provision the authoritative DNS and any
-  policy host for availability accordingly.
-- **Zone hygiene.** Avoid wildcard TXT records in zones participating
-  in this mechanism ({{dns-integrity-and-compromise}}); a wildcard
+- **Monitoring and zone hygiene.** Apply the operational defenses of
+  {{dns-integrity-and-compromise}}, including monitoring for
+  unexpected changes and avoiding wildcard TXT records. A wildcard
   with a non-matching `authority=` causes recognized-but-discarded
   records and can push a lookup to Indeterminate.
+- **Availability.** Negative and Indeterminate outcomes fail closed
+  ({{dii-failures}}), so provision the authoritative DNS and any
+  policy host for availability.
 - **Media type.** Serve the policy document with
   `Content-Type: application/json`. Static hosts often label a file
   without an extension `application/octet-stream`, which consumers
   treat as Indeterminate ({{dii-failures}}).
 - **Stable issuer identifiers.** Issuer comparison is octet-for-octet
-  ({{dii-document}}), so an Identity Provider operator that changes an
-  issuer identifier breaks every Subject Authority that lists it
-  until each republishes. Identity Provider operators keep issuer
-  identifiers stable and announce changes ahead of time.
-- **Many domains.** Each registrable domain is its own Subject
-  Authority with its own policy (`subject_authority` names exactly
-  one). An organization with many domains publishes a record, and
-  for the pointer form a document, for each.
+  ({{dii-document}}), so changing an issuer identifier breaks every
+  Subject Authority that lists it until each republishes. Identity
+  Provider operators keep issuer identifiers stable and announce
+  changes ahead of time.
+- **Many domains.** Each registrable domain is a separate Subject
+  Authority (`subject_authority` names exactly one), so an
+  organization with many domains publishes a record, and for the
+  pointer form a document, for each.
 - **Users from other namespaces.** An assertion about a user whose
   email is in another organization's namespace (for example, a guest
   at `partner.example` signing in through the host organization's
@@ -1855,10 +1837,7 @@ Initial entries; all are decision-affecting except `last_updated` and
 
 IANA is requested to register the following media type in the "Media
 Types" registry for the signed Issuer Authorization Policy
-({{signed-policy}}). Following {{RFC8725}} §3.11, the JWT `typ`
-header value is the media subtype with the `application/` prefix
-omitted (`issuer-authorization-policy+jwt`), as required in
-{{signed-policy}}.
+({{signed-policy}}).
 
 Type name:
 : `application`

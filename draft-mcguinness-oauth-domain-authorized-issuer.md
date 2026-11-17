@@ -291,7 +291,8 @@ channel on encountering a denial. Each object has:
     normalization, consistent with {{RFC8414}} issuer-identifier
     comparison: `https://a` and `https://a/` are distinct issuers.
 
-    Query components are NOT RECOMMENDED. Issuer identifiers whose
+    Query components are NOT RECOMMENDED, because many issuer metadata
+    profiles do not use them. Issuer identifiers whose
     string form contains a `;` cannot be expressed in the inline DNS
     form ({{dii-dns-record}}) and MUST be published via the HTTPS
     document instead.
@@ -326,8 +327,8 @@ channel on encountering a denial. Each object has:
   : OPTIONAL. {{RFC3339}} date-time. The delegation MUST NOT be treated
   as valid before this time. A consumer MAY apply a clock-skew
   tolerance of at most 5 minutes, consistent with JWT `nbf`
-  conventions ({{RFC7519}} Section 4.1.5). This tolerance MUST NOT be
-  applied to `valid_until`.
+  conventions ({{RFC7519}} Section 4.1.5). This tolerance applies only
+  to `valid_from` and MUST NOT be applied to `valid_until`.
 
   `valid_until`
   : OPTIONAL. {{RFC3339}} date-time. The delegation MUST NOT be treated

@@ -283,16 +283,15 @@ channel on encountering a denial. Each object has:
   `issuer`
   : REQUIRED. String. The Assertion Issuer identifier. For OAuth
   authorization server issuer identifiers, this value MUST be an
-  absolute HTTPS URL with no fragment component. The URL MAY contain a
-  path component.
+  absolute HTTPS URL with no query or fragment component
+  ({{RFC8414}} Section 2). The URL MAY contain a path component.
 
     The value and the JWT `iss` claim are compared by exact
     case-sensitive string equality (octet-for-octet), with no
     normalization, consistent with {{RFC8414}} issuer-identifier
     comparison: `https://a` and `https://a/` are distinct issuers.
 
-    Query components are NOT RECOMMENDED, because many issuer metadata
-    profiles do not use them. Issuer identifiers whose
+    Issuer identifiers whose
     string form contains a `;` cannot be expressed in the inline DNS
     form ({{dii-dns-record}}) and MUST be published via the HTTPS
     document instead.
@@ -658,7 +657,7 @@ The following directives are defined:
 : OPTIONAL. An Assertion Issuer identifier authorized by the Subject
 Authority for `A`. For OAuth authorization server issuer identifiers,
 the value MUST be an absolute HTTPS URL and MUST NOT contain a
-fragment component. MAY appear multiple times within a record and
+query or fragment component. MAY appear multiple times within a record and
 across records.
 
 `key=THUMBPRINT`

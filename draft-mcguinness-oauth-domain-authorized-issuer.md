@@ -768,17 +768,15 @@ condition does not hold, it fetches without a conditional request.
 
 # Lookup Procedure {#dii-lookup}
 
-To retrieve the Issuer Authorization Policy for a Subject Authority `A`,
-a Resource Authorization Server performs the following steps. The
-procedure consults DNS only, plus the `uri=` target a DNS record
-names. The TXT record is the Subject Authority's opt-in: its absence
-is Negative, and no other channel is consulted.
-
-This is the canonical procedure used by the
-`domain_authorized_issuer` Trust Method. The HTTPS-only lookup mode
-defined in {{trust-method-https-authorized-issuer}} uses the DNS
-record as the opt-in and for any `key=` pin, and fetches the policy
-only from the dedicated policy host.
+A Resource Authorization Server retrieves the Issuer Authorization
+Policy for a Subject Authority `A` with the following steps, the
+canonical lookup procedure of the `domain_authorized_issuer` Trust
+Method. The procedure consults only DNS and the `uri=` target a DNS
+record names. The TXT record is the Subject Authority's opt-in: its
+absence is Negative, and no other channel is consulted. The
+HTTPS-only lookup mode ({{trust-method-https-authorized-issuer}})
+instead fetches the policy only from the dedicated policy host;
+{{combining-dai-methods}} covers the choice of mode.
 
 1. Query the DNS TXT resource record set at
    `_oauth-issuer-policy.{A}`. Classify the response as:
@@ -798,47 +796,40 @@ only from the dedicated policy host.
 
    a. Discard recognized records whose `authority=` directive does
       not match `A` under the Subject Authority comparison rules in
-      {{TRUST-FRAMEWORK}} §Subject Authority Determination. If any recognized record is missing an
-      `authority=` directive, treat the response as `malformed`. If
-      all recognized records are discarded because of `authority=`
-      mismatch, treat the response as `malformed`. (A `malformed`
-      outcome is classified as Indeterminate, {{dii-failures}}.)
-      Finding a record's `authority=` directive requires only
-      splitting the record into directives at `;`; a record discarded
-      for `authority=` mismatch is not otherwise validated.
+      {{TRUST-FRAMEWORK}} §Subject Authority Determination. The
+      response is `malformed` if any recognized record lacks an
+      `authority=` directive, or if all recognized records are
+      discarded for `authority=` mismatch. A `malformed` outcome is
+      Indeterminate ({{dii-failures}}). Finding a record's
+      `authority=` directive requires only splitting the record into
+      directives at `;`; a discarded record is not otherwise
+      validated.
 
-      Before continuing, validate the remaining recognized records
-      against the directive rules in {{dii-dns-record}}. This includes
-      rejecting malformed `uri=` or `issuer=` values, and records with
-      neither `uri=` nor `issuer=`. Any such condition is a `malformed`
-      outcome.
+      Then validate the remaining recognized records against the
+      directive rules in {{dii-dns-record}}. A malformed `uri=` or
+      `issuer=` value, a record with neither, or any other violation
+      is `malformed`.
 
    b. If any remaining record contains a `uri=` directive:
 
       - If more than one distinct `uri=` value is present across the
         remaining records, treat as `malformed`.
 
-      - Otherwise fetch the JSON policy from that URL per
-        {{dii-https-url}}. The fetched document is the Issuer
-        Authorization Policy. All `issuer=` directives across all
-        records are ignored: their values do not contribute to the
-        policy, but the directive-validity rules of
-        {{dii-dns-record}} were already applied in step 2a, so a
-        record set malformed under those rules never reaches this
-        step. If a `key=` directive is present, the document is
-        verified as that directive requires.
+      - Otherwise fetch the Issuer Authorization Policy from that URL
+        per {{dii-https-url}}. All `issuer=` directives across all
+        records are ignored; step 2a has already applied their
+        validity rules. If a `key=` directive is present, the
+        document is verified as that directive requires.
 
    c. Otherwise (no `uri=` present), construct a virtual Issuer
-      Authorization Policy, one built from the records rather than
-      fetched, with `subject_authority` set to `A` and
-      one entry in `authorized_issuers` for each distinct `issuer=`
-      value across the remaining records. Entry order carries no
-      semantics ({{dii-verification}}); the deduplicated values form
-      a set. Entries have no `tenant`,
-      `subject_identifier_formats`, `valid_from`, or `valid_until`.
-      The virtual policy is processed identically to one fetched over
-      HTTPS, except that its cache lifetime is derived from DNS TTLs
-      as described in {{dii-caching}}.
+      Authorization Policy from the records, with `subject_authority`
+      set to `A` and one entry in `authorized_issuers` for each
+      distinct `issuer=` value across the remaining records. Entry
+      order carries no semantics ({{dii-verification}}). Entries have
+      no `tenant`, `subject_identifier_formats`, `valid_from`, or
+      `valid_until`. The virtual policy is processed identically to
+      one fetched over HTTPS, except that its cache lifetime is
+      derived from DNS TTLs ({{dii-caching}}).
 
 3. If the DNS response is `negative-authoritative`, the lookup is
    Negative ({{dii-failures}}): the Subject Authority has not
@@ -851,22 +842,16 @@ only from the dedicated policy host.
    force the consumer onto a path the attacker has compromised
    separately.
 
-Under the HTTPS-only lookup mode, a Subject Authority is found only
-if it publishes both a record whose `uri=` is the default URL and a
-policy on the dedicated host ({{combining-dai-methods}}). A Resource
-Authorization Server that cannot resolve DNS (resolver failure,
-untrusted resolution path) classifies the lookup as Indeterminate
-({{dii-failures}}).
+A Resource Authorization Server that cannot resolve DNS (resolver
+failure, untrusted resolution path) classifies the lookup as
+Indeterminate ({{dii-failures}}).
 
 ## Failure Handling {#dii-failures}
 
-DAI lookup outcomes map onto the Affirmative / Negative /
+DAI lookup outcomes map onto the Affirmative, Negative, and
 Indeterminate lookup states of the Authority Delegation Model
-({{TRUST-FRAMEWORK}} §Lookup States and Fail-Closed). The normative
-requirements (fail closed on Negative and Indeterminate; no
-fallback to a different Authority Source; bounded cache reuse on
-transient Indeterminate) apply unchanged; this section maps the
-concrete DAI outcomes onto those states.
+({{TRUST-FRAMEWORK}} §Lookup States and Fail-Closed), whose
+requirements apply unchanged.
 
 | State | DAI outcomes |
 |-|-|
@@ -918,21 +903,17 @@ MUST be treated as Indeterminate.
 The following deterministic conflict rules apply:
 
 - Multiple recognized TXT records containing no `uri=` directive
-  are merged into a single virtual policy. `issuer=` values across
-  records are deduplicated into a set; order carries no semantics
-  ({{dii-lookup}}, step 2c).
+  merge into one virtual policy whose `issuer=` values form an
+  unordered set ({{dii-lookup}}, step 2c).
 
-- If any recognized record contains a `uri=` directive after
-  `authority=` filtering, the HTTPS document at the single `uri=`
-  target is authoritative and all `issuer=` directives across all
-  records are ignored ({{dii-lookup}}, step 2b). More than one distinct
-  `uri=` value is `malformed`.
+- If any remaining record contains a `uri=` directive, the HTTPS
+  document at the single `uri=` target is authoritative and all
+  `issuer=` directives are ignored; more than one distinct `uri=`
+  value is `malformed` ({{dii-lookup}}, step 2b).
 
-- Canonical lookup takes the policy from the DNS record and the
-  `uri=` target it names; the HTTPS-only lookup mode requires a
-  record whose `uri=` is the default URL and takes the policy only
-  from that URL. Because the opt-in record directs canonical lookup
-  to the same URL, both modes retrieve the same document
+- Both lookup modes retrieve the same document: the HTTPS-only lookup
+  mode requires a record whose `uri=` is the default URL, and that
+  record directs canonical lookup to the same URL
   ({{dedicated-policy-host}}).
 
 - Multiple `authorized_issuers` entries for the same `issuer` value but
@@ -976,9 +957,8 @@ Resource Authorization Server MUST:
 4. Determine whether any entry in `authorized_issuers` matches. An
    entry matches when all of the following hold:
 
-   a. `issuer` equals the JWT `iss` claim under case-sensitive URL
-      string comparison (the comparison rule fixed in
-      {{dii-document}}).
+   a. `issuer` equals the JWT `iss` claim under the case-sensitive
+      string comparison of {{dii-document}}.
 
    b. If the entry contains a `tenant` member, its value exactly
       matches the assertion's top-level `tenant` claim (in ID-JAG,
@@ -999,11 +979,9 @@ Resource Authorization Server MUST:
 
    The Trust Method is satisfied when step 3 succeeds and at least
    one entry matches under (a)-(d). Entry order in
-   `authorized_issuers` carries no semantics: the
-   outcome is the boolean "does any entry match," so two consumers
-   evaluating the same policy against the same assertion reach the
-   same result regardless of array order or of which matching entry
-   they examine first.
+   `authorized_issuers` carries no semantics: the result does not
+   depend on array order or on which matching entry a consumer
+   examines first.
 
 If step 1 fails, the assertion is rejected ({{TRUST-FRAMEWORK}}
 §Resource Authorization Server Processing, step 5c). If step 2 does
@@ -1024,28 +1002,25 @@ Step 4b, for a grant profile that carries `tenant` (such as ID-JAG):
 | Yes | No | No |
 | Yes | Yes | Only if the values are equal |
 
-Under a grant profile that carries no `tenant` claim, an entry with
-`tenant` never matches, and an entry without `tenant` matches only an
-assertion that carries no `tenant` claim.
 
 ## Observing Before Enforcing {#observe-before-enforce}
 
 This document defines no mode in which a published policy is
 evaluated without being enforced. Under fail-closed evaluation, a
 namespace with no policy gets no authorization from this Trust
-Method ({{dii-failures}}), so a Subject Authority's first publication
-withdraws nothing that this method granted. A mode that accepted assertions despite
-a mismatch would instead admit more issuers than publishing nothing.
+Method ({{dii-failures}}), so a first publication withdraws nothing
+this method granted. A mode that accepted mismatched assertions
+would admit more issuers than publishing nothing.
 
 A Resource Authorization Server introducing `domain_authorized_issuer`
-can observe before it enforces: it evaluates the Trust Method for
-incoming assertions and logs the outcome (Subject Authority,
-Assertion Issuer, matched or not) while its Trust Policy does not yet
-list the method. Because only listed methods are applicable
-({{TRUST-FRAMEWORK}} §Category Applicability), observation does not
-affect acceptance. The Resource Authorization Server can share what
-it observes with affected Subject Authorities out of band; a
-reporting mechanism is sketched in {{future-extensions}}.
+can observe before it enforces: it evaluates the Trust Method and
+logs each outcome (Subject Authority, Assertion Issuer, matched or
+not) while its Trust Policy does not yet list the method. Because
+only listed methods are applicable ({{TRUST-FRAMEWORK}} §Category
+Applicability), observation does not affect acceptance. The Resource
+Authorization Server can share what it observes with affected
+Subject Authorities out of band; a reporting mechanism is sketched
+in {{future-extensions}}.
 
 # Caching {#dii-caching}
 
@@ -1098,9 +1073,8 @@ Freshness and cache limits for the Issuer Authorization Policy:
   produced them. A cache lifetime of 5 minutes is RECOMMENDED for
   Negative results. The lifetime of the DNS answer is the negative
   TTL ({{RFC2308}}) for an NXDOMAIN or NODATA answer. For an answer
-  that contains records but none that yields a policy, it is the
-  remaining TTL of the TXT record set. Such an answer has no
-  recognized record. The short cap makes a Subject
+  with records but no recognized record, it is the remaining TTL of
+  the TXT record set. The short cap makes a Subject
   Authority's first publication, and its recovery from a brief
   publication-channel takeover, visible promptly. The same cap
   SHOULD apply to a cached explicit-denial policy ({{dii-document}}).
@@ -1109,61 +1083,56 @@ Freshness and cache limits for the Issuer Authorization Policy:
   an Indeterminate cache entry MUST NOT be treated as a policy and
   never satisfies the Trust Method.
 
-After a Subject Authority removes an issuer, each cached entry at a
-consumer remains usable for its remaining freshness lifetime plus up
-to 1 hour of stale-if-error use, never beyond the absolute ceiling.
-The overall revocation window is longer than one entry's lifetime.
-The change has to reach every authoritative server. Upstream caches
-can also keep serving the old authorization when a consumer
-refreshes: recursive resolvers for the old record's full advertised
-TTL ({{RFC1035}} Section 4.1.3), and HTTP caches for the document's
-freshness lifetime. The window is therefore up to the propagation
-time plus those upstream lifetimes, plus one consumer freshness
-lifetime and the stale-if-error hour. Steady-state lifetimes of 1
-hour or less, as recommended above, keep it to a few hours. For a
-signed policy on a host the Subject Authority does not control, the
-host can also replay the superseded policy until its `exp`, at most
-24 hours after its `iat` ({{signed-policy}}).
+After a Subject Authority removes an issuer, consumers can still
+accept it for up to the sum of:
+
+- the time for the change to reach every authoritative server;
+- upstream cache lifetimes: recursive resolvers can serve the old
+  record for its full advertised TTL ({{RFC1035}} Section 4.1.3),
+  and HTTP caches the old document for its freshness lifetime; and
+- one consumer freshness lifetime plus up to 1 hour of
+  stale-if-error use, never beyond the absolute ceiling.
+
+Steady-state lifetimes of 1 hour or less, as recommended above, keep
+this window to a few hours. For a signed policy on a host the Subject
+Authority does not control, the host can also replay the superseded
+policy until its `exp`, at most 24 hours after its `iat`
+({{signed-policy}}).
 
 # Trust Methods {#trust-methods}
 
 This document defines `domain_authorized_issuer` as a
-`subject_namespace_authorization` Trust Method of {{TRUST-FRAMEWORK}}.
-DNS at `_oauth-issuer-policy.{A}` is the publication channel
-for canonical lookup; under the HTTPS-only lookup mode the record
-is an opt-in and a dedicated HTTPS host serves the policy. The Trust
-Method
-registers in the Identity Assertion Trust Methods registry
+`subject_namespace_authorization` Trust Method of {{TRUST-FRAMEWORK}},
+registered in the Identity Assertion Trust Methods registry
 ({{TRUST-FRAMEWORK}} §Identity Assertion Trust Methods Registry).
 
 ## domain_authorized_issuer {#trust-method-domain-authorized-issuer}
 
 The `domain_authorized_issuer` method indicates that the Assertion
 Issuer is acceptable if the Subject Authority identified by the
-assertion's Subject Identifier authorizes the Assertion Issuer to
-assert identities in that namespace. The method uses the publication
-channels ({{publication-profiles}}), lookup procedure ({{dii-lookup}}),
-and verification rules ({{dii-verification}}) of this document.
+assertion's Subject Identifier authorizes it to assert identities in
+that namespace. It uses the publication channels
+({{publication-profiles}}), lookup procedure ({{dii-lookup}}), and
+verification rules ({{dii-verification}}) of this document.
 
-This Trust Method natively expresses authorization for either form of
+This Trust Method expresses authorization for either form of
 multi-tenant Assertion Issuer:
 
 - **Per-tenant issuer identifiers** (for example,
-  `https://login.microsoftonline.com/{tenant-id}/v2.0`): the
-  `authorized_issuers[].issuer` field accepts any absolute HTTPS URL
-  issuer identifier, and case-sensitive comparison against the JWT
-  `iss` claim distinguishes tenants under the same host. Each
-  authorized tenant is one `authorized_issuers` entry. If such an
-  issuer also sends a `tenant` claim, the entry carries the same
+  `https://login.microsoftonline.com/{tenant-id}/v2.0`):
+  case-sensitive comparison of `issuer` against the JWT `iss` claim
+  ({{dii-document}}) distinguishes tenants under the same host, so
+  each authorized tenant is one `authorized_issuers` entry. If such
+  an issuer also sends a `tenant` claim, the entry carries the same
   `tenant` value ({{dii-verification}}, step 4b), which only the
   pointer form can express.
 
 - **Shared issuer with a tenant claim** (for example,
   `https://accounts.google.com` serving every Google Workspace tenant
   via the top-level `tenant` claim of {{ID-JAG}} §6.1): the
-  `authorized_issuers[].tenant` field binds the authorization to a
-  specific tenant of the shared issuer, with the security properties
-  described in {{dii-multi-tenant}}.
+  `authorized_issuers[].tenant` field binds the authorization to one
+  tenant of the shared issuer, with the security properties in
+  {{dii-multi-tenant}}.
 
 ~~~ json
 {
@@ -1172,27 +1141,24 @@ multi-tenant Assertion Issuer:
 ~~~
 
 With no additional members, the Resource Authorization Server
-retrieves the Issuer Authorization Policy by applying the canonical
-lookup procedure in {{dii-lookup}}: a DNS query at
-`_oauth-issuer-policy.{A}`, with no HTTPS fallback. The optional `lookup`
-member is used only for the HTTPS-only deployment variant in
-{{trust-method-https-authorized-issuer}}.
+applies the canonical lookup procedure ({{dii-lookup}}). The
+optional `lookup` member selects the HTTPS-only deployment variant
+({{trust-method-https-authorized-issuer}}).
 
 ## HTTPS-Only Deployment Variant {#trust-method-https-authorized-issuer}
 
 Some deployments will not take issuers or a policy location from
-DNS. Those
-deployments can use the same Issuer Authorization Policy document
-format, retrieved over HTTPS from the Subject Authority's dedicated
+DNS. They can retrieve the same Issuer Authorization Policy
+({{dii-document}}) over HTTPS from the Subject Authority's dedicated
 policy host ({{dedicated-policy-host}}), with the DNS record serving
-as the Subject Authority's opt-in. This
-is a deployment variant of the DAI
-mechanism, not a second Trust Method registered by this document.
+as the Subject Authority's opt-in. This is a deployment variant of
+the DAI mechanism, not a second Trust Method registered by this
+document.
 
 Under this variant, the Assertion Issuer is acceptable if the Subject
 Authority identified by the assertion's Subject Identifier publishes
-the opt-in record and an Issuer Authorization Policy on its
-dedicated policy host authorizing the Assertion Issuer.
+the opt-in record and, on its dedicated policy host, an Issuer
+Authorization Policy authorizing the Assertion Issuer.
 
 ~~~ json
 {
@@ -1204,15 +1170,6 @@ dedicated policy host authorizing the Assertion Issuer.
 The `lookup` member is OPTIONAL. If present, its value MUST be
 `https_only`.
 
-This variant reuses:
-
-- the Issuer Authorization Policy document format ({{dii-document}});
-- the Subject Authority determination rules ({{TRUST-FRAMEWORK}}
-  §Subject Authority Determination);
-- the HTTPS document URL ({{dii-https-url}});
-- the verification rules ({{dii-verification}});
-- the caching rules ({{dii-caching}}); and
-- the DNS query of {{dii-lookup}}, for the opt-in.
 
 This variant takes no issuers or policy location from DNS.
 
@@ -1225,13 +1182,13 @@ When evaluated, the Resource Authorization Server MUST:
 2. Query `_oauth-issuer-policy.{A}` and classify the response as in
    steps 1 and 2a of {{dii-lookup}}; more than one distinct `uri=`
    value, or more than two distinct `key=` values, across the
-   remaining records is `malformed`. A `negative-authoritative` response is
-   Negative. The Subject Authority has opted in to this mode only if
-   a remaining record carries a `uri=` whose value is exactly the
-   default URL ({{dedicated-policy-host}}). When recognized records
-   remain but none does, the Subject Authority has published a
-   policy this lookup mode does not retrieve, and the outcome is
-   Indeterminate. An `indeterminate` or `malformed` response is
+   remaining records is `malformed`. A `negative-authoritative`
+   response is Negative. The Subject Authority has opted in to this
+   mode only if a remaining record carries a `uri=` whose value is
+   exactly the default URL ({{dedicated-policy-host}}). If recognized
+   records remain but none does, the outcome is Indeterminate: the
+   Subject Authority has published a policy this mode does not
+   retrieve. An `indeterminate` or `malformed` response is
    Indeterminate. The records' `issuer=` values are not used.
 
 3. Fetch the Issuer Authorization Policy from the default URL
@@ -1253,44 +1210,27 @@ When evaluated, the Resource Authorization Server MUST:
 5. Verify the fetched policy and match the Assertion Issuer against
    `authorized_issuers` using steps 3 and 4 of {{dii-verification}}.
 
-A Resource Authorization Server uses this variant when it requires
-the policy itself to come over HTTPS and does not accept policy
-content published in DNS (inline or DNS pointer). Compared to
-canonical DNS-first lookup, this mode:
-
-- Removes the TXT record's issuers and policy location from the
-  trust path. The record remains the opt-in and can pin the policy's
-  signing key with `key=`. DNS integrity still matters, because the
-  dedicated host is still located through DNS and issuance of its
-  TLS certificate typically relies on DNS-based validation. What
-  changes is that an attacker must also obtain a certificate for the
-  host, not only answer a TXT query.
-
-- Ignores inline issuers and any `uri=` other than the default URL.
-  Using either would require trusting DNS to select the issuers or
-  the policy host.
-
-- Requires the Subject Authority to provision the dedicated host,
-  which it can delegate to a hosting provider without giving up
-  control of its apex web origin.
+Compared to canonical lookup, this mode removes the TXT record's
+issuers and policy location from the trust path and requires the
+Subject Authority to provision the dedicated host
+({{dedicated-policy-host}}). DNS integrity still matters: DNS locates
+the dedicated host, and issuance of its TLS certificate typically
+relies on DNS-based validation. What changes is that an attacker
+must also obtain a certificate for the host, not only answer a TXT
+query ({{https-only-trust-model}}).
 
 ## Choosing the Lookup Mode {#combining-dai-methods}
 
 Within `domain_authorized_issuer`, a Resource Authorization Server
 selects one lookup mode:
 
-- **Canonical DNS-first lookup** is the default. The Resource
-  Authorization Server queries `_oauth-issuer-policy.{A}` and
-  consults nothing else except the `uri=` target that record names
-  ({{dii-lookup}}).
+- **Canonical DNS-first lookup** ({{dii-lookup}}) is the default.
 
-- **HTTPS-only lookup** is an explicit deployment variant. Use it
-  when local policy distrusts issuers or policy locations published in
-  DNS and
-  requires the policy itself to come over TLS-authenticated HTTPS
-  from the dedicated host. The DNS record is still required, as the
-  opt-in, and its `uri=` names the default URL; its inline issuers
-  are not used.
+- **HTTPS-only lookup** ({{trust-method-https-authorized-issuer}}) is
+  an explicit deployment variant for local policy that distrusts
+  issuers or policy locations published in DNS and requires the
+  policy itself to come over TLS-authenticated HTTPS from the
+  dedicated host. It still requires the DNS record as the opt-in.
 
 A Trust Policy MUST NOT list more than one `domain_authorized_issuer`
 object; a Resource Authorization Server treats a policy that does as

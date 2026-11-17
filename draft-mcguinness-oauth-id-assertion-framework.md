@@ -576,8 +576,8 @@ Authorities for different namespaces, multiple federation trust
 anchors). For `subject_namespace_authorization`, a profile MUST
 define deterministic source selection: a binding function from
 Assertion and request context to exactly one Authority Source or a
-deterministic failure, unaffected by attacker-controlled inputs
-outside the function. {{unverified-claim}} details the attack
+deterministic failure, invariant under attacker-controlled inputs
+outside the binding function. {{unverified-claim}} details the attack
 against ad-hoc or fallback selection logic and the
 deterministic-selection requirement.
 
@@ -1141,8 +1141,8 @@ requirements:
 
 4. **Trust Mark satisfaction.** If the Trust Method object contains
    `trust_marks`, each requirement object MUST be satisfied by at
-   least one Trust Mark in the `trust_marks` claim of the leaf's
-   Entity Configuration that meets all of the following:
+   least one Trust Mark that appears in the `trust_marks` claim of
+   the leaf's Entity Configuration and meets all of the following:
 
    - It validates per {{OIDF-FEDERATION}} §7.3.
    - Its `trust_mark_type` equals the requirement's `trust_mark_type`.
@@ -1224,8 +1224,8 @@ Authentication Request, and §12.1.5 says that bare OAuth 2.0
 deployments can use it. This method defines the case §12.1 does not
 describe: a client whose first request is a token request. This
 method places none of the obligations of {{OIDF-FEDERATION-CONNECT}}
-§12.1 on the client toward the Resource Authorization Server. It is
-evaluated for each token request that presents an identity
+§12.1 on the client toward the Resource Authorization Server. This
+method is evaluated for each token request that presents an identity
 assertion. The `client_id` MUST equal the `sub` of the client's
 Entity Configuration by simple string comparison. A client whose
 `client_id` is not an Entity Identifier ({{OIDF-FEDERATION}} §1.2)
@@ -1529,7 +1529,8 @@ Subject Identifier format's extraction procedure.
 
 ### Public Suffix List Versioning {#psl-versioning}
 
-No protocol derives a registrable domain from a DNS name. The IETF
+No IETF standard defines how to derive a registrable domain from a
+DNS name. The IETF
 DBOUND working group studied administrative (organizational)
 boundaries in the DNS and concluded without a standard. The Public
 Suffix List is the de facto mechanism, and browsers use it for
@@ -1790,8 +1791,8 @@ For every such fetch, the Resource Authorization Server:
 
 - MUST NOT connect to an address that is private-use, loopback,
   link-local, unique-local, or otherwise not globally routable,
-  unless local configuration explicitly permits that address range.
-  An example is a deployment whose internal resolver maps public
+  unless local configuration explicitly permits that address range,
+  for example for a deployment whose internal resolver maps public
   names to private addresses;
 - MUST connect to the address it checked rather than resolving the
   name again, so that a DNS answer that changes between the check
@@ -2089,7 +2090,8 @@ thumbprint for each authorized issuer.
 Trust-policy evaluation establishes that the Assertion Issuer is
 authorized to assert this class of Subject Identifiers under the
 namespace. Assertion validation under the applicable grant profile
-({{rasp}} step 2) still applies. Resource Authorization Servers
+({{rasp}} step 2), including any replay and client-binding checks
+that profile defines, still applies. Resource Authorization Servers
 MUST NOT infer any of the following from a successful trust-policy
 evaluation:
 
@@ -2114,8 +2116,7 @@ domain, not evidence of current mailbox control.
 
 Namespace authorization does not make an email address a safe
 account key by itself. A Resource Authorization Server keys accounts
-on issuer-scoped identifiers, such as `iss` and `sub`, with `tenant`
-for a multi-tenant issuer. It links an account by email only under
+on issuer-scoped identifiers ({{rasp}} step 5c). It links an account by email only under
 its own account-linking rules.
 
 Nor does namespace authorization cover other subject claims. An

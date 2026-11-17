@@ -428,8 +428,9 @@ copy and during stale-if-error use ({{dii-caching}}).
 Consumers MUST reject a `signed_policy` whose `exp` is more than 24
 hours after its `iat`. For each Subject Authority, a consumer MUST
 retain the highest `iat` it has accepted until the `exp` of that
-signed policy. It MUST reject a `signed_policy` with an earlier
-`iat`, even after the cached policy itself is gone.
+signed policy. It MUST reject a `signed_policy` for that Subject
+Authority with an earlier `iat`, even after the cached policy itself
+is gone.
 
 The JOSE header SHOULD contain a `kid` identifying the signing key.
 The JWT payload SHOULD NOT contain a `signed_policy` claim. The outer
@@ -452,8 +453,8 @@ The JWT payload MUST contain `subject_authority`. When a `key=`
 directive pins the verification key, a signature that verifies with
 that key binds the signer to the Subject Authority, and the JWT `iss`
 claim is not further constrained. Otherwise, the JWT `iss` claim MUST
-either equal the `subject_authority` value, such as `acme.example`
-but not `https://acme.example`, or identify a signing authority that
+either equal the `subject_authority` value (for example,
+`acme.example`, not `https://acme.example`) or identify a signing authority that
 local policy or an applicable Trust Method establishes as controlled
 by the Subject Authority. Consumers MUST NOT treat a signature by an
 Assertion Issuer the policy authorizes as proof of Subject Authority
@@ -817,7 +818,8 @@ instead fetches the policy only from the dedicated policy host.
         validity rules. If a `key=` directive is present, the
         document is verified as that directive requires.
 
-   c. Otherwise, construct a virtual Issuer Authorization Policy from
+   c. Otherwise (no `uri=` present), construct a virtual Issuer
+      Authorization Policy from
       the records. Its `subject_authority` is `A`, and its
       `authorized_issuers` has one entry for each distinct `issuer=`
       value across the remaining records. Entry order carries no
@@ -1107,7 +1109,7 @@ registered in the Identity Assertion Trust Methods registry
 Under the `domain_authorized_issuer` method, the Assertion Issuer is
 acceptable if the Subject Authority identified by the assertion's
 Subject Identifier authorizes that issuer to assert identities in
-its namespace. The method uses this document's publication channels
+the Subject Authority's namespace. The method uses this document's publication channels
 ({{publication-profiles}}), lookup procedure ({{dii-lookup}}), and
 verification rules ({{dii-verification}}).
 
@@ -1236,8 +1238,9 @@ assertion.
 Resource Authorization Servers MUST NOT evaluate both lookup modes
 as alternatives for the same assertion. If they did, an attacker who
 can drive the DNS lookup to `indeterminate` (resolver denial of
-service, BGP disruption) could force HTTPS-only evaluation. That
-fallback defeats the fail-closed property of the DNS-first lookup.
+service, BGP disruption) could force a fallback to HTTPS-only
+evaluation, defeating the fail-closed property of the DNS-first
+lookup.
 
 # Security Considerations {#dii-security}
 
@@ -1503,7 +1506,7 @@ the shared-issuer case and its `tenant` binding. Security points:
   ({{dii-verification}}). Listing a shared issuer without `tenant`,
   including in the inline DNS form, therefore authorizes none of its
   tenants. A Subject Authority instead authorizes a tenant by listing
-  the (issuer, tenant) pair. Per-tenant listing relies on a
+  the (issuer, tenant) pair. Listing (issuer, tenant) pairs relies on a
   multi-tenant Identity Provider sending the `tenant` claim, as
   {{ID-JAG}} §6.1 requires. A shared issuer that omits the claim
   anyway would again match an entry without `tenant`, so Subject
@@ -1642,9 +1645,9 @@ infrastructure. Specific guidance:
 - **Signing-key rollover.** To roll over a `key=`-pinned signing
   key, first publish the new thumbprint beside the old one. Keep
   signing with the old key until the record carrying both
-  thumbprints has reached every authoritative server. Then continue
-  for the full TTL the old record advertised, plus any minimum
-  freshness lifetime consumers apply. Recursive resolvers can serve
+  thumbprints has reached every authoritative server, and then for
+  the full TTL the old record advertised, plus any minimum freshness
+  lifetime consumers apply. Recursive resolvers can serve
   the old record for its whole TTL ({{RFC1035}} Section 4.1.3),
   whatever cap a consumer places on its own cache. Then re-sign the
   policy with the new key, and remove the old thumbprint once cached

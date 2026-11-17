@@ -985,8 +985,9 @@ not yield a policy, the Trust Method is not satisfied, with the
 category-level effect stated in {{dii-failures}}. If the Trust Method
 is not satisfied and, as a result, the cross-category combination
 rule ({{TRUST-FRAMEWORK}} §Cross-Category Combination Rule) is not
-met, the Resource Authorization Server MUST reject the assertion
-with an OAuth `invalid_grant` error.
+met, the assertion is rejected with the error that
+{{TRUST-FRAMEWORK}} §Resource Authorization Server Processing
+specifies.
 
 Step 4b, for a grant profile that carries `tenant` (such as ID-JAG):
 

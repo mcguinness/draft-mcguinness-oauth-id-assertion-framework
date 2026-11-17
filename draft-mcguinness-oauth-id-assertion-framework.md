@@ -1920,19 +1920,17 @@ Section 3) and no external namespace-owner delegation exists.
 ## Alignment with OAuth Security BCP {#rfc9700-alignment}
 
 This document complements the OAuth 2.0 Security Best Current
-Practice ({{RFC9700}}). It does not duplicate or override it.
+Practice ({{RFC9700}}) and does not override it.
 
 The `subject_namespace_authorization` category is the wire-format
-analog of {{RFC9700}} §4.4.2 (mix-up countermeasures). To the extent
-the Subject Authority's publication channel provides integrity, a
-Resource Authorization Server will not accept an assertion from an
-authorization server that the Subject Authority has not listed.
-This guarantee is only as strong as the integrity of that channel.
-It is not an unconditional guarantee. A Trust Method whose evidence
-is published over unauthenticated DNS or a compromisable HTTPS
-origin can be defeated by an attacker who controls that channel.
-See the per-Trust-Method security analysis (for example, {{DAI}})
-and {{multiple-sources}}.
+analog of {{RFC9700}} §4.4.2 (mix-up countermeasures): a Resource
+Authorization Server does not accept an assertion from an
+authorization server that the Subject Authority has not listed. The
+guarantee is only as strong as the integrity of the Subject
+Authority's publication channel. An attacker who controls that
+channel, such as unauthenticated DNS or a compromisable HTTPS
+origin, can defeat it. See the per-Trust-Method analysis (for
+example, {{DAI}}) and {{multiple-sources}}.
 
 Other {{RFC9700}} topics (redirect URI validation, bearer-token
 replay, client authentication) apply at the grant-profile and
@@ -1941,29 +1939,23 @@ Implementations SHOULD follow {{RFC9700}} at those layers.
 
 ## Unverified Claim Exploitation {#unverified-claim}
 
-Source selection ({{multiple-sources}}) chooses which Authority
-Source's delegation applies to the incoming Assertion. At the
-point of selection, the Assertion's signature has not yet been
-validated against any Delegation Artifact; the Assertion is an
-untrusted payload. A profile whose source-selection algorithm
-considers multiple claims, applies preference ordering, or falls
-back from one input to another gives an attacker a selection lever.
-
-The attack: the attacker constructs an Assertion whose claims
-satisfy multiple potential bindings. The Validator's selection
-algorithm picks the weakest (or most attacker-favorable) Authority
-Source's policy. The Assertion is evaluated against a Delegation
+Source selection ({{multiple-sources}}) runs before the Assertion's
+signature is validated against any Delegation Artifact, so it acts
+on an untrusted payload. A profile whose selection considers multiple
+claims, applies preference ordering, or falls back from one input to
+another gives an attacker a selection lever. The attacker constructs
+an Assertion whose claims satisfy several bindings, so that
+selection picks the weakest or most attacker-favorable Authority
+Source. The Assertion is then evaluated against a Delegation
 Artifact that the legitimate Authority Holder for the target
 namespace never authorized.
 
-Worked example: an Assertion carries `sub: alice@victim.example` AND
-`tenant_context: attacker-tenant.example`. A loosely written
-profile selects the Authority Source by tenant context when
-present, falling back to subject domain. The Validator selects
-attacker-tenant.example, fetches that Authority Holder's
-Delegation Artifact (which the attacker controls), validates the
-Assertion against it, and accepts a claim about a victim.example
-subject.
+For example, an Assertion carries `sub: alice@victim.example` and
+`tenant_context: attacker-tenant.example`, and a profile selects the
+Authority Source by tenant context when present, falling back to
+subject domain. The Validator validates the Assertion against the
+attacker-controlled Delegation Artifact of attacker-tenant.example
+and accepts a claim about a victim.example subject.
 
 The mitigation is **deterministic source selection**
 ({{multiple-sources}}): a binding function from Assertion +
@@ -1986,46 +1978,42 @@ preserve this property.
 
 ## Applicability Bypass {#applicability-bypass}
 
-The cross-category combination rule ({{combination-rule}})
-requires the Validator to evaluate every applicable category. A
-profile that lets category applicability depend on the incoming
-Assertion gives the attacker a way to waive the category by
-constructing a matching Assertion.
-
-The attack: the profile (or local configuration) declares "the
-namespace authorization category is not applicable when the
-Assertion is from a legacy issuer" (or carries a legacy-flag
-claim, or fails some heuristic that signals "legacy"). The
-attacker constructs an Assertion matching the legacy condition.
-The Validator silently skips the entire namespace authorization
-evaluation; the open-world defense layer is bypassed and the
-Validator falls back to authenticity alone, which the
-cross-category combination rule was explicitly designed to forbid
-as sufficient.
+The combination rule ({{combination-rule}}) requires the Validator
+to evaluate every applicable category. If a profile lets
+applicability depend on the incoming Assertion, an attacker can
+waive a category by constructing a matching Assertion. For example,
+a profile or local configuration makes the namespace authorization
+category inapplicable to an Assertion from a legacy issuer, one
+carrying a legacy-flag claim, or one matching some other "legacy"
+heuristic. The attacker sends such an Assertion. The Validator then
+bypasses the open-world defense layer by skipping namespace
+authorization, and relies on authenticity alone, which the
+combination rule forbids as sufficient.
 
 The mitigation: category applicability MUST be a property of the
-Validator's published Trust Policy, not of the incoming
-Assertion. Migration scenarios where some traffic legitimately
-predates a category's availability are handled at the policy
-layer, not by silently waiving the category. Per-deployment-phase
-policy is a configuration boundary; Assertion-driven waiver is an
-attacker-controlled boundary.
+Validator's published Trust Policy, not of the incoming Assertion.
+Traffic that legitimately predates a category's availability is
+handled at the policy layer, not by waiving the category: policy per
+deployment phase is a configuration boundary, while a waiver driven
+by the Assertion is a boundary the attacker controls.
 
 ## Authority Source Compromise {#authority-source-compromise}
 
-The authority binding (publication channel) is the highest-value
-target. A compromise of the publication channel (DNS hijack, TLS
-misissuance plus DNS redirect, registrar account takeover,
-compromise of the federation operator's signing key) substitutes
-the Authority Holder's voice with the attacker's. Delegation
-Artifacts published through the compromised channel are
+The publication channel is the authority binding and the
+highest-value target. An attacker who compromises it (DNS hijack,
+TLS misissuance plus DNS redirect, registrar account takeover,
+compromise of the federation operator's signing key) speaks as the
+Authority Holder, and the Delegation Artifacts it publishes are
 indistinguishable from legitimate ones.
 
-This framework does not provide cryptographic recovery from
-publication-channel compromise. Recovery is operational. Profiles
+This framework provides no cryptographic recovery from
+publication-channel compromise; recovery is operational. Profiles
 SHOULD recommend operational defenses appropriate to their
 publication channel (DNSSEC, registry-lock, CAA records,
 Certificate Transparency monitoring, federation key rotation).
+{{DAI}} §Security Considerations gives the DNS+HTTPS
+publication-channel compromise model.
+
 Trust anchor key rollover in {{OIDF-FEDERATION}} §11.2 has no
 mandatory hold-down period: a compromised current key can introduce
 a replacement immediately. Resource Authorization Servers SHOULD
@@ -2033,29 +2021,26 @@ obtain trust anchor keys through an independent channel where the
 Federation Operator provides one, as {{OIDF-FEDERATION}} §11.3
 recommends; routine rollover alone does not provide recovery from
 trust anchor compromise.
-See {{DAI}} §Security Considerations for the DNS+HTTPS
-publication-channel compromise model.
 
 ## Transitive Authorization is Bounded {#transitive-authz-bounded}
 
 The two issuer categories make different transitivity choices, both
-permitted within the taxonomy of {{open-world}}:
+permitted by {{open-world}}:
 
-- `issuer_authentication` permits chained transitivity. The
-  `openid_federation` Trust Method accepts a chain from a leaf entity
-  to a trust anchor; the trust anchor's signature on intermediate
-  Subordinate Statements transitively authenticates the leaf.
+- `issuer_authentication` permits chains. Under `openid_federation`,
+  a trust anchor's signatures on intermediate Subordinate Statements
+  transitively authenticate the leaf.
 
-- `subject_namespace_authorization` requires depth-1 (no chaining).
-  A Subject Authority lists specific Assertion Issuers directly; it
-  cannot delegate further to whoever Issuer X federates. Revocation
-  latency is bounded by the Subject Authority's own cache lifetime
-  and does not compound across delegations.
+- `subject_namespace_authorization` requires depth one. A Subject
+  Authority lists Assertion Issuers directly and cannot delegate to
+  whoever an issuer federates, so revocation latency is bounded by
+  the Subject Authority's own cache lifetime and does not compound
+  across delegations.
 
-The two issuer categories are independent: federation membership does not
-establish namespace authority, and namespace authorization does not
-establish authenticity. The cross-category combination rule
-({{rasp}}) enforces this independence at evaluation time. See
+The two issuer categories are independent: federation membership
+does not establish namespace authority, and namespace authorization
+does not establish authenticity. The cross-category combination rule
+({{rasp}}) enforces this at evaluation time. See
 {{relationship-to-oidf}} for positioning against OpenID Federation.
 
 ## Key Binding Is Outside Namespace Authorization {#key-binding}
@@ -2077,11 +2062,10 @@ every namespace that lists the issuer:
 - A policy host named by a {{DAI}} `uri=` pointer controls the list
   itself, unless the Subject Authority pins the policy's signing key.
 
-The cross-category combination rule does not defend against these
-parties: the first two act as a listed issuer, and the third decides
-the list. A
-future extension could let an Authority Holder pin a key thumbprint
-for each authorized issuer.
+The combination rule does not defend against these parties:
+the first two act as a listed issuer, and the third decides the
+list. A future extension could let an Authority Holder pin a key
+thumbprint for each authorized issuer.
 
 ## Scope of Namespace Authorization {#scope-of-namespace-authorization}
 
@@ -2105,50 +2089,47 @@ from a successful trust-policy evaluation:
 - Suitability for any specific risk class, scope sensitivity, or
   compliance regime.
 
-These properties are out of scope and obtained, if needed, through
-mechanisms outside this framework (authentication-method or
-authentication assurance level claims, fresh-authentication signals, account-status attestations,
-out-of-band verification). In particular, `email_verified=true` is
+A deployment that needs these properties obtains them outside this
+framework, such as through authentication-method or authentication
+assurance level claims, fresh-authentication signals, account-status
+attestations, or out-of-band verification. `email_verified=true` is
 a prerequisite for deriving namespace authority from the email's
-domain; it is not evidence of current mailbox control.
+domain, not evidence of current mailbox control.
 
-Namespace authorization also does not make an email address a safe
+Namespace authorization does not make an email address a safe
 account key by itself. A Resource Authorization Server keys accounts
-on issuer-scoped identifiers (for example, `iss` with `sub`, or
-`iss`, `tenant`, and `sub` for a multi-tenant issuer) and links an
-account by email only under its own account-linking rules.
+on issuer-scoped identifiers (for example, `iss` and `sub`, with
+`tenant` for a multi-tenant issuer) and links an account by email
+only under its own account-linking rules.
 
-Nor does namespace authorization cover any other subject claim. An
+Nor does namespace authorization cover other subject claims. An
 issuer authorized for `attacker.example` can send an `email` in that
-namespace together with an `aud_sub` or `sub_id` that names an
-account elsewhere. Step 5c of {{rasp}} therefore limits subject
-resolution to the evaluated Subject Identifier and issuer-scoped
-identifiers.
+namespace with an `aud_sub` or `sub_id` that names an account
+elsewhere. Step 5c of {{rasp}} therefore limits subject resolution
+to the evaluated Subject Identifier and issuer-scoped identifiers.
 
-The authorization is also not audience-scoped. The
+Nor is the authorization audience-scoped. The
 `subject_namespace_authorization` category constrains which
-Assertion Issuers may assert about a namespace. It does not
-constrain which Resource Authorization Servers an authorized issuer
-may target. A compromised-but-authorized issuer can therefore mint
-assertions about the namespace's subjects for any consumer.
-Audience binding is enforced by the assertion's `aud` claim and the
-applicable grant profile, not by the Subject Authority. A future
-extension may let Authority Holders constrain acceptable audiences
-(see {{DAI}} §Future Extensions).
+Assertion Issuers can assert about a namespace, not which Resource
+Authorization Servers they target. A compromised but authorized
+issuer can therefore mint assertions about the namespace's subjects
+for any consumer. Audience binding comes from the assertion's `aud`
+claim and the applicable grant profile, not from the Subject
+Authority. A future extension could let Authority Holders constrain
+acceptable audiences ({{DAI}} §Future Extensions).
 
 ## Client Recognition {#client-recognition-security}
 
-The `client_recognition` category evaluates the client that
-presents an identity assertion. The client is taken from the token
-request's client authentication, not from the assertion, so an
-attacker who controls an assertion's claims cannot choose which
-client is evaluated ({{unverified-claim}}). Recognition admits a
-client to the exchange. It does not authorize the client to act for
-a particular user, it says nothing about the subject or the Assertion
-Issuer, and the other categories still apply. Under the generic
-JWT-bearer binding, where the assertion names no client, any
-recognized client can present an assertion it obtained
-({{client-recognition-methods}}).
+The `client_recognition` category evaluates the client identified
+by the token request's client authentication ({{rasp}} step 5f), not
+by the assertion, so an attacker who controls an assertion's claims
+cannot choose which client is evaluated ({{unverified-claim}}).
+Recognition admits a client to the exchange. It does not authorize
+the client to act for a particular user, says nothing about the
+subject or the Assertion Issuer, and leaves the other categories in
+force. Under the generic JWT-bearer binding, the assertion names no
+client, so any recognized client can present an assertion it
+obtained ({{client-recognition-methods}}).
 
 `openid_federation_client` requires the client to authenticate with
 a key its federation metadata publishes. Without that rule, a client
@@ -2169,22 +2150,18 @@ keys through the metadata in its Subordinate Statement
 ({{OIDF-FEDERATION}} §3.1.1), as it can an Assertion Issuer's
 ({{key-binding}}), and so authenticate as any client beneath it.
 
-A client method that lets a client opt in by publishing evidence,
-such as a DNS record, has the same property as a namespace method:
-under the combination rule, a client that has published nothing is
-Negative, and is rejected wherever the category is listed unless
-another listed client method is satisfied. Accepting such clients
-through local policy instead needs a mechanism that this document
-does not define.
+Under a client method that lets a client opt in by publishing
+evidence, such as a DNS record, a client that has published nothing
+is Negative, as under a namespace method. Under the combination
+rule, it is rejected wherever the category is listed unless another
+listed client method is satisfied. This document defines no
+mechanism for accepting such clients through local policy instead.
 
-Step 5f of {{rasp}} requires client authentication whenever the
-policy lists a client method, even where a grant profile would allow a
-request without it.
 
 ## Per-Assertion Revocation Is Out of Scope {#per-assertion-revocation}
 
-This framework decides whether an Assertion Issuer is authorized.
-It does not revoke individual assertions. JWT bearer tokens are
+This framework decides whether an Assertion Issuer is authorized;
+it does not revoke individual assertions. JWT bearer tokens are
 stateless and remain valid until `exp` regardless of:
 
 - session termination;
@@ -2193,48 +2170,49 @@ stateless and remain valid until `exp` regardless of:
   DAI.
 
 That withdrawal stops the Resource Authorization Server from
-accepting further assertions once its cache expires. It does not
-revoke access or refresh tokens the Resource Authorization Server
-has already issued. Deployments requiring synchronous revocation
-need OAuth 2.0 Token Revocation {{RFC7009}}, Token Introspection
-{{RFC7662}}, or short assertion lifetimes at the grant-profile
-layer.
+accepting further assertions once its cache expires, but does not
+revoke access or refresh tokens already issued. Synchronous
+revocation needs OAuth 2.0 Token Revocation {{RFC7009}}, Token
+Introspection {{RFC7662}}, or short assertion lifetimes at the
+grant-profile layer.
 
 ## Policy Document Integrity {#integrity}
 
 The Trust Policy MUST be served over HTTPS with TLS server
 authentication, and its integrity rests on TLS. It carries no
-signature. A Resource Authorization Server enforces its Trust Policy
-from its own configuration, and a client uses the published copy
-only for discovery ({{client-processing}}). A substituted Trust
-Policy can therefore mislead a client's choice of Assertion Issuer
-but cannot change what the Resource Authorization Server accepts.
+signature. Mirrored or cached copies of a Trust Policy MUST NOT be
+relied on beyond their HTTP cache lifetime ({{caching}}). A Resource
+Authorization Server enforces its Trust Policy from its own
+configuration, and a client uses the published copy only for
+discovery ({{client-processing}}). A substituted Trust Policy can
+therefore mislead a client's choice of Assertion Issuer but not
+change what the Resource Authorization Server accepts.
 
-Integrity protection for an Issuer Authorization Policy, which
-decides acceptance, is defined by the Trust Method specification
-that defines the policy (for example, {{DAI}} §Signed Policy).
-Mirrored or cached copies of a Trust Policy MUST NOT be relied on
-beyond their HTTP cache lifetime ({{caching}}). Cache and stale-use
-bounds for an Issuer Authorization Policy are set by the applicable
-Trust Method specification ({{trust-method-spec-requirements}}).
+An Issuer Authorization Policy, which decides acceptance, takes its
+integrity protection (for example, {{DAI}} §Signed Policy) and its
+cache and stale-use bounds ({{trust-method-spec-requirements}}) from
+the Trust Method specification that defines it.
 
 ## Shared Infrastructure and Hosted Well-Known Paths {#shared-infrastructure}
 
-Many deployments host `/.well-known/` resources behind third-party
+Many deployments host `/.well-known/` resources on third-party
 Content Delivery Networks (CDNs), shared edge platforms, or
-multi-tenant cloud hosting systems. TLS server authentication proves
-that the client reached an endpoint serving the requested host name;
-it does not prove that every routing rule, origin-pull rule, cache
-rule, or tenant boundary inside the shared platform is controlled by
-the namespace owner.
+multi-tenant cloud hosting. TLS server authentication proves that
+the client reached an endpoint serving the requested host name, not
+that the namespace owner controls every routing rule, origin-pull
+rule, cache rule, or tenant boundary inside the shared platform.
 
-This matters most for the Subject Authority's Issuer Authorization
-Policy, which decides acceptance. If an attacker can exploit shared
-infrastructure to serve a forged policy for a victim domain, the
-attacker can attempt to authorize an Assertion Issuer for that
-victim's namespace even though the HTTPS connection itself succeeds.
-Similar risks arise from misconfigured path routing, dangling origins,
-tenant takeover, cache poisoning, or origin authentication failures.
+The risk is greatest for the Subject Authority's Issuer
+Authorization Policy, which decides acceptance. An attacker who can
+make shared infrastructure serve a forged policy for a victim domain
+can try to authorize an Assertion Issuer for the victim's namespace
+even though the HTTPS connection succeeds. Similar risks arise from:
+
+- misconfigured path routing;
+- dangling origins;
+- tenant takeover;
+- cache poisoning; and
+- origin authentication failures.
 
 Administrators SHOULD avoid delegating security-critical well-known
 paths to multi-tenant infrastructure unless they can ensure exclusive
@@ -2245,26 +2223,27 @@ Trust Method specification ({{DAI}} §Policy Hosts).
 
 ## Downgrade Attacks {#downgrade}
 
-A Resource Authorization Server that supports multiple Trust Methods
-SHOULD define local precedence rules. Resource Authorization Servers
-MUST enforce differentiated requirements at token request time
-rather than relying on the policy document alone. This is because
-or-semantics apply within a single Trust Method category and the
-client cannot observe per-subject local requirements. A client's
-choice of a weaker listed Trust Method is not a protocol violation
-the client can be held to but a condition the Resource Authorization
-Server rejects. The cross-category combination rule in {{rasp}}
-prevents downgrade across categories (for example, satisfying only
-an `issuer_authentication` method when a
-`subject_namespace_authorization` method is also applicable).
+Or-semantics apply within a category, and a client cannot observe
+per-subject local requirements, so a client can choose a weaker
+listed Trust Method. That choice is not a protocol violation the
+client can be held to but a condition the Resource Authorization
+Server rejects. A Resource Authorization Server that supports
+multiple Trust Methods SHOULD define local precedence rules.
+Resource Authorization Servers MUST enforce differentiated
+requirements at token request time rather than relying on the policy
+document alone. The combination rule in {{rasp}} prevents downgrade
+across categories, such as satisfying only an
+`issuer_authentication` method when a
+`subject_namespace_authorization` method also applies.
 
 ## Trust Policy Caching {#caching}
 
-Consumers cache the Trust Policy using ordinary HTTP caching (see
-{{RFC9111}} for the mechanism), bounded by a local maximum cache
-lifetime. Independent of any policy-document cache expiration,
-revocation status of validated trust evidence MUST be checked at the
-cadence required by the applicable Trust Method specification. Transport integrity is addressed in {{integrity}}.
+Consumers cache the Trust Policy using HTTP caching ({{RFC9111}}),
+bounded by a local maximum cache lifetime. Independent of any
+policy-document cache expiration, revocation status of validated
+trust evidence MUST be checked at the cadence required by the
+applicable Trust Method specification. Transport integrity is
+addressed in {{integrity}}.
 
 ## Observability
 
@@ -2284,16 +2263,19 @@ issuance and verification halves of an identity-chain transaction.
 
 # Privacy Considerations
 
-Trust policies are typically published as unauthenticated HTTPS
-resources. Adversaries can scrape them across many Resource
-Authorization Servers to map federation deployment landscapes:
-which RASes participate in which federations, which trust anchors
-are accepted, which Subject Identifier formats are honored. This
-information aids targeted attacks (for example, prioritizing
-compromise of a heavily-relied-upon trust anchor). Operators
-SHOULD publish only what clients need to determine whether they
-can attempt issuance, and prefer trust-anchor or federation
-expression over enumerating individual issuers.
+Trust policies are typically unauthenticated HTTPS resources. An
+adversary can scrape them across many Resource Authorization Servers
+to learn:
+
+- which RASes participate in which federations;
+- which trust anchors are accepted; and
+- which Subject Identifier formats are honored.
+
+This aids targeted attacks, such as prioritizing compromise of a
+heavily relied-upon trust anchor. Operators SHOULD publish only what
+clients need to determine whether they can attempt issuance, and
+prefer trust-anchor or federation expression over enumerating
+individual issuers.
 
 Subject Authority lookup at the RAS reveals the queried Subject
 Authority to DNS resolvers and, for HTTPS retrieval, to the policy
@@ -2304,31 +2286,27 @@ identifiers in policy URLs, query parameters, logs, or telemetry.
 
 # Internationalization Considerations
 
-The `email` Subject Identifier format carries an internationalized
-domain. Consumers convert the domain to A-label form by UTS #46
-nontransitional processing ({{subject-authority-determination}})
-before Public Suffix List matching and before comparison. They
-compare A-labels using case-insensitive ASCII comparison.
+The `email` format can carry an internationalized domain. Consumers
+convert the domain to A-label form by UTS #46 nontransitional
+processing before Public Suffix List matching, and compare A-labels
+using case-insensitive ASCII comparison
+({{subject-authority-determination}}).
 
-Performing all comparison on the A-label form means two visually
-distinct Unicode domains that map to different A-labels are
-correctly treated as different Subject Authorities. Conversely, this
-mechanism does not by itself defend against homograph confusion
-presented to a human at account-linking or display time. Such
-confusion is out of scope and left to the consuming application.
-Comparison operates on the mechanism level, not the visual level.
-Resource Authorization Servers that link accounts by email SHOULD
-compare the domain in this A-label form, so that a Unicode string
-that maps to a different Subject Authority cannot land on another
-user's account.
+Because comparison uses the A-label form, Unicode domains that map
+to different A-labels are different Subject Authorities, however
+similar they look. This does not by itself defend against homograph
+confusion shown to a human at account-linking or display time, which
+is out of scope and left to the consuming application. Resource
+Authorization Servers that link accounts by email SHOULD compare the
+domain in this A-label form, so that a Unicode string that maps to a
+different Subject Authority cannot land on another user's account.
 
-The `email` extraction uses the simple single-`@` rule and does not
-implement the full {{RFC5321}} Mailbox grammar. Internationalized
-email addresses (SMTPUTF8, {{RFC6530}}) whose local-part requires
-UTF-8 are outside the scope of the `email` extraction defined here,
-though the domain of such an address is handled normally once
-isolated. A future Subject Identifier format may define richer
-address handling by registering its own extraction procedure
+The `email` extraction uses the simple single-`@` rule, not the full
+{{RFC5321}} Mailbox grammar. Internationalized email addresses
+(SMTPUTF8, {{RFC6530}}) whose local-part requires UTF-8 are outside
+its scope, though the domain of such an address is handled normally
+once isolated. A future Subject Identifier format could define
+richer address handling by registering its own extraction procedure
 ({{iana-authority-registry}}).
 
 # IANA Considerations
@@ -2397,8 +2375,7 @@ Related Information:
 IANA is requested to establish a new registry titled "Identity
 Assertion Trust Method Categories" under the "OAuth Parameters"
 registry group. This registry backs the category values used by the
-Trust Methods registry and referenced by the combination rule
-({{combination-rule}}).
+Trust Methods registry.
 
 Registration policy: Specification Required {{RFC8126}}.
 
@@ -2407,11 +2384,11 @@ a Description of the trust question the category answers, a Change
 Controller, and a Specification Document.
 
 Designated Expert instructions: the expert verifies that the proposed
-category answers a trust question genuinely distinct from existing
-categories (so that the cross-category AND semantics of
-{{combination-rule}} remain meaningful) and that the description makes
-clear what evidence satisfies it. Categories that merely rename or
-subdivide an existing category SHOULD be rejected.
+category answers a trust question distinct from existing categories,
+so that the cross-category AND semantics of {{combination-rule}}
+remain meaningful, and that the description makes clear what
+evidence satisfies it. Categories that merely rename or subdivide an
+existing category SHOULD be rejected.
 
 Initial entries, each with Change Controller IETF and Specification
 Document this document:
@@ -2531,8 +2508,8 @@ Designated Expert instructions: the expert verifies that:
 - any decision-affecting member states how a consumer that does not
   recognize it behaves.
 
-The default is that unrecognized members are ignored. A member
-requiring fail-closed handling needs the criticality mechanism of
+Unrecognized members are ignored by default. A member requiring
+fail-closed handling needs the criticality mechanism of
 {{critical-members}}.
 
 Initial entries, each decision-affecting, with Change Controller IETF
@@ -2573,15 +2550,16 @@ Authority is computed from a Subject Identifier of this format.
 Change Controller:
 : The party responsible for change control.
 
-Designated Expert instructions: the expert verifies that the format
-has a well-defined namespace authority, that the extraction procedure
-is deterministic (two consumers compute the same Subject Authority
-from the same Subject Identifier), and that it specifies exact-match
-comparison semantics per {{subject-authority-determination}}.
+Designated Expert instructions: the expert verifies that:
 
-Future specifications that define new Subject Identifier formats are
-expected to register additional entries here when those identifiers
-have a well-defined namespace authority.
+- the format has a well-defined namespace authority;
+- the extraction procedure is deterministic (two consumers compute
+  the same Subject Authority from the same Subject Identifier); and
+- the procedure specifies exact-match comparison semantics per
+  {{subject-authority-determination}}.
+
+Specifications that define a Subject Identifier format with a
+well-defined namespace authority are expected to register it here.
 
 Initial entries:
 

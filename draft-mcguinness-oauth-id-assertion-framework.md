@@ -2092,10 +2092,9 @@ thumbprint for each authorized issuer.
 
 Trust-policy evaluation establishes that the Assertion Issuer is
 authorized to assert this class of Subject Identifiers under the
-namespace. Resource Authorization Servers MUST still validate the
-assertion (signature, audience, expiration, replay protection,
-client binding) per the applicable grant profile. They MUST NOT
-infer any of the following from a successful trust-policy
+namespace. Assertion validation under the applicable grant profile
+({{rasp}} step 2) still applies. Resource Authorization Servers
+MUST NOT infer any of the following from a successful trust-policy
 evaluation:
 
 - The named subject exists at the Assertion Issuer or controls

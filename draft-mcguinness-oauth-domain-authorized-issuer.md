@@ -922,10 +922,10 @@ The following deterministic conflict rules apply:
   the assertion's Subject Identifier applies. Another Subject Authority's
   policy cannot grant authority over that subject.
 
-Consumers MUST NOT treat a Negative or Indeterminate outcome as
-satisfying the Trust Method, except that a cached Affirmative policy
-MAY be used during an Indeterminate live retrieval within the
-stale-if-error bound of {{dii-caching}}. Whether the assertion is
+Under {{TRUST-FRAMEWORK}} §Fail-Closed Requirements, neither a
+Negative nor an Indeterminate outcome satisfies the Trust Method. A
+cached Affirmative policy can serve during an Indeterminate live
+retrieval only within the stale-if-error bound of {{dii-caching}}. Whether the assertion is
 then rejected follows {{TRUST-FRAMEWORK}} §Multiple Authority Sources
 Within a Category. An Indeterminate outcome, like a policy that does
 not authorize the issuer, leaves the `subject_namespace_authorization`
@@ -944,9 +944,7 @@ Resource Authorization Server MUST:
 
 2. Retrieve the Issuer Authorization Policy by applying the
    procedure in {{dii-lookup}}. Negative and Indeterminate
-   outcomes ({{dii-failures}}) MUST NOT satisfy the Trust Method,
-   except as {{dii-caching}} permits for a cached Affirmative policy
-   during an Indeterminate live retrieval.
+   outcomes are handled per {{dii-failures}}.
 
 3. Verify the policy's `subject_authority` matches the computed
    Subject Authority. (Virtual policies satisfy this by
@@ -1057,9 +1055,10 @@ Freshness and cache limits for the Issuer Authorization Policy:
 - **Stale-if-error.** When a live retrieval is Indeterminate, a
   consumer MAY continue to use a cached Affirmative policy for at
   most 1 hour after its freshness lifetime ended, and never past the
-  absolute ceiling. Repeated Indeterminate retrievals MUST NOT extend
-  this window; a successful live retrieval (Affirmative or Negative)
-  replaces the cached entry. The bound keeps an attacker who can
+  absolute ceiling. Repeated Indeterminate retrievals do not extend
+  this window ({{TRUST-FRAMEWORK}} §Fail-Closed Requirements). A
+  successful live retrieval (Affirmative or Negative) replaces the
+  cached entry. The bound keeps an attacker who can
   sustain denial of service against the publication channel from
   extending revocation latency toward the absolute ceiling.
 - **Negative results** SHOULD be cached, to bound lookup work under
@@ -1197,9 +1196,8 @@ When evaluated, the Resource Authorization Server MUST:
    records) is Indeterminate ({{dii-failures}}).
 
 4. Classify HTTPS retrieval and document validation outcomes per
-   {{dii-failures}}. Negative and Indeterminate states MUST NOT
-   satisfy the Trust Method, except as {{dii-caching}} permits for a
-   cached Affirmative policy during an Indeterminate live retrieval.
+   {{dii-failures}}, which also governs Negative and Indeterminate
+   states.
 
 5. Verify the fetched policy and match the Assertion Issuer against
    `authorized_issuers` using steps 3 and 4 of {{dii-verification}}.

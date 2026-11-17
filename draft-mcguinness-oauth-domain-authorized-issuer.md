@@ -344,11 +344,8 @@ channel on encountering a denial. Each object has:
   ({{signed-policy}}).
 
 `crit`
-: OPTIONAL. Array of member names a consumer MUST understand to process
-  the policy safely, as defined in {{TRUST-FRAMEWORK}} §Critical
-  Members. A consumer that fails to recognize, or does not implement
-  processing for, one or more listed members MUST treat the policy as
-  malformed.
+: OPTIONAL. Array of critical member names, processed as
+  {{TRUST-FRAMEWORK}} §Critical Members defines.
 
   Publishers MUST place `crit` in the outer, unsigned document,
   because consumers that do not process signatures cannot see a

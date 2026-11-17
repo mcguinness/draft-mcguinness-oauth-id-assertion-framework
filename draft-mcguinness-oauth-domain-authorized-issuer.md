@@ -1417,10 +1417,10 @@ points:
   ({{dii-dns-record}}) so that the host cannot alter the policy,
   provided the Subject Authority, not the host, holds the signing
   key. The host can still withhold the policy. It can also replay an
-  older signed policy whose `exp` has not passed to a consumer
-  holding no cached copy, since the `iat` check of {{signed-policy}}
-  needs one. A short `exp` bounds that replay; removing a hostile
-  host takes a `key=` rotation or a new `uri=`.
+  older signed policy whose `exp` has not passed to a consumer that
+  has not accepted a newer one ({{signed-policy}}). The 24-hour cap on
+  `exp` bounds that replay; removing a hostile host takes a `key=`
+  rotation or a new `uri=`.
 
 A Subject Authority that hosts its Issuer Authorization Policy on
 shared infrastructure it does not control end to end SHOULD publish

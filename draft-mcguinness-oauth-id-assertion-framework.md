@@ -1577,15 +1577,9 @@ behavior onto the deployed base.
 # Trust Policy Processing
 
 The Trust Policy governs whether an Assertion Issuer's identity
-assertion is acceptable to the Resource Authorization Server. It does
-not, by itself, authorize any particular access, scope, role, or
-attribute. The Resource Authorization Server's local policy continues
-to determine, for an accepted assertion, which scopes are granted,
-which subject claims are honored for account linking, and which local
-authorization decisions follow. The Trust Policy is necessary but not
-sufficient: passing Trust Policy evaluation only means the Resource
-Authorization Server is willing to consider the assertion as input to
-its access-control logic.
+assertion is acceptable to the Resource Authorization Server. It is
+necessary but not sufficient: it does not, by itself, authorize any
+particular access, scope, role, or attribute.
 
 ## Client Processing {#client-processing}
 
@@ -1594,20 +1588,16 @@ Authorization Server:
 
 1. Discovers the Resource Authorization Server metadata {{RFC8414}}.
 
-2. Confirms that the desired grant profile is supported by checking
-   the `authorization_grant_profiles_supported` parameter
-   ({{ID-JAG}} §7.2) in the authorization server's metadata.
+2. Confirms that the authorization server metadata lists the desired
+   grant profile in `authorization_grant_profiles_supported`
+   ({{ID-JAG}} §7.2).
 
 3. Fetches the `identity_assertion_trust_policy_uri` document.
 
 4. Determines whether an available Assertion Issuer can satisfy the
-   Trust Method combination rule in {{rasp}}. For namespace-bound
-   Subject Identifiers, this usually means satisfying both an
-   `issuer_authentication` method (such as federation membership) and
-   a `subject_namespace_authorization` method (such as authorization
-   by the Subject Authority). If the Trust Policy contains
-   `client_trust_methods`, the client also determines whether it
-   satisfies them, for example whether its `client_id` is an Entity
+   Trust Method combination rule in {{rasp}}. If the Trust Policy
+   contains `client_trust_methods`, the client also determines whether
+   it satisfies them, for example whether its `client_id` is an Entity
    Identifier in a listed federation.
 
 5. Determines whether the Assertion Issuer can produce a Subject
@@ -1619,18 +1609,16 @@ Authorization Server:
    Issuer.
 
 The client MUST NOT treat the Trust Policy as a guarantee that a
-particular assertion will be accepted. The Resource Authorization
-Server always applies local policy at token request time.
+particular assertion will be accepted.
 
 ## Resource Authorization Server Processing {#rasp}
 
-This section specifies the normative processing procedure. It is the
-OAuth-identity-assertion instantiation of the Authority Delegation
-Model ({{delegation-model}}): each Trust Method category in the
-applicable Trust Policy is evaluated under the cross-category
-combination rule ({{combination-rule}}); lookup outcomes are
-classified per {{exception-handling}}; source selection is
-deterministic per {{multiple-sources}}.
+The following procedure instantiates the Authority Delegation Model
+({{delegation-model}}) for OAuth identity assertions. It evaluates
+each Trust Method category in the applicable Trust Policy under the
+cross-category combination rule ({{combination-rule}}), classifies
+lookup outcomes per {{exception-handling}}, and selects sources
+deterministically per {{multiple-sources}}.
 
 When evaluating an identity assertion JWT presented in a token
 request, the Resource Authorization Server MUST:
@@ -1659,11 +1647,9 @@ request, the Resource Authorization Server MUST:
    The Resource Authorization Server MUST NOT accept the assertion
    until the signature has been verified with a key permitted by each
    key-source-constraining Trust Method it relies on to satisfy the
-   combination rule in step 5. This applies to the methods relied on,
-   not to every listed method. Under the or-semantics of
-   {{combination-rule}}, a category may be satisfied by one of
-   several alternative methods, and only the constraints of the
-   method actually relied on apply. A signature validated only
+   combination rule in step 5. Under the or-semantics of
+   {{combination-rule}}, a listed method that is not relied on
+   imposes no key-source constraint. A signature validated only
    against an unconstrained source, such as the `iss` URL's
    authorization server metadata, does not satisfy this step when the
    relied-on Trust Method constrains the key source.
@@ -1681,29 +1667,27 @@ request, the Resource Authorization Server MUST:
    satisfy the Trust Method combination rule:
 
    a. Partition the Trust Method objects in `issuer_trust_methods` and
-      `client_trust_methods` by category (see
-      {{trust-method-categories}}). A Trust Method registered with
+      `client_trust_methods` by category
+      ({{trust-method-categories}}). A Trust Method registered with
       multiple categories belongs to each category that its member
       allows ({{trust-policy-document}}). If any object in either
       member is not recognized, is malformed (including a method
       listed in the wrong member, {{trust-policy-document}}), or
       cannot be assigned to a category known to the Resource
       Authorization Server, the Resource Authorization Server MUST
-      reject the assertion. In that case, the Resource
-      Authorization Server cannot determine whether it is evaluating
-      the full set of requirements the operator declared. Silently
-      ignoring the object would evaluate a strict subset (a fail-open
-      category downgrade). A single evidence item MUST NOT be counted
-      toward more than one category even when its Trust Method is
-      registered in several.
+      reject the assertion. Silently ignoring the object would
+      evaluate a strict subset of the requirements the operator
+      declared (a fail-open category downgrade). A single evidence
+      item MUST NOT be counted toward more than one category even when
+      its Trust Method is registered in several.
 
    b. Each category present in the partitioned policy is applicable to
-      every assertion evaluated under this policy; applicability is a
-      property of the policy, not the assertion ({{category-applicability}}).
-      For each present category, the Assertion Issuer, or for the
-      `client_recognition` category the authenticated client, MUST
-      satisfy at least one Trust Method from that category, subject to
-      the finality rule of {{multiple-sources}}.
+      every assertion evaluated under this policy
+      ({{category-applicability}}). For each present category, the
+      Assertion Issuer, or for the `client_recognition` category the
+      authenticated client, MUST satisfy at least one Trust Method from
+      that category, subject to the finality rule of
+      {{multiple-sources}}.
 
    c. When the policy contains a `subject_namespace_authorization`
       Trust Method, the assertion MUST carry a Subject Identifier from
@@ -1729,17 +1713,16 @@ request, the Resource Authorization Server MUST:
    d. Local policy MAY require satisfaction of additional Trust
       Methods for specific clients, subjects, or scopes.
 
-   e. When the policy lists no `subject_namespace_authorization` method and
-      the assertion carries a namespace-bound Subject Identifier, the
-      Resource Authorization Server MUST reject the assertion unless
-      local policy independently establishes authority over the
-      subject namespace. A namespace-bound Subject Identifier is one
-      whose format has a registered Subject Authority extraction
-      procedure ({{iana-authority-registry}}), so the Resource
-      Authorization Server can determine that an identifier is
-      namespace-bound without running a namespace method. Federation
-      membership alone does not establish authority over a particular
-      subject namespace.
+   e. When the policy lists no `subject_namespace_authorization`
+      method and the assertion carries a namespace-bound Subject
+      Identifier, the Resource Authorization Server MUST reject the
+      assertion unless local policy independently establishes
+      authority over the subject namespace. A namespace-bound Subject
+      Identifier is one whose format has a registered Subject
+      Authority extraction procedure ({{iana-authority-registry}}), so
+      the Resource Authorization Server can recognize one without
+      running a namespace method. Federation membership alone does not
+      establish authority over a particular subject namespace.
 
    f. When the policy contains `client_trust_methods`, the Resource
       Authorization Server MUST evaluate the `client_recognition`
@@ -1771,9 +1754,9 @@ Policy (step 1) or an unlisted grant profile (step 3), MUST result in
 an OAuth `invalid_grant` error unless another error is defined by
 the applicable grant profile, by step 5f, or by the Trust Method that
 failed. An error from step 5f or from a `client_recognition` method
-takes precedence over any other error. Detailed trust-evaluation failure state
-MUST NOT be returned to public clients in the OAuth error response;
-it is a reconnaissance target.
+takes precedence over any other error. Detailed trust-evaluation
+failure state MUST NOT be returned to public clients in the OAuth
+error response; it is a reconnaissance target.
 
 ## Outbound Fetches {#outbound-fetches}
 
@@ -1824,24 +1807,23 @@ JWT-bearer assertions are evaluated under {{jwt-bearer-profile}}.
 
 ## ID-JAG {#id-jag-profile}
 
-For ID-JAG {{ID-JAG}}, `authorization_grant_profiles_supported` contains the value
-`urn:ietf:params:oauth:grant-profile:id-jag`. The Subject Identifier
-for ID-JAG is the top-level `email` claim, accompanied by
-`email_verified=true`, extracted per {{subject-authority-determination}}.
-When the Trust Policy contains a `subject_namespace_authorization`
-method, {{rasp}} step 5c requires the ID-JAG to carry that Subject
-Identifier and requires rejection if it is absent or unresolvable.
+For ID-JAG {{ID-JAG}}, `authorization_grant_profiles_supported`
+contains `urn:ietf:params:oauth:grant-profile:id-jag`. The Subject
+Identifier for ID-JAG is the top-level `email` claim, accompanied by
+`email_verified=true`, extracted per
+{{subject-authority-determination}}. When the Trust Policy contains
+a `subject_namespace_authorization` method, {{rasp}} step 5c
+requires the ID-JAG to carry that Subject Identifier and requires
+rejection if it is absent or unresolvable.
 
-{{ID-JAG}} §6.1 requires a multi-tenant issuer to include the
-`tenant` claim in every ID-JAG it issues. A namespace method can bind
-authorization to a tenant (for example, {{DAI}} §Single-Issuer
-Multi-Tenant Identity Providers) and cannot tell an issuer's tenants
-apart without the claim. A namespace method's match on `tenant`
-establishes that the Subject Authority authorized that (`iss`,
-`tenant`) pair for its namespace. It does not establish the trust in
-`iss` and `tenant` for the recipient tenant that {{ID-JAG}} §4.4.1
-requires, which remains the Resource Authorization Server's own
-configuration.
+A namespace method can bind authorization to a tenant (for example,
+{{DAI}} §Single-Issuer Multi-Tenant Identity Providers) using the
+`tenant` claim that {{ID-JAG}} §6.1 requires of a multi-tenant
+issuer. A namespace method's match on `tenant` establishes that the
+Subject Authority authorized that (`iss`, `tenant`) pair for its
+namespace. It does not establish the trust in `iss` and `tenant` for
+the recipient tenant that {{ID-JAG}} §4.4.1 requires, which remains
+the Resource Authorization Server's own configuration.
 
 {{ID-JAG}} §4.4.1 lets a client that does not authenticate prove
 possession of the key in the ID-JAG's `cnf` claim instead. When the
@@ -1857,8 +1839,7 @@ Server MUST:
 2. Verify that the `email` Subject Identifier, when the assertion
    carries one, uses a format listed in
    `subject_identifier_formats_supported`, if that Trust Policy member
-   is present. (Whether the assertion is required to carry the Subject
-   Identifier at all is governed by {{rasp}} step 5c.)
+   is present.
 
 3. Use the email attribution only for subject resolution and Subject
    Authority evaluation. The Resource Authorization Server MUST NOT
@@ -1868,11 +1849,10 @@ Server MUST:
 
 ## Generic JWT-Bearer Assertion Grant {#jwt-bearer-profile}
 
-This section provides the binding for the JWT-bearer authorization
-grant of {{RFC7523}} Section 2.1 when the assertion carries an
-identity claim to which Subject Authority Determination applies.
-Other identity-carrying grant profiles (e.g., ID-JAG,
-{{id-jag-profile}}) supply their own bindings.
+This binding applies to the JWT-bearer authorization grant of
+{{RFC7523}} Section 2.1 when the assertion carries an identity claim
+to which Subject Authority Determination applies. ID-JAG has its own
+binding ({{id-jag-profile}}).
 
 A Resource Authorization Server that accepts generic RFC 7523
 JWT-bearer assertion grants advertises
@@ -1902,14 +1882,13 @@ top-level `email` claim, accompanied by `email_verified=true`,
 extracted per {{subject-authority-determination}}. The `sub` claim is
 not a Subject Identifier source under this binding, even when its
 value is in email form: `sub` is an issuer-scoped identifier
-({{RFC7519}}) that may merely resemble an email, and no verification
-signal attests it (`email_verified` attests the `email` claim).
-Fixing a single source preserves the deterministic
-single-source-selection requirement of {{multiple-sources}}; an
-Assertion Issuer whose subject identifiers are email-form `sub`
-values participates by also emitting the `email` and `email_verified`
-claims. A future extension MAY register an additional extraction
-procedure ({{iana-authority-registry}}) for other claim sources.
+({{RFC7519}}) that can merely resemble an email, and `email_verified`
+attests only the `email` claim. A single source keeps selection
+deterministic ({{multiple-sources}}). An Assertion Issuer whose
+subject identifiers are email-form `sub` values participates by also
+emitting the `email` and `email_verified` claims. A future extension
+MAY register an additional extraction procedure
+({{iana-authority-registry}}) for other claim sources.
 
 In addition to the processing in {{rasp}}, the Resource
 Authorization Server MUST:
@@ -1925,17 +1904,16 @@ Authorization Server MUST:
    evaluation. Issuer acceptability is established only by
    evaluating the Trust Methods.
 
-Because the generic JWT-bearer grant carries no `tenant` claim,
-tenant-scoped authorization is not expressible for assertions
-delivered under this grant; the resulting constraint on Subject
-Authorities that rely on shared multi-tenant Assertion Issuers is
-specified in {{DAI}} §Single-Issuer Multi-Tenant Identity Providers.
+The generic JWT-bearer grant carries no `tenant` claim, so
+tenant-scoped authorization is not expressible under it. The resulting
+constraint on Subject Authorities that rely on shared multi-tenant
+Assertion Issuers is specified in {{DAI}} §Single-Issuer Multi-Tenant
+Identity Providers.
 
 This binding does not apply to JWT client authentication
 ({{RFC7523}} Section 2.2), where the Subject Identifier is the
 `client_id` registered with the authorization server ({{RFC7523}}
-Section 3) and no
-external namespace-owner delegation exists.
+Section 3) and no external namespace-owner delegation exists.
 
 # Security Considerations
 

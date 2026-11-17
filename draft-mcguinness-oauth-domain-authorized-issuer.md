@@ -140,41 +140,37 @@ OAuth deployments using identity-assertion grants need to answer
 "is this Assertion Issuer authorized to assert about subjects in
 this namespace?". Such grants include the Identity Assertion JWT
 Authorization Grant (ID-JAG) and generic JWT-bearer assertions
-carrying an identity claim (see {{TRUST-FRAMEWORK}}). An issuer
-authenticated by federation membership is not, by that membership
-alone, entitled to assert about subjects in any particular
-namespace. The namespace owner is the only authoritative source of
-that delegation.
+carrying an identity claim ({{TRUST-FRAMEWORK}}). Federation
+membership authenticates an issuer but does not by itself entitle
+it to assert about any particular namespace. Only the namespace
+owner can authoritatively delegate that.
 
 The Domain-Authorized Issuer (DAI) Trust Method lets the owner of a
-DNS-namable subject namespace publish, in DNS, the set of Assertion
-Issuers it authorizes for its namespace. The DNS record can carry
-the authorized issuers inline (for simple deployments) or point at
-an HTTPS-hosted JSON document containing richer policy (validity
-windows, format restrictions, tenant binding, multiple issuers).
-A Resource Authorization Server that does not take issuers or a
-policy location from DNS can instead fetch the policy from a
-dedicated HTTPS host, `oauth-issuer-policy.{domain}`. In both cases
-the DNS record is the Subject Authority's explicit opt-in. A
-namespace that publishes no record is not covered.
+DNS-namable subject namespace publish, in DNS, the Assertion Issuers
+it authorizes for its namespace. The DNS record lists the issuers
+inline or points at an HTTPS-hosted JSON document with richer policy
+(validity windows, format restrictions, tenant binding). A Resource
+Authorization Server that does not take issuers or a policy location
+from DNS can instead fetch the policy from a dedicated HTTPS host,
+`oauth-issuer-policy.{domain}`. Either way, the DNS record is the
+Subject Authority's explicit opt-in; a namespace that publishes no
+record is not covered.
 
-Authority is established by control of the publication channel.
-Whoever can publish at `_oauth-issuer-policy.{domain}` is itself the
+Authority is established by control of the publication channel:
+whoever can publish at `_oauth-issuer-policy.{domain}` is the
 Subject Authority for `{domain}`. The pattern follows CAA
 {{RFC8659}}, MTA-STS {{RFC8461}}, SPF, and DKIM
 ({{dns-authority-patterns}}).
 
-DAI is consumed by Resource Authorization Servers at assertion
-verification time: given an identity assertion, the RAS uses the
-Subject Authority's published policy to decide whether the
-asserting issuer is authorized for the subject's namespace.
+A Resource Authorization Server applies DAI when it verifies an
+identity assertion: the Subject Authority's published policy decides
+whether the asserting issuer is authorized for the subject's
+namespace.
 
-DAI is non-transitive by design. The Issuer Authorization Policy is
-a flat list of Assertion Issuer identifiers; a Subject Authority
-that wants to authorize an Assertion Issuer publishes its identifier
-directly. The depth-1 bound and its security implications are
-covered in {{TRUST-FRAMEWORK}} §Open-World Delegation and Bounded
-Transitivity and §Transitive Authorization is Bounded.
+DAI is non-transitive: a Subject Authority directly lists each
+Assertion Issuer it authorizes
+({{TRUST-FRAMEWORK}} §Open-World Delegation and Bounded Transitivity
+and §Transitive Authorization is Bounded).
 
 DAI is also independent of OpenID Federation: a Subject Authority
 can publish DAI records and a Resource Authorization Server can
@@ -197,15 +193,17 @@ Lookup state classification and fail-closed requirements follow
 DAI extends {{TRUST-FRAMEWORK}}, which owns the Trust Policy
 document format, Trust Method machinery, Subject Authority
 Determination, and OAuth grant-profile bindings. This document
-defines the Issuer Authorization Policy document
-({{dii-document}}), the DNS and HTTPS publication channels
-({{publication-profiles}}), the lookup procedure ({{dii-lookup}}),
-the verification rules ({{dii-verification}}), the
-`domain_authorized_issuer` Trust Method, and an HTTPS-only
-deployment variant ({{trust-method-https-authorized-issuer}}).
+defines:
+
+- the Issuer Authorization Policy document ({{dii-document}});
+- the DNS and HTTPS publication channels ({{publication-profiles}});
+- the lookup procedure ({{dii-lookup}});
+- the verification rules ({{dii-verification}}); and
+- the `domain_authorized_issuer` Trust Method, with an HTTPS-only
+  deployment variant ({{trust-method-https-authorized-issuer}}).
+
 A bridge to the Email Verification Protocol's DNS records and a
-client-side discovery use case are sketched as future extensions
-in {{future-extensions}}.
+client-side discovery use case are sketched in {{future-extensions}}.
 
 ## Conventions
 
@@ -213,8 +211,7 @@ in {{future-extensions}}.
 
 # Terminology
 
-This document uses terminology from {{TRUST-FRAMEWORK}}, which
-defines each term. In brief:
+This document uses these terms as defined in {{TRUST-FRAMEWORK}}:
 
 - **Subject Authority**: the owner of a subject namespace, such as
   the DNS domain `acme.example` for `alice@acme.example`.
@@ -225,7 +222,7 @@ defines each term. In brief:
 - **Trust Policy**: the document in which a Resource Authorization
   Server states the Trust Methods it requires.
 - **Trust Method**: a procedure for evaluating evidence about an
-  Assertion Issuer. This document defines one.
+  Assertion Issuer.
 - **Issuer Authorization Policy**: the document in which a Subject
   Authority lists the Assertion Issuers it authorizes
   ({{dii-document}}).
@@ -240,12 +237,12 @@ defines each term. In brief:
 
 Subject Identifier formats follow {{RFC9493}}.
 
-Two terms are specific to this document:
+This document defines two terms:
 
 Domain-Authorized Issuer (DAI):
-: The Trust Method defined by this document, in which a Subject
-Authority publishes, over DNS and HTTPS, the set of Assertion
-Issuers it authorizes for its namespace.
+: The Trust Method defined here, in which a Subject Authority
+publishes, over DNS and HTTPS, the Assertion Issuers it authorizes
+for its namespace.
 
 Publisher:
 : The Subject Authority, or a policy host acting for it, when it
@@ -253,18 +250,14 @@ publishes a DNS record or an Issuer Authorization Policy.
 
 # Issuer Authorization Policy Document {#dii-document}
 
-The Issuer Authorization Policy is a Delegation Artifact: a Subject
-Authority (Authority Holder for a subject namespace) uses it to
-delegate the right to assert identities in its namespace to one or
-more named Assertion Issuers. Each `authorized_issuers` entry is a
-delegation; `valid_from` and `valid_until` bound the delegation in
-time; `tenant` constrains the delegation to a specific tenant of a
-shared issuer; `subject_identifier_formats` constrains the
-delegation to specific Subject Identifier formats. The verification
-procedure ({{dii-verification}}) validates whether a given identity
-assertion is covered by a current delegation; absent a matching
-delegation, the Assertion Issuer is not authorized for the asserted
-namespace regardless of any other property of the assertion.
+The Issuer Authorization Policy is a Delegation Artifact: with it, a
+Subject Authority delegates the right to assert identities in its
+namespace to named Assertion Issuers. Each `authorized_issuers`
+entry is a delegation, which `valid_from`, `valid_until`, `tenant`,
+and `subject_identifier_formats` can constrain. Absent a current
+delegation matching the assertion ({{dii-verification}}), the
+Assertion Issuer is not authorized for the asserted namespace,
+regardless of any other property of the assertion.
 
 The Issuer Authorization Policy is a JSON object served over HTTPS.
 Publishers MUST serve it with media type `application/json`;
@@ -282,11 +275,9 @@ consumers additionally accept any media type using the structured
 
 `authorized_issuers`
 : REQUIRED. JSON array of authorized issuer objects, which MAY be
-empty. An empty array is an explicit denial: the Subject Authority
-authoritatively authorizes no issuer. The retrieval of such a policy
-is Affirmative ({{dii-failures}}); the denial takes effect at
-verification, where no entry can match ({{dii-verification}}).
-Consumers MUST NOT fall through to any other
+empty. An empty array is an explicit denial: retrieval is
+Affirmative ({{dii-failures}}), but no entry can match
+({{dii-verification}}). Consumers MUST NOT fall through to any other
 channel on encountering a denial. Each object has:
 
   `issuer`
@@ -295,18 +286,15 @@ channel on encountering a denial. Each object has:
   absolute HTTPS URL with no fragment component. The URL MAY contain a
   path component.
 
-    No normalization is applied before comparison. The value and the
-    JWT `iss` claim are compared by exact case-sensitive string
-    equality (octet-for-octet), consistent with {{RFC8414}}
-    issuer-identifier comparison. Consequently `https://a` and
-    `https://a/` are distinct issuers, and no trailing-slash or
-    percent-encoding normalization is performed.
+    The value and the JWT `iss` claim are compared by exact
+    case-sensitive string equality (octet-for-octet), with no
+    normalization, consistent with {{RFC8414}} issuer-identifier
+    comparison: `https://a` and `https://a/` are distinct issuers.
 
-    Query components are NOT RECOMMENDED because many issuer metadata
-    profiles do not use them. Issuer identifiers whose string form
-    contains a `;` cannot be expressed in the inline DNS form
-    ({{dii-dns-record}}) and MUST be published via the HTTPS document
-    instead.
+    Query components are NOT RECOMMENDED. Issuer identifiers whose
+    string form contains a `;` cannot be expressed in the inline DNS
+    form ({{dii-dns-record}}) and MUST be published via the HTTPS
+    document instead.
 
   `tenant`
   : OPTIONAL. Non-empty string. The issuer-side tenant identifier
@@ -318,35 +306,28 @@ channel on encountering a denial. Each object has:
   carries a different value does not match this entry.
 
     When absent, the entry matches only assertions that carry no
-    top-level `tenant` claim. Consequently, under a grant profile that
-    carries `tenant`, listing a shared issuer without `tenant`
-    authorizes none of its tenants. Grant profiles that do not carry
-    a `tenant` claim (e.g., the generic JWT-bearer grant of
-    {{RFC7523}}) match only entries that omit `tenant`, as
-    {{dii-multi-tenant}} discusses.
+    top-level `tenant` claim. Under a grant profile that carries no
+    `tenant` claim (for example, the generic JWT-bearer grant of
+    {{RFC7523}}), only entries that omit `tenant` can match
+    ({{dii-multi-tenant}}).
 
     Tenant values are issuer-specific and MUST NOT be compared across
     issuers. To authorize multiple tenants of the same shared issuer,
-    publish one entry per (issuer, tenant) pair. Guidance for
-    shared-issuer multi-tenant Identity Providers is in
-    {{dii-multi-tenant}}.
+    publish one entry per (issuer, tenant) pair.
 
   `subject_identifier_formats`
   : OPTIONAL. JSON array of Subject Identifier format names
   ({{RFC9493}}) this Assertion Issuer is authorized for. If omitted,
   the Assertion Issuer is authorized for any format that resolves to
   this Subject Authority, including formats whose extraction
-  procedures are registered after the policy is published; a Subject
-  Authority that wants to exclude future formats lists the formats it
-  authorizes.
+  procedures are registered after the policy is published.
 
   `valid_from`
   : OPTIONAL. {{RFC3339}} date-time. The delegation MUST NOT be treated
-  as valid before this time. A consumer MAY apply a small clock-skew
-  tolerance (at most 5 minutes), consistent with JWT `nbf` conventions
-  ({{RFC7519}} Section 4.1.5). This tolerance applies only to
-  `valid_from`; it MUST NOT be applied to `valid_until` to extend a
-  delegation past its stated end.
+  as valid before this time. A consumer MAY apply a clock-skew
+  tolerance of at most 5 minutes, consistent with JWT `nbf`
+  conventions ({{RFC7519}} Section 4.1.5). This tolerance MUST NOT be
+  applied to `valid_until`.
 
   `valid_until`
   : OPTIONAL. {{RFC3339}} date-time. The delegation MUST NOT be treated
@@ -358,13 +339,8 @@ channel on encountering a denial. Each object has:
   It is not decision-affecting ({{TRUST-FRAMEWORK}} §Terminology).
 
 `signed_policy`
-: OPTIONAL. Signed JWT containing policy members as claims
-  ({{signed-policy}}). This member follows the signed metadata pattern
-  used by {{RFC8414}} and {{RFC9728}}. Its presence does not by itself
-  require all consumers to support signed policy processing;
-  consumers apply {{signed-policy}} and any local policy that requires
-  object-level integrity. A Subject Authority that needs to force
-  signature processing lists `signed_policy` in `crit`.
+: OPTIONAL. String. A signed JWT containing policy members as claims
+  ({{signed-policy}}).
 
 `crit`
 : OPTIONAL. Array of member names a consumer MUST understand to process
@@ -373,10 +349,9 @@ channel on encountering a denial. Each object has:
   processing for, one or more listed members MUST treat the policy as
   malformed.
 
-  Publishers MUST place `crit` in the outer (unsigned) document. A
-  `crit` present only in a `signed_policy` JWT payload is invisible to
-  consumers that do not process signatures and therefore has no
-  effect on them. When the document carries `signed_policy`,
+  Publishers MUST place `crit` in the outer (unsigned) document, since
+  consumers that do not process signatures cannot see a `crit`
+  carried only in the JWT. When the document carries `signed_policy`,
   publishers MUST also include the same `crit` as a claim in the
   signed JWT, so that a party that can alter the outer document cannot
   remove it ({{signed-policy}}). The DNS record form does not carry
@@ -426,12 +401,11 @@ Example:
 
 ## Signed Policy {#signed-policy}
 
-The `signed_policy` member provides cryptographic integrity for the
-policy members it carries as claims. When the signed JWT contains
-every decision-affecting member ({{TRUST-FRAMEWORK}} §Terminology), it
+The `signed_policy` member protects the integrity of the policy
+members it carries as claims. When the signed JWT contains every
+decision-affecting member ({{TRUST-FRAMEWORK}} §Terminology), it
 provides object-level integrity for the whole document. It follows
-the signed metadata pattern defined for authorization server metadata
-in {{RFC8414}} and protected resource metadata in {{RFC9728}}.
+the signed metadata pattern of {{RFC8414}} and {{RFC9728}}.
 
 A consumer processes `signed_policy` only when it has an acceptable
 verification key for it: the key a `key=` directive pins, or a key
@@ -439,52 +413,42 @@ configured out of band for the Subject Authority. A consumer without
 one MUST treat the policy as malformed if `crit` lists `signed_policy`
 or its local policy requires object-level integrity for the Subject
 Authority; otherwise it ignores `signed_policy` and evaluates the
-unsigned members. Such a consumer gets no object-level integrity from
-the signature: it cannot detect a modified outer document, an expired
-`signed_policy`, or a replayed older one. The requirements on consumers
-in the rest of this section apply to a consumer that processes
-`signed_policy`.
+unsigned members. Such a consumer cannot detect a modified outer
+document, an expired `signed_policy`, or a replayed older one. The
+consumer requirements in the rest of this section apply to a
+consumer that processes `signed_policy`.
 
 The `signed_policy` value is a JWT {{RFC7519}} in JWS Compact
 Serialization {{RFC7515}} containing policy members as claims. The
-JWT MUST be digitally signed using an asymmetric algorithm. It MUST
-contain an `iss` claim identifying the party attesting to the signed
-policy claims, and MUST contain `iat`. It MUST contain `exp`, so that
-a superseded signed policy cannot be replayed indefinitely (relevant
-when the policy is hosted on shared infrastructure,
-{{third-party-policy-hosts}}). Consumers MUST reject an expired
-`signed_policy`, including a cached copy and during stale-if-error
-use ({{dii-caching}}).
+JWT MUST be signed with an asymmetric algorithm. It MUST contain an
+`iss` claim identifying the party attesting to the signed policy
+claims, and MUST contain `iat`. It MUST contain `exp`, which bounds
+replay of a superseded signed policy ({{third-party-policy-hosts}}).
+Consumers MUST reject an expired `signed_policy`, including a cached
+copy and during stale-if-error use ({{dii-caching}}).
 
-A policy host can replay a superseded signed policy until its `exp`
-to a consumer that has not seen a newer one. Consumers MUST reject a
-`signed_policy` whose `exp` is more than 24 hours after its `iat`. A
-consumer MUST retain the highest `iat` it has accepted for each
-Subject Authority until the `exp` of that signed policy, and MUST
-reject a `signed_policy` whose `iat` is earlier, even after the
-cached policy itself is gone. An older signed policy therefore cannot
-be replayed to a consumer that has accepted a newer one, nor to any
-consumer for more than 24 hours.
+Consumers MUST reject a `signed_policy` whose `exp` is more than 24
+hours after its `iat`. A consumer MUST retain the highest `iat` it
+has accepted for each Subject Authority until the `exp` of that
+signed policy, and MUST reject a `signed_policy` whose `iat` is
+earlier, even after the cached policy itself is gone.
 
 The JOSE header SHOULD contain a `kid` identifying the signing key.
-The JWT payload SHOULD
-NOT contain a `signed_policy` claim. The outer document still
-carries `subject_authority` and `authorized_issuers`
-({{dii-document}}) when the JWT repeats them.
+The JWT payload SHOULD NOT contain a `signed_policy` claim. The outer
+document carries `subject_authority` and `authorized_issuers`
+({{dii-document}}) even when the JWT repeats them.
 
 Algorithms: {{RFC8725}} (JWT Best Current Practices) applies
 unchanged. In addition, the JWT MUST NOT use a MAC algorithm
-(HS256/384/512); verification keys are widely distributed and a MAC
-scheme would require sharing the signing key with every Validator,
-defeating the authority binding. Implementations MUST support ES256
-and SHOULD support EdDSA and ES384; RS256 with >=2048-bit keys MAY be
+(HS256/384/512), since a MAC scheme would require sharing the signing
+key with every Validator. Implementations MUST support ES256 and
+SHOULD support EdDSA and ES384; RS256 with >=2048-bit keys MAY be
 supported for compatibility.
 
 Per {{RFC8725}} §3.11 (cross-context confusion), the JWT `typ`
-header MUST be `issuer-authorization-policy+jwt`. This is the
-registered media subtype with the `application/` prefix omitted, per
-the {{RFC8725}} §3.11 convention; the corresponding media type is
-registered in {{iana-dii-media-type}}.
+header MUST be `issuer-authorization-policy+jwt`. This is the media
+type registered in {{iana-dii-media-type}}, with the `application/`
+prefix omitted per the {{RFC8725}} §3.11 convention.
 
 The JWT payload MUST contain `subject_authority`. When a `key=`
 directive pins the verification key, a signature that verifies with
@@ -502,22 +466,18 @@ The verification key MUST be resolved through a channel independent
 of the one that carried the policy document, and MUST be one of:
 
 - a key whose thumbprint the Subject Authority publishes in a
-  `key=` directive of its DNS pointer record ({{dii-dns-record}}). A
-  `key=` thumbprint binds the document to what the consumer already
-  trusts DNS for: it defeats substitution by the policy host or a
-  shared edge in front of it, not compromise of DNS, which already
-  selects the policy host; DNSSEC raises that bound.
+  `key=` directive of its DNS pointer record ({{dii-dns-record}}).
+  This defeats substitution by the policy host or a shared edge in
+  front of it, but not compromise of DNS, which already selects the
+  policy host; DNSSEC raises that bound.
 - a key configured out of band at the consumer, which rests on the
   consumer's own key-provisioning process.
 
-Under the HTTPS-only lookup mode, a `key=` directive in the opt-in
-record applies as it does to any pointer record
-({{trust-method-https-authorized-issuer}}). An attacker who controls the
-publication channel can substitute both the policy and, if the key
-is fetched over that same channel, the key. Absent an independent
-channel, the signature provides integrity no stronger than channel
-control (which already establishes authority), and consumers MUST NOT
-rely on it to defend against compromise of that channel.
+An attacker who controls the publication channel can substitute both
+the policy and, if the key is fetched over that same channel, the
+key. Absent an independent channel, the signature provides integrity
+no stronger than channel control, and consumers MUST NOT rely on it
+to defend against compromise of that channel.
 
 If both unsigned policy members and `signed_policy` are present, the
 signed policy claims MUST be used as the policy values for all claims
@@ -527,25 +487,22 @@ for unrecognized members.
 
 A conflict exists when a member name appears in both the unsigned
 outer document and the signed JWT payload AND the two values are not
-equal when compared as parsed JSON values. The comparison ignores
-member order and insignificant whitespace. Equivalently, the values
-are unequal when their JSON Canonicalization Scheme {{RFC8785}}
-serializations differ. Consumers MUST reject a policy that contains
-any such conflict. Otherwise, an attacker who can modify the outer
-document but not the signed JWT has a lever to inject
-visible-but-ignored members that may mislead operators or
-downstream tooling.
+equal as parsed JSON values, ignoring member order and insignificant
+whitespace; equivalently, when their JSON Canonicalization Scheme
+{{RFC8785}} serializations differ. Consumers MUST reject a policy
+that contains any such conflict. Otherwise, an attacker who can
+modify the outer document but not the signed JWT could inject
+visible-but-ignored members that mislead operators or downstream
+tooling.
 
-A Subject Authority that needs to require `signed_policy` processing
-by all conforming consumers lists `signed_policy` in `crit`. A
-consumer that does not implement `signed_policy` processing then
-rejects the document rather than silently ignoring the signature.
-Absent a `crit` entry, the presence of `signed_policy` provides
-integrity only:
+To require `signed_policy` processing by all conforming consumers, a
+Subject Authority lists `signed_policy` in `crit`. A consumer that
+does not implement that processing then rejects the document rather
+than silently ignoring the signature. Absent a `crit` entry,
+`signed_policy` provides integrity only:
 
 - for consumers that support and verify it;
-- for deployments where local policy requires signed policy
-  processing; or
+- where local policy requires signed policy processing; or
 - for lookups where a `key=` directive requires it
   ({{dii-dns-record}}).
 
@@ -573,24 +530,14 @@ A Subject Authority publishes the Issuer Authorization Policy
 through one of the publication channels defined in
 {{publication-profiles}}. Throughout this document, `{A}` denotes
 the Subject Authority rendered as a DNS name (A-label form,
-{{dii-dns-record}}). DNS publication uses the TXT record at
-`_oauth-issuer-policy.{A}`, following the pattern of CAA, MTA-STS,
-SPF, and DKIM ({{dns-authority-patterns}}). For Resource
-Authorization Servers that take no issuers or policy location from
-DNS, the policy is also served at the default URL on a dedicated
-policy host, `oauth-issuer-policy.{A}` ({{dii-https-url}}); a TXT
-record whose `uri=` names that URL is the opt-in.
+{{dii-dns-record}}).
 
 ## Publication Channels {#publication-profiles}
 
 This document defines three publication channels. A Subject
 Authority chooses based on operational constraints; all carry the
 same document model ({{dii-document}}), although the inline form
-expresses only part of it ({{mechanism-limits}}). The canonical
-lookup procedure ({{dii-lookup}}) consults only DNS and the `uri=`
-target a DNS record names, which can be the dedicated policy host;
-the HTTPS-only lookup mode ({{trust-method-https-authorized-issuer}})
-fetches only from the dedicated policy host.
+expresses only part of it ({{mechanism-limits}}).
 
 | Channel | DNS form | Document | Authority binding | When to use |
 |-|-|-|-|-|
@@ -603,24 +550,22 @@ fetches only from the dedicated policy host.
 A Subject Authority that serves Resource Authorization Servers using
 the HTTPS-only lookup mode publishes the policy at the default URL
 on the dedicated policy host `oauth-issuer-policy.{A}`
-({{dii-https-url}}). The opt-in to the HTTPS-only lookup mode is a
-recognized record at `_oauth-issuer-policy.{A}` ({{dii-dns-record}})
-whose `uri=` value is exactly the default URL: it equals, octet for
-octet, the default URL built from the lowercase A-label form of
-`{A}`. That mode requires
-such a record before it fetches from the dedicated host
-({{trust-method-https-authorized-issuer}}). The same record directs
-canonical lookups to the same document.
+({{dii-https-url}}). The opt-in to that mode is a recognized record
+at `_oauth-issuer-policy.{A}` ({{dii-dns-record}}) whose `uri=`
+value is exactly the default URL: it equals, octet for octet, the
+default URL built from the lowercase A-label form of `{A}`. That
+mode requires such a record before it fetches from the dedicated
+host ({{trust-method-https-authorized-issuer}}). The same record
+directs canonical lookups to the same document.
 
-The host name alone is not an opt-in. Some domains let untrusted
+The host name alone is not an opt-in: some domains let untrusted
 users claim subdomains or serve content on them, and an attacker
 could claim `oauth-issuer-policy` ({{RFC8461}} Section 10.3).
 Subject Authorities whose domains let others claim subdomains SHOULD
 also reserve the `oauth-issuer-policy` label, in addition to
-publishing the opt-in record. Not every TXT record at
-`_oauth-issuer-policy.{A}` is an opt-in either. A Subject Authority
-that publishes only an inline record, or a pointer to another host,
-has not set up the dedicated host.
+publishing the opt-in record. Nor is every TXT record at
+`_oauth-issuer-policy.{A}` an opt-in: an inline record, or a pointer
+to another host, does not set up the dedicated host.
 
 Unlike the apex, the dedicated host can be delegated to a hosting
 provider (for example, by a CNAME record) without giving that
@@ -631,12 +576,12 @@ policy ({{third-party-policy-hosts}}).
 ## DNS Record {#dii-dns-record}
 
 The Subject Authority publishes one or more DNS TXT records at
-`_oauth-issuer-policy.{A}`, where `{A}` is the Subject
-Authority rendered as a DNS name. Internationalized names are converted
-to A-labels by the procedure of {{TRUST-FRAMEWORK}} §Subject Authority
-Determination before the prefix is prepended. DNS lookup
-names are formed without a trailing dot for comparison purposes; the
-wire-format root label is not part of the Subject Authority value.
+`_oauth-issuer-policy.{A}`. Internationalized names are converted
+to A-labels by the procedure of
+{{TRUST-FRAMEWORK}} §Subject Authority Determination before the
+prefix is prepended. DNS lookup names are formed without a trailing
+dot for comparison purposes; the wire-format root label is not part
+of the Subject Authority value.
 
 The string segments of a TXT record ({{RFC1035}}) are concatenated
 without separator and interpreted as ASCII text. A recognized record
@@ -649,22 +594,19 @@ begins with the version token `v=oauth-issuer-policy1`
 (case-sensitive) followed by end of record, whitespace, or `;`. In a
 recognized record, the version token is followed by optional
 whitespace and then end of record or a `;` separator; anything else
-makes the record malformed ({{dii-failures}}). The version token matches only that exact
-string: a different token (for example, a future
-`v=oauth-issuer-policy2`) is not recognized, so the record is treated
-as unrecognized (not malformed) and is ignored by the recognition
-rule. Records that do not begin with a supported version token MUST be
-ignored. A `v=` directive appearing anywhere other than the start of
-a recognized record makes the record malformed ({{dii-failures}}).
+makes the record malformed ({{dii-failures}}). A record that begins
+with a different version token (for example, a future
+`v=oauth-issuer-policy2`) is unrecognized, not malformed. Records
+that do not begin with a supported version token MUST be ignored. A
+`v=` directive appearing anywhere other than the start of a
+recognized record makes the record malformed ({{dii-failures}}).
 
 The remainder of a recognized record is a sequence of `name=value`
 directives separated by `;`. Parsing rules:
 
 - Whitespace (space and horizontal tab) immediately before and after
   each directive is ignored. A value MUST NOT contain whitespace or
-  non-ASCII characters; the directive values defined here (domain
-  names in A-label form and absolute HTTPS URLs) are ASCII by
-  construction.
+  non-ASCII characters.
 - Directive names are case-insensitive ASCII. Values are
   case-sensitive and preserved as written.
 - A directive splits into name and value at the first `=`. Subsequent
@@ -682,9 +624,9 @@ directives separated by `;`. Parsing rules:
 - Unrecognized directives MUST be ignored.
 
 The following ABNF ({{RFC5234}} with the case-sensitive string
-extension of {{RFC7405}}) is normative for the record syntax, and
-the prose above agrees with it. A recognized record that does not
-match `record` is malformed ({{dii-failures}}).
+extension of {{RFC7405}}) is normative for the record syntax. A
+recognized record that does not match `record` is malformed
+({{dii-failures}}).
 
 ~~~ abnf
 record        = OWS version OWS *( ";" directive ) [ ";" OWS ]
@@ -703,11 +645,11 @@ The following directives are defined:
   bind. The publisher MUST write this value in A-label (ASCII) form
   per {{RFC5891}}; consumers compare it against the Subject Authority
   computed from the query name (also in A-label form) using the
-  case-insensitive ASCII comparison rules in {{TRUST-FRAMEWORK}} §Subject Authority Determination.
-  Records whose `authority=` value does not match are discarded (see
-  the lookup procedure in {{dii-lookup}}). A recognized record
-  containing more than one `authority=` directive is malformed
-  ({{dii-failures}}).
+  case-insensitive ASCII comparison rules in
+  {{TRUST-FRAMEWORK}} §Subject Authority Determination. Records whose
+  `authority=` value does not match are discarded ({{dii-lookup}}).
+  A recognized record containing more than one `authority=` directive
+  is malformed ({{dii-failures}}).
 
 `uri=URL`
 : OPTIONAL. An HTTPS URL identifying an Issuer Authorization Policy
@@ -724,15 +666,13 @@ across records.
 `key=THUMBPRINT`
 : OPTIONAL. The JWK SHA-256 thumbprint {{RFC7638}}, base64url-encoded
 without padding, of the key that signs the `signed_policy` of the
-document named by `uri=`. The thumbprint is a hash of the public
-key's JSON Web Key form. That key is the Subject Authority's
+document named by `uri=`. That key is the Subject Authority's
 policy-signing key, not an Assertion Issuer's assertion-signing key.
 
-  The directive is valid only in a record that carries `uri=`. In any
-  other record it is malformed. At most two distinct `key=` values may
-  appear across the remaining records, so that a Subject Authority can
-  publish an old and a new key during a rollover. More than two is
-  malformed.
+  The directive is valid only in a record that carries `uri=`; in any
+  other record it is malformed. Two distinct `key=` values across the
+  remaining records let a Subject Authority publish an old and a new
+  key during a rollover; more than two is malformed.
 
   When `key=` is present:
 
@@ -759,8 +699,7 @@ MUST be treated as malformed (see {{dii-failures}}).
 
 A Subject Authority MUST publish records for at most one version of
 this mechanism at a time. This document defines only
-`oauth-issuer-policy1`. Future versions that are not
-understood by a consumer are ignored by the recognition rule above.
+`oauth-issuer-policy1`.
 
 ## HTTPS Document URL {#dii-https-url}
 
@@ -770,31 +709,26 @@ The default Issuer Authorization Policy URL is:
 https://oauth-issuer-policy.{A}/.well-known/oauth-issuer-policy
 ~~~
 
-where `{A}` is the Subject Authority rendered as a DNS name (A-label
-form). The URL uses the `https` scheme, the host
-`oauth-issuer-policy.{A}`, the default HTTPS port (443), and the
-well-known path {{RFC8615}}; it has no userinfo, port, query, or
-fragment component. A Subject Authority whose form has no DNS-name
-representation (none is defined in this document beyond the
-`email`-derived DNS domain) cannot use the dedicated host. Consumers
-fetch this URL with an HTTP GET over HTTPS with TLS server
-authentication and interpret the response body as the JSON document
-defined in {{dii-document}}.
+The URL's path is a well-known URI {{RFC8615}}, and the URL has no
+userinfo, port, query, or fragment component. A Subject Authority
+whose form has no DNS-name representation (none is defined in this
+document beyond the `email`-derived DNS domain) cannot use the
+dedicated host. Consumers fetch this URL with an HTTP GET over HTTPS
+with TLS server authentication and interpret the response body as
+the JSON document defined in {{dii-document}}.
 
 A URL obtained from a DNS `uri=` directive is fetched the same way;
-the host serving the URL is responsible for TLS server authentication
-of itself, not of `A`.
+TLS authenticates the host serving that URL, not `A`.
 
-Every policy fetch defined here (the default URL and a `uri=`
-target) is an outbound fetch subject to {{TRUST-FRAMEWORK}}
-§Outbound Fetches; see also {{dos-ssrf}}.
+Every policy fetch defined here is an outbound fetch subject to
+{{TRUST-FRAMEWORK}} §Outbound Fetches; see also {{dos-ssrf}}.
 
 Consumers MUST NOT follow HTTP redirects when fetching a policy, as
 in MTA-STS ({{RFC8461}} Section 3.3): a 3xx response other than a 304
 validating a held cached policy is Indeterminate ({{dii-failures}}).
 Policy hosting on another host is expressed only through the `uri=`
-pointer, where the delegation is published in DNS and visible to the
-Subject Authority. The response MUST have HTTP status 200 and a media
+pointer, which publishes the delegation in DNS. The response MUST
+have HTTP status 200 and a media
 type of `application/json` or any media type using the structured
 `+json` suffix (media type parameters ignored); any other status is
 classified per {{dii-failures}}.
@@ -831,8 +765,6 @@ renewing a held policy unless:
 The consumer stores those values with the cached policy. If either
 condition does not hold, it fetches without a conditional request.
 
-The document's shape and members are defined, with an example, in
-{{dii-document}}.
 
 # Lookup Procedure {#dii-lookup}
 

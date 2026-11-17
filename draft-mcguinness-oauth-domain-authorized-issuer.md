@@ -939,8 +939,9 @@ When the `domain_authorized_issuer` Trust Method is evaluated, the
 Resource Authorization Server MUST:
 
 1. Determine the Subject Authority from the assertion's Subject
-   Identifier per {{TRUST-FRAMEWORK}} §Subject Authority Determination. If the format is not registered
-   in {{TRUST-FRAMEWORK}} §Subject Authority Extraction Procedures Registry, reject the assertion.
+   Identifier per {{TRUST-FRAMEWORK}} §Subject Authority Determination. If no Subject Authority
+   results, {{TRUST-FRAMEWORK}} §Resource Authorization Server
+   Processing step 5c applies.
 
 2. Retrieve the Issuer Authorization Policy by applying the
    procedure in {{dii-lookup}}. Negative and Indeterminate
@@ -1170,8 +1171,9 @@ This variant takes no issuers or policy location from DNS.
 When evaluated, the Resource Authorization Server MUST:
 
 1. Determine the Subject Authority `A` from the assertion's Subject
-   Identifier per {{TRUST-FRAMEWORK}} §Subject Authority Determination. If the format is not registered in
-   {{TRUST-FRAMEWORK}} §Subject Authority Extraction Procedures Registry, reject the assertion.
+   Identifier per {{TRUST-FRAMEWORK}} §Subject Authority Determination. If no Subject Authority results,
+   {{TRUST-FRAMEWORK}} §Resource Authorization Server Processing
+   step 5c applies.
 
 2. Query `_oauth-issuer-policy.{A}` and classify the response as in
    steps 1 and 2a of {{dii-lookup}}; more than one distinct `uri=`

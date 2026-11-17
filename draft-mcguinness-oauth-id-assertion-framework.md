@@ -1850,14 +1850,12 @@ rejects such a request with `invalid_client`. This narrows
 In addition to the processing in {{rasp}}, the Resource Authorization
 Server MUST:
 
-1. Validate the ID-JAG per {{ID-JAG}}.
-
-2. Verify that the `email` Subject Identifier, when the assertion
+1. Verify that the `email` Subject Identifier, when the assertion
    carries one, uses a format listed in
    `subject_identifier_formats_supported`, if that Trust Policy member
    is present.
 
-3. Use the email attribution only for subject resolution and Subject
+2. Use the email attribution only for subject resolution and Subject
    Authority evaluation. The Resource Authorization Server MUST NOT
    treat the mere presence or value of the email claim as proof
    that the ID-JAG issuer is authoritative for the subject. Issuer
@@ -1914,14 +1912,12 @@ procedure ({{iana-authority-registry}}) for other claim sources.
 In addition to the processing in {{rasp}}, the Resource
 Authorization Server MUST:
 
-1. Validate the JWT per {{RFC7523}}.
-
-2. Verify that the `email` Subject Identifier, when the assertion
+1. Verify that the `email` Subject Identifier, when the assertion
    carries one, uses a format listed in
    `subject_identifier_formats_supported`, if that Trust Policy
    member is present.
 
-3. Treat the identity claim only as input to Subject Authority
+2. Treat the identity claim only as input to Subject Authority
    evaluation. Issuer acceptability is established only by
    evaluating the Trust Methods.
 

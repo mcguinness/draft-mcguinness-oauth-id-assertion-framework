@@ -171,11 +171,11 @@ Identity Providers, and none extends to issuers, such as agent
 platforms, that have no prior relationship with the customer.
 
 Without that configuration, a Resource Authorization Server that
-trusts a multi-tenant issuer can accept an assertion about a subject
-from a tenant with no authority over the subject's domain. In the
-nOAuth account takeover {{NOAUTH}}, an application linked accounts by
-an email address that an attacker had set on a user in the attacker's
-own tenant.
+trusts a multi-tenant issuer can accept an assertion from a tenant
+that has no authority over the subject's domain. In the nOAuth
+account takeover {{NOAUTH}}, an attacker set an email address on a
+user in the attacker's own tenant, and an application linked
+accounts by that address.
 
 Namespace authorization lets the domain owner state once which
 issuers and tenants may assert about its subjects, for every
@@ -185,18 +185,19 @@ defenses ({{scope-of-namespace-authorization}}).
 
 This is an open-world issuer-trust problem: the Resource
 Authorization Server receives assertions from issuers it did not
-configure in advance, whose acceptability it can evaluate from
-published evidence at request time. This document defines an
-Identity Assertion Issuer Trust Policy, in which a Resource
-Authorization Server publishes not the list of Assertion Issuers it
-trusts but the conditions an Assertion Issuer must satisfy. Each
-condition is evaluated by validating concrete evidence (a federation
-trust chain or a domain-authorized issuer record) when an assertion
-is presented. The framework does not take policy away from the
-Resource Authorization Server; it standardizes how the server states
+configure in advance, and it can evaluate those issuers from
+published evidence at request time.
+
+This document defines an Identity Assertion Issuer Trust Policy, in
+which a Resource Authorization Server publishes the conditions an
+Assertion Issuer must satisfy, not a list of trusted Assertion
+Issuers. Each condition is evaluated by validating concrete evidence
+(a federation trust chain or a domain-authorized issuer record) when
+an assertion is presented. The framework leaves policy with the
+Resource Authorization Server and standardizes how the server states
 which evidence it requires and how that evidence is evaluated.
 Despite its name, the Trust Policy is published by the Resource
-Authorization Server, not by an Assertion Issuer. A Subject
+Authorization Server, not an Assertion Issuer. A Subject
 Authority authorizes issuers in a separate document, the Issuer
 Authorization Policy ({{DAI}}).
 
@@ -206,10 +207,10 @@ assertions. {{DAI}} defines one Subject-Authority publication
 mechanism ({{family}}). This document adds a trust-evaluation layer
 to the assertion-bearer grant and chaining mechanics of {{ID-JAG}}
 and {{I-D.ietf-oauth-identity-chaining}}. Where that layer narrows a
-dependency, {{bindings}} says so: it requires client authentication
-under a policy with client methods, fixes the key source for the
-generic JWT-bearer binding, and limits which claims resolve the
-subject.
+dependency, {{bindings}} says so. The layer requires client
+authentication under a policy with client methods, fixes the key
+source for the generic JWT-bearer binding, and limits which claims
+resolve the subject.
 
 ## Minimal Deployment
 
@@ -227,11 +228,14 @@ The smallest deployment has three moving parts:
    the assertion and requires one successful Trust Method in each
    applicable trust-evaluation category.
 
-In the common case, the Trust Policy lists
-`domain_authorized_issuer`, the Subject Authority publishes a DNS TXT
-record at `_oauth-issuer-policy.{domain}`, and the Resource
-Authorization Server checks that the assertion's `iss` appears in
-that policy for the asserted subject namespace.
+In the common case:
+
+- the Trust Policy lists `domain_authorized_issuer`,
+- the Subject Authority publishes a DNS TXT record at
+  `_oauth-issuer-policy.{domain}`, and
+- the Resource Authorization Server checks that the assertion's `iss`
+  appears in the Subject Authority's policy for the asserted subject
+  namespace.
 
 ## Trust Evaluation Categories {#two-trust-questions}
 
@@ -279,7 +283,7 @@ about subjects in that namespace ({{relationship-to-oidf}}).
 
 This framework is also distinct from issuer *discovery* mechanisms
 such as WebFinger {{RFC7033}} and OpenID Connect Discovery
-{{OIDC-DISCOVERY}}, which answer "given a user identifier, which
+{{OIDC-DISCOVERY}}. They answer "given a user identifier, which
 issuer should a client use?" before authentication. This framework
 answers the verifier-side question "may this issuer, having already
 produced an assertion, be trusted for this subject's namespace?"
@@ -293,13 +297,13 @@ This document and {{DAI}} form a two-document set:
 
 - **This document** defines the Authority Delegation Model
   ({{delegation-model}}) and the Trust Policy
-  ({{trust-policy-document}}), which states the conditions under
-  which an Assertion Issuer, and optionally the client that presents
-  its assertion, is accepted. {{scope}} lists its full contents.
+  ({{trust-policy-document}}), which states the conditions for
+  accepting an Assertion Issuer and, optionally, the client that
+  presents its assertion. {{scope}} lists its full contents.
 - **{{DAI}}** defines the `domain_authorized_issuer` Trust Method, one
-  class of evidence that satisfies those conditions, and the Issuer
-  Authorization Policy wire format and integrity protection that the
-  method consumes.
+  class of evidence that satisfies those conditions, and the wire
+  format and integrity protection of the Issuer Authorization Policy
+  that the method consumes.
 
 ## Scope {#scope}
 
@@ -367,8 +371,8 @@ Delegation Artifact:
 : A profile-defined representation of a delegation, such as a signed
 document, a DNS record, a JSON document at a well-known HTTPS URL,
 or an entry in published metadata. The Delegation Artifact MUST
-carry sufficient information to identify the Authority Holder, the
-Delegate, the delegated claim type or scope, and (when applicable)
+carry enough information to identify the Authority Holder, the
+Delegate, the delegated claim type or scope, and, when applicable,
 the validity bounds.
 
 Assertion:
@@ -446,9 +450,9 @@ Decision-affecting member:
 : A member of a policy document whose value can change whether a
 consumer accepts an assertion. Every member that this document or a
 Trust Method specification registers for a policy document is
-decision-affecting, except a member that only records when the
-document was published, a member that carries a signature over other
-members, and any member whose registration says otherwise.
+decision-affecting unless it only records when the document was
+published, carries a signature over other members, or has a
+registration that says otherwise.
 
 # Authority Delegation Model {#delegation-model}
 
@@ -483,9 +487,9 @@ authorized Delegate") and the Assertion ("Delegate asserts something
 about Subject"). Both validations are required.
 
 The Authority Holder revokes a delegation by removing or expiring
-the artifact. The framework provides no remote cache-invalidation
-mechanism; revocation latency is bounded by the profile's cache
-lifetime. Subject Authorities that need fast revocation operate
+the artifact. The framework provides no mechanism to invalidate
+remote caches. The profile's cache lifetime bounds revocation
+latency. Subject Authorities that need fast revocation operate
 with short steady-state cache lifetimes. Planned transfers
 (provider migrations, acquisitions) and unplanned revocations
 (security incidents) follow the same path, with the same latency.
@@ -538,22 +542,23 @@ authenticate the signer beyond what the Delegation Artifact attests.
 Category applicability is a property of the Validator's published
 Trust Policy, not of the incoming Assertion. A Validator that holds
 more than one Trust Policy never selects one from properties of the
-Assertion, and selects one by OAuth client only after authenticating
+Assertion. It selects one by OAuth client only after authenticating
 the client against its registration ({{rasp}} step 1). If the Trust
 Policy declares one or more Trust Methods in a given category, that
 category is applicable to every Assertion the Validator evaluates
 within the profile's scope. The Assertion itself MUST NOT be able
 to waive the category. An Assertion lacking satisfying evidence
-for an applicable category MUST be rejected. Profiles MUST NOT
-define applicability conditions that depend on properties of the
-Assertion under evaluation. This prohibition is directional:
-assertion properties never *relax* what the policy requires, while
-rejection rules keyed on them, such as the federation-only rule in
-{{rasp}} step 5e, only tighten it and are permitted. Nor can a
-published Delegation Artifact waive the category. A profile
-MUST NOT define a published state, such as a monitoring mode, under
-which an Assertion whose issuer the artifact does not authorize
-satisfies the category.
+for an applicable category MUST be rejected.
+
+Profiles MUST NOT define applicability conditions that depend on
+properties of the Assertion under evaluation. This prohibition is
+directional. Assertion properties never *relax* what the policy
+requires. Rejection rules keyed on them, such as the
+federation-only rule in {{rasp}} step 5e, only tighten the policy and
+are permitted. Nor can a published Delegation Artifact waive the
+category. A profile MUST NOT define a published state, such as a
+monitoring mode, under which an Assertion whose issuer the artifact does
+not authorize satisfies the category.
 
 A `subject_namespace_authorization` method therefore does not
 become inapplicable merely because an Assertion omits a Subject
@@ -570,10 +575,10 @@ Authority Sources within the same category (multiple Subject
 Authorities for different namespaces, multiple federation trust
 anchors). For `subject_namespace_authorization`, a profile MUST
 define deterministic source selection: a binding function from
-Assertion + request context to exactly one Authority Source (or
-deterministic failure), invariant under attacker-controlled inputs
-outside the binding function. {{unverified-claim}} details the
-attack against ad-hoc or fallback selection logic and the
+Assertion and request context to exactly one Authority Source or a
+deterministic failure, unaffected by attacker-controlled inputs
+outside the function. {{unverified-claim}} details the attack
+against ad-hoc or fallback selection logic and the
 deterministic-selection requirement.
 
 For `issuer_authentication` and `client_recognition`, every
@@ -590,20 +595,22 @@ Authority Source's evaluation fails or is indeterminate
 Across Trust Methods in the same category, or-semantics apply
 ({{combination-rule}}), with one exception. When a
 `subject_namespace_authorization` method retrieves an Affirmative
-Delegation Artifact from the Subject Authority and that artifact
-does not authorize the Assertion Issuer (including an explicit
-denial), the category is not satisfied, whatever any other method in
-the category yields. The Subject Authority's published decision is
-final for its namespace. An Indeterminate state from a
+Delegation Artifact from the Subject Authority, and that artifact
+does not authorize the Assertion Issuer or explicitly denies it, the
+category is not satisfied, whatever other methods in the category
+yield. The Subject Authority's published decision is final for its
+namespace. An Indeterminate state from a
 `subject_namespace_authorization` method that consults the Subject
 Authority's own publication has the same effect, because it may hide
-that published decision. A Negative state, in which the Subject
-Authority has published nothing through that method's channel, does
-not have this effect. Other methods in the category can still
-supply evidence. Where that channel's negative answers are not
-authenticated (for example, DNS without DNSSEC), an attacker who
-forges one can turn a published denial into a Negative and let
-another method decide ({{DAI}} §DNS Integrity and Compromise).
+that published decision.
+
+A Negative state, in which the Subject Authority has published
+nothing through that method's channel, does not have this effect.
+Other methods in the category can still supply evidence. If that
+channel does not authenticate negative answers, as with DNS without
+DNSSEC, an attacker who forges one can turn a published denial into
+a Negative and let another method decide ({{DAI}} §DNS Integrity and
+Compromise).
 
 In summary, for a `subject_namespace_authorization` method that
 consults the Subject Authority's own publication:
@@ -618,8 +625,8 @@ consults the Subject Authority's own publication:
 ## Open-World Delegation and Bounded Transitivity {#open-world}
 
 This document targets **open-world delegation**: the Authority
-Holder is independent of the Validator (a customer's domain, a
-federation operator), and the Validator retrieves Delegation
+Holder, such as a customer's domain or a federation operator, is
+independent of the Validator. The Validator retrieves Delegation
 Artifacts through the profile's publication channel at evaluation
 time. Open-world does not mean open acceptance: the Validator
 publishes or locally configures which Authority Sources it accepts.
@@ -628,8 +635,8 @@ party, evidence is local configuration) is the degenerate case and
 remains compatible with the model.
 
 The `subject_namespace_authorization` methods of this framework,
-including {{DAI}}'s, are bounded at depth one: the Authority Holder
-directly lists every authorized Delegate; no further delegation is
+including {{DAI}}'s, are bounded at depth one. The Authority Holder
+directly lists every authorized Delegate. No further delegation is
 permitted ({{transitive-authz-bounded}}, {{key-binding}}). OpenID
 Federation {{OIDF-FEDERATION}} is the notable chained-delegation
 profile in the OAuth ecosystem. A federation chain establishes
@@ -684,8 +691,8 @@ outcome of the lookup operation onto exactly one of these states.
     signature, unparseable payload, validity bounds of the artifact
     as a whole outside the acceptable window)
 
-  Bounds on individual entries inside an artifact are evaluated by
-  the profile. An Indeterminate state carries no information about
+  The profile evaluates bounds on individual entries inside an
+  artifact. An Indeterminate state carries no information about
   the Authority Holder's intent.
 
 ### Fail-Closed Requirements {#fail-closed-requirements}
@@ -711,12 +718,16 @@ stated maximum. If the cache expires while the live channel remains
 Indeterminate, the Trust Method is not satisfied, and the access
 decision follows the fail-closed rule above ({{multiple-sources}}).
 
-Treating Indeterminate as Affirmative, extending a cache across
-Indeterminate states, and falling through to a different Authority
-Source within one Trust Method's evaluation ({{multiple-sources}})
-are the same downgrade: each turns a hard denial into a soft one
-driven by adversary-controllable availability of the authoritative
-publication channel.
+Three behaviors are the same downgrade:
+
+- treating Indeterminate as Affirmative,
+- extending a cache across Indeterminate states, and
+- falling through to a different Authority Source within one Trust
+  Method's evaluation ({{multiple-sources}}).
+
+Each turns a hard denial into a soft one driven by
+adversary-controllable availability of the authoritative publication
+channel.
 
 Profiles MAY define additional lookup states (for example, a
 "stale-but-signed" state for transparency-log-bound artifacts)

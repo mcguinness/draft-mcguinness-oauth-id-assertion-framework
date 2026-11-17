@@ -852,7 +852,9 @@ Indeterminate ({{dii-failures}}).
 DAI lookup outcomes map onto the Affirmative, Negative, and
 Indeterminate lookup states of the Authority Delegation Model
 ({{TRUST-FRAMEWORK}} §Lookup States and Fail-Closed), whose
-requirements apply unchanged.
+requirements apply unchanged, as does the prohibition on falling
+through to another Authority Source ({{TRUST-FRAMEWORK}} §Multiple
+Authority Sources Within a Category).
 
 | State | DAI outcomes |
 |-|-|
@@ -1504,8 +1506,8 @@ the shared-issuer case and its `tenant` binding. Security points:
   inline DNS form, authorizes none of its tenants. A Subject
   Authority instead authorizes a tenant by listing the (issuer,
   tenant) pair. This relies on the Identity Provider sending the
-  `tenant` claim whenever it is multi-tenant, as {{TRUST-FRAMEWORK}}
-  §ID-JAG requires of every shared issuer. A shared issuer that
+  `tenant` claim whenever it is multi-tenant, as {{ID-JAG}} §6.1
+  requires. A shared issuer that
   omits the claim anyway would again match an entry without
   `tenant`, so Subject Authorities SHOULD list a shared issuer only
   with `tenant`.
@@ -2094,7 +2096,8 @@ In the JSON document, an extension can mark a new decision-affecting
 top-level member critical with `crit` ({{dii-document}}), and
 already-deployed consumers honor it. An extension that narrows
 `authorized_issuers` entries defines a top-level member for
-publishers to list ({{iana-dii-members}}).
+publishers to list in `crit`, since `crit` does not reach entry
+members ({{iana-dii-members}}).
 
 The DNS record form has no per-directive criticality mechanism. Its
 version token ({{dii-dns-record}}) prevents misinterpretation of

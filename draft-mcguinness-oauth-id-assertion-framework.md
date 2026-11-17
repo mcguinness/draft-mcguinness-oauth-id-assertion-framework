@@ -1438,8 +1438,8 @@ that format's extraction procedure. The grant-profile binding
 ({{bindings}}) designates which claim conveys the Subject Identifier
 and thus which format applies. A format is "used by the assertion"
 when the designated claim for that format is present. If the
-designated claim maps to no registered format, or to a format not
-registered in {{iana-authority-registry}}, the assertion yields no
+designated claim maps to no format registered in
+{{iana-authority-registry}}, the assertion yields no
 Subject Authority, the `subject_namespace_authorization` category
 cannot be evaluated, and processing follows {{rasp}} step 5c.
 
@@ -1569,17 +1569,19 @@ itself. JWS uses the same fail-closed pattern for critical header
 parameters ({{RFC7515}} Section 4.1.11).
 
 This document defines `crit` but names no member critical by
-default. Defining it in the base lets a future extension mark a new
+default. Defining it here lets a future extension mark a new
 decision-affecting member critical and have already-deployed
-consumers honor it; an extension could not retrofit that fail-closed
-behavior onto the deployed base.
+consumers honor it. Had this document omitted `crit`, no extension
+could retrofit that fail-closed behavior onto the deployed base.
 
 # Trust Policy Processing
 
 The Trust Policy governs whether an Assertion Issuer's identity
 assertion is acceptable to the Resource Authorization Server. It is
 necessary but not sufficient: it does not, by itself, authorize any
-particular access, scope, role, or attribute.
+particular access, scope, role, or attribute. Local policy decides
+which scopes an accepted assertion receives and how its subject is
+linked to an account, within the limits of {{rasp}} step 5c.
 
 ## Client Processing {#client-processing}
 
@@ -2729,8 +2731,8 @@ record at `_oauth-issuer-policy.{domain}` as its opt-in ({{DAI}}
 **Q: Does this work for path-bearing issuer identifiers
 (`https://login.example.com/{tenant}/v2.0`)?**
 
-Yes. Issuer comparison is a case-sensitive URL string match, paths
-included. An issuer that also sends a `tenant` claim is listed with
+Yes. Issuer comparison is a case-sensitive, octet-for-octet string
+match, paths included ({{DAI}} §Issuer Authorization Policy Document). An issuer that also sends a `tenant` claim is listed with
 that `tenant` value, which requires the DNS pointer form ({{DAI}}
 §Mechanism Limits).
 
@@ -2799,8 +2801,8 @@ Subject Authority `example.com`, looks up the customer's policy, and
 finds that `https://attacker.example` is not in
 `authorized_issuers`. The Trust Method fails, and the tool provider
 rejects with `invalid_grant`. The self-asserted `email_verified`
-has no force: unless the customer lists `attacker.example`, it
-cannot impersonate users in `example.com`.
+has no force: unless the customer lists `https://attacker.example`,
+that issuer cannot impersonate users in `example.com`.
 
 # OpenID Federation Walkthrough {#example-federation-walkthrough}
 

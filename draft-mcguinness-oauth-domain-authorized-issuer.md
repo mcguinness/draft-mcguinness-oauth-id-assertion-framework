@@ -942,8 +942,8 @@ Resource Authorization Server MUST:
 
 1. Determine the Subject Authority from the assertion's Subject
    Identifier per {{TRUST-FRAMEWORK}} §Subject Authority Determination. If no Subject Authority
-   results, {{TRUST-FRAMEWORK}} §Resource Authorization Server
-   Processing step 5c applies.
+   results, the assertion is rejected ({{TRUST-FRAMEWORK}}
+   §Resource Authorization Server Processing, step 5c).
 
 2. Retrieve the Issuer Authorization Policy by applying the
    procedure in {{dii-lookup}}. Negative and Indeterminate
@@ -982,8 +982,7 @@ Resource Authorization Server MUST:
    depend on array order or on which matching entry a consumer
    examines first.
 
-If step 1 fails, the assertion is rejected ({{TRUST-FRAMEWORK}}
-§Resource Authorization Server Processing, step 5c). If step 2 does
+If step 2 does
 not yield a policy, the Trust Method is not satisfied, with the
 category-level effect stated in {{dii-failures}}. If the Trust Method
 is not satisfied and, as a result, the cross-category combination
@@ -1174,8 +1173,8 @@ When evaluated, the Resource Authorization Server MUST:
 
 1. Determine the Subject Authority `A` from the assertion's Subject
    Identifier per {{TRUST-FRAMEWORK}} §Subject Authority Determination. If no Subject Authority results,
-   {{TRUST-FRAMEWORK}} §Resource Authorization Server Processing
-   step 5c applies.
+   the assertion is rejected ({{TRUST-FRAMEWORK}} §Resource
+   Authorization Server Processing, step 5c).
 
 2. Query `_oauth-issuer-policy.{A}` and classify the response as in
    steps 1 and 2a of {{dii-lookup}}; more than one distinct `uri=`

@@ -1127,9 +1127,9 @@ multi-tenant Assertion Issuer:
 - **Shared issuer with a tenant claim**: the
   `authorized_issuers[].tenant` field binds the authorization to one
   tenant of the shared issuer, with the security properties in
-  {{dii-multi-tenant}}. For example, `https://accounts.google.com`
-  serves every Google Workspace tenant through the top-level `tenant`
-  claim of {{ID-JAG}} §6.1.
+  {{dii-multi-tenant}}. For example, `https://accounts.shared.example`
+  serves many tenants and identifies each one with the top-level
+  `tenant` claim of {{ID-JAG}} §6.1.
 
 ~~~ json
 {
@@ -2334,8 +2334,8 @@ Servers that use the HTTPS-only lookup mode:
 
 The example above uses an issuer identifier dedicated to Acme. Some
 Identity Providers serve every tenant under one shared issuer (for
-example, `https://accounts.google.com`) and distinguish tenants by
-the ID-JAG top-level `tenant` claim ({{ID-JAG}} §6.1). For these,
+example, `https://accounts.shared.example`) and distinguish tenants
+by the ID-JAG top-level `tenant` claim ({{ID-JAG}} §6.1). For these,
 the `authorized_issuers[].tenant` member binds the authorization to
 one tenant of the shared issuer.
 

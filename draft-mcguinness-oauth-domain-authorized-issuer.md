@@ -1033,8 +1033,9 @@ Freshness and cache limits for the Issuer Authorization Policy:
     lookup mode is fresh for the lesser of the opt-in record's TTL
     and its HTTP freshness lifetime.
 
-  A document with neither `max-age` nor `Expires` is fresh for a
-  local default that MUST NOT exceed 1 hour. Consumers MUST NOT treat
+  A document for which the freshness calculation of {{RFC9111}}
+  Section 4.2.1 yields no explicit lifetime is fresh for a local
+  default that MUST NOT exceed 1 hour. Consumers MUST NOT treat
   a cached policy as fresh beyond these lifetimes, except that they
   MAY apply a minimum freshness lifetime of up to 5 minutes even when
   a TTL or HTTP lifetime is shorter. That minimum coarsens the timing

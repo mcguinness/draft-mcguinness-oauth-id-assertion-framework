@@ -621,17 +621,19 @@ the framework's deferral to the method is testable:
   on serving cached evidence during an Indeterminate state, or an
   explicit statement that the method caches nothing.
 - For signed evidence, how the signer and the verification key are
-  bound to the party whose evidence the Trust Method consults,
-  through a channel independent of the signed evidence, so that an
+  bound to the party that holds the authority the evidence expresses
+  (such as the Subject Authority for its namespace), through a channel
+  independent of the signed evidence, so that an
   attacker who controls the evidence or the channel that carries it
   cannot substitute either.
 - Method-specific parameters, their JSON types, and whether each is
   REQUIRED or OPTIONAL.
 
 Evidence that a Trust Method consumes about an Assertion Issuer MUST
-carry enough information to identify the party whose evidence the
-Trust Method consults (such as the Subject Authority or a federation
-trust anchor), the Assertion Issuer, the claim type or scope it
+carry enough information to identify the party that holds the
+authority it expresses (such as the Subject Authority, or the superior
+that issued a federation Subordinate Statement), the Assertion
+Issuer, the claim type or scope it
 covers, and, when applicable, its validity bounds.
 
 ### Issuer Authentication Methods {#issuer-authentication-methods}
@@ -1453,7 +1455,10 @@ as an Issuer Authorization Policy or a federation trust chain. Its
 evidence source is the trust anchor, registry, publication channel,
 or configured source from which the Resource Authorization Server
 accepts that evidence, such as a Subject Authority's DNS zone or a
-federation trust anchor.
+federation trust anchor. Evaluating evidence from parties the Resource
+Authorization Server did not configure in advance does not mean
+accepting any party: the server publishes or locally configures which
+evidence sources it accepts.
 
 ### Cross-Category Combination Rule {#combination-rule}
 
@@ -1653,7 +1658,10 @@ the generic JWT-bearer assertion grant ({{jwt-bearer-profile}}).
 Other assertion-bearing grant profiles would supply analogous
 bindings, naming their grant profile identifier, their Subject
 Identifier-bearing claim, and any profile-specific JWT claims that
-participate in Trust Method evaluation.
+participate in Trust Method evaluation. A binding under which a
+`subject_namespace_authorization` method can apply MUST name a Subject
+Identifier-bearing claim from which a Subject Authority is
+determinable.
 
 Both bindings use
 `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer` at the

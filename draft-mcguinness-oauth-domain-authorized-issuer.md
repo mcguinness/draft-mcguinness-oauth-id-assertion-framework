@@ -168,9 +168,8 @@ whether the asserting issuer is authorized for the subject's
 namespace.
 
 DAI is non-transitive: a Subject Authority directly lists each
-Assertion Issuer it authorizes
-({{TRUST-FRAMEWORK}} §Open-World Delegation and Bounded Transitivity
-and §Transitive Authorization is Bounded).
+Assertion Issuer it authorizes ({{TRUST-FRAMEWORK}} §Transitive
+Authorization is Bounded).
 
 DAI is also independent of OpenID Federation: a Subject Authority
 can publish DAI records and a Resource Authorization Server can
@@ -178,14 +177,11 @@ evaluate them without any federation infrastructure.
 
 ## Relationships {#relationships}
 
-DAI is a concrete profile of {{TRUST-FRAMEWORK}} for OAuth
-identity assertions:
-
-- the Subject Authority is the Authority Holder;
-- the Issuer Authorization Policy is the Delegation Artifact;
-- the DNS record (or DNS pointer plus HTTPS document) is one
-  publication channel; and
-- the Assertion Issuer is the Delegate.
+DAI is a `subject_namespace_authorization` Trust Method
+specification under {{TRUST-FRAMEWORK}}. The Trust Method's evidence
+is the Issuer Authorization Policy, in which the Subject Authority
+authorizes Assertion Issuers. The DNS record (or DNS pointer plus
+HTTPS document) is one publication channel for it.
 
 Lookup state classification and fail-closed requirements follow
 {{TRUST-FRAMEWORK}} §Lookup States and Fail-Closed.
@@ -230,10 +226,6 @@ This document uses these terms as defined in {{TRUST-FRAMEWORK}}:
   document.
 - **Decision-affecting member**: a policy member whose value can
   change whether a consumer accepts an assertion.
-- **Authority Holder**, **Delegate**, **Delegation Artifact**, and
-  **Validator**: the framework's general names for the Subject
-  Authority, Assertion Issuer, Issuer Authorization Policy, and
-  Resource Authorization Server.
 
 Subject Identifier formats follow {{RFC9493}}.
 
@@ -250,14 +242,14 @@ publishes a DNS record or an Issuer Authorization Policy.
 
 # Issuer Authorization Policy Document {#dii-document}
 
-The Issuer Authorization Policy is a Delegation Artifact. With it, a
-Subject Authority delegates to named Assertion Issuers the right to
-assert identities in its namespace. Each `authorized_issuers` entry
+The Issuer Authorization Policy is the evidence that DAI consumes. With
+it, a Subject Authority delegates to named Assertion Issuers the right
+to assert identities in its namespace. Each `authorized_issuers` entry
 is a delegation, which `valid_from`, `valid_until`, `tenant`, and
 `subject_identifier_formats` can constrain. If no current delegation
-matches the assertion ({{dii-verification}}), the Assertion Issuer
-is not authorized for the asserted namespace, whatever other
-properties the assertion has.
+matches the assertion ({{dii-verification}}), the Assertion Issuer is
+not authorized for the asserted namespace, whatever other properties the
+assertion has.
 
 The Issuer Authorization Policy is a JSON object served over HTTPS.
 Publishers MUST serve it with media type `application/json`;
@@ -436,12 +428,12 @@ The JWT payload SHOULD NOT contain a `signed_policy` claim. The outer
 document carries `subject_authority` and `authorized_issuers`
 ({{dii-document}}) even when the JWT repeats them.
 
-Algorithms: {{RFC8725}} (JWT Best Current Practices) applies
-unchanged. In addition, the JWT MUST NOT use a MAC algorithm
-(HS256/384/512), since a MAC scheme would require sharing the signing
-key with every Validator. Implementations MUST support ES256 and
-SHOULD support EdDSA and ES384; RS256 with >=2048-bit keys MAY be
-supported for compatibility.
+Algorithms: {{RFC8725}} (JWT Best Current Practices) applies unchanged.
+In addition, the JWT MUST NOT use a MAC algorithm (HS256/384/512), since
+a MAC scheme would require sharing the signing key with every Resource
+Authorization Server. Implementations MUST support ES256 and SHOULD
+support EdDSA and ES384; RS256 with >=2048-bit keys MAY be supported for
+compatibility.
 
 Per {{RFC8725}} §3.11 (cross-context confusion), the JWT `typ`
 header MUST be `issuer-authorization-policy+jwt`. This is the media
@@ -846,11 +838,10 @@ Indeterminate ({{dii-failures}}).
 ## Failure Handling {#dii-failures}
 
 DAI lookup outcomes map onto the Affirmative, Negative, and
-Indeterminate lookup states of the Authority Delegation Model
-({{TRUST-FRAMEWORK}} §Lookup States and Fail-Closed). Those states'
-requirements apply unchanged, as does the prohibition on falling
-through to another Authority Source ({{TRUST-FRAMEWORK}} §Multiple
-Authority Sources Within a Category).
+Indeterminate lookup states of {{TRUST-FRAMEWORK}} §Lookup States and
+Fail-Closed. Those states' requirements apply unchanged, as does the
+prohibition on falling through to another evidence source
+({{TRUST-FRAMEWORK}} §Multiple Evidence Sources Within a Category).
 
 | State | DAI outcomes |
 |-|-|
@@ -927,7 +918,7 @@ Under {{TRUST-FRAMEWORK}} §Fail-Closed Requirements, neither a
 Negative nor an Indeterminate outcome satisfies the Trust Method. A
 cached Affirmative policy can serve during an Indeterminate live
 retrieval only within the stale-if-error bound of {{dii-caching}}. Whether the assertion is
-then rejected follows {{TRUST-FRAMEWORK}} §Multiple Authority Sources
+then rejected follows {{TRUST-FRAMEWORK}} §Multiple Evidence Sources
 Within a Category. An Indeterminate outcome, like a policy that does
 not authorize the issuer, leaves the `subject_namespace_authorization`
 category unsatisfied whatever other methods yield. A Negative
@@ -1371,7 +1362,7 @@ namespace but cannot substitute a policy. Negative caching is capped
 
 When the Trust Policy also lists another namespace method, a
 Negative lets that method supply evidence ({{TRUST-FRAMEWORK}}
-§Multiple Authority Sources Within a Category). A spoofed negative
+§Multiple Evidence Sources Within a Category). A spoofed negative
 answer can then suppress a published policy that does not authorize
 the issuer, and let the other method authorize it. In that
 configuration, only a consumer that authenticates the absence, for
@@ -1622,7 +1613,7 @@ infrastructure. Specific guidance:
   that this Trust Method granted. However, at a Resource
   Authorization Server that also lists another namespace method, the
   new policy becomes final for the namespace ({{TRUST-FRAMEWORK}}
-  §Multiple Authority Sources Within a Category). The policy
+  §Multiple Evidence Sources Within a Category). The policy
   therefore needs to list every issuer that method accepted. Before
   publishing, check the issuer list for completeness. Forgotten
   regional tenants and departing Identity Providers are the usual
@@ -1903,8 +1894,9 @@ This appendix is non-normative.
 DAI applies the authority-publication pattern that domain owners
 already use for CAA {{RFC8659}}, MTA-STS {{RFC8461}}, SPF, DKIM,
 DMARC, and the Email Verification Protocol
-{{I-D.hardt-email-verification}}; {{TRUST-FRAMEWORK}} §Authority
-Delegation Model covers the abstract pattern. The `name=value`
+{{I-D.hardt-email-verification}}; {{TRUST-FRAMEWORK}} §Trust
+Evaluation Rules states how a Resource Authorization Server
+evaluates such evidence. The `name=value`
 record syntax is closest to DMARC's, and DMARC's experience with the
 organizational-domain boundary informs {{TRUST-FRAMEWORK}} §Subject
 Authority Determination. DMARC has since replaced the Public Suffix

@@ -1184,7 +1184,8 @@ Table of Contents
          lookup mode is fresh for the lesser of the opt-in record's TTL
          and its HTTP freshness lifetime.
 
-      A document with neither max-age nor Expires is fresh for a local
+      A document for which the freshness calculation of [RFC9111]
+      Section 4.2.1 yields no explicit lifetime is fresh for a local
       default that MUST NOT exceed 1 hour.  Consumers MUST NOT treat a
       cached policy as fresh beyond these lifetimes, except that they
       MAY apply a minimum freshness lifetime of up to 5 minutes even
@@ -1284,9 +1285,9 @@ Table of Contents
    *  *Shared issuer with a tenant claim*: the
       authorized_issuers[].tenant field binds the authorization to one
       tenant of the shared issuer, with the security properties in
-      Section 9.9.  For example, https://accounts.google.com serves
-      every Google Workspace tenant through the top-level tenant claim
-      of [ID-JAG] §6.1.
+      Section 9.9.  For example, https://accounts.shared.example serves
+      many tenants and identifies each one with the top-level tenant
+      claim of [ID-JAG] §6.1.
 
    {
      "method": "domain_authorized_issuer"
@@ -2734,8 +2735,8 @@ C.6.  Shared Issuer Variant: Multi-Tenant Identity Provider
 
    The example above uses an issuer identifier dedicated to Acme.  Some
    Identity Providers serve every tenant under one shared issuer (for
-   example, https://accounts.google.com) and distinguish tenants by the
-   ID-JAG top-level tenant claim ([ID-JAG] §6.1).  For these, the
+   example, https://accounts.shared.example) and distinguish tenants by
+   the ID-JAG top-level tenant claim ([ID-JAG] §6.1).  For these, the
    authorized_issuers[].tenant member binds the authorization to one
    tenant of the shared issuer.
 

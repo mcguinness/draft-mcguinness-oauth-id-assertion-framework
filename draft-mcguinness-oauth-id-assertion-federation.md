@@ -397,7 +397,9 @@ category. A method outside that category is malformed here.
 
 A Trust Policy that contains `client_trust_methods` MUST list
 `client_trust_methods` in `crit` ({{TRUST-FRAMEWORK}} §Critical
-Members). A Resource Authorization Server that implements only
+Members). A Resource Authorization Server that implements this
+document processes `client_trust_methods` whether or not `crit` lists
+it. A Resource Authorization Server that implements only
 {{TRUST-FRAMEWORK}} then rejects such a policy instead of ignoring
 its requirements on clients, and a client that does not implement
 the member cannot read the policy as placing no requirement on
@@ -1253,7 +1255,8 @@ through the client method.
 This appendix is non-normative and will be removed before publication.
 A number in parentheses is a closed issue in the
 [issue tracker](https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues)
-for this document, which holds the details of that change.
+that this document shares with {{TRUST-FRAMEWORK}}, which holds the
+details of that change.
 
 -00
 

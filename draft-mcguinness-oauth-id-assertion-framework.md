@@ -226,7 +226,8 @@ must pass:
 
 {{rasp}} gives the procedure. Step 2 verifies the signature, step 5b
 requires a satisfied method in each category that the policy lists,
-and step 5c determines `acme.example` from the `email` claim and
+and step 5c requires a Subject Authority (here `acme.example`, from
+the `email` claim) and, unless local configuration says otherwise,
 limits subject resolution to that claim and issuer-scoped
 identifiers. {{FEDERATION}} adds `client_recognition` methods,
 which evaluate the client that presents the assertion.
@@ -395,8 +396,9 @@ Policy in its authorization server metadata {{RFC8414}}:
 
 A Resource Authorization Server that applies different Trust Policies
 to different clients publishes the one for clients without a prior
-relationship with it. How a registered client learns its own policy
-is out of scope.
+relationship with it. {{FEDERATION}} defines how a policy is
+selected by authenticated client. How a registered client learns its
+own policy is out of scope.
 
 A Protected Resource that publishes OAuth 2.0 Protected Resource
 Metadata {{RFC9728}} MAY include the same member to advertise the
@@ -1047,8 +1049,8 @@ attacker-controlled inputs outside the binding function
 
 For `issuer_authentication`, and for a category registered elsewhere
 unless its specification says otherwise, every evidence source the
-Trust Policy lists is equally trusted, so a Trust Method
-specification MAY accept evidence from any of them. For
+Trust Policy lists is equally trusted, so a Resource Authorization
+Server MAY accept evidence from any of them. For
 `openid_federation`, this means a chain to any listed trust anchor
 ({{FEDERATION}}).
 

@@ -1623,10 +1623,7 @@ the OAuth client that presents an identity assertion at the token
 endpoint. These methods evaluate the client that the grant profile's
 client authentication identifies (<a href="#client-recognition-processing" class="auto internal xref">Section 4.3</a>,
 step 5f). For ID-JAG, the assertion's <code>client_id</code> claim, set by the
-Assertion Issuer, identifies the same client (<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1). Under
-the generic JWT-bearer binding (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Generic JWT-Bearer
-Assertion Grant), the assertion names no client. Any client that
-satisfies the category can then present an assertion it obtained.
+Assertion Issuer, identifies the same client (<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1).
 Recognizing a client does not authorize any Assertion Issuer, and
 authorizing an Assertion Issuer does not recognize any client.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
 <p id="section-4.1-6">The OAuth Client ID Metadata Document
@@ -1722,15 +1719,11 @@ takes precedence over any other error.<a href="#section-4.3-7" class="pilcrow">�
 <p id="section-4.3-8"><strong>Outbound fetches.</strong> The fetches that <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Outbound
 Fetches governs also include a client's Entity Configuration, trust
 chain, and key sets.<a href="#section-4.3-8" class="pilcrow">¶</a></p>
-<p id="section-4.3-9"><strong>Grant-profile bindings.</strong> <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1 lets a client that does
+<p id="section-4.3-9"><strong>Grant-profile binding.</strong> <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1 lets a client that does
 not authenticate prove possession of the key in the ID-JAG's <code>cnf</code> claim
 instead. When the Trust Policy contains <code>client_trust_methods</code>, step 5f
 rejects such a request with <code>invalid_client</code>. This narrows <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>
 §4.4.1.<a href="#section-4.3-9" class="pilcrow">¶</a></p>
-<p id="section-4.3-10"><span>[<a href="#RFC7523" class="cite xref">RFC7523</a>]</span> Section 3.1 lets the generic JWT-bearer grant
-(<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Generic JWT-Bearer Assertion Grant) be used
-without client authentication. A Trust Policy that contains
-<code>client_trust_methods</code> requires client authentication (step 5f).<a href="#section-4.3-10" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="trust-method-openid-federation-client">
@@ -2006,9 +1999,7 @@ which client is evaluated (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">T
 Exploitation). Recognition admits a client to the exchange. It does not
 authorize the client to act for a particular user, says nothing about
 the subject or the Assertion Issuer, and leaves the other categories in
-force. Under the generic JWT-bearer binding, the assertion names no
-client, so any recognized client can present an assertion it obtained
-(<a href="#client-recognition-category" class="auto internal xref">Section 4.1</a>).<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+force.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
 <p id="section-5.3-2"><code>openid_federation_client</code> requires the client to authenticate with
 a key its federation metadata publishes. Without that rule, a client
 could authenticate with a key the Resource Authorization Server holds
@@ -2350,8 +2341,9 @@ Identifier would take the Entity Identifier from the registration.<a href="#appe
       <h2 id="name-openid-federation-walkthrou">
 <a href="#appendix-C" class="section-number selfRef">Appendix C. </a><a href="#name-openid-federation-walkthrou" class="section-name selfRef">OpenID Federation Walkthrough</a>
       </h2>
-<p id="appendix-C-1">This appendix is non-normative. It expands <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Worked
-Example: OpenID Federation + DAI, adding trust-chain validation, Trust
+<p id="appendix-C-1">This appendix is non-normative. Like the example in
+<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Overview, it combines <code>openid_federation</code> with
+<code>domain_authorized_issuer</code>, and it adds trust-chain validation, Trust
 Mark satisfaction, and federation-bound JWKS resolution.<a href="#appendix-C-1" class="pilcrow">¶</a></p>
 <p id="appendix-C-2"><strong>Cast:</strong> Resource Authorization Server
 <code>https://api.resource.example</code>; Federation Trust Anchor
@@ -2453,7 +2445,7 @@ _oauth-issuer-policy.partner.example. IN TXT (
 </div>
 <p id="appendix-C-14"><strong>Verification.</strong> When an ID-JAG arrives with
 <code>iss: https://idp.partner.example</code>, <code>email: alice@partner.example</code>,
-the Resource Authorization Server:<a href="#appendix-C-14" class="pilcrow">¶</a></p>
+and <code>email_verified: true</code>, the Resource Authorization Server:<a href="#appendix-C-14" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="appendix-C-15">
 <li id="appendix-C-15.1">
           <p id="appendix-C-15.1.1"><strong><code>issuer_authentication</code> (openid_federation).</strong> Walks the
@@ -2707,7 +2699,7 @@ assertion's claims are:<a href="#appendix-D-10" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="appendix-D-13">
 <li id="appendix-D-13.1">
           <p id="appendix-D-13.1.1">Applies the policy above, because the <code>client_id</code> is an <code>https</code>
-URL (<a href="#client-recognition-processing" class="auto internal xref">Section 4.3</a>).<a href="#appendix-D-13.1.1" class="pilcrow">¶</a></p>
+URL (<a href="#trust-method-openid-federation-client" class="auto internal xref">Section 4.4</a>).<a href="#appendix-D-13.1.1" class="pilcrow">¶</a></p>
 </li>
         <li id="appendix-D-13.2">
           <p id="appendix-D-13.2.1">Resolves the client's Entity Configuration and a trust chain to

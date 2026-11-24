@@ -153,12 +153,11 @@ Table of Contents
 
    OAuth deployments using identity-assertion grants need to answer "is
    this Assertion Issuer authorized to assert about subjects in this
-   namespace?".  Such grants include the Identity Assertion JWT
-   Authorization Grant (ID-JAG) and generic JWT-bearer assertions
-   carrying an identity claim ([TRUST-FRAMEWORK]).  Federation
-   membership authenticates an issuer but does not by itself entitle it
-   to assert about any particular namespace.  Only the namespace owner
-   can authoritatively delegate that.
+   namespace?".  One such grant is the Identity Assertion JWT
+   Authorization Grant (ID-JAG), to which [TRUST-FRAMEWORK] applies.
+   Federation membership authenticates an issuer but does not by itself
+   entitle it to assert about any particular namespace.  Only the
+   namespace owner can authoritatively delegate that.
 
    The Domain-Authorized Issuer (DAI) Trust Method lets the owner of a
    DNS-namable subject namespace publish, in DNS, the Assertion Issuers
@@ -202,7 +201,7 @@ Table of Contents
 
    DAI extends [TRUST-FRAMEWORK], which owns the Trust Policy document
    format, Trust Method machinery, Subject Authority Determination, and
-   OAuth grant-profile bindings.  This document defines:
+   the OAuth grant-profile binding.  This document defines:
 
    *  the Issuer Authorization Policy document (Section 3);
 
@@ -321,8 +320,7 @@ Table of Contents
 
          When absent, the entry matches only assertions that carry no
          top-level tenant claim.  Under a grant profile that carries no
-         tenant claim, such as the generic JWT-bearer grant of
-         [RFC7523], only entries that omit tenant can match
+         tenant claim, only entries that omit tenant can match
          (Section 9.9).
 
          Tenant values are issuer-specific and MUST NOT be compared
@@ -1678,17 +1676,16 @@ Table of Contents
       Provider's tenant-isolation guarantees.
 
    *  *Grant profiles without a tenant claim.* Under a grant profile
-      that carries no tenant claim, such as the generic JWT-bearer grant
-      ([TRUST-FRAMEWORK] §Generic JWT-Bearer Assertion Grant), tenant-
-      scoped authorization is not expressible.  An entry with tenant
-      matches no assertion, because the profile does not attest the
-      claim.  An entry without tenant matches only assertions that carry
-      no tenant claim.  But a shared issuer that omits the claim under
-      such a profile is indistinguishable across its tenants, so the
-      entry matches assertions from every one of them.  A Subject
-      Authority relying on a shared multi-tenant Assertion Issuer SHOULD
-      NOT authorize that issuer for such a grant unless per-tenant
-      issuer identifiers are used.
+      that carries no tenant claim, tenant-scoped authorization is not
+      expressible.  An entry with tenant matches no assertion, because
+      the profile does not attest the claim.  An entry without tenant
+      matches only assertions that carry no tenant claim.  But a shared
+      issuer that omits the claim under such a profile is
+      indistinguishable across its tenants, so the entry matches
+      assertions from every one of them.  A Subject Authority relying on
+      a shared multi-tenant Assertion Issuer SHOULD NOT authorize that
+      issuer for such a grant unless per-tenant issuer identifiers are
+      used.
 
 9.10.  Denial of Service, Amplification, and SSRF
 
@@ -2242,11 +2239,6 @@ Table of Contents
               "WebFinger", RFC 7033, DOI 10.17487/RFC7033, September
               2013, <https://www.rfc-editor.org/rfc/rfc7033>.
 
-   [RFC7523]  Jones, M., Campbell, B., and C. Mortimore, "JSON Web Token
-              (JWT) Profile for OAuth 2.0 Client Authentication and
-              Authorization Grants", RFC 7523, DOI 10.17487/RFC7523, May
-              2015, <https://www.rfc-editor.org/rfc/rfc7523>.
-
    [RFC8461]  Margolis, D., Risher, M., Ramakrishnan, B., Brotman, A.,
               and J. Jones, "SMTP MTA Strict Transport Security (MTA-
               STS)", RFC 8461, DOI 10.17487/RFC8461, September 2018,
@@ -2370,10 +2362,10 @@ A.2.  Why a Generic Record Name
 
    A future Subject Identifier format with a DNS-publishable Subject
    Authority reuses domain_authorized_issuer and this record
-   ([TRUST-FRAMEWORK] §Future Extensions), where an identity-scoped name
-   would force a second record at a second DNS name.  One per-domain
-   policy surface, extended through registered members, follows the
-   oauth-authorization-server metadata precedent.
+   ([TRUST-FRAMEWORK] §Subject Authority Determination), where an
+   identity-scoped name would force a second record at a second DNS
+   name.  One per-domain policy surface, extended through registered
+   members, follows the oauth-authorization-server metadata precedent.
 
 A.3.  Why First-Class Tenant Binding
 
@@ -2815,10 +2807,10 @@ Appendix D.  Document History
       (#29).
 
    *  Make the record ABNF normative, cap a signed policy's validity at
-      24 hours, apply tenant matching under every grant profile, and
-      treat a record without the default uri= as Indeterminate under
-      HTTPS-only lookup, and forbid query components in OAuth issuer
-      identifiers (#34).
+      24 hours, apply tenant matching under every grant profile, treat a
+      record without the default uri= as Indeterminate under HTTPS-only
+      lookup, and forbid query components in OAuth issuer identifiers
+      (#34).
 
    *  Editorial changes for readability.
 

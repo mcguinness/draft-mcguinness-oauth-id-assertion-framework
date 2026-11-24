@@ -34,7 +34,6 @@ normative:
   RFC7523:
   RFC8414:
   RFC8615:
-  RFC8725:
   RFC9493:
   RFC9728:
   RFC9700:
@@ -108,9 +107,11 @@ a Resource Authorization Server publishes to declare which trust
 methods it requires of an Assertion Issuer, including
 issuer-authentication methods (such as OpenID Federation) and
 subject-namespace authorization methods defined by separate
-specifications. At the token endpoint, the Resource Authorization
-Server requires evidence from each category of method that the
-policy lists, and fails closed when it cannot obtain that evidence.
+specifications. When an Identity Assertion JWT Authorization Grant
+(ID-JAG) is presented at the token endpoint, the Resource
+Authorization Server requires evidence from each category of method
+that the policy lists, and fails closed when it cannot obtain that
+evidence.
 
 The Domain-Authorized Issuer Trust Method is defined separately as one
 subject-namespace authorization method usable by this framework.
@@ -178,10 +179,9 @@ Authorization Policy ({{DAI}}).
 {{DAI}} defines one Subject-Authority publication mechanism
 ({{family}}). This document adds a trust-evaluation layer to the
 assertion-bearer grant and chaining mechanics of {{ID-JAG}} and
-{{I-D.ietf-oauth-identity-chaining}}. Where that layer narrows a
-dependency, {{bindings}} says so. The layer fixes the key source
-for the generic JWT-bearer binding and limits which claims resolve
-the subject.
+{{I-D.ietf-oauth-identity-chaining}}, and applies only to ID-JAG
+({{bindings}}). Where that layer narrows a dependency, {{bindings}}
+says so. The layer limits which claims resolve the subject.
 
 ## Overview {#overview}
 
@@ -294,7 +294,7 @@ The scope of this document is:
 - The token-endpoint procedure ({{rasp}}) and the rules it applies
   ({{delegation-model}}): combination rule, lookup states, and
   fail-closed handling.
-- The OAuth grant-profile bindings.
+- The binding to ID-JAG ({{bindings}}).
 
 Trust Methods, and the publication mechanisms they use, live in
 dedicated specifications such as {{DAI}} and {{FEDERATION}}.
@@ -889,7 +889,8 @@ request, the Resource Authorization Server MUST:
    authorization server metadata, does not satisfy this step when the
    relied-on Trust Method constrains the key source.
 
-3. Verify that the applicable grant profile is listed in
+3. Verify that the applicable grant profile has a binding
+   ({{bindings}}) and is listed in
    `authorization_grant_profiles_supported`.
 
 4. If `subject_identifier_formats_supported` is present, verify that
@@ -1192,8 +1193,8 @@ Trust Method specifications MAY add requirements; for example,
 
 # Grant Profile and Token Bindings {#bindings}
 
-This section defines bindings for ID-JAG ({{id-jag-profile}}) and
-the generic JWT-bearer assertion grant ({{jwt-bearer-profile}}).
+This section defines the binding for ID-JAG ({{id-jag-profile}}),
+the only grant profile to which this document applies.
 Other assertion-bearing grant profiles would supply analogous
 bindings, naming their grant profile identifier, their Subject
 Identifier-bearing claim, and any profile-specific JWT claims that
@@ -1202,12 +1203,12 @@ participate in Trust Method evaluation. A binding under which a
 Identifier-bearing claim from which a Subject Authority is
 determinable.
 
-Both bindings use
-`grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer` at the
-token endpoint. The Resource Authorization Server uses the
-assertion's JWT `typ` header to choose the binding. It evaluates an
-assertion typed per {{ID-JAG}} under {{id-jag-profile}}, and any
-other JWT-bearer assertion under {{jwt-bearer-profile}}.
+An ID-JAG is presented with
+`grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer`, and its JWT
+`typ` header is `oauth-id-jag+jwt` ({{ID-JAG}} §4.4.1). This document
+defines no binding for any other identity assertion, so {{rasp}}
+step 3 rejects one unless another specification defines a binding
+for its grant profile and the Trust Policy lists that profile.
 
 ## ID-JAG {#id-jag-profile}
 
@@ -1242,74 +1243,6 @@ Server MUST:
    treat the mere presence or value of the email claim as proof
    that the ID-JAG issuer is authoritative for the subject. Issuer
    acceptability is established only by evaluating the Trust Methods.
-
-## Generic JWT-Bearer Assertion Grant {#jwt-bearer-profile}
-
-This binding applies to the JWT-bearer authorization grant of
-{{RFC7523}} Section 2.1 when the assertion carries an identity claim
-to which Subject Authority Determination applies. ID-JAG has its own
-binding ({{id-jag-profile}}).
-
-A Resource Authorization Server that accepts the generic JWT-bearer
-grant of RFC 7523 advertises
-`urn:ietf:params:oauth:grant-type:jwt-bearer` in
-`grant_types_supported`. RFC 7523 defines no distinct grant-profile
-identifier, so this framework reuses that grant-type URN as the
-grant-profile identifier. A deployment accepting this grant MUST list
-it in `authorization_grant_profiles_supported` so {{rasp}} step 3
-applies uniformly. A Resource Authorization Server SHOULD reject a
-JWT-bearer assertion whose `typ` header identifies a different JWT
-application ({{RFC8725}} §3.11).
-
-{{RFC7523}} Section 5 leaves the exchange of verification keys out
-of scope. Under this binding, when no Trust Method the Resource
-Authorization Server relies on constrains the key source
-({{rasp}} step 2), it MUST verify the assertion with an asymmetric
-key from either:
-
-- the `jwks_uri` of the Assertion Issuer's {{RFC8414}} metadata
-  whose `issuer` equals the assertion's `iss`; or
-- local configuration for that issuer.
-
-It MUST NOT use a key or a key location carried in the assertion's
-JOSE header, such as `jwk`, `jku`, or `x5u` ({{RFC8725}} Section
-3.10).
-
-As with ID-JAG, the Subject Identifier for this binding is the
-top-level `email` claim, accompanied by `email_verified=true`,
-extracted per {{subject-authority-determination}}. The `sub` claim is
-not a Subject Identifier source under this binding, even when its
-value is in email form. It is an issuer-scoped identifier
-({{RFC7519}}) that can merely resemble an email, and
-`email_verified` attests only the `email` claim. A single source
-keeps selection deterministic ({{multiple-sources}}). An Assertion
-Issuer whose subject identifiers are email-form `sub` values
-participates by also emitting the `email` and `email_verified`
-claims. A future extension MAY register an additional extraction
-procedure ({{iana-authority-registry}}) for other claim sources.
-
-In addition to the processing in {{rasp}}, the Resource
-Authorization Server MUST:
-
-1. Verify that the `email` Subject Identifier, when the assertion
-   carries one, uses a format listed in
-   `subject_identifier_formats_supported`, if that Trust Policy
-   member is present.
-
-2. Treat the identity claim only as input to Subject Authority
-   evaluation. Issuer acceptability is established only by
-   evaluating the Trust Methods.
-
-The generic JWT-bearer grant carries no `tenant` claim, so
-tenant-scoped authorization is not expressible under it. {{DAI}}
-§Single-Issuer Multi-Tenant Identity Providers specifies the
-resulting constraint on Subject Authorities that rely on shared
-multi-tenant Assertion Issuers.
-
-This binding does not apply to JWT client authentication
-({{RFC7523}} Section 2.2), where the Subject Identifier is the
-`client_id` registered with the authorization server ({{RFC7523}}
-Section 3) and no external namespace-owner delegation exists.
 
 # Security Considerations
 
@@ -1450,7 +1383,7 @@ trusted for every namespace that lists the issuer:
 - Under `openid_federation`, an intermediate or trust anchor above
   the issuer can supply its key source ({{FEDERATION}}).
 - Without federation, the key comes from the Assertion Issuer's own
-  metadata ({{ID-JAG}} §4.4.1; {{jwt-bearer-profile}}), and whoever
+  metadata ({{ID-JAG}} §4.4.1), and whoever
   controls that metadata controls the key.
 - A policy host named by a {{DAI}} `uri=` pointer controls the list
   itself, unless the Subject Authority pins the policy's signing key.

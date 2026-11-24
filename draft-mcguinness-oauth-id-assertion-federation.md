@@ -363,10 +363,7 @@ the OAuth client that presents an identity assertion at the token
 endpoint. These methods evaluate the client that the grant profile's
 client authentication identifies ({{client-recognition-processing}},
 step 5f). For ID-JAG, the assertion's `client_id` claim, set by the
-Assertion Issuer, identifies the same client ({{ID-JAG}} §4.4.1). Under
-the generic JWT-bearer binding ({{TRUST-FRAMEWORK}} §Generic JWT-Bearer
-Assertion Grant), the assertion names no client. Any client that
-satisfies the category can then present an assertion it obtained.
+Assertion Issuer, identifies the same client ({{ID-JAG}} §4.4.1).
 Recognizing a client does not authorize any Assertion Issuer, and
 authorizing an Assertion Issuer does not recognize any client.
 
@@ -456,16 +453,11 @@ takes precedence over any other error.
 Fetches governs also include a client's Entity Configuration, trust
 chain, and key sets.
 
-**Grant-profile bindings.** {{ID-JAG}} §4.4.1 lets a client that does
+**Grant-profile binding.** {{ID-JAG}} §4.4.1 lets a client that does
 not authenticate prove possession of the key in the ID-JAG's `cnf` claim
 instead. When the Trust Policy contains `client_trust_methods`, step 5f
 rejects such a request with `invalid_client`. This narrows {{ID-JAG}}
 §4.4.1.
-
-{{RFC7523}} Section 3.1 lets the generic JWT-bearer grant
-({{TRUST-FRAMEWORK}} §Generic JWT-Bearer Assertion Grant) be used
-without client authentication. A Trust Policy that contains
-`client_trust_methods` requires client authentication (step 5f).
 
 ## The `openid_federation_client` Trust Method {#trust-method-openid-federation-client}
 
@@ -687,9 +679,7 @@ which client is evaluated ({{TRUST-FRAMEWORK}} §Unverified Claim
 Exploitation). Recognition admits a client to the exchange. It does not
 authorize the client to act for a particular user, says nothing about
 the subject or the Assertion Issuer, and leaves the other categories in
-force. Under the generic JWT-bearer binding, the assertion names no
-client, so any recognized client can present an assertion it obtained
-({{client-recognition-category}}).
+force.
 
 `openid_federation_client` requires the client to authenticate with
 a key its federation metadata publishes. Without that rule, a client

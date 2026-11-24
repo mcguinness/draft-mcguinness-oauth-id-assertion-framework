@@ -358,6 +358,13 @@ For a `client_recognition` method, the party whose evaluation its
 specification defines ({{TRUST-FRAMEWORK}} §Requirements on Trust
 Method Specifications) is the authenticated client.
 
+As for `issuer_authentication` ({{TRUST-FRAMEWORK}} §Multiple
+Evidence Sources Within a Category), every evidence source the Trust
+Policy lists for this category is equally trusted, so a
+`client_recognition` Trust Method specification MAY accept evidence
+from any of them. For `openid_federation_client`, this means a chain
+to any listed trust anchor.
+
 `client_recognition`-category methods are satisfied by evidence about
 the OAuth client that presents an identity assertion at the token
 endpoint. These methods evaluate the client that the grant profile's

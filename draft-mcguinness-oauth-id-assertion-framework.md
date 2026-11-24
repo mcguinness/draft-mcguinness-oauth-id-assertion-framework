@@ -346,8 +346,8 @@ by a Resource Authorization Server to declare its trust criteria.
 
 Trust Method:
 : A registered, named evaluation procedure by which a Resource
-Authorization Server tests one category of trust evidence, such as
-evidence about an Assertion Issuer ({{trust-methods}}). A Trust
+Authorization Server tests trust evidence in one or more categories,
+such as evidence about an Assertion Issuer ({{trust-methods}}). A Trust
 Policy names the Trust Methods it requires.
 
 Issuer Authorization Policy:
@@ -1151,8 +1151,9 @@ rejection if it is absent or unresolvable.
 
 A namespace method can bind authorization to a tenant using the
 `tenant` claim that {{ID-JAG}} §6.1 requires of a multi-tenant
-issuer. {{DAI}} §Single-Issuer Multi-Tenant Identity Providers gives
-an example. A match on `tenant` establishes that the Subject
+issuer. {{DAI}} §Shared Issuer Variant: Multi-Tenant Identity
+Provider gives an example. A match on `tenant` establishes that the
+Subject
 Authority authorized that (`iss`, `tenant`) pair for its namespace.
 It does not establish the trust in `iss` and `tenant` for the
 recipient tenant that {{ID-JAG}} §4.4.1 requires. That trust remains
@@ -1763,7 +1764,7 @@ agent platform mints an ID-JAG:
   "iss": "https://agentprovider.example/example-com",
   "aud": "https://toolprovider.example",
   "exp": 1780166400, "iat": 1780166100, "jti": "b9c1...",
-  "sub": "user-3f81a2",
+  "sub": "user-3f81a2", "client_id": "f53f191f9311af35",
   "email": "alice@example.com", "email_verified": true
 }
 ~~~
@@ -1802,7 +1803,7 @@ for this document, which holds the details of that change.
     {{FEDERATION}} (#38).
   * Remove `signed_policy` and the `trust-policy+jwt` media type from
     the Trust Policy; signed-policy processing moves to {{DAI}} (#21).
-  * Forbid waivers that an Authority Holder publishes, such as a
+  * Forbid waivers that a Subject Authority publishes, such as a
     monitoring mode, and define how methods in one category combine
     (#22).
   * Rely on {{ID-JAG}} §6.1, which requires a multi-tenant Assertion

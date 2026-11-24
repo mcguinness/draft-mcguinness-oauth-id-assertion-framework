@@ -2412,7 +2412,7 @@ details of that change.
     related mechanisms, and gloss terms borrowed from the framework
     (#29).
   * Make the record ABNF normative, cap a signed policy's validity at
-    24 hours, apply tenant matching under every grant profile, and
+    24 hours, apply tenant matching under every grant profile,
     treat a record without the default `uri=` as Indeterminate under
     HTTPS-only lookup, and forbid query components in OAuth issuer
     identifiers (#34).

@@ -956,7 +956,7 @@ _oauth-issuer-policy.partner.example. IN TXT (
 
 **Verification.** When an ID-JAG arrives with
 `iss: https://idp.partner.example`, `email: alice@partner.example`,
-the Resource Authorization Server:
+and `email_verified: true`, the Resource Authorization Server:
 
 1. **`issuer_authentication` (openid_federation).** Walks the
    federation chain per {{OIDF-FEDERATION}}: fetches the leaf
@@ -1178,7 +1178,7 @@ assertion's claims are:
 **Processing.** The Resource Authorization Server:
 
 1. Applies the policy above, because the `client_id` is an `https`
-   URL ({{client-recognition-processing}}).
+   URL ({{trust-method-openid-federation-client}}).
 2. Resolves the client's Entity Configuration and a trust chain to
    `https://federation.example.org`.
 3. Checks that the policy-applied metadata declares `oauth_client`.

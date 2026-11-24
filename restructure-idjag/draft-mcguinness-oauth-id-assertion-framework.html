@@ -2279,7 +2279,15 @@ individual Trust Method objects.<a href="#section-4.2-3.1.1" class="pilcrow">¶<
 </li>
           <li id="section-4.2-3.2">
             <p id="section-4.2-3.2.1">Validate the assertion per the applicable grant profile
-(<span>[<a href="#RFC7521" class="cite xref">RFC7521</a>]</span>, <span>[<a href="#RFC7523" class="cite xref">RFC7523</a>]</span>, <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>). The validation's
+(<span>[<a href="#RFC7521" class="cite xref">RFC7521</a>]</span>, <span>[<a href="#RFC7523" class="cite xref">RFC7523</a>]</span>, <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>). The verification key <span class="bcp14">MUST</span>
+be bound to the <code>iss</code> value independently of the assertion,
+through the <code>jwks_uri</code> in that issuer's metadata, local
+configuration for that issuer, or a key source authenticated by a
+Trust Method relied on in step 5. A key or key location in the
+assertion's JOSE header, such as <code>jwk</code>, <code>jku</code>, or <code>x5u</code>, satisfies
+this only when one of those sources authenticates it. This
+strengthens <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1, which only recommends <code>jwks_uri</code>.
+The validation's
 signing-key resolution is provisional. A Trust Method evaluated in
 step 5 <span class="bcp14">MAY</span> constrain the source of the key used to verify the
 assertion signature. For example, <code>openid_federation</code> requires a
@@ -2694,9 +2702,9 @@ participate in Trust Method evaluation. A binding under which a
 <code>subject_namespace_authorization</code> method can apply <span class="bcp14">MUST</span> name a Subject
 Identifier-bearing claim from which a Subject Authority is
 determinable.<a href="#section-5-1" class="pilcrow">¶</a></p>
-<p id="section-5-2">An ID-JAG is presented with
-<code>grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer</code>, and its JWT
-<code>typ</code> header is <code>oauth-id-jag+jwt</code> (<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1). This document
+<p id="section-5-2">An ID-JAG is presented with a <code>grant_type</code> value from <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>
+§4.4, and its JWT <code>typ</code> header is <code>oauth-id-jag+jwt</code> (<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>
+§4.4.1). This document
 defines no binding for any other identity assertion, so <a href="#rasp" class="auto internal xref">Section 4.2</a>
 step 3 rejects one unless another specification defines a binding
 for its grant profile and the Trust Policy lists that profile.<a href="#section-5-2" class="pilcrow">¶</a></p>
@@ -2878,7 +2886,7 @@ the issuer can supply its key source (<span>[<a href="#FEDERATION" class="cite x
 </li>
           <li class="normal" id="section-6.6-2.2">
             <p id="section-6.6-2.2.1">Without federation, the key comes from the Assertion Issuer's own
-metadata (<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1), and whoever
+metadata unless locally configured (<a href="#rasp" class="auto internal xref">Section 4.2</a> step 2), and whoever
 controls that metadata controls the key.<a href="#section-6.6-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-6.6-2.3">
@@ -2962,13 +2970,15 @@ constrain acceptable audiences (<span>[<a href="#DAI" class="cite xref">DAI</a>]
 it does not revoke individual assertions. An assertion remains valid
 until <code>exp</code> even after session termination, credential revocation at
 the Assertion Issuer, or the Subject Authority's withdrawal of the
-issuer's authorization. Withdrawal stops the Resource Authorization
-Server from accepting further assertions once its cached evidence
-expires, so the Trust Method's cache lifetime bounds its latency, for
-planned transfers and security incidents alike. Withdrawal does not
-revoke access or refresh tokens already issued, and the framework
-cannot invalidate remote caches. Subject Authorities that need fast
-revocation use short cache lifetimes. Synchronous revocation needs
+issuer's authorization. Withdrawal stops new acceptances only after a
+window that depends on the Trust Method, for planned transfers and
+security incidents alike, and that can exceed the Resource
+Authorization Server's own cache lifetime. Under <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>, the window
+also includes propagation, upstream DNS and HTTP caches, and stale
+use (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Caching). Withdrawal does not revoke access or refresh
+tokens already issued, and the framework cannot invalidate remote
+caches. Subject Authorities that need fast revocation use short cache
+lifetimes. Synchronous revocation needs
 OAuth 2.0 Token Revocation <span>[<a href="#RFC7009" class="cite xref">RFC7009</a>]</span>, Token Introspection
 <span>[<a href="#RFC7662" class="cite xref">RFC7662</a>]</span>, or short assertion lifetimes at the grant-profile layer.<a href="#section-6.8-1" class="pilcrow">¶</a></p>
 </section>
@@ -3843,7 +3853,11 @@ Extensions and FAQ appendices to the issue tracker; trim the
 Introduction and Security Considerations (#38).<a href="#appendix-B-3.10.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-B-3.11">
-          <p id="appendix-B-3.11.1">Editorial changes for readability.<a href="#appendix-B-3.11.1" class="pilcrow">¶</a></p>
+          <p id="appendix-B-3.11.1">Require that an assertion's verification key be bound to <code>iss</code>
+independently of the assertion (#38).<a href="#appendix-B-3.11.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-B-3.12">
+          <p id="appendix-B-3.12.1">Editorial changes for readability.<a href="#appendix-B-3.12.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="appendix-B-4">-00<a href="#appendix-B-4" class="pilcrow">¶</a></p>

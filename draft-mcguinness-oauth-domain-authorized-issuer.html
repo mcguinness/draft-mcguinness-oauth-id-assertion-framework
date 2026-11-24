@@ -1443,9 +1443,8 @@ identity assertion: the Subject Authority's published policy decides
 whether the asserting issuer is authorized for the subject's
 namespace.<a href="#section-1-4" class="pilcrow">¶</a></p>
 <p id="section-1-5">DAI is non-transitive: a Subject Authority directly lists each
-Assertion Issuer it authorizes
-(<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Open-World Delegation and Bounded Transitivity
-and §Transitive Authorization is Bounded).<a href="#section-1-5" class="pilcrow">¶</a></p>
+Assertion Issuer it authorizes (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Transitive
+Authorization is Bounded).<a href="#section-1-5" class="pilcrow">¶</a></p>
 <p id="section-1-6">DAI is also independent of OpenID Federation: a Subject Authority
 can publish DAI records and a Resource Authorization Server can
 evaluate them without any federation infrastructure.<a href="#section-1-6" class="pilcrow">¶</a></p>
@@ -1454,49 +1453,37 @@ evaluate them without any federation infrastructure.<a href="#section-1-6" class
         <h3 id="name-relationships">
 <a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-relationships" class="section-name selfRef">Relationships</a>
         </h3>
-<p id="section-1.1-1">DAI is a concrete profile of <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> for OAuth
-identity assertions:<a href="#section-1.1-1" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-1.1-2.1">
-            <p id="section-1.1-2.1.1">the Subject Authority is the Authority Holder;<a href="#section-1.1-2.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-1.1-2.2">
-            <p id="section-1.1-2.2.1">the Issuer Authorization Policy is the Delegation Artifact;<a href="#section-1.1-2.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-1.1-2.3">
-            <p id="section-1.1-2.3.1">the DNS record (or DNS pointer plus HTTPS document) is one
-publication channel; and<a href="#section-1.1-2.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-1.1-2.4">
-            <p id="section-1.1-2.4.1">the Assertion Issuer is the Delegate.<a href="#section-1.1-2.4.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-1.1-3">Lookup state classification and fail-closed requirements follow
-<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Lookup States and Fail-Closed.<a href="#section-1.1-3" class="pilcrow">¶</a></p>
-<p id="section-1.1-4">DAI extends <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>, which owns the Trust Policy
+<p id="section-1.1-1">DAI is a <code>subject_namespace_authorization</code> Trust Method
+specification under <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>. The Trust Method's evidence
+is the Issuer Authorization Policy, in which the Subject Authority
+authorizes Assertion Issuers. The DNS record (or DNS pointer plus
+HTTPS document) is one publication channel for it.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+<p id="section-1.1-2">Lookup state classification and fail-closed requirements follow
+<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Lookup States and Fail-Closed.<a href="#section-1.1-2" class="pilcrow">¶</a></p>
+<p id="section-1.1-3">DAI extends <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>, which owns the Trust Policy
 document format, Trust Method machinery, Subject Authority
 Determination, and OAuth grant-profile bindings. This document
-defines:<a href="#section-1.1-4" class="pilcrow">¶</a></p>
+defines:<a href="#section-1.1-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-1.1-5.1">
-            <p id="section-1.1-5.1.1">the Issuer Authorization Policy document (<a href="#dii-document" class="auto internal xref">Section 3</a>);<a href="#section-1.1-5.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-1.1-4.1">
+            <p id="section-1.1-4.1.1">the Issuer Authorization Policy document (<a href="#dii-document" class="auto internal xref">Section 3</a>);<a href="#section-1.1-4.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-5.2">
-            <p id="section-1.1-5.2.1">the DNS and HTTPS publication channels (<a href="#publication-profiles" class="auto internal xref">Section 4.1</a>);<a href="#section-1.1-5.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-1.1-4.2">
+            <p id="section-1.1-4.2.1">the DNS and HTTPS publication channels (<a href="#publication-profiles" class="auto internal xref">Section 4.1</a>);<a href="#section-1.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-5.3">
-            <p id="section-1.1-5.3.1">the lookup procedure (<a href="#dii-lookup" class="auto internal xref">Section 5</a>);<a href="#section-1.1-5.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-1.1-4.3">
+            <p id="section-1.1-4.3.1">the lookup procedure (<a href="#dii-lookup" class="auto internal xref">Section 5</a>);<a href="#section-1.1-4.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-5.4">
-            <p id="section-1.1-5.4.1">the verification rules (<a href="#dii-verification" class="auto internal xref">Section 6</a>); and<a href="#section-1.1-5.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-1.1-4.4">
+            <p id="section-1.1-4.4.1">the verification rules (<a href="#dii-verification" class="auto internal xref">Section 6</a>); and<a href="#section-1.1-4.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-1.1-5.5">
-            <p id="section-1.1-5.5.1">the <code>domain_authorized_issuer</code> Trust Method, with an HTTPS-only
-deployment variant (<a href="#trust-method-https-authorized-issuer" class="auto internal xref">Section 8.2</a>).<a href="#section-1.1-5.5.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-1.1-4.5">
+            <p id="section-1.1-4.5.1">the <code>domain_authorized_issuer</code> Trust Method, with an HTTPS-only
+deployment variant (<a href="#trust-method-https-authorized-issuer" class="auto internal xref">Section 8.2</a>).<a href="#section-1.1-4.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-1.1-6">A bridge to the Email Verification Protocol's DNS records and a
-client-side discovery use case are sketched in <a href="#future-extensions" class="auto internal xref">Appendix B</a>.<a href="#section-1.1-6" class="pilcrow">¶</a></p>
+<p id="section-1.1-5">A bridge to the Email Verification Protocol's DNS records and a
+client-side discovery use case are sketched in <a href="#future-extensions" class="auto internal xref">Appendix B</a>.<a href="#section-1.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="conventions">
@@ -1552,12 +1539,6 @@ document.<a href="#section-2-2.7.1" class="pilcrow">¶</a></p>
           <p id="section-2-2.8.1"><strong>Decision-affecting member</strong>: a policy member whose value can
 change whether a consumer accepts an assertion.<a href="#section-2-2.8.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-2-2.9">
-          <p id="section-2-2.9.1"><strong>Authority Holder</strong>, <strong>Delegate</strong>, <strong>Delegation Artifact</strong>, and
-<strong>Validator</strong>: the framework's general names for the Subject
-Authority, Assertion Issuer, Issuer Authorization Policy, and
-Resource Authorization Server.<a href="#section-2-2.9.1" class="pilcrow">¶</a></p>
-</li>
       </ul>
 <p id="section-2-3">Subject Identifier formats follow <span>[<a href="#RFC9493" class="cite xref">RFC9493</a>]</span>.<a href="#section-2-3" class="pilcrow">¶</a></p>
 <p id="section-2-4">This document defines two terms:<a href="#section-2-4" class="pilcrow">¶</a></p>
@@ -1583,14 +1564,14 @@ publishes a DNS record or an Issuer Authorization Policy.<a href="#section-2-5.4
       <h2 id="name-issuer-authorization-policy">
 <a href="#section-3" class="section-number selfRef">3. </a><a href="#name-issuer-authorization-policy" class="section-name selfRef">Issuer Authorization Policy Document</a>
       </h2>
-<p id="section-3-1">The Issuer Authorization Policy is a Delegation Artifact. With it, a
-Subject Authority delegates to named Assertion Issuers the right to
-assert identities in its namespace. Each <code>authorized_issuers</code> entry
+<p id="section-3-1">The Issuer Authorization Policy is the evidence that DAI consumes. With
+it, a Subject Authority delegates to named Assertion Issuers the right
+to assert identities in its namespace. Each <code>authorized_issuers</code> entry
 is a delegation, which <code>valid_from</code>, <code>valid_until</code>, <code>tenant</code>, and
 <code>subject_identifier_formats</code> can constrain. If no current delegation
-matches the assertion (<a href="#dii-verification" class="auto internal xref">Section 6</a>), the Assertion Issuer
-is not authorized for the asserted namespace, whatever other
-properties the assertion has.<a href="#section-3-1" class="pilcrow">¶</a></p>
+matches the assertion (<a href="#dii-verification" class="auto internal xref">Section 6</a>), the Assertion Issuer is
+not authorized for the asserted namespace, whatever other properties the
+assertion has.<a href="#section-3-1" class="pilcrow">¶</a></p>
 <p id="section-3-2">The Issuer Authorization Policy is a JSON object served over HTTPS.
 Publishers <span class="bcp14">MUST</span> serve it with media type <code>application/json</code>;
 consumers additionally accept any media type using the structured
@@ -1843,12 +1824,12 @@ is gone.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
 The JWT payload <span class="bcp14">SHOULD NOT</span> contain a <code>signed_policy</code> claim. The outer
 document carries <code>subject_authority</code> and <code>authorized_issuers</code>
 (<a href="#dii-document" class="auto internal xref">Section 3</a>) even when the JWT repeats them.<a href="#section-3.1-5" class="pilcrow">¶</a></p>
-<p id="section-3.1-6">Algorithms: <span>[<a href="#RFC8725" class="cite xref">RFC8725</a>]</span> (JWT Best Current Practices) applies
-unchanged. In addition, the JWT <span class="bcp14">MUST NOT</span> use a MAC algorithm
-(HS256/384/512), since a MAC scheme would require sharing the signing
-key with every Validator. Implementations <span class="bcp14">MUST</span> support ES256 and
-<span class="bcp14">SHOULD</span> support EdDSA and ES384; RS256 with &gt;=2048-bit keys <span class="bcp14">MAY</span> be
-supported for compatibility.<a href="#section-3.1-6" class="pilcrow">¶</a></p>
+<p id="section-3.1-6">Algorithms: <span>[<a href="#RFC8725" class="cite xref">RFC8725</a>]</span> (JWT Best Current Practices) applies unchanged.
+In addition, the JWT <span class="bcp14">MUST NOT</span> use a MAC algorithm (HS256/384/512), since
+a MAC scheme would require sharing the signing key with every Resource
+Authorization Server. Implementations <span class="bcp14">MUST</span> support ES256 and <span class="bcp14">SHOULD</span>
+support EdDSA and ES384; RS256 with &gt;=2048-bit keys <span class="bcp14">MAY</span> be supported for
+compatibility.<a href="#section-3.1-6" class="pilcrow">¶</a></p>
 <p id="section-3.1-7">Per <span>[<a href="#RFC8725" class="cite xref">RFC8725</a>]</span> §3.11 (cross-context confusion), the JWT <code>typ</code>
 header <span class="bcp14">MUST</span> be <code>issuer-authorization-policy+jwt</code>. This is the media
 type registered in <a href="#iana-dii-media-type" class="auto internal xref">Section 12.6</a>, with the <code>application/</code>
@@ -2376,11 +2357,10 @@ Indeterminate (<a href="#dii-failures" class="auto internal xref">Section 5.1</a
 <a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-failure-handling" class="section-name selfRef">Failure Handling</a>
         </h3>
 <p id="section-5.1-1">DAI lookup outcomes map onto the Affirmative, Negative, and
-Indeterminate lookup states of the Authority Delegation Model
-(<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Lookup States and Fail-Closed). Those states'
-requirements apply unchanged, as does the prohibition on falling
-through to another Authority Source (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Multiple
-Authority Sources Within a Category).<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+Indeterminate lookup states of <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Lookup States and
+Fail-Closed. Those states' requirements apply unchanged, as does the
+prohibition on falling through to another evidence source
+(<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Multiple Evidence Sources Within a Category).<a href="#section-5.1-1" class="pilcrow">¶</a></p>
 <table class="center" id="table-3">
           <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
 <thead>
@@ -2523,7 +2503,7 @@ policy cannot grant authority over that subject.<a href="#section-5.1-7.5.1" cla
 Negative nor an Indeterminate outcome satisfies the Trust Method. A
 cached Affirmative policy can serve during an Indeterminate live
 retrieval only within the stale-if-error bound of <a href="#dii-caching" class="auto internal xref">Section 7</a>. Whether the assertion is
-then rejected follows <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Multiple Authority Sources
+then rejected follows <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Multiple Evidence Sources
 Within a Category. An Indeterminate outcome, like a policy that does
 not authorize the issuer, leaves the <code>subject_namespace_authorization</code>
 category unsatisfied whatever other methods yield. A Negative
@@ -3100,7 +3080,7 @@ namespace but cannot substitute a policy. Negative caching is capped
 (<a href="#dii-caching" class="auto internal xref">Section 7</a>), so the denial ends soon after the spoofing does.<a href="#section-9.4-7" class="pilcrow">¶</a></p>
 <p id="section-9.4-8">When the Trust Policy also lists another namespace method, a
 Negative lets that method supply evidence (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>
-§Multiple Authority Sources Within a Category). A spoofed negative
+§Multiple Evidence Sources Within a Category). A spoofed negative
 answer can then suppress a published policy that does not authorize
 the issuer, and let the other method authorize it. In that
 configuration, only a consumer that authenticates the absence, for
@@ -3445,7 +3425,7 @@ infrastructure. Specific guidance:<a href="#section-11-1" class="pilcrow">¶</a>
 that this Trust Method granted. However, at a Resource
 Authorization Server that also lists another namespace method, the
 new policy becomes final for the namespace (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>
-§Multiple Authority Sources Within a Category). The policy
+§Multiple Evidence Sources Within a Category). The policy
 therefore needs to list every issuer that method accepted. Before
 publishing, check the issuer list for completeness. Forgotten
 regional tenants and departing Identity Providers are the usual
@@ -4147,8 +4127,9 @@ File extension(s): N/A; Macintosh file type code(s): N/A<a href="#section-12.6-2
 <p id="appendix-A.1-1">DAI applies the authority-publication pattern that domain owners
 already use for CAA <span>[<a href="#RFC8659" class="cite xref">RFC8659</a>]</span>, MTA-STS <span>[<a href="#RFC8461" class="cite xref">RFC8461</a>]</span>, SPF, DKIM,
 DMARC, and the Email Verification Protocol
-<span>[<a href="#I-D.hardt-email-verification" class="cite xref">I-D.hardt-email-verification</a>]</span>; <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Authority
-Delegation Model covers the abstract pattern. The <code>name=value</code>
+<span>[<a href="#I-D.hardt-email-verification" class="cite xref">I-D.hardt-email-verification</a>]</span>; <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Trust
+Evaluation Rules states how a Resource Authorization Server
+evaluates such evidence. The <code>name=value</code>
 record syntax is closest to DMARC's, and DMARC's experience with the
 organizational-domain boundary informs <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Subject
 Authority Determination. DMARC has since replaced the Public Suffix

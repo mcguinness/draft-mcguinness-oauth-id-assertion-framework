@@ -1131,9 +1131,9 @@ participate in Trust Method evaluation. A binding under which a
 Identifier-bearing claim from which a Subject Authority is
 determinable.
 
-An ID-JAG is presented with
-`grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer`, and its JWT
-`typ` header is `oauth-id-jag+jwt` ({{ID-JAG}} §4.4.1). This document
+An ID-JAG is presented with a `grant_type` value from {{ID-JAG}}
+§4.4, and its JWT `typ` header is `oauth-id-jag+jwt` ({{ID-JAG}}
+§4.4.1). This document
 defines no binding for any other identity assertion, so {{rasp}}
 step 3 rejects one unless another specification defines a binding
 for its grant profile and the Trust Policy lists that profile.

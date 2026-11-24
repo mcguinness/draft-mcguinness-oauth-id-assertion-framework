@@ -2,7 +2,7 @@
 title: "OpenID Federation Trust Methods for Identity Assertion Grants"
 abbrev: "Federation Trust Methods"
 docname: draft-mcguinness-oauth-id-assertion-federation-latest
-date: 2026-11-16
+date: 2026-11-24
 category: std
 submissiontype: IETF
 v: 3

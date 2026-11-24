@@ -1355,13 +1355,15 @@ This framework decides whether an Assertion Issuer is authorized;
 it does not revoke individual assertions. An assertion remains valid
 until `exp` even after session termination, credential revocation at
 the Assertion Issuer, or the Subject Authority's withdrawal of the
-issuer's authorization. Withdrawal stops the Resource Authorization
-Server from accepting further assertions once its cached evidence
-expires, so the Trust Method's cache lifetime bounds its latency, for
-planned transfers and security incidents alike. Withdrawal does not
-revoke access or refresh tokens already issued, and the framework
-cannot invalidate remote caches. Subject Authorities that need fast
-revocation use short cache lifetimes. Synchronous revocation needs
+issuer's authorization. Withdrawal stops new acceptances only after a
+window that depends on the Trust Method, for planned transfers and
+security incidents alike, and that can exceed the Resource
+Authorization Server's own cache lifetime. Under {{DAI}}, the window
+also includes propagation, upstream DNS and HTTP caches, and stale
+use ({{DAI}} §Caching). Withdrawal does not revoke access or refresh
+tokens already issued, and the framework cannot invalidate remote
+caches. Subject Authorities that need fast revocation use short cache
+lifetimes. Synchronous revocation needs
 OAuth 2.0 Token Revocation {{RFC7009}}, Token Introspection
 {{RFC7662}}, or short assertion lifetimes at the grant-profile layer.
 

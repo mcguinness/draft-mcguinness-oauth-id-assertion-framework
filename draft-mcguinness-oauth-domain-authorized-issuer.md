@@ -1970,8 +1970,9 @@ identity-scoped for that reason.
 
 A future Subject Identifier format with a DNS-publishable Subject
 Authority reuses `domain_authorized_issuer` and this record
-({{TRUST-FRAMEWORK}} §Future Extensions), where an identity-scoped
-name would force a second record at a second DNS name. One
+({{TRUST-FRAMEWORK}} §Subject Authority Determination), where an
+identity-scoped name would force a second record at a second DNS
+name. One
 per-domain policy surface, extended through registered members,
 follows the `oauth-authorization-server` metadata precedent.
 

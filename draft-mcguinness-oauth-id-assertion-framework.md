@@ -311,7 +311,7 @@ issuer-trust evaluation still applies.
 The `email` Subject Identifier extraction registered in this
 document is user-identity-oriented. Workload, agent, and other
 non-user subjects can be supported by registering additional
-extractions ({{future-extensions}}).
+extractions ({{iana-authority-registry}}).
 
 ## Conventions
 
@@ -689,7 +689,7 @@ cannot be evaluated, and processing follows {{rasp}} step 5c.
 Extraction procedures are registered in {{iana-authority-registry}};
 this document registers the `email` extraction as the initial entry.
 Future specifications can register further formats without changing
-the rest of the framework ({{future-extensions}}).
+the rest of the framework.
 
 Initial extractions:
 
@@ -786,9 +786,9 @@ monitor PSL changes affecting their namespace.
 
 The registrable-domain default prevents an attacker who controls a
 subdomain, for example through subdomain takeover, from overriding
-the record at the registrable domain. {{future-extensions}} sketches a
-subdomain-exact variant that would require explicit delegation from
-the registrable-domain authority.
+the record at the registrable domain. A future subdomain-exact
+variant would require explicit delegation from the registrable-domain
+authority.
 
 ## Critical Members {#critical-members}
 
@@ -1827,118 +1827,6 @@ Initial entries:
 | `email` | DNS domain | {{subject-authority-determination}} of this document | IETF |
 
 --- back
-
-# Future Extensions {#future-extensions}
-
-This appendix is non-normative. It sketches deferred directions that
-future specifications may register.
-
-## Additional Subject Identifier Formats
-
-This document registers one Subject Authority extraction procedure
-(`email`, {{subject-authority-determination}}). A new Subject
-Identifier format would register a procedure in
-{{iana-authority-registry}} that computes its Subject Authority. It
-would then reuse `domain_authorized_issuer` when that Subject
-Authority is a DNS-publishable domain, or register a new
-`subject_namespace_authorization` Trust Method. Nothing else in the
-framework changes.
-
-Candidate formats include URL-host Subject Identifiers (`url_host`),
-Decentralized Identifiers (`did`), and a subdomain-exact email
-variant that requires an explicit delegation from the
-registrable-domain authority to prevent subdomain takeover.
-
-## Presented Delegation Credentials
-
-The `subject_namespace_authorization` methods defined so far fetch
-the Subject Authority's published policy at verification time. In
-the alternative, the Subject Authority signs a delegation ("issuer X
-may assert for namespace A until time T", optionally
-audience-scoped) that the Assertion Issuer presents with the
-assertion, as with an `x5c` chain. Verification then needs no lookup
-on the token path, and the credential can express audiences, scopes,
-or delegation chains, should a future revision relax the depth-1
-bound of {{transitive-authz-bounded}}. It is deferred as an
-assurance-tier extension. Such a method would need:
-
-- key management and signing automation at the Subject Authority;
-- key discovery through a DNS- or HTTPS-anchored channel;
-- status checking or short-lived credentials for revocation;
-- registration as a `subject_namespace_authorization` Trust Method
-  whose evidence is carried in-band, satisfying the checklist in
-  {{trust-method-spec-requirements}}; and
-- composition with existing methods under the combination rule.
-
-## Actor Identity Trust Evaluation
-
-An assertion's `act` object can name an actor, such as a service
-acting for a user. A future extension can apply the trust-evaluation
-categories ({{trust-method-categories}}) to actors, so that the
-Resource Authorization
-Server also evaluates whether the asserting issuer is entitled to
-attest the `(act.iss, act.sub)` pair. That needs a Subject Authority
-extraction procedure for actor-carried Subject Identifiers, so it
-depends on the separately progressed OAuth Actor Profile. Until
-then, local policy at the Resource Authorization Server governs
-trust in actor identities.
-
-## Trust Policy Discovery
-
-A client reads a Resource Authorization Server's Trust Policy
-through its metadata endpoints ({{client-processing}}), so it needs
-the Resource Authorization Server's identity first. In open-world
-deployments (agent runtimes, AI tools, cross-organization
-integrations), a peer may need the policy before any relationship
-exists. A future extension can let a resource operator publish a DNS
-pointer to its Trust Policy at `_oauth-trust-policy.{resource-domain}`,
-the resource-side dual of {{DAI}}. It is deferred because such first
-contact is not yet a deployed need.
-
-# Frequently Asked Questions
-
-This appendix is non-normative.
-
-**Q: I have OpenID Federation. Why do I need DAI?**
-
-Federation authenticates ecosystem members but does not limit the
-namespaces a member can assert about; DAI lets the namespace owner
-publish that limit ({{FEDERATION}},
-{{example-federation-dai}}).
-
-**Q: What's the difference between Trust Policy and DAI?**
-
-The Resource Authorization Server publishes the Trust Policy,
-stating the evidence it requires ({{trust-policy-document}}). A
-Subject Authority publishes the Issuer Authorization Policy, naming
-the Assertion Issuers it authorizes ({{DAI}}).
-
-**Q: Why independent trust categories?**
-
-So that federation membership is never silently treated as
-authority over a namespace: the combination rule requires evidence
-from each applicable category ({{combination-rule}},
-{{transitive-authz-bounded}}).
-
-**Q: What if my Subject Authority cannot publish DNS TXT records?**
-
-It cannot participate in DAI: both lookup modes require the TXT
-record at `_oauth-issuer-policy.{domain}` as its opt-in ({{DAI}}
-§Lookup Procedure and §HTTPS-Only Deployment Variant).
-
-**Q: Does this work for path-bearing issuer identifiers
-(`https://login.example.com/{tenant}/v2.0`)?**
-
-Yes. Issuer comparison is a case-sensitive, octet-for-octet string
-match, paths included ({{DAI}} §Issuer Authorization Policy Document). An issuer that also sends a `tenant` claim is listed with
-that `tenant` value, which requires the DNS pointer form ({{DAI}}
-§Mechanism Limits).
-
-**Q: How do I revoke a delegation?**
-
-Remove the entry from the Issuer Authorization Policy, or set its
-`valid_until` to the past. Cache lifetime bounds the latency
-({{DAI}} §Caching).
 
 # Agent Platform Walkthrough {#example-agent-platform}
 

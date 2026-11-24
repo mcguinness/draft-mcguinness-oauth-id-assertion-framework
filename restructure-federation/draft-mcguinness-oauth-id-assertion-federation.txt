@@ -381,6 +381,13 @@ Table of Contents
    specification defines ([TRUST-FRAMEWORK] §Requirements on Trust
    Method Specifications) is the authenticated client.
 
+   As for issuer_authentication ([TRUST-FRAMEWORK] §Multiple Evidence
+   Sources Within a Category), every evidence source the Trust Policy
+   lists for this category is equally trusted, so a client_recognition
+   Trust Method specification MAY accept evidence from any of them.  For
+   openid_federation_client, this means a chain to any listed trust
+   anchor.
+
    client_recognition-category methods are satisfied by evidence about
    the OAuth client that presents an identity assertion at the token
    endpoint.  These methods evaluate the client that the grant profile's
@@ -421,9 +428,13 @@ Table of Contents
    A Resource Authorization Server that implements this document
    processes client_trust_methods whether or not crit lists it.  A
    Resource Authorization Server that implements only [TRUST-FRAMEWORK]
-   then rejects such a policy instead of ignoring its requirements on
-   clients, and a client that does not implement the member cannot read
-   the policy as placing no requirement on clients.
+   rejects a policy that lists the member in crit instead of ignoring
+   its requirements on clients, and a client that does not implement the
+   member cannot read that policy as placing no requirement on clients.
+   A policy that omits the member from crit gets neither protection: a
+   server that implements only [TRUST-FRAMEWORK] ignores the member
+   ([TRUST-FRAMEWORK] §Trust Policy Document) and can accept assertions
+   presented by clients that the member would reject.
 
 4.3.  Processing
 

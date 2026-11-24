@@ -2507,8 +2507,9 @@ profile (step 3). Detailed trust-evaluation failure state <span class="bcp14">MU
 returned to public clients in the OAuth error response. That state is
 a reconnaissance target.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
 <p id="section-4.2-6">A specification that registers a new Trust Method category states
-where in this procedure its checks run and how its errors rank
-against those defined here.<a href="#section-4.2-6" class="pilcrow">¶</a></p>
+where in this procedure its checks run, how its errors rank against
+those defined here, and how its Trust Methods select among the
+evidence sources a Trust Policy lists (<a href="#multiple-sources" class="auto internal xref">Section 4.3.2</a>).<a href="#section-4.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="delegation-model">
@@ -2583,12 +2584,10 @@ function from the identity assertion and request context to exactly
 one evidence source or a deterministic failure, invariant under
 attacker-controlled inputs outside the binding function
 (<a href="#unverified-claim" class="auto internal xref">Section 6.2</a>).<a href="#section-4.3.2-1" class="pilcrow">¶</a></p>
-<p id="section-4.3.2-2">For <code>issuer_authentication</code>, and for a category registered elsewhere
-unless its specification says otherwise, every evidence source the
-Trust Policy lists is equally trusted, so a Resource Authorization
-Server <span class="bcp14">MAY</span> accept evidence from any of them. For
-<code>openid_federation</code>, this means a chain to any listed trust anchor
-(<span>[<a href="#FEDERATION" class="cite xref">FEDERATION</a>]</span>).<a href="#section-4.3.2-2" class="pilcrow">¶</a></p>
+<p id="section-4.3.2-2">For <code>issuer_authentication</code>, every evidence source the Trust Policy
+lists is equally trusted, so a Trust Method specification <span class="bcp14">MAY</span> accept
+evidence from any of them. For <code>openid_federation</code>, this means a
+chain to any listed trust anchor (<span>[<a href="#FEDERATION" class="cite xref">FEDERATION</a>]</span>).<a href="#section-4.3.2-2" class="pilcrow">¶</a></p>
 <p id="section-4.3.2-3">Within one Trust Method's evaluation, a Resource Authorization Server
 <span class="bcp14">MUST NOT</span> fall through to a different evidence source if the
 originally-applicable evidence source's evaluation fails or is
@@ -4162,7 +4161,10 @@ for this document, which holds the details of that change.<a href="#appendix-D-1
 <li class="normal" id="appendix-D-3.1">
           <p id="appendix-D-3.1.1">Move the <code>openid_federation</code> Trust Method, including its OpenID
 Federation 1.1 alignment (#20), and client recognition (#32) to
-<span>[<a href="#FEDERATION" class="cite xref">FEDERATION</a>]</span> (#38).<a href="#appendix-D-3.1.1" class="pilcrow">¶</a></p>
+<span>[<a href="#FEDERATION" class="cite xref">FEDERATION</a>]</span> (#38). A policy written against an earlier
+editor's copy that uses <code>client_trust_methods</code> needs the member
+added to <code>crit</code> before a server that implements only this document
+consumes it.<a href="#appendix-D-3.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-D-3.2">
           <p id="appendix-D-3.2.1">Remove <code>signed_policy</code> and the <code>trust-policy+jwt</code> media type from

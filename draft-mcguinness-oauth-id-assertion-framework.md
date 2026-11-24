@@ -969,9 +969,11 @@ evidence sources within the same category (multiple Subject
 Authorities for different namespaces, multiple federation trust
 anchors). For `subject_namespace_authorization`, a Trust Method
 specification MUST define deterministic source selection: a binding
-function from the identity assertion and request context to exactly
-one evidence source or a deterministic failure, invariant under
-attacker-controlled inputs outside the binding function
+function from explicitly defined inputs (a single named claim,
+header, request parameter, or fixed tuple) to exactly one evidence
+source or a deterministic failure, with no preference ordering and no
+fallback across candidates, and invariant under the presence,
+absence, or value of any input outside the function
 ({{unverified-claim}}).
 
 For `issuer_authentication`, and for a category registered elsewhere
@@ -1201,9 +1203,7 @@ selection considers multiple claims, applies preference ordering, or
 falls back from one input to another gives an attacker a selection
 lever. The attacker constructs an identity assertion whose claims
 satisfy several bindings, so that selection picks the weakest or
-most attacker-favorable evidence source. The identity assertion is
-then evaluated against evidence that the legitimate Subject
-Authority for the target namespace never authorized.
+most attacker-favorable evidence source.
 
 For example, an identity assertion carries
 `sub: alice@victim.example` and
@@ -1214,25 +1214,12 @@ identity assertion against the attacker-controlled Issuer
 Authorization Policy of attacker-tenant.example and accepts a claim
 about a victim.example subject.
 
-The mitigation is **deterministic source selection**
-({{multiple-sources}}): a binding function from identity assertion +
-request context to exactly one evidence source. Trust Method
-specifications MUST define that function explicitly and the function
-MUST:
-
-- Use explicitly defined inputs (a single named claim, header,
-  request parameter, or fixed tuple).
-- Produce exactly one evidence source for any valid input, or
-  fail deterministically (no preference ordering, no fallback
-  across candidates).
-- Be invariant under attacker-controlled inputs outside the
-  binding function: the presence, absence, or value of any other
-  claim MUST NOT alter the selected evidence source.
-
-The `email` extraction registered by this document derives the
+Deterministic source selection ({{multiple-sources}}) removes the
+lever. The `email` extraction registered by this document derives the
 Subject Authority deterministically from a single claim and does
 not fall back; specifications registering additional extractions
 MUST preserve this property.
+
 
 ## Applicability Bypass {#applicability-bypass}
 
@@ -1243,17 +1230,15 @@ applicability depend on the incoming identity assertion, an attacker
 can waive a category by constructing a matching identity assertion.
 For example, if namespace authorization does not apply to an
 assertion from a legacy issuer, or to one carrying a legacy-flag
-claim, the attacker sends such an assertion. The Resource
-Authorization Server then relies on issuer authentication alone,
-which the combination rule forbids as sufficient.
+claim, the attacker sends such an assertion, and the Resource
+Authorization Server relies on issuer authentication alone.
+{{category-applicability}} therefore makes applicability a property
+of the published Trust Policy. Traffic that legitimately predates a
+category's availability is handled at the policy layer, not by
+waiving the category. Policy per deployment phase is a configuration
+boundary, while a waiver driven by the identity assertion is a
+boundary the attacker controls.
 
-The mitigation: category applicability MUST be a property of the
-Resource Authorization Server's published Trust Policy, not of the
-incoming identity assertion.
-Traffic that legitimately predates a category's availability is
-handled at the policy layer, not by waiving the category. Policy per
-deployment phase is a configuration boundary, while a waiver driven
-by the identity assertion is a boundary the attacker controls.
 
 ## Evidence Source Compromise {#authority-source-compromise}
 
@@ -1277,27 +1262,21 @@ publication-channel compromise model.
 
 ## Transitive Authorization is Bounded {#transitive-authz-bounded}
 
-The two issuer categories make different transitivity choices:
+`issuer_authentication` permits chains: under `openid_federation`
+({{FEDERATION}}), a trust anchor's signatures on intermediate
+Subordinate Statements transitively authenticate the leaf.
+`subject_namespace_authorization` requires depth one. A Subject
+Authority lists Assertion Issuers directly and cannot delegate to
+whoever an issuer federates, so no intermediate party can add an
+issuer that the Subject Authority did not list, and revocation
+latency does not compound across delegations. Parties that bind keys
+to listed issuers, or host the list, remain trusted ({{key-binding}}).
 
-- `issuer_authentication` permits chains. Under `openid_federation`
-  ({{FEDERATION}}), a trust anchor's signatures on intermediate
-  Subordinate Statements transitively authenticate the leaf.
+Federation membership does not establish namespace authority, and
+namespace authorization does not establish authenticity. The
+combination rule ({{combination-rule}}) enforces both at evaluation
+time.
 
-- `subject_namespace_authorization` requires depth one. A Subject
-  Authority lists Assertion Issuers directly and cannot delegate to
-  whoever an issuer federates. A Resource Authorization Server
-  therefore evaluates one customer-published policy, never a
-  multi-hop chain, and no intermediate party can add an issuer that
-  the Subject Authority did not list. Parties that bind keys to
-  listed issuers, or host the list, remain trusted ({{key-binding}}).
-  Revocation latency is bounded by the Subject Authority's own cache
-  lifetime and does not compound across delegations.
-
-The two issuer categories are independent: federation membership
-does not establish namespace authority, and namespace authorization
-does not establish authenticity. The cross-category combination rule
-({{rasp}}) enforces this at evaluation time. See {{FEDERATION}} for
-positioning against OpenID Federation.
 
 ## Key Binding Is Outside Namespace Authorization {#key-binding}
 
@@ -1372,26 +1351,19 @@ constrain acceptable audiences ({{DAI}} §Future Extensions).
 ## Per-Assertion Revocation Is Out of Scope {#per-assertion-revocation}
 
 This framework decides whether an Assertion Issuer is authorized;
-it does not revoke individual assertions. JWT bearer tokens are
-stateless and remain valid until `exp` regardless of:
+it does not revoke individual assertions. An assertion remains valid
+until `exp` even after session termination, credential revocation at
+the Assertion Issuer, or the Subject Authority's withdrawal of the
+issuer's authorization. Withdrawal stops the Resource Authorization
+Server from accepting further assertions once its cached evidence
+expires, so the Trust Method's cache lifetime bounds its latency, for
+planned transfers and security incidents alike. Withdrawal does not
+revoke access or refresh tokens already issued, and the framework
+cannot invalidate remote caches. Subject Authorities that need fast
+revocation use short cache lifetimes. Synchronous revocation needs
+OAuth 2.0 Token Revocation {{RFC7009}}, Token Introspection
+{{RFC7662}}, or short assertion lifetimes at the grant-profile layer.
 
-- session termination;
-- credential revocation at the Assertion Issuer; or
-- Subject Authority withdrawal of the issuer's authorization via
-  DAI.
-
-That withdrawal stops the Resource Authorization Server from
-accepting further assertions once its cache expires, but does not
-revoke access or refresh tokens already issued. The framework
-provides no mechanism to invalidate remote caches, so the Trust
-Method's cache lifetime bounds the latency of withdrawing any
-evidence, for planned transfers (provider migrations, acquisitions)
-and unplanned revocations (security incidents) alike. Subject
-Authorities that need fast revocation operate with short
-steady-state cache lifetimes. Synchronous
-revocation needs OAuth 2.0 Token Revocation {{RFC7009}}, Token
-Introspection {{RFC7662}}, or short assertion lifetimes at the
-grant-profile layer.
 
 ## Policy Document Integrity {#integrity}
 

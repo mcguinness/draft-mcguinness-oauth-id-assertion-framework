@@ -849,8 +849,9 @@ Identifier would take the Entity Identifier from the registration.
 
 # OpenID Federation Walkthrough {#example-federation-walkthrough}
 
-This appendix is non-normative. It expands {{TRUST-FRAMEWORK}} §Worked
-Example: OpenID Federation + DAI, adding trust-chain validation, Trust
+This appendix is non-normative. Like the example in
+{{TRUST-FRAMEWORK}} §Overview, it combines `openid_federation` with
+`domain_authorized_issuer`, and it adds trust-chain validation, Trust
 Mark satisfaction, and federation-bound JWKS resolution.
 
 **Cast:** Resource Authorization Server

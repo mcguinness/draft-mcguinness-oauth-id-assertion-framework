@@ -231,7 +231,8 @@ the `email` claim) and, unless local configuration says otherwise,
 limits subject resolution to that claim and issuer-scoped
 identifiers. {{FEDERATION}} adds `client_recognition` methods,
 which evaluate the client that presents the assertion.
-{{example-federation-dai}} walks through this exchange.
+{{example-agent-platform}} walks through an exchange that uses
+`domain_authorized_issuer` alone.
 
 ## Motivating Use Cases {#motivation}
 
@@ -611,67 +612,6 @@ Assertion Issuer, and no further delegation is permitted
 ({{transitive-authz-bounded}}).
 Companion specifications define the concrete methods in this
 category and register them in {{iana-trust-methods-registry}}.
-
-### Worked Example: OpenID Federation + DAI {#example-federation-dai}
-
-This non-normative example expands {{overview}}. A SaaS Resource
-Authorization Server (`api.saas.example`) accepts identity
-assertions from federation member Assertion Issuers about users in
-any customer namespace; each customer authorizes the Assertion
-Issuer that serves its users.
-
-The Resource Authorization Server publishes:
-
-~~~ json
-{
-  "resource_authorization_server": "https://api.saas.example",
-  "authorization_grant_profiles_supported": [
-    "urn:ietf:params:oauth:grant-profile:id-jag"
-  ],
-  "subject_identifier_formats_supported": ["email"],
-  "issuer_trust_methods": [
-    {
-      "method": "openid_federation",
-      "trust_anchors": ["https://federation.example.org"]
-    },
-    {
-      "method": "domain_authorized_issuer"
-    }
-  ]
-}
-~~~
-
-Customer `acme.example` publishes a DAI record naming
-`https://idp.example.net`, a member of
-`https://federation.example.org`, as its authorized Assertion
-Issuer. A client presents an ID-JAG carrying
-`email: alice@acme.example`, `email_verified: true`, and
-`iss: https://idp.example.net`:
-
-1. The Resource Authorization Server authenticates the client
-   (`private_key_jwt`). The Trust Policy lists a method in each
-   issuer category, so both categories apply.
-
-2. **Issuer authentication** (`issuer_authentication`): the Resource
-   Authorization Server validates the trust chain from
-   `https://idp.example.net` to `https://federation.example.org`.
-   This shows that the Assertion Issuer is an authentic federation
-   member, not that it has authority over `acme.example`.
-
-3. **Namespace authorization** (`subject_namespace_authorization`):
-   the Resource Authorization Server extracts `acme.example` from
-   the `email` claim, looks up the DAI record at
-   `_oauth-issuer-policy.acme.example`, and finds
-   `https://idp.example.net` in `authorized_issuers`.
-
-4. One Trust Method succeeded in each category, so the combination
-   rule ({{combination-rule}}) is met and access-token issuance
-   proceeds.
-
-If Acme had not listed the issuer, step 2 would succeed, step 3 would
-fail, and the Resource Authorization Server would reject the request
-with `invalid_grant`. {{FEDERATION}} extends this example with
-trust-chain validation and Trust Mark satisfaction.
 
 ## Subject Authority Determination {#subject-authority-determination}
 

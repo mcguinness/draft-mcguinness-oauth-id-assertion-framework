@@ -917,8 +917,9 @@ returned to public clients in the OAuth error response. That state is
 a reconnaissance target.
 
 A specification that registers a new Trust Method category states
-where in this procedure its checks run and how its errors rank
-against those defined here.
+where in this procedure its checks run, how its errors rank against
+those defined here, and how its Trust Methods select among the
+evidence sources a Trust Policy lists ({{multiple-sources}}).
 
 ## Trust Evaluation Rules {#delegation-model}
 
@@ -984,12 +985,10 @@ fallback across candidates, and invariant under the presence,
 absence, or value of any input outside the function
 ({{unverified-claim}}).
 
-For `issuer_authentication`, and for a category registered elsewhere
-unless its specification says otherwise, every evidence source the
-Trust Policy lists is equally trusted, so a Resource Authorization
-Server MAY accept evidence from any of them. For
-`openid_federation`, this means a chain to any listed trust anchor
-({{FEDERATION}}).
+For `issuer_authentication`, every evidence source the Trust Policy
+lists is equally trusted, so a Trust Method specification MAY accept
+evidence from any of them. For `openid_federation`, this means a
+chain to any listed trust anchor ({{FEDERATION}}).
 
 Within one Trust Method's evaluation, a Resource Authorization Server
 MUST NOT fall through to a different evidence source if the
@@ -1810,7 +1809,10 @@ for this document, which holds the details of that change.
 
   * Move the `openid_federation` Trust Method, including its OpenID
     Federation 1.1 alignment (#20), and client recognition (#32) to
-    {{FEDERATION}} (#38).
+    {{FEDERATION}} (#38). A policy written against an earlier
+    editor's copy that uses `client_trust_methods` needs the member
+    added to `crit` before a server that implements only this document
+    consumes it.
   * Remove `signed_policy` and the `trust-policy+jwt` media type from
     the Trust Policy; signed-policy processing moves to {{DAI}} (#21).
   * Forbid waivers that a Subject Authority publishes, such as a

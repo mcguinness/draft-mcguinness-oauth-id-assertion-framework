@@ -2080,7 +2080,10 @@ for this document, which holds the details of that change.
 
   * Move the `openid_federation` Trust Method, including its OpenID
     Federation 1.1 alignment (#20), and client recognition (#32) to
-    {{FEDERATION}} (#38).
+    {{FEDERATION}} (#38). A policy written against an earlier
+    editor's copy that uses `client_trust_methods` needs the member
+    added to `crit` before a server that implements only this document
+    consumes it.
   * Remove `signed_policy` and the `trust-policy+jwt` media type from
     the Trust Policy; signed-policy processing moves to {{DAI}} (#21).
   * Forbid waivers that an Authority Holder publishes, such as a

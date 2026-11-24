@@ -400,10 +400,14 @@ A Trust Policy that contains `client_trust_methods` MUST list
 Members). A Resource Authorization Server that implements this
 document processes `client_trust_methods` whether or not `crit` lists
 it. A Resource Authorization Server that implements only
-{{TRUST-FRAMEWORK}} then rejects such a policy instead of ignoring
-its requirements on clients, and a client that does not implement
-the member cannot read the policy as placing no requirement on
-clients.
+{{TRUST-FRAMEWORK}} rejects a policy that lists the member in `crit`
+instead of ignoring its requirements on clients, and a client that
+does not implement the member cannot read that policy as placing no
+requirement on clients. A policy that omits the member from `crit`
+gets neither protection: a server that implements only
+{{TRUST-FRAMEWORK}} ignores the member ({{TRUST-FRAMEWORK}} §Trust
+Policy Document) and can accept assertions presented by clients that
+the member would reject.
 
 ## Processing {#client-recognition-processing}
 

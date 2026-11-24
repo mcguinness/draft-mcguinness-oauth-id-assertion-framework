@@ -122,24 +122,16 @@ OAuth client presenting an assertion, are also defined separately.
 
 # Introduction
 
-OAuth assertion-based authorization grants {{RFC7521}} {{RFC7523}}
-allow identity-bearing assertions issued by one authorization server
-to be presented to another. The Identity Assertion JWT Authorization
-Grant (ID-JAG) {{ID-JAG}} is one such profile, and
-{{I-D.ietf-oauth-identity-chaining}} specifies cross-domain delivery.
-These documents define how an assertion is constructed, presented,
-and consumed. They leave to local policy whether the Resource
-Authorization Server accepts an assertion's issuer for subject
-resolution, account linking, or delegated access.
+The Identity Assertion JWT Authorization Grant (ID-JAG) {{ID-JAG}}, a
+profile of the JWT-bearer grant {{RFC7523}}, lets an identity
+assertion issued by one authorization server be presented to
+another, and {{I-D.ietf-oauth-identity-chaining}} specifies
+cross-domain delivery. Both leave to local policy whether the
+Resource Authorization Server accepts an assertion's issuer for
+subject resolution, account linking, or delegated access.
 
-The set of acceptable Assertion Issuers is often large, dynamic, or
-governed by external trust frameworks, so it cannot be enumerated in
-advance. A static allowlist also cannot express the conditions for
-acceptance, such as membership in a recognized federation or
-authority for the asserted subject namespace.
-
-Today a Resource Authorization Server typically answers the namespace
-question through bilateral setup. Each customer:
+Today a Resource Authorization Server typically answers that question
+through bilateral setup. Each customer:
 
 - proves control of its domain,
 - configures its Identity Provider with the Resource Authorization
@@ -164,24 +156,24 @@ Resource Authorization Server to check. It complements, and does not
 replace, the Resource Authorization Server's own account-linking
 defenses ({{scope-of-namespace-authorization}}).
 
-This is an open-world issuer-trust problem: the Resource Authorization
-Server receives assertions from issuers it did not configure in advance.
-This document defines an Identity Assertion Issuer Trust Policy, in
-which a Resource Authorization Server publishes the conditions an
-Assertion Issuer must satisfy, not a list of trusted Assertion Issuers,
-and evaluates each condition from concrete evidence (a federation trust
-chain or a domain-authorized issuer record) when an assertion is
-presented. Despite its name, the Trust Policy is published by the
-Resource Authorization Server, not an Assertion Issuer. A Subject
-Authority authorizes issuers in a separate document, the Issuer
-Authorization Policy ({{DAI}}).
+This is an open-world problem: the set of acceptable Assertion
+Issuers is often large, dynamic, or governed by external trust
+frameworks, so it cannot be enumerated in advance. This document
+therefore defines an Identity Assertion Issuer Trust Policy, in which
+a Resource Authorization Server publishes the conditions an Assertion
+Issuer must satisfy, such as membership in a recognized federation or
+authority for the asserted subject namespace, not a list of trusted
+Assertion Issuers. The Resource Authorization Server evaluates each
+condition from concrete evidence when an assertion is presented.
+Despite its name, the Trust Policy is published by the Resource
+Authorization Server, not an Assertion Issuer. A Subject Authority
+authorizes issuers in a separate document, the Issuer Authorization
+Policy ({{DAI}}).
 
-{{DAI}} defines one Subject-Authority publication mechanism
-({{family}}). This document adds a trust-evaluation layer to the
-assertion-bearer grant and chaining mechanics of {{ID-JAG}} and
-{{I-D.ietf-oauth-identity-chaining}}, and applies only to ID-JAG
-({{bindings}}). Where that layer narrows a dependency, {{bindings}}
-says so. The layer limits which claims resolve the subject.
+The trust evaluation that this document defines applies only to
+ID-JAG ({{bindings}}). It narrows {{ID-JAG}}, for example by limiting
+which claims resolve the subject ({{rasp}} step 5c).
+
 
 ## Overview {#overview}
 
@@ -254,36 +246,32 @@ matters in:
 
 ## Relationship to Existing Mechanisms
 
-{{FEDERATION}} relates this framework to OpenID Federation.
-This framework is also distinct from issuer *discovery* mechanisms such
-as WebFinger {{RFC7033}} and OpenID Connect Discovery
-{{OIDC-DISCOVERY}}. They answer "given a user identifier, which issuer
-should a client use?" before authentication. This framework answers the
-verifier-side question "may this issuer, having already produced an
-assertion, be trusted for this subject's namespace?" {{DAI}}
-§Following Existing DNS Authority Patterns compares DAI with CAA,
-MTA-STS, SPF, DKIM, the Email Verification Protocol, federation-scoped
-attestation, and setup-time domain verification.
+{{FEDERATION}} relates this framework to OpenID Federation. Issuer
+discovery mechanisms, such as WebFinger {{RFC7033}} and OpenID
+Connect Discovery {{OIDC-DISCOVERY}}, answer "which issuer should a
+client use for this user?" before authentication. This framework
+answers the verifier-side question "may this issuer, having already
+produced an assertion, be trusted for this subject's namespace?"
+{{DAI}} §Following Existing DNS Authority Patterns compares DAI with
+related DNS and domain-verification mechanisms.
+
 
 ## Documents in the Family {#family}
 
 This document, {{DAI}}, and {{FEDERATION}} form a three-document set:
 
 - **This document** defines the Trust Policy
-  ({{trust-policy-document}}), which states the conditions for
-  accepting an Assertion Issuer, and the token-endpoint procedure
-  that evaluates them ({{rasp}}). {{scope}} lists its full contents.
-- **{{DAI}}** defines the `domain_authorized_issuer` Trust Method, one
-  class of evidence that satisfies those conditions, and the wire
-  format and integrity protection of the Issuer Authorization Policy
-  that the method consumes.
-- **{{FEDERATION}}** defines the `openid_federation` Trust Method. It
-  also extends the Trust Policy with conditions on the client that
-  presents an assertion, through the `client_recognition` category
-  and the `openid_federation_client` Trust Method.
+  ({{trust-policy-document}}) and the token-endpoint procedure that
+  evaluates it ({{rasp}}).
+- **{{DAI}}** defines the `domain_authorized_issuer` Trust Method and
+  the Issuer Authorization Policy that it consumes.
+- **{{FEDERATION}}** defines the `openid_federation` Trust Method and
+  the `client_recognition` category, which evaluates the client that
+  presents an assertion.
 
 A Resource Authorization Server that uses only {{DAI}} does not need
 {{FEDERATION}}.
+
 
 ## Scope {#scope}
 
@@ -301,13 +289,11 @@ Trust Methods, and the publication mechanisms they use, live in
 dedicated specifications such as {{DAI}} and {{FEDERATION}}.
 
 This document registers no Trust Methods for attribute authorities
-that are not namespace owners (government-issued credentials,
-professional certifications, employment attestations, decentralized
-credentials). W3C Verifiable Credentials, OpenID for Verifiable
-Credentials, and domain-specific frameworks address attribute
-attestation. Where such attestations are conveyed as OAuth identity
-assertions whose subject is namespace-bound, this document's
-issuer-trust evaluation still applies.
+that are not namespace owners, such as issuers of government
+credentials, professional certifications, or employment
+attestations. When such an attestation is conveyed in an identity
+assertion whose subject is namespace-bound, the issuer-trust
+evaluation still applies.
 
 The `email` Subject Identifier extraction registered in this
 document is user-identity-oriented. Workload, agent, and other

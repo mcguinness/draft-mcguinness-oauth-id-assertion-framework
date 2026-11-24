@@ -1816,12 +1816,15 @@ for this document, which holds the details of that change.
     consideration (#27).
   * Expand the motivation, and add tables and explanations for
     readers (#29).
-  * Limit subject resolution to the evaluated identifier, fix the key
-    source for the JWT-bearer binding, bound reuse of federation
-    evidence to 24 hours, and evaluate client recognition before the
-    assertion (#34).
+  * Limit subject resolution to the evaluated identifier, bound reuse
+    of federation evidence to 24 hours, and evaluate client
+    recognition before the assertion (#34).
   * State the trust decision once, in OAuth terms, as part of
     processing; open with one example exchange (#38).
+  * Apply the framework to ID-JAG only, removing the generic
+    JWT-bearer binding; keep one worked example; move the Future
+    Extensions and FAQ appendices to the issue tracker; trim the
+    Introduction and Security Considerations (#38).
   * Editorial changes for readability.
 
 -00

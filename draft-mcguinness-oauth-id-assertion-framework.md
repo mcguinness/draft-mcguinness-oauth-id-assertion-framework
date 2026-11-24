@@ -799,7 +799,15 @@ request, the Resource Authorization Server MUST:
    individual Trust Method objects.
 
 2. Validate the assertion per the applicable grant profile
-   ({{RFC7521}}, {{RFC7523}}, {{ID-JAG}}). The validation's
+   ({{RFC7521}}, {{RFC7523}}, {{ID-JAG}}). The verification key MUST
+   be bound to the `iss` value independently of the assertion,
+   through the `jwks_uri` in that issuer's metadata, local
+   configuration for that issuer, or a key source authenticated by a
+   Trust Method relied on in step 5. A key or key location in the
+   assertion's JOSE header, such as `jwk`, `jku`, or `x5u`, satisfies
+   this only when one of those sources authenticates it. This
+   strengthens {{ID-JAG}} §4.4.1, which only recommends `jwks_uri`.
+   The validation's
    signing-key resolution is provisional. A Trust Method evaluated in
    step 5 MAY constrain the source of the key used to verify the
    assertion signature. For example, `openid_federation` requires a
@@ -1289,7 +1297,7 @@ trusted for every namespace that lists the issuer:
 - Under `openid_federation`, an intermediate or trust anchor above
   the issuer can supply its key source ({{FEDERATION}}).
 - Without federation, the key comes from the Assertion Issuer's own
-  metadata ({{ID-JAG}} §4.4.1), and whoever
+  metadata unless locally configured ({{rasp}} step 2), and whoever
   controls that metadata controls the key.
 - A policy host named by a {{DAI}} `uri=` pointer controls the list
   itself, unless the Subject Authority pins the policy's signing key.
@@ -1827,6 +1835,8 @@ for this document, which holds the details of that change.
     JWT-bearer binding; keep one worked example; move the Future
     Extensions and FAQ appendices to the issue tracker; trim the
     Introduction and Security Considerations (#38).
+  * Require that an assertion's verification key be bound to `iss`
+    independently of the assertion (#38).
   * Editorial changes for readability.
 
 -00

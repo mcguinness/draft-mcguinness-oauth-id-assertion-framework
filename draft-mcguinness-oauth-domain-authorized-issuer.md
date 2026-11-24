@@ -64,7 +64,6 @@ informative:
   RFC7033:
   RFC9989:
   RFC9990:
-  RFC7523:
   RFC8461:
   RFC8659:
   RFC9728:
@@ -138,9 +137,9 @@ Authority Determination concept.
 
 OAuth deployments using identity-assertion grants need to answer
 "is this Assertion Issuer authorized to assert about subjects in
-this namespace?". Such grants include the Identity Assertion JWT
-Authorization Grant (ID-JAG) and generic JWT-bearer assertions
-carrying an identity claim ({{TRUST-FRAMEWORK}}). Federation
+this namespace?". One such grant is the Identity Assertion JWT
+Authorization Grant (ID-JAG), to which {{TRUST-FRAMEWORK}} applies.
+Federation
 membership authenticates an issuer but does not by itself entitle
 it to assert about any particular namespace. Only the namespace
 owner can authoritatively delegate that.
@@ -188,7 +187,7 @@ Lookup state classification and fail-closed requirements follow
 
 DAI extends {{TRUST-FRAMEWORK}}, which owns the Trust Policy
 document format, Trust Method machinery, Subject Authority
-Determination, and OAuth grant-profile bindings. This document
+Determination, and the OAuth grant-profile binding. This document
 defines:
 
 - the Issuer Authorization Policy document ({{dii-document}});
@@ -299,8 +298,7 @@ channel on encountering a denial. Each object has:
 
     When absent, the entry matches only assertions that carry no
     top-level `tenant` claim. Under a grant profile that carries no
-    `tenant` claim, such as the generic JWT-bearer grant of
-    {{RFC7523}}, only entries that omit `tenant` can match
+    `tenant` claim, only entries that omit `tenant` can match
     ({{dii-multi-tenant}}).
 
     Tenant values are issuer-specific and MUST NOT be compared across
@@ -1514,9 +1512,8 @@ the shared-issuer case and its `tenant` binding. Security points:
   Provider's tenant-isolation guarantees.
 
 - **Grant profiles without a `tenant` claim.** Under a grant
-  profile that carries no `tenant` claim, such as the generic
-  JWT-bearer grant ({{TRUST-FRAMEWORK}} §Generic JWT-Bearer
-  Assertion Grant), tenant-scoped authorization is not expressible.
+  profile that carries no `tenant` claim, tenant-scoped
+  authorization is not expressible.
   An entry with `tenant` matches no assertion, because the profile
   does not attest the claim. An entry without `tenant` matches only
   assertions that carry no `tenant` claim. But a shared issuer that
@@ -1973,8 +1970,9 @@ identity-scoped for that reason.
 
 A future Subject Identifier format with a DNS-publishable Subject
 Authority reuses `domain_authorized_issuer` and this record
-({{TRUST-FRAMEWORK}} §Future Extensions), where an identity-scoped
-name would force a second record at a second DNS name. One
+({{TRUST-FRAMEWORK}} §Subject Authority Determination), where an
+identity-scoped name would force a second record at a second DNS
+name. One
 per-domain policy surface, extended through registered members,
 follows the `oauth-authorization-server` metadata precedent.
 
@@ -2414,7 +2412,7 @@ details of that change.
     related mechanisms, and gloss terms borrowed from the framework
     (#29).
   * Make the record ABNF normative, cap a signed policy's validity at
-    24 hours, apply tenant matching under every grant profile, and
+    24 hours, apply tenant matching under every grant profile,
     treat a record without the default `uri=` as Indeterminate under
     HTTPS-only lookup, and forbid query components in OAuth issuer
     identifiers (#34).

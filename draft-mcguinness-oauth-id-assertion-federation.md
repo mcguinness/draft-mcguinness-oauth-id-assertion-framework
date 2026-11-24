@@ -370,10 +370,7 @@ the OAuth client that presents an identity assertion at the token
 endpoint. These methods evaluate the client that the grant profile's
 client authentication identifies ({{client-recognition-processing}},
 step 5f). For ID-JAG, the assertion's `client_id` claim, set by the
-Assertion Issuer, identifies the same client ({{ID-JAG}} §4.4.1). Under
-the generic JWT-bearer binding ({{TRUST-FRAMEWORK}} §Generic JWT-Bearer
-Assertion Grant), the assertion names no client. Any client that
-satisfies the category can then present an assertion it obtained.
+Assertion Issuer, identifies the same client ({{ID-JAG}} §4.4.1).
 Recognizing a client does not authorize any Assertion Issuer, and
 authorizing an Assertion Issuer does not recognize any client.
 
@@ -467,16 +464,11 @@ takes precedence over any other error.
 Fetches governs also include a client's Entity Configuration, trust
 chain, and key sets.
 
-**Grant-profile bindings.** {{ID-JAG}} §4.4.1 lets a client that does
+**Grant-profile binding.** {{ID-JAG}} §4.4.1 lets a client that does
 not authenticate prove possession of the key in the ID-JAG's `cnf` claim
 instead. When the Trust Policy contains `client_trust_methods`, step 5f
 rejects such a request with `invalid_client`. This narrows {{ID-JAG}}
 §4.4.1.
-
-{{RFC7523}} Section 3.1 lets the generic JWT-bearer grant
-({{TRUST-FRAMEWORK}} §Generic JWT-Bearer Assertion Grant) be used
-without client authentication. A Trust Policy that contains
-`client_trust_methods` requires client authentication (step 5f).
 
 ## The `openid_federation_client` Trust Method {#trust-method-openid-federation-client}
 
@@ -698,9 +690,7 @@ which client is evaluated ({{TRUST-FRAMEWORK}} §Unverified Claim
 Exploitation). Recognition admits a client to the exchange. It does not
 authorize the client to act for a particular user, says nothing about
 the subject or the Assertion Issuer, and leaves the other categories in
-force. Under the generic JWT-bearer binding, the assertion names no
-client, so any recognized client can present an assertion it obtained
-({{client-recognition-category}}).
+force.
 
 `openid_federation_client` requires the client to authenticate with
 a key its federation metadata publishes. Without that rule, a client
@@ -870,8 +860,9 @@ Identifier would take the Entity Identifier from the registration.
 
 # OpenID Federation Walkthrough {#example-federation-walkthrough}
 
-This appendix is non-normative. It expands {{TRUST-FRAMEWORK}} §Worked
-Example: OpenID Federation + DAI, adding trust-chain validation, Trust
+This appendix is non-normative. Like the example in
+{{TRUST-FRAMEWORK}} §Overview, it combines `openid_federation` with
+`domain_authorized_issuer`, and it adds trust-chain validation, Trust
 Mark satisfaction, and federation-bound JWKS resolution.
 
 **Cast:** Resource Authorization Server
@@ -976,7 +967,7 @@ _oauth-issuer-policy.partner.example. IN TXT (
 
 **Verification.** When an ID-JAG arrives with
 `iss: https://idp.partner.example`, `email: alice@partner.example`,
-the Resource Authorization Server:
+and `email_verified: true`, the Resource Authorization Server:
 
 1. **`issuer_authentication` (openid_federation).** Walks the
    federation chain per {{OIDF-FEDERATION}}: fetches the leaf
@@ -1198,7 +1189,7 @@ assertion's claims are:
 **Processing.** The Resource Authorization Server:
 
 1. Applies the policy above, because the `client_id` is an `https`
-   URL ({{client-recognition-processing}}).
+   URL ({{trust-method-openid-federation-client}}).
 2. Resolves the client's Entity Configuration and a trust chain to
    `https://federation.example.org`.
 3. Checks that the policy-applied metadata declares `oauth_client`.

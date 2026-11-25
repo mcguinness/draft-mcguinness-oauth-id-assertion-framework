@@ -859,8 +859,19 @@ request, the Resource Authorization Server MUST:
       Issuer, MUST satisfy at least one Trust Method from that
       category, subject to the finality rule of {{multiple-sources}}.
 
-   c. When the policy contains a `subject_namespace_authorization`
-      Trust Method:
+   c. Whatever categories the policy lists, the Resource Authorization
+      Server MUST identify the subject, for subject resolution, account
+      linking, and authorization, only by issuer-scoped identifiers or
+      by the Subject Identifier that a
+      `subject_namespace_authorization` method evaluated in step 5b,
+      unless local configuration trusts the Assertion Issuer for
+      another subject claim. That exception does not cover a
+      namespace-bound Subject Identifier that no namespace method
+      evaluated, which step 5e governs. Issuer-scoped identifiers are
+      `iss` and `sub`, with `tenant` for a multi-tenant issuer. Claims
+      such as `aud_sub` and `sub_id` ({{ID-JAG}} §3.1) are outside the
+      namespace check. In addition, when the policy contains a
+      `subject_namespace_authorization` Trust Method:
 
       - The assertion MUST carry a Subject Identifier from which a
         Subject Authority can be determined per
@@ -875,14 +886,6 @@ request, the Resource Authorization Server MUST:
         evaluated, the Resource Authorization Server MUST NOT consume
         any subject or identity claim from the assertion for account
         linking, authorization, or subject resolution.
-      - When the category is satisfied, the Resource Authorization
-        Server MUST resolve and link the subject only from the
-        Subject Identifier the category evaluated or from
-        issuer-scoped identifiers, unless local configuration trusts
-        the Assertion Issuer for another subject claim.
-        Issuer-scoped identifiers are `iss` and `sub`, with `tenant`
-        for a multi-tenant issuer. Claims such as `aud_sub` and
-        `sub_id` ({{ID-JAG}} §3.1) are outside the namespace check.
 
    d. Local policy MAY require satisfaction of additional Trust
       Methods for specific clients, subjects, or scopes.
@@ -1174,8 +1177,9 @@ Server MUST:
    `subject_identifier_formats_supported`, if that Trust Policy member
    is present.
 
-2. Use the email attribution only for subject resolution and Subject
-   Authority evaluation. The Resource Authorization Server MUST NOT
+2. Use the `email` claim only as {{rasp}} step 5c permits and for
+   Subject Authority evaluation. The Resource Authorization Server
+   MUST NOT
    treat the mere presence or value of the email claim as proof
    that the ID-JAG issuer is authoritative for the subject. Issuer
    acceptability is established only by evaluating the Trust Methods.
@@ -1343,8 +1347,9 @@ its own account-linking rules.
 Nor does namespace authorization cover other subject claims. An
 issuer authorized for `attacker.example` can send an `email` in that
 namespace with an `aud_sub` or `sub_id` that names an account
-elsewhere. Step 5c of {{rasp}} therefore limits subject resolution
-to the evaluated Subject Identifier and issuer-scoped identifiers.
+elsewhere. Step 5c of {{rasp}} therefore limits subject resolution,
+under every Trust Policy, to the evaluated Subject Identifier and
+issuer-scoped identifiers.
 
 Nor is the authorization audience-scoped. The
 `subject_namespace_authorization` category constrains which

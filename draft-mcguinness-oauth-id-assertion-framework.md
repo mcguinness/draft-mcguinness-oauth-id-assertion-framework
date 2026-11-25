@@ -1871,6 +1871,15 @@ for this document, which holds the details of that change.
     Introduction and Security Considerations (#38).
   * Require that an assertion's verification key be bound to `iss`
     independently of the assertion (#38).
+  * Limit subject resolution under every Trust Policy; link accounts
+    by the full A-label email domain; make a namespace method's
+    explicit denial final; limit the no-fall-through rule to namespace
+    methods; state that passing the Trust Policy is how a server
+    trusts an ID-JAG's issuer (#46).
+  * Under a policy with no namespace method, stop using or conveying
+    an unevaluated `email` instead of rejecting the assertion; reject
+    an email domain matched only by the Public Suffix List's default
+    rule; allow one category per Trust Method (#46).
   * Editorial changes for readability.
 
 -00

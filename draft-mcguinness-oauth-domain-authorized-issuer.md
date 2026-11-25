@@ -2429,6 +2429,10 @@ details of that change.
     treat a record without the default `uri=` as Indeterminate under
     HTTPS-only lookup, and forbid query components in OAuth issuer
     identifiers (#34).
+  * Retain the highest signed-policy `iat` for 24 hours; publish
+    `key=` with a critical `signed_policy`; recommend DNSSEC, not the
+    pointer form, against DNS compromise; forbid userinfo in `uri=`
+    (#46).
   * Editorial changes for readability.
 
 -00

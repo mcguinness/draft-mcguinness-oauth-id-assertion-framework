@@ -416,10 +416,10 @@ copy and during stale-if-error use ({{dii-caching}}).
 
 Consumers MUST reject a `signed_policy` whose `exp` is more than 24
 hours after its `iat`. For each Subject Authority, a consumer MUST
-retain the highest `iat` it has accepted until the `exp` of that
-signed policy. It MUST reject a `signed_policy` for that Subject
-Authority with an earlier `iat`, even after the cached policy itself
-is gone.
+retain the highest `iat` it has accepted until 24 hours after that
+`iat`, by which time every signed policy with an earlier `iat` has
+expired. It MUST reject a `signed_policy` for that Subject Authority
+with an earlier `iat`, even after the cached policy itself is gone.
 
 The JOSE header SHOULD contain a `kid` identifying the signing key.
 The JWT payload SHOULD NOT contain a `signed_policy` claim. The outer

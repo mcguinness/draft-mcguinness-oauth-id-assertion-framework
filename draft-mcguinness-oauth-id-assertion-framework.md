@@ -1135,7 +1135,7 @@ For every such fetch, the Resource Authorization Server:
 Trust Method specifications MAY add requirements; for example,
 {{DAI}} forbids following redirects for policy fetches.
 
-# Grant Profile and Token Bindings {#bindings}
+# Grant Profile Bindings {#bindings}
 
 This section defines the binding for ID-JAG ({{id-jag-profile}}),
 the only grant profile to which this document applies.

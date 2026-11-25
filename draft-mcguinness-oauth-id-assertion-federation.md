@@ -270,11 +270,13 @@ the trust anchor match is Negative, as above. A leaf that fails any
 other requirement, such as one that declares no permitted entity
 type, whose key does not verify under the permitted key source, or
 that holds no valid Trust Mark meeting a requirement, does not
-satisfy the method, and the lookup state is unchanged.
+satisfy the method, and the lookup state is unchanged, except as the
+next paragraph says.
 
 A Trust Mark that fails validation per {{OIDF-FEDERATION}} §7.3 does
 not meet a requirement. Only a retrieval the method needs and cannot
-complete is Indeterminate, namely a retrieval of:
+complete, or the absence of any qualifying key source, is
+Indeterminate. The retrievals are those of:
 
 - the permitted key source;
 - a Trust Mark Issuer's chain; or

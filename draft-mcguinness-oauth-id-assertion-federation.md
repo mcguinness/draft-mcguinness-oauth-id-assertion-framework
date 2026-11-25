@@ -87,30 +87,45 @@ with the `client_recognition` Trust Method category and the
 
 # Introduction
 
-The OAuth Identity Assertion Trust Framework {{TRUST-FRAMEWORK}} lets
-a Resource Authorization Server publish a Trust Policy that names the
-Trust Methods an identity assertion must satisfy. The framework
-defines the Trust Method categories, the combination rule, and the
-token-endpoint procedure. It leaves concrete Trust Methods to
-companion specifications, such as {{DAI}}.
+A client presents an ID-JAG {{ID-JAG}} that an identity provider, the
+Assertion Issuer, issued for `alice@partner.example`. The token
+request carries two JWTs: the client signed one to authenticate
+itself, and the identity provider signed the ID-JAG to make a claim
+about Alice. The Resource Authorization Server has to know whose key
+verifies each signature and what each successful check establishes.
 
-This document defines two Trust Methods based on OpenID Federation
-{{OIDF-FEDERATION}}:
+With OpenID Federation {{OIDF-FEDERATION}}, the server can verify the
+identity provider's signing key and check that the provider belongs
+to a federation it accepts. It can also require the client to
+authenticate with a key from the client's own federation metadata,
+even on the client's first token request. Neither check says whether
+the identity provider may assert identities for `partner.example`.
+Federation answers "is this issuer an authentic member of the
+ecosystem?", not "is it authorized for this namespace?". A separate
+namespace check, such as {{DAI}}, answers that.
+
+This document defines a Trust Method of the OAuth Identity Assertion
+Trust Framework {{TRUST-FRAMEWORK}} for each federation check:
 
 - `openid_federation`, in the `issuer_authentication` category,
-  accepts an Assertion Issuer whose trust chain validates to a listed
-  trust anchor, that holds any required Trust Marks, and whose
-  assertion signature verifies under a federation-bound key
+  checks the identity provider: its trust chain validates to a listed
+  trust anchor, it holds any required Trust Marks, and the ID-JAG's
+  signature verifies under a federation-bound key
   ({{trust-method-openid-federation}}).
 - `openid_federation_client`, in the `client_recognition` category,
-  accepts the OAuth client that presents the assertion when that
-  client is a federation Entity and authenticates with a key that its
-  federation metadata publishes
+  checks the client: it is a federation Entity, and it authenticates
+  with a key that its federation metadata publishes
   ({{trust-method-openid-federation-client}}).
 
-This document also extends {{TRUST-FRAMEWORK}} with the
-`client_recognition` category, the `client_trust_methods` Trust
+{{federation-checks}} defines what the two methods share. The
+framework lets a Resource Authorization Server publish a Trust Policy
+that names the Trust Methods an identity assertion must satisfy, and
+it defines the categories, the combination rule, and the
+token-endpoint procedure. This document extends the framework with
+the `client_recognition` category, the `client_trust_methods` Trust
 Policy member, and the processing they add ({{client-recognition}}).
+The framework composes with federation rather than replacing it.
+{{example-client-recognition}} follows the full exchange.
 
 # Conventions and Terminology
 
@@ -379,9 +394,6 @@ The following requirements also apply:
   metadata, substitutes the key source. If no qualifying key source
   is available, or its binding cannot be verified, the outcome is
   Indeterminate ({{TRUST-FRAMEWORK}} §Lookup States and Fail-Closed).
-
-See {{relationship-to-oidf}} for positioning against OpenID
-Federation.
 
 # Client Recognition {#client-recognition}
 
@@ -863,23 +875,6 @@ Specification Document:
 : This document, {{client-trust-methods}}
 
 --- back
-
-# Design Rationale
-
-This appendix is non-normative.
-
-## Relationship to OpenID Federation {#relationship-to-oidf}
-
-OpenID Federation {{OIDF-FEDERATION}} answers "is this issuer an
-authentic ecosystem member?"; {{TRUST-FRAMEWORK}} adds "is this issuer
-authorized for *this* namespace?". Federation membership feeds the
-`issuer_authentication` category through the `openid_federation`
-Trust Method ({{trust-method-openid-federation}}). Namespace
-authority comes from the separate `subject_namespace_authorization`
-category. The framework composes with federation rather than
-replacing it.
-
-
 
 # OpenID Federation Walkthrough {#example-federation-walkthrough}
 

@@ -196,64 +196,6 @@ such a member, such as `jwks_uri`, marks it `essential`
 Entity Type metadata must carry it. For a key source, requirement 3
 then selects that value.
 
-Lookup states ({{TRUST-FRAMEWORK}} §Lookup States and Fail-Closed):
-
-- **Affirmative**: a fully validated chain from the leaf to a listed
-  trust anchor.
-- **Negative**: any of these:
-
-  - the fetch of the leaf's Entity Configuration returns HTTP 404 or
-    410 (the Assertion Issuer does not participate in federation);
-  - the leaf's chains validate, but none reaches a listed trust
-    anchor; or
-  - every Superior in the leaf's `authority_hints` answers the fetch
-    endpoint request for the leaf with the `not_found` error
-    ({{OIDF-FEDERATION}} §8.1.2 and §8.9).
-
-- **Indeterminate**: any other failure to obtain or validate the
-  chain, such as:
-
-  - an Entity Statement fetch that fails or times out;
-  - a signature that cannot be verified because key material is
-    unavailable; or
-  - an expired statement that cannot be refreshed.
-
-Neither Negative nor Indeterminate satisfies this Trust Method
-({{TRUST-FRAMEWORK}} §Fail-Closed Requirements). Entity Statement
-caching follows the statements' own `exp` values per
-{{OIDF-FEDERATION}}, bounded by the consumer's local cache ceiling. A
-cached chain MUST NOT be used past the earliest `exp` in the chain, or
-more than 24 hours after it was obtained. The same 24-hour limit applies
-to a key set obtained through requirement 3. These limits hold while
-a fresh lookup is Indeterminate: this method allows no stale use
-beyond them ({{TRUST-FRAMEWORK}} §Fail-Closed Requirements). A Trust
-Mark that
-requirement 4 relies on is re-validated whenever the chain is, and is
-not used past its own `exp`. A Trust Mark without `exp` is re-validated
-at its Trust Mark Status endpoint ({{OIDF-FEDERATION}} §8.4) when the
-Trust Mark Issuer publishes one.
-
-The framework-specific requirements below are evaluated against an
-Affirmative chain. Every requirement MUST hold on that one chain: the
-metadata, key source, and Trust Marks used are those of the chain
-that satisfies requirement 1. A chain that fails requirement 1 is
-Negative, as above. In each case below, the leaf does not satisfy
-this Trust Method and the lookup state is unchanged:
-
-- It does not declare a required entity type (requirement 2).
-- Its assertion signature does not verify under the permitted key
-  source (requirement 3).
-- It holds no valid Trust Mark meeting a requirement (requirement 4).
-
-A Trust Mark that fails validation per {{OIDF-FEDERATION}} §7.3 does
-not meet a requirement. Only a retrieval the method needs and cannot
-complete is Indeterminate, namely a retrieval of:
-
-- the permitted key source;
-- a Trust Mark Issuer's chain; or
-- a Trust Mark Status endpoint the Resource Authorization Server
-  relies on.
-
 In addition to the procedures in {{OIDF-FEDERATION}}, the Resource
 Authorization Server MUST apply the following framework-specific
 requirements:
@@ -332,11 +274,68 @@ requirements:
    absent.
 
 The proposed Well-Known Binding mechanism {{OIDF-WKB}} illustrates the
-additional key-source path in item 3. It binds a JWK Set to the Entity
+additional key-source path in requirement 3. It binds a JWK Set to the Entity
 Identifier by listing its digest in the leaf's Entity Configuration
 ({{example-wkb-variant}}). This document does not require support for
 it. A consumer without a supported qualifying key source returns
 Indeterminate.
+
+Lookup states ({{TRUST-FRAMEWORK}} §Lookup States and Fail-Closed):
+
+- **Affirmative**: a fully validated chain from the leaf to a listed
+  trust anchor.
+- **Negative**: any of these:
+
+  - the fetch of the leaf's Entity Configuration returns HTTP 404 or
+    410 (the Assertion Issuer does not participate in federation);
+  - the leaf's chains validate, but none reaches a listed trust
+    anchor; or
+  - every Superior in the leaf's `authority_hints` answers the fetch
+    endpoint request for the leaf with the `not_found` error
+    ({{OIDF-FEDERATION}} §8.1.2 and §8.9).
+
+- **Indeterminate**: any other failure to obtain or validate the
+  chain, such as:
+
+  - an Entity Statement fetch that fails or times out;
+  - a signature that cannot be verified because key material is
+    unavailable; or
+  - an expired statement that cannot be refreshed.
+
+The framework-specific requirements above are evaluated against an
+Affirmative chain. Every requirement MUST hold on that one chain: the
+metadata, key source, and Trust Marks used are those of the chain
+that satisfies requirement 1. A chain that fails requirement 1 is
+Negative, as above. In each case below, the leaf does not satisfy
+this Trust Method and the lookup state is unchanged:
+
+- It does not declare a required entity type (requirement 2).
+- Its assertion signature does not verify under the permitted key
+  source (requirement 3).
+- It holds no valid Trust Mark meeting a requirement (requirement 4).
+
+A Trust Mark that fails validation per {{OIDF-FEDERATION}} §7.3 does
+not meet a requirement. Only a retrieval the method needs and cannot
+complete is Indeterminate, namely a retrieval of:
+
+- the permitted key source;
+- a Trust Mark Issuer's chain; or
+- a Trust Mark Status endpoint the Resource Authorization Server
+  relies on.
+
+Neither Negative nor Indeterminate satisfies this Trust Method
+({{TRUST-FRAMEWORK}} §Fail-Closed Requirements). Entity Statement
+caching follows the statements' own `exp` values per
+{{OIDF-FEDERATION}}, bounded by the consumer's local cache ceiling. A
+cached chain MUST NOT be used past the earliest `exp` in the chain, or
+more than 24 hours after it was obtained. The same 24-hour limit applies
+to a key set obtained through requirement 3. These limits hold while
+a fresh lookup is Indeterminate: this method allows no stale use
+beyond them ({{TRUST-FRAMEWORK}} §Fail-Closed Requirements). A Trust
+Mark that requirement 4 relies on is re-validated whenever the chain
+is, and is not used past its own `exp`. A Trust Mark without `exp` is re-validated
+at its Trust Mark Status endpoint ({{OIDF-FEDERATION}} §8.4) when the
+Trust Mark Issuer publishes one.
 
 See {{relationship-to-oidf}} for positioning against OpenID
 Federation.
@@ -948,7 +947,7 @@ The `trust_mark` value is a JWT with JOSE header `typ`
 }
 ~~~
 
-Item 4 of {{trust-method-openid-federation}} matches against this
+Requirement 4 of {{trust-method-openid-federation}} matches against this
 payload: its `trust_mark_type` equals both the enclosing entry's type
 and the requirement's, and its `iss` equals the requirement's
 `issuer`. The enclosing entry carries no issuer. {{OIDF-FEDERATION}}
@@ -1050,7 +1049,7 @@ Configuration, which includes (excerpt):
 The leaf's Trust Mark satisfies the requirement because its `iss`
 appears in that array. So would a Trust Mark of the same type issued
 by `https://assurance.example.net`, provided that issuer's own trust
-chain terminates at the same trust anchor (item 4 of
+chain terminates at the same trust anchor (requirement 4 of
 {{trust-method-openid-federation}}). The requirement would not be
 satisfied if the array for this type were empty, which
 {{OIDF-FEDERATION}} §3.1.2 reads as allowing any issuer, or if the
@@ -1092,18 +1091,18 @@ references `https://idp.partner.example/jwks` in `jwks_uri`. Here the
 Intermediate neither supplies a protocol key source nor requires one
 through `metadata_policy`; the `openid_provider` policy shown above
 does not apply to this variant's `oauth_authorization_server` type.
-With no key source in the Entity Type metadata, item 3 selects the
+With no key source in the Entity Type metadata, requirement 3 selects the
 extension-defined source: the JWK Set at the covered document's
 `jwks_uri`, which `jwks_digests` binds.
 
 The consumer verifies the covered metadata and its JWK Set by the
 extension's rules, which include validating the trust chain, and
 checks that the metadata's `issuer` equals the leaf's Entity
-Identifier. Item 3 then permits the bound JWK Set for assertion
+Identifier. Requirement 3 then permits the bound JWK Set for assertion
 verification. The Trust Mark and DAI checks are unchanged.
 
 If the Intermediate's policy instead marked `jwks_uri` `essential`,
-the leaf would carry it in Entity Type metadata, and item 3 would
+the leaf would carry it in Entity Type metadata, and requirement 3 would
 select that source. The binding covers that source only when it
 names the same URL as the covered document's `jwks_uri`; otherwise
 the key set relies on HTTPS alone. A key mismatch never authorizes

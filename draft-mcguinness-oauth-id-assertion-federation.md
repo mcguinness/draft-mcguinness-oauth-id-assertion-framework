@@ -332,10 +332,10 @@ more than 24 hours after it was obtained. The same 24-hour limit applies
 to a key set obtained through requirement 3. These limits hold while
 a fresh lookup is Indeterminate: this method allows no stale use
 beyond them ({{TRUST-FRAMEWORK}} §Fail-Closed Requirements). A Trust
-Mark that requirement 4 relies on is re-validated whenever the chain
-is, and is not used past its own `exp`. A Trust Mark without `exp` is re-validated
-at its Trust Mark Status endpoint ({{OIDF-FEDERATION}} §8.4) when the
-Trust Mark Issuer publishes one.
+Mark that requirement 4 relies on MUST be re-validated whenever the
+chain is. For a Trust Mark without `exp`, that includes its Trust
+Mark Status endpoint ({{OIDF-FEDERATION}} §8.4) when the Trust Mark
+Issuer publishes one. A Trust Mark is not used past its own `exp`.
 
 The fetches that {{TRUST-FRAMEWORK}} §Outbound Fetches governs
 include the Entity Statements reached through the leaf's

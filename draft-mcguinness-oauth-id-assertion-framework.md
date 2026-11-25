@@ -177,8 +177,7 @@ specification defines a binding for that profile and the policy lists
 it ({{rasp}} step 3). For ID-JAG, this document narrows {{ID-JAG}}:
 it limits which claims
 resolve the subject ({{rasp}} step 5c), requires `email_verified` for
-an `email` that a namespace method evaluates ({{id-jag-profile}}), and
-requires the
+an `email` that the server uses ({{id-jag-profile}}), and requires the
 verification key to be bound to `iss` ({{rasp}} step 2).
 
 
@@ -617,9 +616,11 @@ category and register them in {{iana-trust-methods-registry}}.
 Determining the Subject Authority has two steps: identify which
 registered Subject Identifier format the assertion carries, then apply
 that format's extraction procedure. A Resource Authorization Server
-does both, and applies an extraction procedure's rejections, when a
-`subject_namespace_authorization` method evaluates the assertion.
-The grant-profile binding
+does both, and applies the procedure's rejections, whenever it uses a
+namespace-bound Subject Identifier: when a
+`subject_namespace_authorization` method evaluates it, or under the
+local-policy exception of {{rasp}} step 5e. An identifier that step 5e
+leaves unused causes no rejection. The grant-profile binding
 ({{bindings}}) designates which claim conveys the Subject Identifier
 and thus which format applies. A format is "used by the assertion"
 when the designated claim for that format is present. If the
@@ -643,7 +644,7 @@ Initial extractions:
   `email_verified` claim is absent or has any value other than
   `true`, consumers MUST treat the `email` Subject Identifier as
   invalid for Subject Authority determination and MUST reject the
-  assertion when `email` is the Subject Identifier being evaluated.
+  assertion when it determines a Subject Authority from that `email`.
   Consumers MUST NOT treat an unverified `email` claim as though the
   assertion carried no Subject Identifier.
 

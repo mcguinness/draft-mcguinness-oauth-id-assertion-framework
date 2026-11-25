@@ -502,15 +502,11 @@ Marks the policy requires.
 The method has the members `trust_anchors` and `trust_marks`, defined
 as for `openid_federation` ({{trust-method-openid-federation}}).
 
-The client's `client_id` is its Entity Identifier, as in Automatic
-Registration ({{OIDF-FEDERATION-CONNECT}} §12.1 and §12.4).
-{{OIDF-FEDERATION-CONNECT}} §12.1 starts Automatic Registration at an
-Authentication Request, and §12.1.5 says that bare OAuth 2.0
-deployments can use it. This method defines the case §12.1 does not
-describe: a client whose first request is a token request. This
-method places none of the obligations of {{OIDF-FEDERATION-CONNECT}}
-§12.1 on the client toward the Resource Authorization Server. This
-method is evaluated for each token request that presents an identity
+As in Automatic Registration ({{OIDF-FEDERATION-CONNECT}} §12.1),
+the client's `client_id` is its Entity Identifier. Unlike it, this
+method covers a client whose first request is a token request,
+places none of the obligations of §12.1 on the client, and is
+evaluated for each token request that presents an identity
 assertion. The `client_id` MUST equal the `sub` of the client's
 Entity Configuration by simple string comparison. A client whose
 `client_id` is not an Entity Identifier ({{OIDF-FEDERATION}} §1.2)
@@ -551,10 +547,9 @@ and 3 are replaced by the following:
     a certificate equal to the first certificate in the `x5c` value
     of such a key, without certificate chain validation.
 
-  {{OIDF-FEDERATION-CONNECT}} §12.1.1.2 (see also §12.1.1.2.1) names
-  these two methods for a Pushed Authorization Request. There, as on
-  a first token request, the client authenticates before any
-  registration exists. The methods are narrower than
+  These are the two methods that {{OIDF-FEDERATION-CONNECT}}
+  §12.1.1.2 names for a client that authenticates before any
+  registration exists. They are narrower than
   {{OIDF-FEDERATION-CONNECT}} §12.1.4, under which a server should
   accept any mutually supported method. The `aud` value is the issuer
   identifier, not an Entity Identifier, because the Resource

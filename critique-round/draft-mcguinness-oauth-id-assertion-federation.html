@@ -1,0 +1,2862 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>OpenID Federation Trust Methods for Identity Assertion Grants</title>
+<meta content="Karl McGuinness" name="author">
+<meta content="
+       This document defines two Trust Methods, based on OpenID Federation,
+for the OAuth Identity Assertion Trust Framework. Under
+ openid_federation , a Resource Authorization Server authenticates an
+Assertion Issuer through a federation trust chain, any Trust Marks
+its Trust Policy requires, and a federation-bound signing key. Under
+ openid_federation_client , it recognizes the OAuth client that
+presents an identity assertion, including a client whose first
+request is a token request. This document also extends the framework
+with the  client_recognition  Trust Method category and the
+ client_trust_methods  Trust Policy member. 
+    " name="description">
+<meta content="xml2rfc 3.35.0" name="generator">
+<meta content="OAuth" name="keyword">
+<meta content="JWT authorization grants" name="keyword">
+<meta content="identity assertion" name="keyword">
+<meta content="OpenID Federation" name="keyword">
+<meta content="client recognition" name="keyword">
+<meta content="draft-mcguinness-oauth-id-assertion-federation-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.35.0
+    Python 3.14.10
+    ConfigArgParse 1.10.1
+    google-i18n-address 3.1.1
+    intervaltree 3.2.1
+    Jinja2 3.1.6
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.14.7
+    pycountry 24.6.1
+    PyYAML 6.0.3
+    requests 2.33.1
+    wcwidth 0.9.4
+-->
+<link href="draft-mcguinness-oauth-id-assertion-federation.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 680;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1 {
+  &#title {
+    font-size: 32px;
+    line-height: 40px;
+    clear: both;
+    margin: 1.5em 0 0.2em;
+  }
+  &#rfcnum {
+    margin: 1.5em 0 0.2em;
+    & + h1#title {
+      margin: 0.2em 0;
+    }
+  }
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+  & code, & samp, & tt {
+    font-size: 16px;
+    line-height: 0;
+  }
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    margin: 0;
+    float: right;
+    clear: both;
+  }
+  & > *:nth-child(2) {
+    clear: both;
+    display: block;
+    border: none;
+  }
+}
+svg {
+  display: block;
+  /* font-family isn't space-separated, but =~ will have to do */
+  &[font-family~="monospace" i], & [font-family~="monospace" i] {
+    font-family: var(--font-mono);
+  }
+}
+.alignCenter {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+       support flexbox yet.
+    */
+    display: table;
+    margin: 0 auto;
+  }
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+  & li {
+    margin-top: 0.5em;
+  }
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+      float: none;
+    }
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+
+  &:not(.dlNewline) > dt {
+    float: left;
+    margin-right: 2ch;
+    min-width: 8ch;
+  }
+  & > dd {
+    margin-bottom: .8em;
+    margin-left: var(--indent) !important; /* stupid element overrides */
+    min-height: 2ex;
+  }
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a {
+  text-decoration: none;
+  &[href] {
+    color: var(--link-color);
+    &:hover { text-decoration: underline; }
+    &.selfRef {
+      color: var(--text-color);
+      &:hover {
+        text-decoration: none;
+        background-color: var(--highlight-color);
+      }
+    }
+  }
+}
+.iref + a[href].internal {
+  color: var(--text-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+  & blockquote {
+    margin: 0.8em 0.4em 0.4em;
+  }
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+  caption-side: bottom;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) {
+    & p {
+      margin: -2px 0;
+      max-height: 0;
+      transition: max-height 2s ease, margin 0.5s ease 0.5s;
+      overflow: hidden;
+    }
+    &:hover p,
+    & h2:target ~ p {
+      margin: 0.5em 0;
+      max-height: 500px;
+      overflow: auto;
+    }
+  }
+  pre, svg {
+    display: inline-block;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+  border-left: 2px var(--pilcrow-strong) solid;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+  &.right { margin-left: auto; }
+  &.center { margin-left: auto; margin-right: auto; }
+  &.left { margin-right: auto; }
+  & .text-left { text-align: left; }
+  & .text-center { text-align: center; }
+  & .text-right { text-align: right; }
+  & caption {
+    margin: 0;
+    padding: 3px 0 3px 1em;
+  }
+  & p { margin: 0; }
+}
+
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
+  @media not print {
+    :hover > &, &:focus {
+      opacity: 1;
+    }
+    &[href]:hover {
+      color: var(--pilcrow-strong);
+      background-color: transparent;
+    }
+  }
+  @media print {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+  & .prepared {
+    float: right;
+  }
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
+}
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
+}
+
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses {
+    & > section {
+      column-count: 2;
+      column-gap: 20px;
+    }
+    & > section > h2 {
+      column-span: all;
+    }
+    /* hack for break-inside: avoid-column */
+    & address {
+      display: inline-block;
+      break-inside: avoid-column;
+    }
+  }
+}
+
+/* Comments */
+.rfcEditorRemove {
+  & p:first-of-type {
+    font-style: italic;
+  }
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+
+@media screen {
+  #toc {
+    & nav {
+      font-family: var(--font-title);
+      font-weight: 360;
+      & > ul { margin-bottom: 2em; }
+      & ul {
+        margin: 0 0 0 4px;
+        & :is(p, li) {
+          margin: 2px 0;
+        }
+      }
+    }
+    & a.toplink {
+      float: right;
+    }
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 1px 0 0 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+    & h2 {
+      margin: 0;
+      padding: 2px 0 2px 6px;
+      padding-right: 1em;
+      font-size: 18px;
+      line-height: 24px;
+      min-width: 190px;
+      text-align: right;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      &::before { /* css hamburger */
+        float: right;
+        position: relative;
+        width: 1em;
+        height: 1px;
+        left: -164px;
+        margin: 8px 0 0 0;
+        background: white none repeat scroll 0 0;
+        box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+        content: "";
+      }
+    }
+    & nav {
+      display: none;
+      background-color: var(--background-color);
+      padding: 0.5em 1em 1em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      height: calc(100vh - 48px);
+      border-left: 1px solid #ddd;
+    }
+    &.active {
+      opacity: 1;
+      & nav { display: block; }
+    }
+    /* Make the collapsed ToC header render white on gray also when it's a link */
+    & h2 a,
+    & h2 a:is(:link, :focus, :hover),
+    & a.toplink,
+    & a.toplink:hover {
+      color: white;
+      background-color: #444;
+      text-decoration: none;
+    }
+    & a.toplink {
+      margin: 2px 0.5em 0;
+    }
+  }
+}
+
+/* TOC layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+    & h2 {
+      margin: 0;
+      padding: 0.25em 1em 1em 0;
+    }
+    & nav {
+      display: block;
+      height: calc(90vh - 84px);
+      bottom: 0;
+      padding: 0.5em 0 2em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    & a.toplink {
+      margin: 8px 0.5em 0;
+    }
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc {
+    page-break-before: always;
+    border-top: none;
+    padding-top: 0;
+  }
+  #n-introduction {
+    page-break-before: always;
+  }
+  figure, pre, .vcard {
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  :is(h2, h3, h4, h5, h6)+*, dd {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg {
+  & :is([stroke="black"], [stroke^="#000"]) {
+    stroke: var(--text-color);
+  }
+  & :is([stroke="white"], [stroke^="#fff"]) {
+    stroke: var(--background-color);
+  }
+  & :is([fill="black"], [fill^="#000"], :not([fill], [fill] *)) {
+    fill: var(--text-color);
+  }
+  & :is([fill="white"], [fill^="#fff"]) {
+    fill: var(--background-color);
+  }
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">Federation Trust Methods</td>
+<td class="right">November 2026</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">McGuinness</td>
+<td class="center">Expires 20 May 2027</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Web Authorization Protocol</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-mcguinness-oauth-id-assertion-federation-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2026-11-16" class="published">16 November 2026</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Standards Track</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2027-05-20">20 May 2027</time></dd>
+<dt class="label-authors">Author:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">K. McGuinness</div>
+<div class="org">Independent</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">OpenID Federation Trust Methods for Identity Assertion Grants</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">This document defines two Trust Methods, based on OpenID Federation,
+for the OAuth Identity Assertion Trust Framework. Under
+<code>openid_federation</code>, a Resource Authorization Server authenticates an
+Assertion Issuer through a federation trust chain, any Trust Marks
+its Trust Policy requires, and a federation-bound signing key. Under
+<code>openid_federation_client</code>, it recognizes the OAuth client that
+presents an identity assertion, including a client whose first
+request is a token request. This document also extends the framework
+with the <code>client_recognition</code> Trust Method category and the
+<code>client_trust_methods</code> Trust Policy member.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-discussion-venues">
+<a href="#name-discussion-venues" class="section-name selfRef">Discussion Venues</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">Discussion of this document takes place on the
+    Web Authorization Protocol Working Group mailing list (oauth@ietf.org),
+    which is archived at <span><a href="https://mailarchive.ietf.org/arch/browse/oauth/">https://mailarchive.ietf.org/arch/browse/oauth/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">Source for this draft and an issue tracker can be found at
+    <span><a href="https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework">https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 20 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2026 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-terminology" class="internal xref">Conventions and Terminology</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1" class="keepWithNext"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-the-openid_federation-trust" class="internal xref">The <code>openid_federation</code> Trust Method</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-client-recognition" class="internal xref">Client Recognition</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-the-client_recognition-cate" class="internal xref">The <code>client_recognition</code> Category</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-the-client_trust_methods-me" class="internal xref">The <code>client_trust_methods</code> Member</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-processing" class="internal xref">Processing</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-the-openid_federation_clien" class="internal xref">The <code>openid_federation_client</code> Trust Method</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-trust-anchor-key-rollover" class="internal xref">Trust Anchor Key Rollover</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-key-substitution-by-a-super" class="internal xref">Key Substitution by a Superior</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-client-recognition-2" class="internal xref">Client Recognition</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-privacy-considerations" class="internal xref">Privacy Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-identity-assertion-trust-me" class="internal xref">Identity Assertion Trust Method Categories Registration</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-identity-assertion-trust-met" class="internal xref">Identity Assertion Trust Methods Registrations</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
+                <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-trust-policy-members-regist" class="internal xref">Trust Policy Members Registration</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-design-rationale" class="internal xref">Design Rationale</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1">
+                <p id="section-toc.1-1.9.2.1.1"><a href="#appendix-A.1" class="auto internal xref">A.1</a>.  <a href="#name-relationship-to-openid-fede" class="internal xref">Relationship to OpenID Federation</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#appendix-B" class="auto internal xref">Appendix B</a>.  <a href="#name-future-extensions" class="internal xref">Future Extensions</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.1">
+                <p id="section-toc.1-1.10.2.1.1"><a href="#appendix-B.1" class="auto internal xref">B.1</a>.  <a href="#name-additional-client-recogniti" class="internal xref">Additional Client Recognition Methods</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#appendix-C" class="auto internal xref">Appendix C</a>.  <a href="#name-openid-federation-walkthrou" class="internal xref">OpenID Federation Walkthrough</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.1">
+                <p id="section-toc.1-1.11.2.1.1"><a href="#appendix-C.1" class="auto internal xref">C.1</a>.  <a href="#name-trust-mark-requirement-with" class="internal xref">Trust Mark Requirement Without an Issuer</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11.2.2">
+                <p id="section-toc.1-1.11.2.2.1"><a href="#appendix-C.2" class="auto internal xref">C.2</a>.  <a href="#name-well-known-binding-variant" class="internal xref">Well-Known Binding Variant</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#appendix-D" class="auto internal xref">Appendix D</a>.  <a href="#name-client-recognition-walkthro" class="internal xref">Client Recognition Walkthrough</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
+            <p id="section-toc.1-1.13.1"><a href="#appendix-E" class="auto internal xref">Appendix E</a>.  <a href="#name-document-history" class="internal xref">Document History</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14">
+            <p id="section-toc.1-1.14.1"><a href="#appendix-F" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">The OAuth Identity Assertion Trust Framework <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> lets
+a Resource Authorization Server publish a Trust Policy that names the
+Trust Methods an identity assertion must satisfy. The framework
+defines the Trust Method categories, the combination rule, and the
+token-endpoint procedure. It leaves concrete Trust Methods to
+companion specifications, such as <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">This document defines two Trust Methods based on OpenID Federation
+<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span>:<a href="#section-1-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1-3.1">
+          <p id="section-1-3.1.1"><code>openid_federation</code>, in the <code>issuer_authentication</code> category,
+accepts an Assertion Issuer whose trust chain validates to a listed
+trust anchor, that holds any required Trust Marks, and whose
+assertion signature verifies under a federation-bound key
+(<a href="#trust-method-openid-federation" class="auto internal xref">Section 3</a>).<a href="#section-1-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-3.2">
+          <p id="section-1-3.2.1"><code>openid_federation_client</code>, in the <code>client_recognition</code> category,
+accepts the OAuth client that presents the assertion when that
+client is a federation Entity and authenticates with a key that its
+federation metadata publishes
+(<a href="#trust-method-openid-federation-client" class="auto internal xref">Section 4.4</a>).<a href="#section-1-3.2.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-1-4">This document also extends <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> with the
+<code>client_recognition</code> category, the <code>client_trust_methods</code> Trust
+Policy member, and the processing they add (<a href="#client-recognition" class="auto internal xref">Section 4</a>).<a href="#section-1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="conventions-and-terminology">
+<section id="section-2">
+      <h2 id="name-conventions-and-terminology">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-conventions-and-terminology" class="section-name selfRef">Conventions and Terminology</a>
+      </h2>
+<p id="section-2-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">This document uses the terms Resource Authorization Server, Assertion
+Issuer, identity assertion, Trust Policy, Trust Method, Subject
+Authority, and Consumer as defined in <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>. OpenID
+Federation terms, such as Entity, Entity Identifier, Entity
+Configuration, Subordinate Statement, trust anchor, and Trust Mark,
+are used as defined in <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span>.<a href="#section-2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="trust-method-openid-federation">
+<section id="section-3">
+      <h2 id="name-the-openid_federation-trust">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-the-openid_federation-trust" class="section-name selfRef">The <code>openid_federation</code> Trust Method</a>
+      </h2>
+<p id="section-3-1"><code>issuer_authentication</code>-category methods are satisfied by evidence
+that the Assertion Issuer belongs to a recognized ecosystem.
+Membership alone does not establish authority over any particular
+subject namespace.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-2">Under the <code>openid_federation</code> method, the Assertion Issuer is
+acceptable if its OpenID Federation <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> trust chain
+validates to a listed trust anchor and the leaf holds any Trust Marks
+the policy requires.<a href="#section-3-2" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-3-3">
+<pre>
+{
+  "method": "openid_federation",
+  "trust_anchors": ["https://federation.example.org"],
+  "trust_marks": [
+    {
+      "trust_mark_type": "https://federation.example.org/tm/loa3",
+      "issuer": "https://federation.example.org"
+    }
+  ]
+}
+</pre><a href="#section-3-3" class="pilcrow">¶</a>
+</div>
+<span class="break"></span><dl class="dlParallel" id="section-3-4">
+        <dt id="section-3-4.1"><code>trust_anchors</code></dt>
+        <dd style="margin-left: 1.5em" id="section-3-4.2">
+          <p id="section-3-4.2.1"><span class="bcp14">REQUIRED</span>. Non-empty JSON array of OpenID Federation trust anchor
+entity identifiers. An identifier does not authenticate the trust
+anchor: the Resource Authorization Server holds each listed trust
+anchor's public keys, initially obtained in a secure out-of-band way
+(<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §4), not from the trust anchor's Entity
+Configuration alone. A chain to a listed trust anchor whose keys it
+does not hold is Indeterminate. <a href="#trust-anchor-rollover" class="auto internal xref">Section 5.1</a> covers
+later key changes.<a href="#section-3-4.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-4.3"><code>trust_marks</code></dt>
+        <dd style="margin-left: 1.5em" id="section-3-4.4">
+          <p id="section-3-4.4.1"><span class="bcp14">OPTIONAL</span>. Non-empty JSON array of Trust Mark requirement objects. When
+present, each requirement object listed <span class="bcp14">MUST</span> be satisfied by at least
+one Trust Mark in the leaf's Entity Configuration. Each
+requirement object has:<a href="#section-3-4.4.1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3-4.4.2">
+            <dt id="section-3-4.4.2.1"><code>trust_mark_type</code></dt>
+            <dd style="margin-left: 1.5em" id="section-3-4.4.2.2">
+              <p id="section-3-4.4.2.2.1"><span class="bcp14">REQUIRED</span>. String. The Trust Mark type identifier.<a href="#section-3-4.4.2.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-3-4.4.2.3"><code>issuer</code></dt>
+            <dd style="margin-left: 1.5em" id="section-3-4.4.2.4">
+              <p id="section-3-4.4.2.4.1"><span class="bcp14">OPTIONAL</span>. String. The Entity Identifier of the Trust Mark
+Issuer expected to have signed the Trust Mark. When absent, the
+Trust Mark's <code>iss</code> claim <span class="bcp14">MUST</span> appear in the non-empty array that
+the terminal trust anchor's <code>trust_mark_issuers</code> claim gives for
+that Trust Mark type. If the trust anchor gives no such array,
+or an empty one, the requirement is not satisfied. This
+deliberately narrows OpenID Federation, which allows any issuer
+when no issuer restriction is published.<a href="#section-3-4.4.2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<p id="section-3-5">The Trust Policy governs Trust Mark requirements for identity
+assertions. A Resource Authorization Server that also advertises
+Trust Mark requirements through discovery metadata <span class="bcp14">SHOULD</span> keep those
+advertisements consistent with this policy. Discovery advertisements
+do not replace enforcement of its Trust Method requirements.<a href="#section-3-5" class="pilcrow">¶</a></p>
+<p id="section-3-6">Trust chain validation, metadata policy resolution, and validation
+of the Trust Marks that requirement 4 relies on follow
+<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §10.2 and §7.3. If any fails, this Trust Method
+fails. Federation <code>metadata_policy</code> constrains Entity Type metadata
+in Entity Statements, not members carried only in documents that an
+extension binds by digest. <span>[<a href="#OIDF-WKB" class="cite xref">OIDF-WKB</a>]</span> is such an extension and
+reads no Entity Type metadata. A Superior that needs to constrain
+such a member, such as <code>jwks_uri</code>, marks it <code>essential</code>
+(<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §6.1.3.1.7), so that the leaf's policy-applied
+Entity Type metadata must carry it. For a key source, requirement 3
+then selects that value.<a href="#section-3-6" class="pilcrow">¶</a></p>
+<p id="section-3-7">In addition to the procedures in <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span>, the Resource
+Authorization Server <span class="bcp14">MUST</span> apply the following framework-specific
+requirements:<a href="#section-3-7" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-3-8">
+<li id="section-3-8.1">
+          <p id="section-3-8.1.1"><strong>Trust anchor match.</strong> The terminal trust anchor of the validated
+chain <span class="bcp14">MUST</span> exactly match one of the listed <code>trust_anchors</code> values. A
+chain to any listed trust anchor satisfies this requirement; failure
+to build a chain to one listed trust anchor does not prevent
+evaluating chains to the others (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Multiple
+Evidence Sources Within a Category).<a href="#section-3-8.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-3-8.2">
+          <p id="section-3-8.2.1"><strong>Entity type constraint.</strong> The leaf's policy-applied federation
+metadata <span class="bcp14">MUST</span> declare one of the entity types <code>openid_provider</code>
+or <code>oauth_authorization_server</code> (<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span>
+§5.1.2 and §5.1.3). For this type-declaration check, a present
+Entity Type member whose value is an object declares that type,
+even when the object is empty. This does not waive metadata
+validation required by the applicable federation specifications.
+The presence of other entity types alone does not satisfy this
+requirement.<a href="#section-3-8.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-3-8.3">
+          <p id="section-3-8.3.1"><strong>Federation-bound key resolution.</strong> The signing key for the
+identity assertion JWT <span class="bcp14">MUST</span> be taken from a key set that the
+leaf's policy-applied metadata designates, or that is otherwise
+bound to the leaf's Entity Identifier through the validated trust
+chain.<a href="#section-3-8.3.1" class="pilcrow">¶</a></p>
+<p id="section-3-8.3.2">
+The key sources defined in <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §5.2.1 satisfy this
+requirement. Each is the <code>jwks</code>, <code>jwks_uri</code>, or <code>signed_jwks_uri</code>
+value in the leaf's policy-applied <code>openid_provider</code> or
+<code>oauth_authorization_server</code> metadata, processed per that
+specification. If both <code>openid_provider</code> and
+<code>oauth_authorization_server</code> metadata carry a key source, a key from
+either satisfies this requirement.<a href="#section-3-8.3.2" class="pilcrow">¶</a></p>
+<p id="section-3-8.3.3">
+For <code>jwks_uri</code>, the trust chain authenticates the URI, not the key
+set it returns. The returned key set relies on HTTPS to that
+endpoint unless an extension, such as <span>[<a href="#OIDF-WKB" class="cite xref">OIDF-WKB</a>]</span>, also binds the
+key set. When the metadata's <code>jwks_uri</code> names the URL whose key set
+an extension binds, a consumer that applies the binding treats a
+failed binding as failure to validate that key source.<a href="#section-3-8.3.3" class="pilcrow">¶</a></p>
+<p id="section-3-8.3.4">
+Specifications that extend this Trust Method <span class="bcp14">MAY</span> define additional
+key sources that satisfy it. If the policy-applied metadata carries
+a key source, that source is the only one permitted. An
+extension-defined source is used only when the metadata carries
+none. Failure to retrieve or validate the metadata's key source
+<span class="bcp14">MUST NOT</span> trigger fallback to an extension-defined source.<a href="#section-3-8.3.4" class="pilcrow">¶</a></p>
+<p id="section-3-8.3.5">
+A JWK Set obtained any other way, including from the <code>jwks_uri</code> of
+<span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span> metadata that no qualifying source binds, <span class="bcp14">MUST NOT</span> be
+used. This prevents a downgrade in which an attacker who can alter
+the Assertion Issuer's <span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span> metadata, but not its federation
+metadata, substitutes the key source. If no qualifying key source
+is available, or its binding cannot be verified, the outcome is
+Indeterminate (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Lookup States and Fail-Closed).<a href="#section-3-8.3.5" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-3-8.4">
+          <p id="section-3-8.4.1"><strong>Trust Mark satisfaction.</strong> If the Trust Method object contains
+<code>trust_marks</code>, each requirement object <span class="bcp14">MUST</span> be satisfied by at
+least one Trust Mark that appears in the <code>trust_marks</code> claim of
+the leaf's Entity Configuration and meets all of the following:<a href="#section-3-8.4.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3-8.4.2.1">
+              <p id="section-3-8.4.2.1.1">It validates per <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §7.3.<a href="#section-3-8.4.2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3-8.4.2.2">
+              <p id="section-3-8.4.2.2.1">Its <code>trust_mark_type</code> equals the requirement's <code>trust_mark_type</code>.<a href="#section-3-8.4.2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3-8.4.2.3">
+              <p id="section-3-8.4.2.3.1">Its <code>iss</code> claim equals the requirement's <code>issuer</code>, or, when
+<code>issuer</code> is absent, satisfies the rule in the <code>issuer</code> member
+definition above.<a href="#section-3-8.4.2.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-3-8.4.3">
+The type in the Entity Configuration entry <span class="bcp14">MUST</span> match the type in
+the validated Trust Mark JWT. The issuer is taken from the JWT's
+<code>iss</code> claim, not from the enclosing entry. <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span>
+§7.3 requires trust in the Trust Mark Issuer before validation.
+That trust <span class="bcp14">MUST</span> be established through a trust chain terminating
+at the same trust anchor as the leaf's chain. That is the trust
+anchor whose <code>trust_mark_issuers</code> claim applies when <code>issuer</code> is
+absent.<a href="#section-3-8.4.3" class="pilcrow">¶</a></p>
+</li>
+      </ol>
+<p id="section-3-9">The proposed Well-Known Binding mechanism <span>[<a href="#OIDF-WKB" class="cite xref">OIDF-WKB</a>]</span> illustrates the
+additional key-source path in requirement 3. It binds a JWK Set to the Entity
+Identifier by listing its digest in the leaf's Entity Configuration
+(<a href="#example-wkb-variant" class="auto internal xref">Appendix C.2</a>). This document does not require support for
+it. A consumer without a supported qualifying key source returns
+Indeterminate.<a href="#section-3-9" class="pilcrow">¶</a></p>
+<p id="section-3-10">Lookup states (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Lookup States and Fail-Closed):<a href="#section-3-10" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3-11.1">
+          <p id="section-3-11.1.1"><strong>Affirmative</strong>: a fully validated chain from the leaf to a listed
+trust anchor.<a href="#section-3-11.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-11.2">
+          <p id="section-3-11.2.1"><strong>Negative</strong>: any of these:<a href="#section-3-11.2.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3-11.2.2.1">
+              <p id="section-3-11.2.2.1.1">the fetch of the leaf's Entity Configuration returns HTTP 404 or
+410 (the Assertion Issuer does not participate in federation);<a href="#section-3-11.2.2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3-11.2.2.2">
+              <p id="section-3-11.2.2.2.1">the leaf's chains validate, but none reaches a listed trust
+anchor; or<a href="#section-3-11.2.2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3-11.2.2.3">
+              <p id="section-3-11.2.2.3.1">every Superior in the leaf's <code>authority_hints</code> answers the fetch
+endpoint request for the leaf with the <code>not_found</code> error
+(<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §8.1.2 and §8.9).<a href="#section-3-11.2.2.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</li>
+        <li class="normal" id="section-3-11.3">
+          <p id="section-3-11.3.1"><strong>Indeterminate</strong>: any other failure to obtain or validate the
+chain, such as:<a href="#section-3-11.3.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3-11.3.2.1">
+              <p id="section-3-11.3.2.1.1">an Entity Statement fetch that fails or times out;<a href="#section-3-11.3.2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3-11.3.2.2">
+              <p id="section-3-11.3.2.2.1">a signature that cannot be verified because key material is
+unavailable; or<a href="#section-3-11.3.2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-3-11.3.2.3">
+              <p id="section-3-11.3.2.3.1">an expired statement that cannot be refreshed.<a href="#section-3-11.3.2.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</li>
+      </ul>
+<p id="section-3-12">The framework-specific requirements above are evaluated against an
+Affirmative chain. Every requirement <span class="bcp14">MUST</span> hold on that one chain: the
+metadata, key source, and Trust Marks used are those of the chain
+that satisfies requirement 1. A chain that fails requirement 1 is
+Negative, as above. In each case below, the leaf does not satisfy
+this Trust Method and the lookup state is unchanged:<a href="#section-3-12" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3-13.1">
+          <p id="section-3-13.1.1">It does not declare a required entity type (requirement 2).<a href="#section-3-13.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-13.2">
+          <p id="section-3-13.2.1">Its assertion signature does not verify under the permitted key
+source (requirement 3).<a href="#section-3-13.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-13.3">
+          <p id="section-3-13.3.1">It holds no valid Trust Mark meeting a requirement (requirement 4).<a href="#section-3-13.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-3-14">A Trust Mark that fails validation per <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §7.3 does
+not meet a requirement. Only a retrieval the method needs and cannot
+complete is Indeterminate, namely a retrieval of:<a href="#section-3-14" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3-15.1">
+          <p id="section-3-15.1.1">the permitted key source;<a href="#section-3-15.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-15.2">
+          <p id="section-3-15.2.1">a Trust Mark Issuer's chain; or<a href="#section-3-15.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-3-15.3">
+          <p id="section-3-15.3.1">a Trust Mark Status endpoint the Resource Authorization Server
+relies on.<a href="#section-3-15.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-3-16">Neither Negative nor Indeterminate satisfies this Trust Method
+(<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Fail-Closed Requirements). Entity Statement
+caching follows the statements' own <code>exp</code> values per
+<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span>, bounded by the consumer's local cache ceiling. A
+cached chain <span class="bcp14">MUST NOT</span> be used past the earliest <code>exp</code> in the chain, or
+more than 24 hours after it was obtained. The same 24-hour limit applies
+to a key set obtained through requirement 3. These limits hold while
+a fresh lookup is Indeterminate: this method allows no stale use
+beyond them (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Fail-Closed Requirements). A Trust
+Mark that requirement 4 relies on <span class="bcp14">MUST</span> be re-validated whenever the
+chain is. For a Trust Mark without <code>exp</code>, that includes its Trust
+Mark Status endpoint (<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §8.4) when the Trust Mark
+Issuer publishes one. A Trust Mark is not used past its own <code>exp</code>.<a href="#section-3-16" class="pilcrow">¶</a></p>
+<p id="section-3-17">The fetches that <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Outbound Fetches governs
+include the Entity Statements reached through the leaf's
+<code>authority_hints</code> and the chain of a Trust Mark Issuer.<a href="#section-3-17" class="pilcrow">¶</a></p>
+<p id="section-3-18">See <a href="#relationship-to-oidf" class="auto internal xref">Appendix A.1</a> for positioning against OpenID
+Federation.<a href="#section-3-18" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="client-recognition">
+<section id="section-4">
+      <h2 id="name-client-recognition">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-client-recognition" class="section-name selfRef">Client Recognition</a>
+      </h2>
+<p id="section-4-1">This section extends <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> with a Trust Method category
+for the OAuth client that presents an identity assertion, a Trust
+Policy member that lists methods in that category, the processing
+they add, and one method in that category.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<div id="client-recognition-category">
+<section id="section-4.1">
+        <h3 id="name-the-client_recognition-cate">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-the-client_recognition-cate" class="section-name selfRef">The <code>client_recognition</code> Category</a>
+        </h3>
+<p id="section-4.1-1">This document registers the following Trust Method category
+(<a href="#iana-category" class="auto internal xref">Section 7.1</a>), in addition to those of <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>
+§Trust Method Categories:<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.1-2">
+          <dt id="section-4.1-2.1"><code>client_recognition</code></dt>
+          <dd style="margin-left: 1.5em" id="section-4.1-2.2">
+            <p id="section-4.1-2.2.1">Is the OAuth client presenting the assertion, as authenticated at the
+token endpoint, recognized by an authority the Resource Authorization
+Server accepts? Methods in this category are listed in
+<code>client_trust_methods</code>. They evaluate the authenticated client, never a
+claim in the assertion (<a href="#client-recognition-processing" class="auto internal xref">Section 4.3</a>, step 5f).
+Recognition does not authorize the client to act for a particular user.
+The grant profile's client binding does that (for ID-JAG, <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>
+§4.4.1).<a href="#section-4.1-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-4.1-3">For a <code>client_recognition</code> method, the party whose evaluation its
+specification defines (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Requirements on Trust
+Method Specifications) is the authenticated client.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.1-4">As for <code>issuer_authentication</code> (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Multiple
+Evidence Sources Within a Category), every evidence source the Trust
+Policy lists for this category is equally trusted, so a
+<code>client_recognition</code> Trust Method specification <span class="bcp14">MAY</span> accept evidence
+from any of them. For <code>openid_federation_client</code>, this means a chain
+to any listed trust anchor.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.1-5"><code>client_recognition</code>-category methods are satisfied by evidence about
+the OAuth client that presents an identity assertion at the token
+endpoint. These methods evaluate the client that the grant profile's
+client authentication identifies (<a href="#client-recognition-processing" class="auto internal xref">Section 4.3</a>,
+step 5f). For ID-JAG, the assertion's <code>client_id</code> claim, set by the
+Assertion Issuer, identifies the same client (<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1).
+Recognizing a client does not authorize any Assertion Issuer, and
+authorizing an Assertion Issuer does not recognize any client.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
+<p id="section-4.1-6">The OAuth Client ID Metadata Document
+<span>[<a href="#I-D.ietf-oauth-client-id-metadata-document" class="cite xref">I-D.ietf-oauth-client-id-metadata-document</a>]</span> is complementary: it
+lets an authorization server obtain a client's metadata and keys
+from its <code>client_id</code> URL but leaves the trust decision to that
+server. A client recognition method could use it as a key source
+only together with evidence that the Resource Authorization Server
+trusts. <code>openid_federation_client</code> does not use it: a client whose
+keys are published only in a Client ID Metadata Document does not
+satisfy that method (<a href="#trust-method-openid-federation-client" class="auto internal xref">Section 4.4</a>).<a href="#section-4.1-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="client-trust-methods">
+<section id="section-4.2">
+        <h3 id="name-the-client_trust_methods-me">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-the-client_trust_methods-me" class="section-name selfRef">The <code>client_trust_methods</code> Member</a>
+        </h3>
+<p id="section-4.2-1">This document registers the following Trust Policy member
+(<a href="#iana-member" class="auto internal xref">Section 7.3</a>):<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.2-2">
+          <dt id="section-4.2-2.1"><code>client_trust_methods</code></dt>
+          <dd style="margin-left: 1.5em" id="section-4.2-2.2">
+            <p id="section-4.2-2.2.1"><span class="bcp14">OPTIONAL</span>. Non-empty JSON array of Trust Method objects
+(<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Trust Methods) whose methods belong to the
+<code>client_recognition</code> category (<a href="#client-recognition-category" class="auto internal xref">Section 4.1</a>). When
+present, it states the trust requirements the Resource Authorization
+Server enforces against the client presenting an identity assertion. An
+assertion is rejected unless the authenticated client satisfies the
+Trust Method combination rule in <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Resource
+Authorization Server Processing against the methods listed here. An
+object in this member counts only toward the <code>client_recognition</code>
+category. A method outside that category is malformed here.<a href="#section-4.2-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-4.2-3">A Trust Policy that contains <code>client_trust_methods</code> <span class="bcp14">MUST</span> list
+<code>client_trust_methods</code> in <code>crit</code> (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Critical
+Members). A Resource Authorization Server that implements this
+document processes <code>client_trust_methods</code> whether or not <code>crit</code> lists
+it. A Resource Authorization Server that implements only
+<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> rejects a policy that lists the member in <code>crit</code>
+instead of ignoring its requirements on clients, and a client that
+does not implement the member cannot read that policy as placing no
+requirement on clients. A policy that omits the member from <code>crit</code>
+gets neither protection: a server that implements only
+<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> ignores the member (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Trust
+Policy Document) and can accept assertions presented by clients that
+the member would reject.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="client-recognition-processing">
+<section id="section-4.3">
+        <h3 id="name-processing">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-processing" class="section-name selfRef">Processing</a>
+        </h3>
+<p id="section-4.3-1">This section adds to the procedure of <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Resource
+Authorization Server Processing, which lets a specification that
+registers a category state where in that procedure its checks run
+and how its errors rank. Step numbers below are those of that
+procedure, and the additions to steps 1 and 5 are part of those
+steps.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.3-2"><strong>Client processing.</strong> In step 4 of <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Client
+Processing, if the Trust Policy contains <code>client_trust_methods</code>, the
+client also determines whether it satisfies them, for example whether
+its <code>client_id</code> is an Entity Identifier in a listed federation.<a href="#section-4.3-2" class="pilcrow">¶</a></p>
+<p id="section-4.3-3"><strong>Policy selection (step 1).</strong> A Resource Authorization Server that
+holds more than one Trust Policy selects one by client only when the
+request's client authentication verifies against a registration it
+holds. <a href="#trust-method-openid-federation-client" class="auto internal xref">Section 4.4</a> limits which
+registrations qualify. Any other request gets the policy that applies
+without regard to the client, such as the one it publishes
+(<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Metadata Publication).<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.3-4"><strong>Client evaluation (step 5).</strong> When the policy contains
+<code>client_trust_methods</code>, step 5 also verifies that the authenticated
+client satisfies the Trust Method combination rule. For the
+<code>client_recognition</code> category, the party that step 5b evaluates is
+the authenticated client. This document adds step 5f:<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+<p id="section-4.3-5"><strong>Step 5f.</strong> When the policy contains <code>client_trust_methods</code>, the
+Resource Authorization Server <span class="bcp14">MUST</span> evaluate the <code>client_recognition</code>
+category against the client that the request's client authentication
+(<span>[<a href="#RFC6749" class="cite xref">RFC6749</a>]</span> Section 2.3) identifies, never against a claim in the
+assertion. If the request carries no client authentication that the
+Resource Authorization Server accepts, it <span class="bcp14">MUST</span> reject the request with
+an <code>invalid_client</code> error (<span>[<a href="#RFC6749" class="cite xref">RFC6749</a>]</span> Section 5.2).<a href="#section-4.3-5" class="pilcrow">¶</a></p>
+<p id="section-4.3-6"><strong>Ordering.</strong> When the policy contains <code>client_trust_methods</code>, the
+Resource Authorization Server <span class="bcp14">MUST</span> authenticate the client, and evaluate
+the <code>client_recognition</code> category (step 5f), before step 2. Before
+authenticating the client, the Resource Authorization Server <span class="bcp14">MUST NOT</span>
+perform any lookup except those a <code>client_recognition</code> method needs to
+obtain the client's authentication keys. An example is the trust chain
+and key set that <code>openid_federation_client</code> resolves.<a href="#section-4.3-6" class="pilcrow">¶</a></p>
+<p id="section-4.3-7"><strong>Errors.</strong> An error from step 5f or from a <code>client_recognition</code> method
+takes precedence over any other error.<a href="#section-4.3-7" class="pilcrow">¶</a></p>
+<p id="section-4.3-8"><strong>Outbound fetches.</strong> The fetches that <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Outbound
+Fetches governs also include a client's Entity Configuration, trust
+chain, and key sets.<a href="#section-4.3-8" class="pilcrow">¶</a></p>
+<p id="section-4.3-9"><strong>Grant-profile binding.</strong> <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1 lets a client that does
+not authenticate prove possession of the key in the ID-JAG's <code>cnf</code> claim
+instead. When the Trust Policy contains <code>client_trust_methods</code>, step 5f
+rejects such a request with <code>invalid_client</code>. This narrows <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>
+§4.4.1.<a href="#section-4.3-9" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="trust-method-openid-federation-client">
+<section id="section-4.4">
+        <h3 id="name-the-openid_federation_clien">
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-the-openid_federation_clien" class="section-name selfRef">The <code>openid_federation_client</code> Trust Method</a>
+        </h3>
+<p id="section-4.4-1">Under the <code>openid_federation_client</code> method, the client is acceptable
+if it is an OpenID Federation <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> Entity whose trust
+chain validates to a listed trust anchor and that holds any Trust
+Marks the policy requires.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="section-4.4-2">
+<pre>
+{
+  "method": "openid_federation_client",
+  "trust_anchors": ["https://federation.example.org"]
+}
+</pre><a href="#section-4.4-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.4-3">The method has the members <code>trust_anchors</code> and <code>trust_marks</code>, defined
+as for <code>openid_federation</code> (<a href="#trust-method-openid-federation" class="auto internal xref">Section 3</a>).<a href="#section-4.4-3" class="pilcrow">¶</a></p>
+<p id="section-4.4-4">The client's <code>client_id</code> is its Entity Identifier, as in Automatic
+Registration (<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §12.1 and §12.4).
+<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §12.1 starts Automatic Registration at an
+Authentication Request, and §12.1.5 says that bare OAuth 2.0
+deployments can use it. This method defines the case §12.1 does not
+describe: a client whose first request is a token request. This
+method places none of the obligations of <span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span>
+§12.1 on the client toward the Resource Authorization Server. This
+method is evaluated for each token request that presents an identity
+assertion. The <code>client_id</code> <span class="bcp14">MUST</span> equal the <code>sub</code> of the client's
+Entity Configuration by simple string comparison. A client whose
+<code>client_id</code> is not an Entity Identifier (<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §1.2)
+does not satisfy this method, and the lookup state is Negative.<a href="#section-4.4-4" class="pilcrow">¶</a></p>
+<p id="section-4.4-5">The Resource Authorization Server evaluates this method as it
+evaluates <code>openid_federation</code>, with the client's Entity Identifier as
+the leaf. Trust chain validation, the lookup states, caching, and
+requirements 1 and 4 apply unchanged. Where that section refers to the
+Assertion Issuer, it refers here to the client. Every requirement <span class="bcp14">MUST</span>
+hold on one trust chain: the metadata, key set, and Trust Marks used
+are those of the chain that satisfies requirement 1. Requirements 2
+and 3 are replaced by the following:<a href="#section-4.4-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.4-6.1">
+            <p id="section-4.4-6.1.1"><strong>Entity type constraint.</strong> The leaf's policy-applied federation
+metadata <span class="bcp14">MUST</span> declare the entity type <code>oauth_client</code> or
+<code>openid_relying_party</code> (<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §5.1.4 and
+§5.1.1), under the type-declaration rule of requirement 2. The
+client metadata is the policy-applied <code>oauth_client</code> metadata, or,
+if the leaf declares no <code>oauth_client</code> type, the
+<code>openid_relying_party</code> metadata. <span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §12
+uses <code>oauth_client</code> for OAuth 2.0 profiles other than OpenID
+Connect. Metadata from the two types is never combined.<a href="#section-4.4-6.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.4-6.2">
+            <p id="section-4.4-6.2.1"><strong>Federation-bound client authentication key.</strong> Client
+authentication <span class="bcp14">MUST</span> verify under a key in a key set that the client
+metadata designates through <code>jwks</code>, <code>jwks_uri</code>, or <code>signed_jwks_uri</code>
+(<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §5.2.1), processed as that section specifies.
+For <code>jwks_uri</code>, the trust chain authenticates the URI, not the key
+set it returns. That key set relies on HTTPS to that endpoint. The
+permitted client authentication methods are:<a href="#section-4.4-6.2.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.4-6.2.2.1">
+                <p id="section-4.4-6.2.2.1.1">JWT client authentication (<span>[<a href="#RFC7523" class="cite xref">RFC7523</a>]</span> Sections 2.2 and 3, as
+updated by <span>[<a href="#RFC10070" class="cite xref">RFC10070</a>]</span>) with a JWT signed by such a key, whose
+<code>aud</code> claim is the Resource Authorization Server's issuer
+identifier as its sole value, as a string or as an array with only
+that element (<span>[<a href="#RFC10070" class="cite xref">RFC10070</a>]</span> Section 4); and<a href="#section-4.4-6.2.2.1.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-4.4-6.2.2.2">
+                <p id="section-4.4-6.2.2.2.1">self-signed certificate mutual TLS (<span>[<a href="#RFC8705" class="cite xref">RFC8705</a>]</span> Section 2.2) with
+a certificate equal to the first certificate in the <code>x5c</code> value
+of such a key, without certificate chain validation.<a href="#section-4.4-6.2.2.2.1" class="pilcrow">¶</a></p>
+</li>
+            </ul>
+<p id="section-4.4-6.2.3">
+<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §12.1.1.2 (see also §12.1.1.2.1) names
+these two methods for a Pushed Authorization Request. There, as on
+a first token request, the client authenticates before any
+registration exists. The methods are narrower than
+<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §12.1.4, under which a server should
+accept any mutually supported method. The <code>aud</code> value is the issuer
+identifier, not an Entity Identifier, because the Resource
+Authorization Server need not be a federation Entity.<a href="#section-4.4-6.2.3" class="pilcrow">¶</a></p>
+<p id="section-4.4-6.2.4">
+A client that authenticates any other way does not satisfy this
+method. Keys the Resource Authorization Server knows only through
+another source, such as out-of-band registration or a client
+metadata document, do not count. If no such key set is available,
+or it cannot be retrieved or validated, the outcome is
+Indeterminate.<a href="#section-4.4-6.2.4" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.4-6.3">
+            <p id="section-4.4-6.3.1"><strong>Declared client metadata.</strong> The client metadata <span class="bcp14">MUST</span> declare the
+method the client authenticates with, in
+<code>token_endpoint_auth_method</code> or
+<code>token_endpoint_auth_methods_supported</code>
+(<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §12.1.4), and <span class="bcp14">MUST</span> list the token
+request's grant type in <code>grant_types</code> (<span>[<a href="#RFC7591" class="cite xref">RFC7591</a>]</span> Section 2). A
+client that omits them does not satisfy this method. The
+<span>[<a href="#RFC7591" class="cite xref">RFC7591</a>]</span> defaults, <code>client_secret_basic</code> and
+<code>authorization_code</code>, would not permit the request either. A
+Superior can constrain both through metadata policy
+(<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §6.1).<a href="#section-4.4-6.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-4.4-7">When the Resource Authorization Server relies on this method to
+satisfy the <code>client_recognition</code> category, it <span class="bcp14">MUST NOT</span> accept the
+assertion unless client authentication verified under a key this
+method permits.<a href="#section-4.4-7" class="pilcrow">¶</a></p>
+<p id="section-4.4-8">The keys come from the trust chain, so the Resource Authorization
+Server resolves the client's trust chain and key set before it
+verifies client authentication. The error for a failure depends on
+the condition, not on when it is detected. When more than one
+condition applies, the first in this list determines the error:<a href="#section-4.4-8" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-4.4-9">
+<li id="section-4.4-9.1">
+            <p id="section-4.4-9.1.1"><code>invalid_client</code> (<span>[<a href="#RFC6749" class="cite xref">RFC6749</a>]</span> Section 5.2) when any of the
+following holds:<a href="#section-4.4-9.1.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.4-9.1.2.1">
+                <p id="section-4.4-9.1.2.1.1">the <code>client_id</code> is not an Entity Identifier;<a href="#section-4.4-9.1.2.1.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-4.4-9.1.2.2">
+                <p id="section-4.4-9.1.2.2.1">no trust chain reaches a listed trust anchor;<a href="#section-4.4-9.1.2.2.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-4.4-9.1.2.3">
+                <p id="section-4.4-9.1.2.3.1">the chain or the key set is Indeterminate;<a href="#section-4.4-9.1.2.3.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-4.4-9.1.2.4">
+                <p id="section-4.4-9.1.2.4.1">the metadata declares neither entity type;<a href="#section-4.4-9.1.2.4.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-4.4-9.1.2.5">
+                <p id="section-4.4-9.1.2.5.1">the client authenticates with a method its metadata does not
+declare; or<a href="#section-4.4-9.1.2.5.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-4.4-9.1.2.6">
+                <p id="section-4.4-9.1.2.6.1">client authentication does not verify under a key in the
+federation key set.<a href="#section-4.4-9.1.2.6.1" class="pilcrow">¶</a></p>
+</li>
+            </ul>
+</li>
+          <li id="section-4.4-9.2">
+            <p id="section-4.4-9.2.1"><code>unauthorized_client</code> (<span>[<a href="#RFC6749" class="cite xref">RFC6749</a>]</span> Section 5.2) when the client is
+authenticated but not recognized:<a href="#section-4.4-9.2.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.4-9.2.2.1">
+                <p id="section-4.4-9.2.2.1.1">it holds no Trust Mark that meets a requirement (requirement 4);<a href="#section-4.4-9.2.2.1.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-4.4-9.2.2.2">
+                <p id="section-4.4-9.2.2.2.1">the Trust Mark evaluation is Indeterminate; or<a href="#section-4.4-9.2.2.2.1" class="pilcrow">¶</a></p>
+</li>
+              <li class="normal" id="section-4.4-9.2.2.3">
+                <p id="section-4.4-9.2.2.3.1">its metadata does not list the request's grant type.<a href="#section-4.4-9.2.2.3.1" class="pilcrow">¶</a></p>
+</li>
+            </ul>
+</li>
+          <li id="section-4.4-9.3">
+            <p id="section-4.4-9.3.1">Any failure of the assertion or of an issuer method gets the error
+that <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Resource Authorization Server Processing
+specifies.<a href="#section-4.4-9.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-4.4-10">Any token request can name an <code>https</code> <code>client_id</code>, and so cause these
+fetches before the client is authenticated. They include a fetch for
+every Entity in the client's <code>authority_hints</code> (<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span>
+§18.1). Before the client is authenticated, the Resource
+Authorization Server:<a href="#section-4.4-10" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.4-11.1">
+            <p id="section-4.4-11.1.1"><span class="bcp14">MUST</span> limit the number of <code>authority_hints</code> it follows;<a href="#section-4.4-11.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.4-11.2">
+            <p id="section-4.4-11.2.1"><span class="bcp14">MUST</span> apply a global rate limit to trust chain resolution for
+unauthenticated requests;<a href="#section-4.4-11.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.4-11.3">
+            <p id="section-4.4-11.3.1"><span class="bcp14">SHOULD</span> cache a Negative or Indeterminate outcome per <code>client_id</code>
+for a bounded period; and<a href="#section-4.4-11.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.4-11.4">
+            <p id="section-4.4-11.4.1"><span class="bcp14">SHOULD</span> also rate-limit trust chain resolution per <code>client_id</code>.<a href="#section-4.4-11.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-4.4-12">A client that does not publish its Entity Configuration
+(<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §9) can send its trust chain in a <code>trust_chain</code>
+header parameter of its client assertion (<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span>
+§4.3). The Resource Authorization Server <span class="bcp14">MAY</span> use that chain in place
+of resolving one, after validating it per <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §10.2.
+It resolves the chain itself instead if any Entity Statement in the
+supplied chain was issued more than 24 hours earlier. Without a
+published Entity Configuration or a valid supplied chain, the client
+does not satisfy this method.<a href="#section-4.4-12" class="pilcrow">¶</a></p>
+<p id="section-4.4-13">The Resource Authorization Server caches the client's key set no
+longer than the trust chain (<a href="#trust-method-openid-federation" class="auto internal xref">Section 3</a>). A
+client assertion signed with a key whose <code>kid</code> the cached key set
+lacks <span class="bcp14">MAY</span> prompt one fresh fetch of the key set, rate-limited per
+client, before the request is rejected.<a href="#section-4.4-13" class="pilcrow">¶</a></p>
+<p id="section-4.4-14">Clients registered through Explicit Registration
+(<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §12.2) receive a <code>client_id</code> that need
+not be their Entity Identifier. This method covers such a client only
+when its <code>client_id</code> is its Entity Identifier.<a href="#section-4.4-14" class="pilcrow">¶</a></p>
+<p id="section-4.4-15">A Resource Authorization Server can apply a Trust Policy without
+<code>client_trust_methods</code> to a request that authenticates as a client the
+server registered itself, against that registration
+(<a href="#client-recognition-processing" class="auto internal xref">Section 4.3</a>). It <span class="bcp14">MUST NOT</span> do so for a request
+whose <code>client_id</code> is an <code>https</code> URL, even when it holds a registration
+for that <code>client_id</code>. One example is an Explicit Registration that kept
+the Entity Identifier (<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §12.2.2). A public
+client does not authenticate against its registration (<span>[<a href="#RFC6749" class="cite xref">RFC6749</a>]</span>
+Section 2.3). Every other request, including one that names a registered
+<code>client_id</code> without authenticating as that client, gets the policy with
+<code>client_trust_methods</code>. A Resource Authorization Server that already
+uses <code>https</code> URLs as <code>client_id</code> values for clients outside a federation
+cannot list <code>client_trust_methods</code> without rejecting those clients. This
+document defines no other way to combine registered and federation
+clients. <a href="#example-client-recognition" class="auto internal xref">Appendix D</a> walks through first contact,
+rejection, cached trust, and coexistence.<a href="#section-4.4-15" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="security-considerations">
+<section id="section-5">
+      <h2 id="name-security-considerations">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-5-1">The security considerations of <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> and
+<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> apply.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<div id="trust-anchor-rollover">
+<section id="section-5.1">
+        <h3 id="name-trust-anchor-key-rollover">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-trust-anchor-key-rollover" class="section-name selfRef">Trust Anchor Key Rollover</a>
+        </h3>
+<p id="section-5.1-1"><span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Evidence Source Compromise covers compromise of
+the federation operator's signing key.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">Trust anchor key rollover in <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §11.2 has no
+mandatory hold-down period: a compromised current key can introduce
+a replacement immediately. Resource Authorization Servers <span class="bcp14">SHOULD</span>
+obtain trust anchor keys through an independent channel where the
+Federation Operator provides one, as <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §11.3
+recommends. Routine rollover alone does not provide recovery from
+trust anchor compromise.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="superior-key-substitution">
+<section id="section-5.2">
+        <h3 id="name-key-substitution-by-a-super">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-key-substitution-by-a-super" class="section-name selfRef">Key Substitution by a Superior</a>
+        </h3>
+<p id="section-5.2-1"><span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Key Binding Is Outside Namespace Authorization
+lists the parties that decide which key speaks for an authorized
+issuer identifier.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-2">Under <code>openid_federation</code>, the leaf's policy-applied metadata supplies
+the key source (<a href="#trust-method-openid-federation" class="auto internal xref">Section 3</a>). An Immediate
+Superior can supply that metadata (<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §3.1.1). A
+compromised intermediate or trust anchor can therefore substitute the
+key of a listed issuer beneath it, and both categories then pass.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
+<p id="section-5.2-3">Requirement 3 accepts a key source from either <code>openid_provider</code> or
+<code>oauth_authorization_server</code> metadata. A Superior that constrains a
+leaf's key source through metadata policy therefore constrains it
+for both types; otherwise the leaf can supply an unconstrained key
+source under the other type.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="client-recognition-security">
+<section id="section-5.3">
+        <h3 id="name-client-recognition-2">
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-client-recognition-2" class="section-name selfRef">Client Recognition</a>
+        </h3>
+<p id="section-5.3-1">The <code>client_recognition</code> category evaluates the client identified by the
+token request's client authentication
+(<a href="#client-recognition-processing" class="auto internal xref">Section 4.3</a>, step 5f), not by the assertion. An
+attacker who controls an assertion's claims therefore cannot choose
+which client is evaluated (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Unverified Claim
+Exploitation). Recognition admits a client to the exchange. It does not
+authorize the client to act for a particular user, says nothing about
+the subject or the Assertion Issuer, and leaves the other categories in
+force.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<p id="section-5.3-2"><code>openid_federation_client</code> requires the client to authenticate with
+a key its federation metadata publishes. Without that rule, a client
+could authenticate with a key the Resource Authorization Server holds
+from another source, such as a client metadata document, and be
+recognized as the federation Entity its <code>client_id</code> names. A Resource
+Authorization Server that also registers clients selects their policy
+only after they authenticate against their registration. Naming a
+registered <code>client_id</code> without authenticating as that client
+therefore does not avoid the client method. A request whose
+<code>client_id</code> is an <code>https</code> URL gets the client method even when a
+registration exists for that URL. A party holding such a
+registration therefore cannot redeem an assertion issued to the
+federation Entity of that name
+(<a href="#trust-method-openid-federation-client" class="auto internal xref">Section 4.4</a>).<a href="#section-5.3-2" class="pilcrow">¶</a></p>
+<p id="section-5.3-3">A compromised intermediate or trust anchor can substitute a client's
+keys through the metadata in its Subordinate Statement
+(<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §3.1.1), as it can an Assertion Issuer's
+(<a href="#superior-key-substitution" class="auto internal xref">Section 5.2</a>). It can therefore authenticate as any
+client beneath it.<a href="#section-5.3-3" class="pilcrow">¶</a></p>
+<p id="section-5.3-4">Under a client method that lets a client opt in by publishing
+evidence, such as a DNS record, a client that has published nothing
+is Negative, as under a namespace method. Under the combination
+rule, that client is rejected wherever the category is listed unless
+another listed client method is satisfied. This document defines no
+mechanism for accepting such clients through local policy instead.<a href="#section-5.3-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="privacy-considerations">
+<section id="section-6">
+      <h2 id="name-privacy-considerations">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-privacy-considerations" class="section-name selfRef">Privacy Considerations</a>
+      </h2>
+<p id="section-6-1">This document adds no privacy considerations beyond those of
+<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> and <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span>.<a href="#section-6-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana-considerations">
+<section id="section-7">
+      <h2 id="name-iana-considerations">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<div id="iana-category">
+<section id="section-7.1">
+        <h3 id="name-identity-assertion-trust-me">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-identity-assertion-trust-me" class="section-name selfRef">Identity Assertion Trust Method Categories Registration</a>
+        </h3>
+<p id="section-7.1-1">This document registers the following entry in the Identity
+Assertion Trust Method Categories registry (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>
+§Identity Assertion Trust Method Categories Registry):<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-7.1-2">
+          <dt id="section-7.1-2.1">Category Name:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.1-2.2">
+            <p id="section-7.1-2.2.1"><code>client_recognition</code><a href="#section-7.1-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.1-2.3">Description:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.1-2.4">
+            <p id="section-7.1-2.4.1">Establishes that the client presenting the assertion is recognized
+by an authority the Resource Authorization Server accepts<a href="#section-7.1-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.1-2.5">Change Controller:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.1-2.6">
+            <p id="section-7.1-2.6.1">IETF<a href="#section-7.1-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.1-2.7">Specification Document:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.1-2.8">
+            <p id="section-7.1-2.8.1">This document, <a href="#client-recognition-category" class="auto internal xref">Section 4.1</a><a href="#section-7.1-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="iana-methods">
+<section id="section-7.2">
+        <h3 id="name-identity-assertion-trust-met">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-identity-assertion-trust-met" class="section-name selfRef">Identity Assertion Trust Methods Registrations</a>
+        </h3>
+<p id="section-7.2-1">This document registers the following entries in the Identity
+Assertion Trust Methods registry (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Identity
+Assertion Trust Methods Registry):<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-7.2-2">
+          <dt id="section-7.2-2.1">Identifier:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-2.2">
+            <p id="section-7.2-2.2.1"><code>openid_federation</code><a href="#section-7.2-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-2.3">Category:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-2.4">
+            <p id="section-7.2-2.4.1"><code>issuer_authentication</code><a href="#section-7.2-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-2.5">Parameters:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-2.6">
+            <p id="section-7.2-2.6.1"><code>trust_anchors</code> (array of string, <span class="bcp14">REQUIRED</span>); <code>trust_marks</code> (array
+of object, <span class="bcp14">OPTIONAL</span>; see <a href="#trust-method-openid-federation" class="auto internal xref">Section 3</a>)<a href="#section-7.2-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-2.7">Change Controller:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-2.8">
+            <p id="section-7.2-2.8.1">IETF<a href="#section-7.2-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-2.9">Reference:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-2.10">
+            <p id="section-7.2-2.10.1">This document<a href="#section-7.2-2.10.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-2.11">Identifier:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-2.12">
+            <p id="section-7.2-2.12.1"><code>openid_federation_client</code><a href="#section-7.2-2.12.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-2.13">Category:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-2.14">
+            <p id="section-7.2-2.14.1"><code>client_recognition</code><a href="#section-7.2-2.14.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-2.15">Parameters:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-2.16">
+            <p id="section-7.2-2.16.1"><code>trust_anchors</code> (array of string, <span class="bcp14">REQUIRED</span>); <code>trust_marks</code> (array
+of object, <span class="bcp14">OPTIONAL</span>; see <a href="#trust-method-openid-federation-client" class="auto internal xref">Section 4.4</a>)<a href="#section-7.2-2.16.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-2.17">Change Controller:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-2.18">
+            <p id="section-7.2-2.18.1">IETF<a href="#section-7.2-2.18.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-2.19">Reference:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-2.20">
+            <p id="section-7.2-2.20.1">This document<a href="#section-7.2-2.20.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="iana-member">
+<section id="section-7.3">
+        <h3 id="name-trust-policy-members-regist">
+<a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-trust-policy-members-regist" class="section-name selfRef">Trust Policy Members Registration</a>
+        </h3>
+<p id="section-7.3-1">This document registers the following entry in the Identity
+Assertion Issuer Trust Policy Members registry (<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>
+§Trust Policy Members Registry):<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-7.3-2">
+          <dt id="section-7.3-2.1">Member Name:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.3-2.2">
+            <p id="section-7.3-2.2.1"><code>client_trust_methods</code><a href="#section-7.3-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.3-2.3">Member Description:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.3-2.4">
+            <p id="section-7.3-2.4.1">Trust Method requirements enforced for the client presenting an
+identity assertion<a href="#section-7.3-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.3-2.5">Decision-Affecting:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.3-2.6">
+            <p id="section-7.3-2.6.1">Yes<a href="#section-7.3-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.3-2.7">Change Controller:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.3-2.8">
+            <p id="section-7.3-2.8.1">IETF<a href="#section-7.3-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.3-2.9">Specification Document:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.3-2.10">
+            <p id="section-7.3-2.10.1">This document, <a href="#client-trust-methods" class="auto internal xref">Section 4.2</a><a href="#section-7.3-2.10.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-8">
+      <h2 id="name-references">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<div id="sec-normative-references">
+<section id="section-8.1">
+        <h3 id="name-normative-references">
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="ID-JAG">[ID-JAG]</dt>
+        <dd>
+<span class="refTitle">"Identity Assertion JWT Authorization Grant"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/">https://datatracker.ietf.org/doc/draft-ietf-oauth-identity-assertion-authz-grant/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="OIDF-FEDERATION">[OIDF-FEDERATION]</dt>
+        <dd>
+<span class="refTitle">"OpenID Federation 1.1"</span>, <time datetime="2026-05-05" class="refDate">5 May 2026</time>, <span>&lt;<a href="https://openid.net/specs/openid-federation-1_1.html">https://openid.net/specs/openid-federation-1_1.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="OIDF-FEDERATION-CONNECT">[OIDF-FEDERATION-CONNECT]</dt>
+        <dd>
+<span class="refTitle">"OpenID Federation for OpenID Connect 1.1"</span>, <time datetime="2026-05-05" class="refDate">5 May 2026</time>, <span>&lt;<a href="https://openid.net/specs/openid-federation-connect-1_1.html">https://openid.net/specs/openid-federation-connect-1_1.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC6749">[RFC6749]</dt>
+        <dd>
+<span class="refAuthor">Hardt, D., Ed.</span>, <span class="refTitle">"The OAuth 2.0 Authorization Framework"</span>, <span class="seriesInfo">RFC 6749</span>, <span class="seriesInfo">DOI 10.17487/RFC6749</span>, <time datetime="2012-10" class="refDate">October 2012</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6749">https://www.rfc-editor.org/rfc/rfc6749</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7523">[RFC7523]</dt>
+        <dd>
+<span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Campbell, B.</span>, and <span class="refAuthor">C. Mortimore</span>, <span class="refTitle">"JSON Web Token (JWT) Profile for OAuth 2.0 Client Authentication and Authorization Grants"</span>, <span class="seriesInfo">RFC 7523</span>, <span class="seriesInfo">DOI 10.17487/RFC7523</span>, <time datetime="2015-05" class="refDate">May 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7523">https://www.rfc-editor.org/rfc/rfc7523</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC7591">[RFC7591]</dt>
+        <dd>
+<span class="refAuthor">Richer, J., Ed.</span>, <span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Bradley, J.</span>, <span class="refAuthor">Machulak, M.</span>, and <span class="refAuthor">P. Hunt</span>, <span class="refTitle">"OAuth 2.0 Dynamic Client Registration Protocol"</span>, <span class="seriesInfo">RFC 7591</span>, <span class="seriesInfo">DOI 10.17487/RFC7591</span>, <time datetime="2015-07" class="refDate">July 2015</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc7591">https://www.rfc-editor.org/rfc/rfc7591</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+        <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8414">[RFC8414]</dt>
+        <dd>
+<span class="refAuthor">Jones, M.</span>, <span class="refAuthor">Sakimura, N.</span>, and <span class="refAuthor">J. Bradley</span>, <span class="refTitle">"OAuth 2.0 Authorization Server Metadata"</span>, <span class="seriesInfo">RFC 8414</span>, <span class="seriesInfo">DOI 10.17487/RFC8414</span>, <time datetime="2018-06" class="refDate">June 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8414">https://www.rfc-editor.org/rfc/rfc8414</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8705">[RFC8705]</dt>
+        <dd>
+<span class="refAuthor">Campbell, B.</span>, <span class="refAuthor">Bradley, J.</span>, <span class="refAuthor">Sakimura, N.</span>, and <span class="refAuthor">T. Lodderstedt</span>, <span class="refTitle">"OAuth 2.0 Mutual-TLS Client Authentication and Certificate-Bound Access Tokens"</span>, <span class="seriesInfo">RFC 8705</span>, <span class="seriesInfo">DOI 10.17487/RFC8705</span>, <time datetime="2020-02" class="refDate">February 2020</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8705">https://www.rfc-editor.org/rfc/rfc8705</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC10070">[RFC10070]</dt>
+        <dd>
+<span class="refAuthor">Jones, M.B.</span>, <span class="refAuthor">Campbell, B.</span>, <span class="refAuthor">Mortimore, C.</span>, and <span class="refAuthor">F. Skokan</span>, <span class="refTitle">"Updates to OAuth 2.0 JSON Web Token (JWT) Client Authentication and Assertion-Based Authorization Grants"</span>, <span class="seriesInfo">RFC 10070</span>, <span class="seriesInfo">DOI 10.17487/RFC10070</span>, <time datetime="2026-11" class="refDate">November 2026</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc10070">https://www.rfc-editor.org/rfc/rfc10070</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="TRUST-FRAMEWORK">[TRUST-FRAMEWORK]</dt>
+      <dd>
+<span class="refTitle">"OAuth Identity Assertion Trust Framework"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-mcguinness-oauth-id-assertion-framework/">https://datatracker.ietf.org/doc/draft-mcguinness-oauth-id-assertion-framework/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-8.2">
+        <h3 id="name-informative-references">
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="DAI">[DAI]</dt>
+        <dd>
+<span class="refTitle">"OAuth Domain-Authorized Issuer Trust Method"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer/">https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.ietf-oauth-client-id-metadata-document">[I-D.ietf-oauth-client-id-metadata-document]</dt>
+        <dd>
+<span class="refTitle">"OAuth Client ID Metadata Document"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-ietf-oauth-client-id-metadata-document/">https://datatracker.ietf.org/doc/draft-ietf-oauth-client-id-metadata-document/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I-D.shankarlingam-oauth-agent-dns-link">[I-D.shankarlingam-oauth-agent-dns-link]</dt>
+        <dd>
+<span class="refTitle">"Linking an Agent's DNS Name to its OAuth Client"</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-shankarlingam-oauth-agent-dns-link/">https://datatracker.ietf.org/doc/draft-shankarlingam-oauth-agent-dns-link/</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="OIDF-WKB">[OIDF-WKB]</dt>
+      <dd>
+<span class="refAuthor">Hardt, D.</span>, <span class="refTitle">"OpenID Federation Well-Known Binding 1.0"</span>, <time datetime="2026-11-11" class="refDate">11 November 2026</time>, <span>&lt;<a href="https://dickhardt.github.io/well-known-binding/main.html">https://dickhardt.github.io/well-known-binding/main.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="design-rationale">
+<section id="appendix-A">
+      <h2 id="name-design-rationale">
+<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-design-rationale" class="section-name selfRef">Design Rationale</a>
+      </h2>
+<p id="appendix-A-1">This appendix is non-normative.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<div id="relationship-to-oidf">
+<section id="appendix-A.1">
+        <h3 id="name-relationship-to-openid-fede">
+<a href="#appendix-A.1" class="section-number selfRef">A.1. </a><a href="#name-relationship-to-openid-fede" class="section-name selfRef">Relationship to OpenID Federation</a>
+        </h3>
+<p id="appendix-A.1-1">OpenID Federation <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> answers "is this issuer an
+authentic ecosystem member?"; <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> adds "is this issuer
+authorized for <em>this</em> namespace?". Federation membership feeds the
+<code>issuer_authentication</code> category through the <code>openid_federation</code>
+Trust Method (<a href="#trust-method-openid-federation" class="auto internal xref">Section 3</a>). Namespace
+authority comes from the separate <code>subject_namespace_authorization</code>
+category. The framework composes with federation rather than
+replacing it.<a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-2">The proposed Well-Known Binding mechanism <span>[<a href="#OIDF-WKB" class="cite xref">OIDF-WKB</a>]</span> lets an
+<span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span> authorization server bind its existing JWK Set by digest
+through the extension path in <a href="#trust-method-openid-federation" class="auto internal xref">Section 3</a>. It
+changes how issuer-authentication evidence is bound, not who holds
+authority over a subject namespace. Where <span>[<a href="#OIDF-WKB" class="cite xref">OIDF-WKB</a>]</span> §8.4 has an
+Entity return <code>trust_mark_required</code> for a missing Trust Mark, naming
+the missing types, a Resource Authorization Server applying the
+framework returns the error that <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Resource
+Authorization Server Processing specifies, which keeps
+trust-evaluation detail from public clients.<a href="#appendix-A.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="future-extensions">
+<section id="appendix-B">
+      <h2 id="name-future-extensions">
+<a href="#appendix-B" class="section-number selfRef">Appendix B. </a><a href="#name-future-extensions" class="section-name selfRef">Future Extensions</a>
+      </h2>
+<p id="appendix-B-1">This appendix is non-normative. It sketches deferred directions that
+future specifications may register.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+<div id="additional-client-recognition-methods">
+<section id="appendix-B.1">
+        <h3 id="name-additional-client-recogniti">
+<a href="#appendix-B.1" class="section-number selfRef">B.1. </a><a href="#name-additional-client-recogniti" class="section-name selfRef">Additional Client Recognition Methods</a>
+        </h3>
+<p id="appendix-B.1-1">Other <code>client_recognition</code> methods can follow the pattern of
+<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> for clients identified by DNS names. For example,
+<span>[<a href="#I-D.shankarlingam-oauth-agent-dns-link" class="cite xref">I-D.shankarlingam-oauth-agent-dns-link</a>]</span> publishes, under an
+agent's DNS name, the issuer and client identifier the agent uses at
+its operator's authorization server, and has the agent present a
+fresh access token issued to that client. Such a Trust Method would
+need to define:<a href="#appendix-B.1-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-B.1-2.1">
+            <p id="appendix-B.1-2.1.1">its lookup states, including Indeterminate on DNS failure;<a href="#appendix-B.1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-B.1-2.2">
+            <p id="appendix-B.1-2.2.1">how its record binds to the queried name, as <span>[<a href="#DAI" class="cite xref">DAI</a>]</span>'s
+<code>authority=</code> directive does; and<a href="#appendix-B.1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="appendix-B.1-2.3">
+            <p id="appendix-B.1-2.3.1">how the token is carried in a token request.<a href="#appendix-B.1-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="appendix-B.1-3">A method for clients whose Explicit Registration
+(<span>[<a href="#OIDF-FEDERATION-CONNECT" class="cite xref">OIDF-FEDERATION-CONNECT</a>]</span> §12.2) <code>client_id</code> is not their Entity
+Identifier would take the Entity Identifier from the registration.<a href="#appendix-B.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="example-federation-walkthrough">
+<section id="appendix-C">
+      <h2 id="name-openid-federation-walkthrou">
+<a href="#appendix-C" class="section-number selfRef">Appendix C. </a><a href="#name-openid-federation-walkthrou" class="section-name selfRef">OpenID Federation Walkthrough</a>
+      </h2>
+<p id="appendix-C-1">This appendix is non-normative. Like the example in
+<span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> §Overview, it combines <code>openid_federation</code> with
+<code>domain_authorized_issuer</code>, and it adds trust-chain validation, Trust
+Mark satisfaction, and federation-bound JWKS resolution.<a href="#appendix-C-1" class="pilcrow">¶</a></p>
+<p id="appendix-C-2"><strong>Cast:</strong> Resource Authorization Server
+<code>https://api.resource.example</code>; Federation Trust Anchor
+<code>https://federation.example.org</code>; Federation Intermediate
+<code>https://sector.example.org</code> (chained under the Trust Anchor);
+Assertion Issuer <code>https://idp.partner.example</code> (federation leaf
+holding a Level-of-Assurance-3 Trust Mark); end user
+<code>alice@partner.example</code>; Subject Authority <code>partner.example</code>.<a href="#appendix-C-2" class="pilcrow">¶</a></p>
+<p id="appendix-C-3"><strong>Publication.</strong> The Resource Authorization Server's Trust Policy:<a href="#appendix-C-3" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-C-4">
+<pre>
+{
+  "resource_authorization_server": "https://api.resource.example",
+  "authorization_grant_profiles_supported": [
+    "urn:ietf:params:oauth:grant-profile:id-jag"
+  ],
+  "subject_identifier_formats_supported": ["email"],
+  "issuer_trust_methods": [
+    {
+      "method": "openid_federation",
+      "trust_anchors": ["https://federation.example.org"],
+      "trust_marks": [{
+        "trust_mark_type": "https://federation.example.org/tm/loa3",
+        "issuer": "https://federation.example.org"
+      }]
+    },
+    { "method": "domain_authorized_issuer" }
+  ]
+}
+</pre><a href="#appendix-C-4" class="pilcrow">¶</a>
+</div>
+<p id="appendix-C-5">The Assertion Issuer's federation Entity Configuration (decoded,
+illustrative) declares its authority hint and its Trust Mark:<a href="#appendix-C-5" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-C-6">
+<pre>
+{
+  "iss": "https://idp.partner.example",
+  "sub": "https://idp.partner.example",
+  "authority_hints": ["https://sector.example.org"],
+  "metadata": {
+    "openid_provider": {
+      "issuer": "https://idp.partner.example",
+      "jwks_uri": "https://idp.partner.example/jwks"
+    }
+  },
+  "trust_marks": [
+    {
+      "trust_mark_type": "https://federation.example.org/tm/loa3",
+      "trust_mark": "eyJ...(JWT signed by federation.example.org)"
+    }
+  ]
+}
+</pre><a href="#appendix-C-6" class="pilcrow">¶</a>
+</div>
+<p id="appendix-C-7">The <code>trust_mark</code> value is a JWT with JOSE header <code>typ</code>
+        <code>trust-mark+jwt</code>. Its decoded payload (illustrative):<a href="#appendix-C-7" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-C-8">
+<pre>
+{
+  "iss": "https://federation.example.org",
+  "sub": "https://idp.partner.example",
+  "trust_mark_type": "https://federation.example.org/tm/loa3",
+  "iat": 1790236800,
+  "exp": 1821772800
+}
+</pre><a href="#appendix-C-8" class="pilcrow">¶</a>
+</div>
+<p id="appendix-C-9">Requirement 4 of <a href="#trust-method-openid-federation" class="auto internal xref">Section 3</a> matches against this
+payload: its <code>trust_mark_type</code> equals both the enclosing entry's type
+and the requirement's, and its <code>iss</code> equals the requirement's
+<code>issuer</code>. The enclosing entry carries no issuer. <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span>
+§7.3 separately requires <code>sub</code> to equal the leaf's Entity
+Identifier.<a href="#appendix-C-9" class="pilcrow">¶</a></p>
+<p id="appendix-C-10">The Federation Intermediate's Subordinate Statement about the leaf
+constrains <code>issuer</code> and requires <code>jwks_uri</code> via <code>metadata_policy</code>
+(<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §6.1):<a href="#appendix-C-10" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-C-11">
+<pre>
+{
+  "iss": "https://sector.example.org",
+  "sub": "https://idp.partner.example",
+  "metadata_policy": {
+    "openid_provider": {
+      "issuer": { "value": "https://idp.partner.example" },
+      "jwks_uri": { "essential": true }
+    }
+  }
+}
+</pre><a href="#appendix-C-11" class="pilcrow">¶</a>
+</div>
+<p id="appendix-C-12">The Subject Authority publishes a DAI record:<a href="#appendix-C-12" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="appendix-C-13">
+<pre>
+_oauth-issuer-policy.partner.example. IN TXT (
+    "v=oauth-issuer-policy1;"
+    "authority=partner.example;"
+    "issuer=https://idp.partner.example" )
+</pre><a href="#appendix-C-13" class="pilcrow">¶</a>
+</div>
+<p id="appendix-C-14"><strong>Verification.</strong> When an ID-JAG arrives with
+<code>iss: https://idp.partner.example</code>, <code>email: alice@partner.example</code>,
+and <code>email_verified: true</code>, the Resource Authorization Server:<a href="#appendix-C-14" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="appendix-C-15">
+<li id="appendix-C-15.1">
+          <p id="appendix-C-15.1.1"><strong><code>issuer_authentication</code> (openid_federation).</strong> Walks the
+federation chain per <span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span>: fetches the leaf
+Entity Configuration, the Intermediate's Subordinate Statement
+about the leaf, and the Trust Anchor's Subordinate Statement
+about the Intermediate. Validates all signatures, applies
+<code>metadata_policy</code>, and verifies the Trust Mark signature.<a href="#appendix-C-15.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="appendix-C-15.2">
+          <p id="appendix-C-15.2.1"><strong>Framework-specific checks (<a href="#trust-method-openid-federation" class="auto internal xref">Section 3</a>).</strong>
+The terminal trust anchor matches <code>trust_anchors</code>; the policy-applied
+metadata declares entity type <code>openid_provider</code>; the <code>loa3</code> Trust
+Mark satisfies the requirement; the ID-JAG signing key is taken only
+from the federation-resolved JWKS, not from the assertion <code>iss</code> URL's
+<code>.well-known/oauth-authorization-server</code>.<a href="#appendix-C-15.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="appendix-C-15.3">
+          <p id="appendix-C-15.3.1"><strong><code>subject_namespace_authorization</code> (domain_authorized_issuer).</strong>
+Extracts <code>partner.example</code> from the email claim, queries
+<code>_oauth-issuer-policy.partner.example</code>, confirms
+<code>https://idp.partner.example</code> is an authorized issuer.<a href="#appendix-C-15.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="appendix-C-15.4">
+          <p id="appendix-C-15.4.1"><strong>Cross-category combination rule.</strong> Both categories succeed;
+the Resource Authorization Server issues an access token.<a href="#appendix-C-15.4.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
+<p id="appendix-C-16"><strong>Selected failure variants:</strong><a href="#appendix-C-16" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-C-17.1">
+          <p id="appendix-C-17.1.1">The chain does not terminate at the listed trust anchor:
+<code>invalid_grant</code>.<a href="#appendix-C-17.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-C-17.2">
+          <p id="appendix-C-17.2.1">The leaf lacks the required Trust Mark: <code>invalid_grant</code>.<a href="#appendix-C-17.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-C-17.3">
+          <p id="appendix-C-17.3.1">The federation-resolved JWKS does not match the ID-JAG signing key:
+<code>invalid_grant</code>. The metadata key source takes precedence, so there
+is no fallback to a separate JWKS referenced by
+<code>.well-known/oauth-authorization-server</code>; <a href="#example-wkb-variant" class="auto internal xref">Appendix C.2</a>
+shows when such a JWKS is eligible.<a href="#appendix-C-17.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-C-17.4">
+          <p id="appendix-C-17.4.1"><code>partner.example</code> does not list the Assertion Issuer in DAI:
+<code>invalid_grant</code>, even though federation membership is valid.<a href="#appendix-C-17.4.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<div id="trust-mark-requirement-without-an-issuer">
+<section id="appendix-C.1">
+        <h3 id="name-trust-mark-requirement-with">
+<a href="#appendix-C.1" class="section-number selfRef">C.1. </a><a href="#name-trust-mark-requirement-with" class="section-name selfRef">Trust Mark Requirement Without an Issuer</a>
+        </h3>
+<p id="appendix-C.1-1">With the same cast, the Trust Policy could omit <code>issuer</code> from the
+requirement object:<a href="#appendix-C.1-1" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-C.1-2">
+<pre>
+{
+  "method": "openid_federation",
+  "trust_anchors": ["https://federation.example.org"],
+  "trust_marks": [
+    { "trust_mark_type": "https://federation.example.org/tm/loa3" }
+  ]
+}
+</pre><a href="#appendix-C.1-2" class="pilcrow">¶</a>
+</div>
+<p id="appendix-C.1-3">The acceptable issuers then come from the trust anchor's Entity
+Configuration, which includes (excerpt):<a href="#appendix-C.1-3" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-C.1-4">
+<pre>
+"trust_mark_issuers": {
+  "https://federation.example.org/tm/loa3": [
+    "https://federation.example.org",
+    "https://assurance.example.net"
+  ]
+}
+</pre><a href="#appendix-C.1-4" class="pilcrow">¶</a>
+</div>
+<p id="appendix-C.1-5">The leaf's Trust Mark satisfies the requirement because its <code>iss</code>
+appears in that array. So would a Trust Mark of the same type issued
+by <code>https://assurance.example.net</code>, provided that issuer's own trust
+chain terminates at the same trust anchor (requirement 4 of
+<a href="#trust-method-openid-federation" class="auto internal xref">Section 3</a>). The requirement would not be
+satisfied if the array for this type were empty, which
+<span>[<a href="#OIDF-FEDERATION" class="cite xref">OIDF-FEDERATION</a>]</span> §3.1.2 reads as allowing any issuer, or if the
+type were absent from <code>trust_mark_issuers</code>.<a href="#appendix-C.1-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="example-wkb-variant">
+<section id="appendix-C.2">
+        <h3 id="name-well-known-binding-variant">
+<a href="#appendix-C.2" class="section-number selfRef">C.2. </a><a href="#name-well-known-binding-variant" class="section-name selfRef">Well-Known Binding Variant</a>
+        </h3>
+<p id="appendix-C.2-1">With the same cast and Trust Policy, a deployment implementing the
+proposed <span>[<a href="#OIDF-WKB" class="cite xref">OIDF-WKB</a>]</span> mechanism could instead publish the following
+leaf Entity Configuration excerpt. Digest strings are placeholders.
+The full Entity Configuration also contains the required timestamps,
+Federation Entity Keys, and the same Trust Mark as above. The
+abbreviated Entity Type metadata carries no key source.<a href="#appendix-C.2-1" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-C.2-2">
+<pre>
+{
+  "iss": "https://idp.partner.example",
+  "sub": "https://idp.partner.example",
+  "authority_hints": ["https://sector.example.org"],
+  "metadata": {
+    "oauth_authorization_server": {
+      "issuer": "https://idp.partner.example"
+    }
+  },
+  "well_known_bindings": {
+    "oauth-authorization-server": {
+      "digest_alg": "sha-256",
+      "digests": ["&lt;digest of authorization server metadata&gt;"],
+      "jwks_digests": ["&lt;digest of the referenced JWK Set&gt;"]
+    }
+  }
+}
+</pre><a href="#appendix-C.2-2" class="pilcrow">¶</a>
+</div>
+<p id="appendix-C.2-3">The covered <span>[<a href="#RFC8414" class="cite xref">RFC8414</a>]</span> document at
+<code>https://idp.partner.example/.well-known/oauth-authorization-server</code>
+identifies <code>https://idp.partner.example</code> as its <code>issuer</code> and
+references <code>https://idp.partner.example/jwks</code> in <code>jwks_uri</code>. Here the
+Intermediate neither supplies a protocol key source nor requires one
+through <code>metadata_policy</code>; the <code>openid_provider</code> policy shown above
+does not apply to this variant's <code>oauth_authorization_server</code> type.
+With no key source in the Entity Type metadata, requirement 3 selects the
+extension-defined source: the JWK Set at the covered document's
+<code>jwks_uri</code>, which <code>jwks_digests</code> binds.<a href="#appendix-C.2-3" class="pilcrow">¶</a></p>
+<p id="appendix-C.2-4">The consumer verifies the covered metadata and its JWK Set by the
+extension's rules, which include validating the trust chain, and
+checks that the metadata's <code>issuer</code> equals the leaf's Entity
+Identifier. Requirement 3 then permits the bound JWK Set for assertion
+verification. The Trust Mark and DAI checks are unchanged.<a href="#appendix-C.2-4" class="pilcrow">¶</a></p>
+<p id="appendix-C.2-5">If the Intermediate's policy instead marked <code>jwks_uri</code> <code>essential</code>,
+the leaf would carry it in Entity Type metadata, and requirement 3 would
+select that source. The binding covers that source only when it
+names the same URL as the covered document's <code>jwks_uri</code>; otherwise
+the key set relies on HTTPS alone. A key mismatch never authorizes
+fallback. An absent binding, digest mismatch, or unsupported
+extension with no other qualifying key source yields Indeterminate
+and <code>invalid_grant</code>.<a href="#appendix-C.2-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="example-client-recognition">
+<section id="appendix-D">
+      <h2 id="name-client-recognition-walkthro">
+<a href="#appendix-D" class="section-number selfRef">Appendix D. </a><a href="#name-client-recognition-walkthro" class="section-name selfRef">Client Recognition Walkthrough</a>
+      </h2>
+<p id="appendix-D-1">This appendix is non-normative. It follows <code>openid_federation_client</code>
+(<a href="#trust-method-openid-federation-client" class="auto internal xref">Section 4.4</a>) from a client's first
+token request to later requests, and shows federation clients beside
+clients the Resource Authorization Server registered itself.<a href="#appendix-D-1" class="pilcrow">¶</a></p>
+<p id="appendix-D-2"><strong>Cast:</strong><a href="#appendix-D-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-D-3.1">
+          <p id="appendix-D-3.1.1">Resource Authorization Server <code>https://api.saas.example</code>, with
+token endpoint <code>https://api.saas.example/token</code>.<a href="#appendix-D-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-D-3.2">
+          <p id="appendix-D-3.2.1">Trust anchor <code>https://federation.example.org</code>.<a href="#appendix-D-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-D-3.3">
+          <p id="appendix-D-3.3.1">Client <code>https://agent.example</code>, an agent platform that is a
+federation Entity of type <code>oauth_client</code>. It has never contacted
+the Resource Authorization Server.<a href="#appendix-D-3.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-D-3.4">
+          <p id="appendix-D-3.4.1">Assertion Issuer <code>https://idp.partner.example</code>, which issues the
+client an ID-JAG for <code>alice@partner.example</code> whose <code>client_id</code>
+claim is <code>https://agent.example</code>.<a href="#appendix-D-3.4.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="appendix-D-4"><strong>Trust Policy.</strong> The Resource Authorization Server publishes:<a href="#appendix-D-4" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-D-5">
+<pre>
+{
+  "resource_authorization_server": "https://api.saas.example",
+  "authorization_grant_profiles_supported": [
+    "urn:ietf:params:oauth:grant-profile:id-jag"
+  ],
+  "issuer_trust_methods": [
+    {
+      "method": "openid_federation",
+      "trust_anchors": ["https://federation.example.org"]
+    },
+    { "method": "domain_authorized_issuer" }
+  ],
+  "client_trust_methods": [
+    {
+      "method": "openid_federation_client",
+      "trust_anchors": ["https://federation.example.org"]
+    }
+  ],
+  "crit": ["client_trust_methods"]
+}
+</pre><a href="#appendix-D-5" class="pilcrow">¶</a>
+</div>
+<p id="appendix-D-6"><strong>Client metadata.</strong> The client's Entity Configuration, at
+<code>https://agent.example/.well-known/openid-federation</code>, includes:<a href="#appendix-D-6" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-D-7">
+<pre>
+{
+  "iss": "https://agent.example",
+  "sub": "https://agent.example",
+  "metadata": {
+    "oauth_client": {
+      "grant_types": ["urn:ietf:params:oauth:grant-type:jwt-bearer"],
+      "token_endpoint_auth_method": "private_key_jwt",
+      "jwks_uri": "https://agent.example/jwks.json"
+    }
+  },
+  "authority_hints": ["https://federation.example.org"]
+}
+</pre><a href="#appendix-D-7" class="pilcrow">¶</a>
+</div>
+<p id="appendix-D-8"><strong>First contact.</strong> The client's first request to the Resource
+Authorization Server is a token request:<a href="#appendix-D-8" class="pilcrow">¶</a></p>
+<div class="lang-http sourcecode" id="appendix-D-9">
+<pre>
+POST /token HTTP/1.1
+Host: api.saas.example
+Content-Type: application/x-www-form-urlencoded
+
+grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer
+&amp;assertion=eyJ0eXAiOiJvYXV0aC1pZC1qYWcrand0Ii...
+&amp;client_id=https%3A%2F%2Fagent.example
+&amp;client_assertion_type=
+urn:ietf:params:oauth:client-assertion-type:jwt-bearer
+&amp;client_assertion=eyJhbGciOiJFUzI1NiIsImtpZCI6...
+</pre><a href="#appendix-D-9" class="pilcrow">¶</a>
+</div>
+<p id="appendix-D-10">Line breaks in the request body are for display only. The client
+assertion's JOSE header carries <code>typ</code> <code>client-authentication+jwt</code>
+(<span>[<a href="#RFC10070" class="cite xref">RFC10070</a>]</span> Section 4), and its claims are:<a href="#appendix-D-10" class="pilcrow">¶</a></p>
+<div class="lang-json sourcecode" id="appendix-D-11">
+<pre>
+{
+  "iss": "https://agent.example",
+  "sub": "https://agent.example",
+  "aud": "https://api.saas.example",
+  "exp": 1793880000,
+  "jti": "c1f0..."
+}
+</pre><a href="#appendix-D-11" class="pilcrow">¶</a>
+</div>
+<p id="appendix-D-12"><strong>Processing.</strong> The Resource Authorization Server:<a href="#appendix-D-12" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="appendix-D-13">
+<li id="appendix-D-13.1">
+          <p id="appendix-D-13.1.1">Applies the policy above, because the <code>client_id</code> is an <code>https</code>
+URL (<a href="#trust-method-openid-federation-client" class="auto internal xref">Section 4.4</a>).<a href="#appendix-D-13.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="appendix-D-13.2">
+          <p id="appendix-D-13.2.1">Resolves the client's Entity Configuration and a trust chain to
+<code>https://federation.example.org</code>.<a href="#appendix-D-13.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="appendix-D-13.3">
+          <p id="appendix-D-13.3.1">Checks that the policy-applied metadata declares <code>oauth_client</code>.<a href="#appendix-D-13.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="appendix-D-13.4">
+          <p id="appendix-D-13.4.1">Fetches the key set at <code>jwks_uri</code>, verifies the client assertion's
+signature with a key in it, and checks that its <code>aud</code> is
+<code>https://api.saas.example</code> and that <code>private_key_jwt</code> is the
+declared method. The client is now authenticated, and because
+<code>grant_types</code> lists the request's grant type, it is recognized.
+Steps 2 through 4 are the only lookups before the client is
+authenticated.<a href="#appendix-D-13.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="appendix-D-13.5">
+          <p id="appendix-D-13.5.1">Validates the ID-JAG, including that its <code>client_id</code> claim is
+<code>https://agent.example</code> (<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1).<a href="#appendix-D-13.5.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="appendix-D-13.6">
+          <p id="appendix-D-13.6.1">Evaluates <code>openid_federation</code> for <code>https://idp.partner.example</code>
+and <code>domain_authorized_issuer</code> for <code>partner.example</code>. With the
+client recognized in step 4, every category is satisfied, so it
+issues an access token.<a href="#appendix-D-13.6.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
+<p id="appendix-D-14"><strong>Rejections:</strong><a href="#appendix-D-14" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-D-15.1">
+          <p id="appendix-D-15.1.1">The request carries no client authentication: <code>invalid_client</code>
+(<a href="#client-recognition-processing" class="auto internal xref">Section 4.3</a>, step 5f).<a href="#appendix-D-15.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-D-15.2">
+          <p id="appendix-D-15.2.1">The <code>client_id</code> is not an Entity Identifier: the method is
+Negative, the request has no accepted client authentication, and
+the result is <code>invalid_client</code>.<a href="#appendix-D-15.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-D-15.3">
+          <p id="appendix-D-15.3.1">The trust chain ends at a trust anchor that is not listed:
+<code>invalid_client</code>.<a href="#appendix-D-15.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-D-15.4">
+          <p id="appendix-D-15.4.1">The client assertion is signed with a key that is not in the
+federation key set, even one published in a client metadata
+document: <code>invalid_client</code>.<a href="#appendix-D-15.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-D-15.5">
+          <p id="appendix-D-15.5.1">The Entity Configuration fetch times out or returns a 5xx status:
+the method is Indeterminate, and the result is <code>invalid_client</code>.<a href="#appendix-D-15.5.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-D-15.6">
+          <p id="appendix-D-15.6.1">The policy required a Trust Mark that the client does not hold:
+the client is authenticated but not recognized, and the result is
+<code>unauthorized_client</code>.<a href="#appendix-D-15.6.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-D-15.7">
+          <p id="appendix-D-15.7.1">The client lacks a required Trust Mark and the ID-JAG has also
+expired: <code>unauthorized_client</code>, because client recognition is
+evaluated before the ID-JAG.<a href="#appendix-D-15.7.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-D-15.8">
+          <p id="appendix-D-15.8.1">The ID-JAG's <code>client_id</code> claim names a different client:
+<code>invalid_grant</code> (<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1).<a href="#appendix-D-15.8.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-D-15.9">
+          <p id="appendix-D-15.9.1">The client is recognized, but the Assertion Issuer fails an issuer
+method: <code>invalid_grant</code>.<a href="#appendix-D-15.9.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="appendix-D-16"><strong>Later requests.</strong> The Resource Authorization Server caches the
+trust chain no longer than its earliest <code>exp</code>
+(<a href="#trust-method-openid-federation" class="auto internal xref">Section 3</a>), and the key set no longer than
+the chain. Later requests use the cached chain, and each is still
+evaluated against the policy. After the client rotates its keys, a
+signature with a key the cached key set lacks can prompt one fresh
+fetch of the key set, rate-limited per client, before rejection. If
+the federation stops recognizing the client, the change takes effect
+when the cached chain expires.<a href="#appendix-D-16" class="pilcrow">¶</a></p>
+<p id="appendix-D-17"><strong>Coexistence with registered clients.</strong> The Resource Authorization
+Server also has confidential clients it registered itself, with opaque
+<code>client_id</code> values and credentials it holds. A request that
+authenticates as one of those clients gets a policy without
+<code>client_trust_methods</code> (<a href="#client-recognition-processing" class="auto internal xref">Section 4.3</a>). Any other
+request, including one that names a registered <code>client_id</code> without
+authenticating as that client and any request whose <code>client_id</code> is an
+<code>https</code> URL, gets the published policy above and is admitted only
+through the client method.<a href="#appendix-D-17" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="document-history">
+<section id="appendix-E">
+      <h2 id="name-document-history">
+<a href="#appendix-E" class="section-number selfRef">Appendix E. </a><a href="#name-document-history" class="section-name selfRef">Document History</a>
+      </h2>
+<p id="appendix-E-1">This appendix is non-normative and will be removed before publication.
+A number in parentheses is a closed issue in the
+<a href="https://github.com/mcguinness/draft-mcguinness-oauth-id-assertion-framework/issues">issue tracker</a>
+that this document shares with <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span>, which holds the
+details of that change.<a href="#appendix-E-1" class="pilcrow">¶</a></p>
+<p id="appendix-E-2">-00<a href="#appendix-E-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-E-3.1">
+          <p id="appendix-E-3.1.1">Initial version, split from <span>[<a href="#TRUST-FRAMEWORK" class="cite xref">TRUST-FRAMEWORK</a>]</span> (#38); includes
+client recognition (#32) and the OpenID Federation 1.1 alignment
+(#20).<a href="#appendix-E-3.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-F">
+      <h2 id="name-authors-address">
+<a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Karl McGuinness</span></div>
+<div dir="auto" class="left"><span class="org">Independent</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:public@karlmcguinness.com" class="email">public@karlmcguinness.com</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>

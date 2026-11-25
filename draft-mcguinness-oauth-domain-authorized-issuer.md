@@ -1476,7 +1476,9 @@ therefore cannot exploit interpretive ambiguity at the consumer.
   inline record with no `issuer=` is malformed, so the inline form
   cannot publish an empty delegation set. Under a grant profile that
   carries `tenant`, an inline record that names a shared multi-tenant
-  issuer authorizes none of its tenants ({{dii-multi-tenant}}).
+  issuer authorizes none of its tenants ({{dii-multi-tenant}}). Nor
+  does one that names a per-tenant issuer identifier whose assertions
+  also carry `tenant` ({{trust-method-domain-authorized-issuer}}).
 
 ## Email Local-Part Is Not Authenticated {#email-local-part}
 

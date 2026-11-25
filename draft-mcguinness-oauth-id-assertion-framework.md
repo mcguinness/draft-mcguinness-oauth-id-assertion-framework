@@ -170,9 +170,15 @@ Authorization Server, not an Assertion Issuer. A Subject Authority
 authorizes issuers in a separate document, the Issuer Authorization
 Policy ({{DAI}}).
 
-The trust evaluation that this document defines applies only to
-ID-JAG ({{bindings}}). It narrows {{ID-JAG}}, for example by limiting
-which claims resolve the subject ({{rasp}} step 5c).
+This document defines a binding only for ID-JAG ({{bindings}}). A
+Resource Authorization Server that evaluates a Trust Policy therefore
+rejects an identity assertion of any other grant profile unless a
+specification defines a binding for that profile and the policy lists
+it ({{rasp}} step 3). For ID-JAG, this document narrows {{ID-JAG}}:
+it limits which claims
+resolve the subject ({{rasp}} step 5c), requires `email_verified` for
+an `email` that the server uses ({{id-jag-profile}}), and requires the
+verification key to be bound to `iss` ({{rasp}} step 2).
 
 
 ## Overview {#overview}
@@ -184,7 +190,8 @@ Server answers two separate questions about it:
 - Issuer authentication: who signed it? The server checks that the
   issuer named by `iss` is a recognized signer, for example through
   an OpenID Federation trust chain ({{FEDERATION}}), and that the
-  signature verifies under a key that this method permits.
+  signature verifies under a key that the trust chain binds to that
+  issuer.
 
 - Namespace authorization: is that issuer authorized for
   `acme.example`? Only the owner of `acme.example`, its Subject
@@ -288,12 +295,12 @@ The scope of this document is:
 Trust Methods, and the publication mechanisms they use, live in
 dedicated specifications such as {{DAI}} and {{FEDERATION}}.
 
-This document registers no Trust Methods for attribute authorities
-that are not namespace owners, such as issuers of government
-credentials, professional certifications, or employment
-attestations. When such an attestation is conveyed in an identity
-assertion whose subject is namespace-bound, the issuer-trust
-evaluation still applies.
+Trust Methods for attribute authorities that are not namespace
+owners, such as issuers of government credentials, professional
+certifications, or employment attestations, are out of scope. When
+such an attestation is conveyed in an identity assertion whose
+subject is namespace-bound, the issuer-trust evaluation still
+applies.
 
 The `email` Subject Identifier extraction registered in this
 document is user-identity-oriented. Workload, agent, and other
@@ -311,7 +318,7 @@ Identifier formats follow {{RFC9493}}; Trust Method identifiers are
 registered in {{iana-trust-methods-registry}}. This document defines
 the following terms.
 
-Resource Authorization Server (RAS):
+Resource Authorization Server:
 : The OAuth authorization server that receives an identity
 assertion as a grant, evaluates the Trust Policy, and issues access
 tokens for a protected resource. It is not a new OAuth protocol
@@ -334,6 +341,11 @@ Grant profile:
 : The OAuth assertion-grant specification under which an identity
 assertion arrives, such as {{ID-JAG}} ({{bindings}}).
 
+Subject Identifier:
+: The identifier of an identity assertion's subject in a named
+format, such as `email` ({{RFC9493}}), carried in the claim that the
+grant-profile binding designates ({{subject-authority-determination}}).
+
 Subject Authority:
 : The party that holds authority over a Subject Identifier namespace
 and can authorize Assertion Issuers to assert identities in it. The
@@ -346,7 +358,7 @@ by a Resource Authorization Server to declare its trust criteria.
 
 Trust Method:
 : A registered, named evaluation procedure by which a Resource
-Authorization Server tests trust evidence in one or more categories,
+Authorization Server tests trust evidence in one category,
 such as evidence about an Assertion Issuer ({{trust-methods}}). A Trust
 Policy names the Trust Methods it requires.
 
@@ -530,7 +542,7 @@ assertion.
 
 ### Trust Method Categories {#trust-method-categories}
 
-Each Trust Method belongs to one or more categories registered in
+Each Trust Method belongs to exactly one category registered in
 {{iana-trust-method-categories-registry}}, such as the two below, and
 is itself registered in {{iana-trust-methods-registry}}. Evidence is
 combined across categories per {{combination-rule}}.
@@ -556,7 +568,7 @@ A specification defining a new Trust Method (a companion such as
 {{DAI}} or {{FEDERATION}}) MUST provide all of the following, so that
 the framework's deferral to the method is testable:
 
-- The Trust Method identifier and its categories
+- The Trust Method identifier and its category
   ({{iana-trust-methods-registry}}).
 - The evidence consumed and the exact procedure by which a Resource
   Authorization Server decides the method is satisfied for an (issuer,
@@ -603,7 +615,13 @@ category and register them in {{iana-trust-methods-registry}}.
 
 Determining the Subject Authority has two steps: identify which
 registered Subject Identifier format the assertion carries, then apply
-that format's extraction procedure. The grant-profile binding
+that format's extraction procedure. A Resource Authorization Server
+does both whenever it uses a namespace-bound Subject Identifier: when
+a `subject_namespace_authorization` method evaluates it, or under the
+local-policy exception of {{rasp}} step 5e. The procedure's
+rejections reject the assertion only in the first case. Under step
+5e, an identifier that the procedure rejects is not used, and the
+rest of the assertion is evaluated as usual. The grant-profile binding
 ({{bindings}}) designates which claim conveys the Subject Identifier
 and thus which format applies. A format is "used by the assertion"
 when the designated claim for that format is present. If the
@@ -615,7 +633,8 @@ cannot be evaluated, and processing follows {{rasp}} step 5c.
 Extraction procedures are registered in {{iana-authority-registry}};
 this document registers the `email` extraction as the initial entry.
 Future specifications can register further formats without changing
-the rest of the framework.
+the rest of the framework, once a grant-profile binding designates
+the claim that carries the format ({{bindings}}).
 
 Initial extractions:
 
@@ -671,7 +690,11 @@ Initial extractions:
 
   The result is compared using case-insensitive ASCII comparison of
   A-labels. Consumers MUST reject an email whose domain is itself a
-  public suffix (no registrable domain exists).
+  public suffix (no registrable domain exists). Consumers MUST also
+  reject an email whose domain no rule of the list matches, so that
+  only the algorithm's default `*` rule would apply, such as a domain
+  under a top-level domain that the list does not include (for
+  example, `corp.internal`).
 
 Subject Authority extraction MUST be exact-match: wildcard, suffix,
 regular-expression, and substring matching against Subject Authority
@@ -801,36 +824,33 @@ request, the Resource Authorization Server MUST:
 2. Validate the assertion per the applicable grant profile
    ({{RFC7521}}, {{RFC7523}}, {{ID-JAG}}). The verification key MUST
    be bound to the `iss` value independently of the assertion,
-   through the `jwks_uri` in that issuer's metadata, local
-   configuration for that issuer, or a key source authenticated by a
-   Trust Method relied on in step 5. A key or key location in the
-   assertion's JOSE header, such as `jwk`, `jku`, or `x5u`, satisfies
-   this only when one of those sources authenticates it. This
-   strengthens {{ID-JAG}} §4.4.1, which only recommends `jwks_uri`.
-   The validation's
-   signing-key resolution is provisional. A Trust Method evaluated in
-   step 5 MAY constrain the source of the key used to verify the
-   assertion signature. For example, `openid_federation` requires a
-   federation-resolved JWKS ({{FEDERATION}}).
+   through the `jwks_uri` in that issuer's metadata (located per
+   {{ID-JAG}} §7.1, including its fallback to OpenID Connect
+   Discovery), local configuration for that issuer, or a key source
+   authenticated by a Trust Method satisfied in step 5. A key
+   or key location in the assertion's JOSE header, such as `jwk`,
+   `jku`, or `x5u`, satisfies this only when one of those sources
+   authenticates it. This strengthens {{ID-JAG}} §4.4.1, which only
+   recommends `jwks_uri`.
 
-   The Resource Authorization Server MUST NOT accept the assertion
-   until it has verified the signature with a key permitted by each
-   key-source-constraining Trust Method it relies on to satisfy the
-   combination rule in step 5. Under the or-semantics of
-   {{combination-rule}}, a listed method that is not relied on
-   imposes no key-source constraint. A signature verified only
-   against an unconstrained source, such as the `iss` URL's
-   authorization server metadata, does not satisfy this step when the
-   relied-on Trust Method constrains the key source.
+   A Trust Method MAY constrain the source of the verification key.
+   For example, `openid_federation` requires a federation-resolved
+   key set ({{FEDERATION}}). Such a method MUST NOT be treated as
+   satisfied in step 5 unless the assertion signature verifies under a
+   key it permits,
+   so a signature verified only under an unconstrained source, such as
+   the `iss` URL's authorization server metadata, does not satisfy
+   it. Signature verification can therefore complete in step 5, once
+   the method's key source is resolved.
 
 3. Verify that the applicable grant profile has a binding
    ({{bindings}}) and is listed in
    `authorization_grant_profiles_supported`.
 
-4. If `subject_identifier_formats_supported` is present, verify that
-   the Subject Identifier format used by the assertion is listed,
-   unless the applicable grant profile defines a different format
-   selection rule.
+4. If `subject_identifier_formats_supported` is present and the
+   assertion uses a Subject Identifier format, verify that the format
+   is listed, unless the applicable grant profile defines a different
+   format selection rule.
 
 5. Verify that the Assertion Issuer identified by `iss`, and any
    other party that a listed category evaluates, satisfy the Trust
@@ -838,18 +858,14 @@ request, the Resource Authorization Server MUST:
 
    a. Partition the Trust Method objects in `issuer_trust_methods`,
       and in any other Trust Policy member that lists Trust Method
-      objects, by category ({{trust-method-categories}}). A Trust
-      Method registered with multiple categories belongs to each
-      category that its member allows ({{trust-policy-document}}). A
+      objects, by category ({{trust-method-categories}}). A
       method listed in the wrong member is malformed
       ({{trust-policy-document}}). The Resource Authorization Server
       MUST reject the assertion if any object in such a member is not
       recognized, is malformed, or cannot be assigned to a category it
       knows. Silently ignoring the object would evaluate a strict
       subset of the requirements the operator declared: a fail-open
-      category downgrade. A single evidence item MUST NOT be counted
-      toward more than one category even when its Trust Method is
-      registered in several.
+      category downgrade.
 
    b. Each category present in the partitioned policy is applicable to
       every assertion evaluated under this policy, and nothing in the
@@ -859,8 +875,26 @@ request, the Resource Authorization Server MUST:
       Issuer, MUST satisfy at least one Trust Method from that
       category, subject to the finality rule of {{multiple-sources}}.
 
-   c. When the policy contains a `subject_namespace_authorization`
-      Trust Method:
+   c. Whatever categories the policy lists, the Resource Authorization
+      Server MUST identify the subject, for subject resolution, account
+      linking, and authorization, only by issuer-scoped identifiers or
+      by the Subject Identifier that a
+      `subject_namespace_authorization` method evaluated in step 5b,
+      unless local configuration trusts the Assertion Issuer for
+      another subject claim. That exception does not apply to a
+      namespace-bound Subject Identifier that no namespace method
+      evaluated: step 5e alone decides whether it can be used.
+
+      Issuer-scoped identifiers are `iss` and `sub`, with `tenant`
+      when the assertion carries it ({{ID-JAG}} §6.3). Claims such as
+      `aud_sub` and `sub_id` ({{ID-JAG}} §3.1) are outside the
+      namespace check. An account linked by `email` MUST be linked on
+      the address with its full domain in the A-label form that
+      {{subject-authority-determination}} computes, not on the
+      registrable domain or the result of any other Unicode mapping.
+
+      In addition, when the policy contains a
+      `subject_namespace_authorization` Trust Method:
 
       - The assertion MUST carry a Subject Identifier from which a
         Subject Authority can be determined per
@@ -875,23 +909,19 @@ request, the Resource Authorization Server MUST:
         evaluated, the Resource Authorization Server MUST NOT consume
         any subject or identity claim from the assertion for account
         linking, authorization, or subject resolution.
-      - When the category is satisfied, the Resource Authorization
-        Server MUST resolve and link the subject only from the
-        Subject Identifier the category evaluated or from
-        issuer-scoped identifiers, unless local configuration trusts
-        the Assertion Issuer for another subject claim.
-        Issuer-scoped identifiers are `iss` and `sub`, with `tenant`
-        for a multi-tenant issuer. Claims such as `aud_sub` and
-        `sub_id` ({{ID-JAG}} §3.1) are outside the namespace check.
 
    d. Local policy MAY require satisfaction of additional Trust
       Methods for specific clients, subjects, or scopes.
 
    e. When the policy lists no `subject_namespace_authorization`
       method and the assertion carries a namespace-bound Subject
-      Identifier, the Resource Authorization Server MUST reject the
-      assertion unless local policy independently establishes
-      authority over the subject namespace. A namespace-bound Subject
+      Identifier, the Resource Authorization Server MUST NOT use that
+      Subject Identifier for subject resolution, account linking, or
+      authorization, or convey it as an attribute of the subject, such
+      as in an issued token or at consent, unless local policy
+      independently establishes that the Assertion Issuer has
+      authority over the subject namespace. The rest of the assertion
+      is evaluated as usual. A namespace-bound Subject
       Identifier is one whose format has a registered Subject
       Authority extraction procedure ({{iana-authority-registry}}), so
       the Resource Authorization Server can recognize one without
@@ -903,9 +933,9 @@ request, the Resource Authorization Server MUST:
    this document specifies neither.
 
 Client authentication that the grant profile requires SHOULD be
-completed before step 5, so that unauthenticated requests cannot
-cause the lookups that step performs. Every fetch in this processing
-follows {{outbound-fetches}}.
+completed before step 2, so that unauthenticated requests cannot
+cause the fetches that steps 2 and 5 perform. Every fetch in this
+processing follows {{outbound-fetches}}.
 
 Rejection at any of steps 1 through 5 MUST result in an OAuth
 `invalid_grant` error unless another error is defined by the
@@ -961,8 +991,8 @@ be able to waive a listed category.
 Trust Method specifications MUST NOT define applicability conditions
 that depend on properties of the identity assertion under
 evaluation. The prohibition is directional: assertion properties
-never relax what the policy requires, but rejection rules keyed on
-them, such as {{rasp}} step 5e, only tighten it and are permitted.
+never relax what the policy requires, but rules keyed on them that
+only tighten it, such as {{rasp}} steps 5c and 5e, are permitted.
 Nor can published evidence waive the category. A Trust Method
 specification MUST NOT define a published state, such as a
 monitoring mode, under which an identity assertion whose issuer the
@@ -983,17 +1013,15 @@ header, request parameter, or fixed tuple) to exactly one evidence
 source or a deterministic failure, with no preference ordering and no
 fallback across candidates, and invariant under the presence,
 absence, or value of any input outside the function
-({{unverified-claim}}).
+({{unverified-claim}}). Within such a method's evaluation, a Resource
+Authorization Server MUST NOT fall through to a different evidence
+source if the selected evidence source's evaluation fails or is
+indeterminate ({{exception-handling}}).
 
 For `issuer_authentication`, every evidence source the Trust Policy
 lists is equally trusted, so a Trust Method specification MAY accept
 evidence from any of them. For `openid_federation`, this means a
 chain to any listed trust anchor ({{FEDERATION}}).
-
-Within one Trust Method's evaluation, a Resource Authorization Server
-MUST NOT fall through to a different evidence source if the
-originally-applicable evidence source's evaluation fails or is
-indeterminate ({{exception-handling}}).
 
 Across Trust Methods in the same category, or-semantics apply, with
 one exception, the finality rule. When a
@@ -1039,19 +1067,21 @@ channel that map to each state.
   assertion against that evidence.
 
 - **Negative**: the publication channel authoritatively reports the
-  absence of evidence. Examples: DNS NXDOMAIN or NODATA with a valid
-  (possibly DNSSEC-signed) authoritative answer where DNS is the
-  Trust Method's sole or final publication channel; for
-  `openid_federation` ({{FEDERATION}}), HTTP 404 for the leaf's
-  Entity Configuration.
+  absence of evidence, for example a DNS NXDOMAIN or NODATA with a
+  valid (possibly DNSSEC-signed) authoritative answer where DNS is
+  the Trust Method's sole or final publication channel.
   A Trust Method with several publication channels for the same
   evidence source reaches Negative only when the channels its lookup
   procedure consults authoritatively report no authorization. A
   Trust Method specification MAY additionally define an explicitly
-  published denial. Its state mapping decides whether such a denial
-  maps to Negative or to an Affirmative retrieval that authorizes
-  nothing. A Negative state records that no authorization is in
-  effect through that channel and is final for that Trust Method;
+  published denial. For a `subject_namespace_authorization` method,
+  such a denial MUST map to an Affirmative retrieval that does not
+  authorize the denied issuer, so that it is final
+  ({{multiple-sources}}). For other
+  methods, the specification's state mapping decides whether it maps
+  to Negative or to such an Affirmative retrieval. A Negative state
+  records that no authorization is in effect through that channel and
+  is final for that Trust Method;
   {{multiple-sources}} states its effect on other methods.
 
 - **Indeterminate**: the lookup did not produce an authoritative
@@ -1085,7 +1115,8 @@ beyond that specification's stated maximum. Once the cache expires,
 a live channel that remains Indeterminate does not satisfy the Trust
 Method. Treating Indeterminate as Affirmative, extending a cache
 across Indeterminate states, and falling through to another evidence
-source within one Trust Method's evaluation are the same downgrade:
+source within the evaluation of a method with deterministic source
+selection ({{multiple-sources}}) are the same downgrade:
 each lets an adversary who controls the availability of the
 publication channel turn a hard denial into a soft one.
 
@@ -1101,13 +1132,13 @@ requirement.
 Evaluating Trust Methods makes the Resource Authorization Server
 fetch resources at locations an attacker can choose:
 
-- the Assertion Issuer's metadata and key sets;
-- Entity Statements reached through a leaf's `authority_hints`;
-- a Trust Mark Issuer's chain; and
-- policy documents named by a Subject Authority that the attacker
-  controls.
+- the Assertion Issuer's metadata and key sets; and
+- the evidence each Trust Method retrieves, at locations that the
+  assertion or other evidence names, such as a policy document named
+  by a Subject Authority that the attacker controls ({{DAI}}).
 
-For every such fetch, the Resource Authorization Server:
+Each redirect hop is a separate fetch under these rules. For every
+such fetch, the Resource Authorization Server:
 
 - MUST NOT connect to an address that is private-use, loopback,
   link-local, unique-local, or otherwise not globally routable,
@@ -1126,7 +1157,7 @@ For every such fetch, the Resource Authorization Server:
 Trust Method specifications MAY add requirements; for example,
 {{DAI}} forbids following redirects for policy fetches.
 
-# Grant Profile and Token Bindings {#bindings}
+# Grant Profile Bindings {#bindings}
 
 This section defines the binding for ID-JAG ({{id-jag-profile}}),
 the only grant profile to which this document applies.
@@ -1151,34 +1182,38 @@ For ID-JAG {{ID-JAG}}, `authorization_grant_profiles_supported`
 contains `urn:ietf:params:oauth:grant-profile:id-jag`. The Subject
 Identifier for ID-JAG is the top-level `email` claim, accompanied by
 `email_verified=true`, extracted per
-{{subject-authority-determination}}. When the Trust Policy contains
+{{subject-authority-determination}}. {{ID-JAG}} §3.1 does not define
+`email_verified`, so requiring it narrows {{ID-JAG}}: an Assertion
+Issuer whose `email` a Resource Authorization Server uses has to send
+it.
+When the Trust Policy contains
 a `subject_namespace_authorization` method, {{rasp}} step 5c
 requires the ID-JAG to carry that Subject Identifier and requires
 rejection if it is absent or unresolvable.
+
+Passing step 5 of {{rasp}} is how the Resource Authorization Server
+decides that an ID-JAG's `iss` identifies an IdP Authorization Server
+it trusts ({{ID-JAG}} §4.4.1). It does not decide the trust in `iss`
+and `tenant` together that the same section requires of a
+multi-tenant issuer for the recipient tenant, which `aud`,
+`aud_tenant`, or the server's trust relationship with the issuer
+identifies. That trust remains the Resource Authorization Server's
+own configuration.
 
 A namespace method can bind authorization to a tenant using the
 `tenant` claim that {{ID-JAG}} §6.1 requires of a multi-tenant
 issuer. {{DAI}} §Shared Issuer Variant: Multi-Tenant Identity
 Provider gives an example. A match on `tenant` establishes that the
-Subject
-Authority authorized that (`iss`, `tenant`) pair for its namespace.
-It does not establish the trust in `iss` and `tenant` for the
-recipient tenant that {{ID-JAG}} §4.4.1 requires. That trust remains
-the Resource Authorization Server's own configuration.
+Subject Authority authorized that (`iss`, `tenant`) pair for its
+namespace, not the recipient-tenant trust above.
 
-In addition to the processing in {{rasp}}, the Resource Authorization
-Server MUST:
-
-1. Verify that the `email` Subject Identifier, when the assertion
-   carries one, uses a format listed in
-   `subject_identifier_formats_supported`, if that Trust Policy member
-   is present.
-
-2. Use the email attribution only for subject resolution and Subject
-   Authority evaluation. The Resource Authorization Server MUST NOT
-   treat the mere presence or value of the email claim as proof
-   that the ID-JAG issuer is authoritative for the subject. Issuer
-   acceptability is established only by evaluating the Trust Methods.
+The Resource Authorization Server uses the `email` claim only as
+{{rasp}} step 5c permits and for Subject Authority evaluation, and
+step 4 checks its format against
+`subject_identifier_formats_supported`. The Resource Authorization
+Server MUST NOT treat the mere presence or value of the claim as
+proof that the ID-JAG issuer is authoritative for the subject. Issuer
+acceptability is established only by evaluating the Trust Methods.
 
 # Security Considerations
 
@@ -1343,8 +1378,10 @@ its own account-linking rules.
 Nor does namespace authorization cover other subject claims. An
 issuer authorized for `attacker.example` can send an `email` in that
 namespace with an `aud_sub` or `sub_id` that names an account
-elsewhere. Step 5c of {{rasp}} therefore limits subject resolution
-to the evaluated Subject Identifier and issuer-scoped identifiers.
+elsewhere. Step 5c of {{rasp}} therefore limits subject resolution,
+under every Trust Policy, to the evaluated Subject Identifier and
+issuer-scoped identifiers, apart from the local-configuration
+exceptions of steps 5c and 5e.
 
 Nor is the authorization audience-scoped. The
 `subject_namespace_authorization` category constrains which
@@ -1438,11 +1475,10 @@ across categories, such as satisfying only an
 ## Trust Policy Caching {#caching}
 
 Consumers cache the Trust Policy using HTTP caching ({{RFC9111}}),
-bounded by a local maximum cache lifetime. Independent of any
-policy-document cache expiration, revocation status of validated
-trust evidence MUST be checked at the cadence required by the
-applicable Trust Method specification. Transport integrity is
-addressed in {{integrity}}.
+bounded by a local maximum cache lifetime. Each Trust Method
+specification bounds the caching of the evidence it retrieves
+({{trust-method-spec-requirements}}), independently of the Trust
+Policy's cache. Transport integrity is addressed in {{integrity}}.
 
 ## Observability
 
@@ -1466,22 +1502,22 @@ Trust policies are typically unauthenticated HTTPS resources. An
 adversary can scrape them across many Resource Authorization Servers
 to learn:
 
-- which RASes participate in which federations;
-- which trust anchors are accepted; and
-- which Subject Identifier formats are honored.
+- which Trust Methods, and which evidence sources such as federation
+  trust anchors, each one accepts; and
+- which Subject Identifier formats each one honors.
 
 This aids targeted attacks, such as prioritizing compromise of a
-heavily relied-upon trust anchor. Operators SHOULD publish only what
-clients need to determine whether they can attempt issuance, and
-prefer trust-anchor or federation expression over enumerating
-individual issuers.
+heavily relied-upon evidence source. Operators SHOULD publish only
+what clients need to determine whether they can attempt issuance.
 
-Subject Authority lookup at the RAS reveals the queried Subject
-Authority to DNS resolvers and, for HTTPS retrieval, to the policy
-host. RASes verifying with `domain_authorized_issuer` should treat
-the Subject Authority and Assertion Issuer relationship as
-sensitive operational data and avoid sending full subject
-identifiers in policy URLs, query parameters, logs, or telemetry.
+A Subject Authority lookup by a Resource Authorization Server reveals
+the queried Subject Authority to the parties on the Trust Method's
+publication channel, such as DNS resolvers and a policy host
+({{DAI}} §Privacy Considerations). Resource Authorization Servers
+should treat the relationship between a Subject Authority and an
+Assertion Issuer as sensitive operational data and avoid sending
+full Subject Identifiers in policy URLs, query parameters, logs, or
+telemetry.
 
 # Internationalization Considerations
 
@@ -1496,10 +1532,10 @@ to different A-labels are different Subject Authorities, however
 similar they look. A-label comparison does not by itself defend
 against homograph confusion shown to a human at account-linking or
 display time, which is out of scope and left to the consuming
-application. Resource Authorization Servers that link accounts by
-email SHOULD compare the domain in this A-label form, so that a
-Unicode string that maps to a different Subject Authority cannot land
-on another user's account.
+application. A Resource Authorization Server that links accounts by
+email compares the full domain in this A-label form ({{rasp}} step
+5c), so that a Unicode string that maps to a different Subject
+Authority cannot land on another user's account.
 
 The `email` extraction uses the simple single-`@` rule, not the full
 {{RFC5321}} Mailbox grammar. Internationalized email addresses
@@ -1613,9 +1649,9 @@ Identifier:
 Identifiers MUST use the character set `[a-z0-9_]` and SHOULD
 describe the trust evaluation procedure.
 
-Categories:
-: One or more values registered in the Trust Method Categories
-registry ({{iana-trust-method-categories-registry}}).
+Category:
+: One value registered in the Trust Method Categories registry
+({{iana-trust-method-categories-registry}}).
 
 Parameters:
 : Additional JSON members defined for this Trust Method, with their
@@ -1630,7 +1666,7 @@ Reference:
 Designated Expert instructions: the expert verifies that:
 
 - the identifier is unique and descriptive;
-- each listed category is registered;
+- the category is registered;
 - the Trust Method's evidence and evaluation procedure are specified
   precisely enough for interoperable implementation (including its
   mapping onto the Affirmative/Negative/Indeterminate lookup states
@@ -1792,8 +1828,8 @@ its own assertion claiming `email: alice@example.com,
 email_verified: true`, with a signature that validates against its
 own JWKS and the correct audience. The tool provider extracts
 Subject Authority `example.com`, looks up the customer's policy, and
-finds that `https://attacker.example` is not in
-`authorized_issuers`. The Trust Method fails, and the tool provider
+finds that `https://attacker.example` is not an authorized issuer.
+The Trust Method fails, and the tool provider
 rejects with `invalid_grant`. The self-asserted `email_verified`
 has no force: unless the customer lists `https://attacker.example`,
 that issuer cannot impersonate users in `example.com`.
@@ -1839,6 +1875,15 @@ for this document, which holds the details of that change.
     Introduction and Security Considerations (#38).
   * Require that an assertion's verification key be bound to `iss`
     independently of the assertion (#38).
+  * Limit subject resolution under every Trust Policy; link accounts
+    by the full A-label email domain; make a namespace method's
+    explicit denial final; limit the no-fall-through rule to namespace
+    methods; state that passing the Trust Policy is how a server
+    trusts an ID-JAG's issuer (#46).
+  * Under a policy with no namespace method, stop using or conveying
+    an unevaluated `email` instead of rejecting the assertion; reject
+    an email domain matched only by the Public Suffix List's default
+    rule; allow one category per Trust Method (#46).
   * Editorial changes for readability.
 
 -00

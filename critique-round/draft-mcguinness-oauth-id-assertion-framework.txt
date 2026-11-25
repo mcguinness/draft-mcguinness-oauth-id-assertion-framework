@@ -205,9 +205,9 @@ Table of Contents
    specification defines a binding for that profile and the policy lists
    it (Section 4.2 step 3).  For ID-JAG, this document narrows [ID-JAG]:
    it limits which claims resolve the subject (Section 4.2 step 5c),
-   requires email_verified for an email that a namespace method
-   evaluates (Section 5.1), and requires the verification key to be
-   bound to iss (Section 4.2 step 2).
+   requires email_verified for an email that the server uses
+   (Section 5.1), and requires the verification key to be bound to iss
+   (Section 4.2 step 2).
 
 1.1.  Overview
 
@@ -642,14 +642,18 @@ Table of Contents
    Determining the Subject Authority has two steps: identify which
    registered Subject Identifier format the assertion carries, then
    apply that format's extraction procedure.  A Resource Authorization
-   Server does both, and applies an extraction procedure's rejections,
-   when a subject_namespace_authorization method evaluates the
-   assertion.  The grant-profile binding (Section 5) designates which
-   claim conveys the Subject Identifier and thus which format applies.
-   A format is "used by the assertion" when the designated claim for
-   that format is present.  If the designated claim maps to no format
-   registered in Section 9.2, the assertion yields no Subject Authority,
-   the subject_namespace_authorization category cannot be evaluated, and
+   Server does both whenever it uses a namespace-bound Subject
+   Identifier: when a subject_namespace_authorization method evaluates
+   it, or under the local-policy exception of Section 4.2 step 5e.  The
+   procedure's rejections reject the assertion only in the first case.
+   Under step 5e, an identifier that the procedure rejects is not used,
+   and the rest of the assertion is evaluated as usual.  The grant-
+   profile binding (Section 5) designates which claim conveys the
+   Subject Identifier and thus which format applies.  A format is "used
+   by the assertion" when the designated claim for that format is
+   present.  If the designated claim maps to no format registered in
+   Section 9.2, the assertion yields no Subject Authority, the
+   subject_namespace_authorization category cannot be evaluated, and
    processing follows Section 4.2 step 5c.
 
    Extraction procedures are registered in Section 9.2; this document
@@ -872,10 +876,10 @@ Table of Contents
        (Section 5) and is listed in
        authorization_grant_profiles_supported.
 
-   4.  If subject_identifier_formats_supported is present, verify that
-       the Subject Identifier format used by the assertion is listed,
-       unless the applicable grant profile defines a different format
-       selection rule.
+   4.  If subject_identifier_formats_supported is present and the
+       assertion uses a Subject Identifier format, verify that the
+       format is listed, unless the applicable grant profile defines a
+       different format selection rule.
 
    5.  Verify that the Assertion Issuer identified by iss, and any other
        party that a listed category evaluates, satisfy the Trust Method
@@ -1221,8 +1225,8 @@ Table of Contents
    for ID-JAG is the top-level email claim, accompanied by
    email_verified=true, extracted per Section 3.4.  [ID-JAG] §3.1 does
    not define email_verified, so requiring it narrows [ID-JAG]: an
-   Assertion Issuer whose ID-JAGs a namespace method evaluates has to
-   send it.  When the Trust Policy contains a
+   Assertion Issuer whose email a Resource Authorization Server uses has
+   to send it.  When the Trust Policy contains a
    subject_namespace_authorization method, Section 4.2 step 5c requires
    the ID-JAG to carry that Subject Identifier and requires rejection if
    it is absent or unresolvable.
@@ -1415,7 +1419,8 @@ Table of Contents
    namespace with an aud_sub or sub_id that names an account elsewhere.
    Step 5c of Section 4.2 therefore limits subject resolution, under
    every Trust Policy, to the evaluated Subject Identifier and issuer-
-   scoped identifiers.
+   scoped identifiers, apart from the local-configuration exceptions of
+   steps 5c and 5e.
 
    Nor is the authorization audience-scoped.  The
    subject_namespace_authorization category constrains which Assertion

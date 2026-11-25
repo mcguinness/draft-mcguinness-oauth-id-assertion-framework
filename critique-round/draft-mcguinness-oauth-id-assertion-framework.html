@@ -1461,8 +1461,7 @@ specification defines a binding for that profile and the policy lists
 it (<a href="#rasp" class="auto internal xref">Section 4.2</a> step 3). For ID-JAG, this document narrows <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>:
 it limits which claims
 resolve the subject (<a href="#rasp" class="auto internal xref">Section 4.2</a> step 5c), requires <code>email_verified</code> for
-an <code>email</code> that a namespace method evaluates (<a href="#id-jag-profile" class="auto internal xref">Section 5.1</a>), and
-requires the
+an <code>email</code> that the server uses (<a href="#id-jag-profile" class="auto internal xref">Section 5.1</a>), and requires the
 verification key to be bound to <code>iss</code> (<a href="#rasp" class="auto internal xref">Section 4.2</a> step 2).<a href="#section-1-8" class="pilcrow">¶</a></p>
 <div id="overview">
 <section id="section-1.1">
@@ -2061,9 +2060,12 @@ category and register them in <a href="#iana-trust-methods-registry" class="auto
 <p id="section-3.4-1">Determining the Subject Authority has two steps: identify which
 registered Subject Identifier format the assertion carries, then apply
 that format's extraction procedure. A Resource Authorization Server
-does both, and applies an extraction procedure's rejections, when a
-<code>subject_namespace_authorization</code> method evaluates the assertion.
-The grant-profile binding
+does both whenever it uses a namespace-bound Subject Identifier: when
+a <code>subject_namespace_authorization</code> method evaluates it, or under the
+local-policy exception of <a href="#rasp" class="auto internal xref">Section 4.2</a> step 5e. The procedure's
+rejections reject the assertion only in the first case. Under step
+5e, an identifier that the procedure rejects is not used, and the
+rest of the assertion is evaluated as usual. The grant-profile binding
 (<a href="#bindings" class="auto internal xref">Section 5</a>) designates which claim conveys the Subject Identifier
 and thus which format applies. A format is "used by the assertion"
 when the designated claim for that format is present. If the
@@ -2329,10 +2331,10 @@ the method's key source is resolved.<a href="#section-4.2-3.2.2" class="pilcrow"
 <code>authorization_grant_profiles_supported</code>.<a href="#section-4.2-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-4.2-3.4">
-            <p id="section-4.2-3.4.1">If <code>subject_identifier_formats_supported</code> is present, verify that
-the Subject Identifier format used by the assertion is listed,
-unless the applicable grant profile defines a different format
-selection rule.<a href="#section-4.2-3.4.1" class="pilcrow">¶</a></p>
+            <p id="section-4.2-3.4.1">If <code>subject_identifier_formats_supported</code> is present and the
+assertion uses a Subject Identifier format, verify that the format
+is listed, unless the applicable grant profile defines a different
+format selection rule.<a href="#section-4.2-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-4.2-3.5">
             <p id="section-4.2-3.5.1">Verify that the Assertion Issuer identified by <code>iss</code>, and any
@@ -2744,7 +2746,8 @@ Identifier for ID-JAG is the top-level <code>email</code> claim, accompanied by
 <code>email_verified=true</code>, extracted per
 <a href="#subject-authority-determination" class="auto internal xref">Section 3.4</a>. <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §3.1 does not define
 <code>email_verified</code>, so requiring it narrows <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>: an Assertion
-Issuer whose ID-JAGs a namespace method evaluates has to send it.
+Issuer whose <code>email</code> a Resource Authorization Server uses has to send
+it.
 When the Trust Policy contains
 a <code>subject_namespace_authorization</code> method, <a href="#rasp" class="auto internal xref">Section 4.2</a> step 5c
 requires the ID-JAG to carry that Subject Identifier and requires
@@ -2973,7 +2976,8 @@ issuer authorized for <code>attacker.example</code> can send an <code>email</cod
 namespace with an <code>aud_sub</code> or <code>sub_id</code> that names an account
 elsewhere. Step 5c of <a href="#rasp" class="auto internal xref">Section 4.2</a> therefore limits subject resolution,
 under every Trust Policy, to the evaluated Subject Identifier and
-issuer-scoped identifiers.<a href="#section-6.7-5" class="pilcrow">¶</a></p>
+issuer-scoped identifiers, apart from the local-configuration
+exceptions of steps 5c and 5e.<a href="#section-6.7-5" class="pilcrow">¶</a></p>
 <p id="section-6.7-6">Nor is the authorization audience-scoped. The
 <code>subject_namespace_authorization</code> category constrains which
 Assertion Issuers can assert about a namespace, not which Resource

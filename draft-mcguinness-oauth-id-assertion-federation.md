@@ -631,7 +631,8 @@ The following requirements also apply:
     of such a key, without certificate chain validation.
 
   These are the two methods that {{OIDF-FEDERATION-CONNECT}}
-  §12.1.1.2 names for a client that authenticates before any
+  §12.1.1.2 names for a Pushed Authorization Request, where, as on a
+  first token request, the client authenticates before any
   registration exists. They are narrower than
   {{OIDF-FEDERATION-CONNECT}} §12.1.4, under which a server should
   accept any mutually supported method. The `aud` value is the issuer
@@ -795,8 +796,7 @@ therefore does not avoid the client method. A request whose
 `client_id` is an `https` URL gets the client method even when a
 registration exists for that URL. A party holding such a
 registration therefore cannot redeem an assertion issued to the
-federation Entity of that name
-({{trust-method-openid-federation-client}}).
+federation Entity of that name ({{client-recognition-processing}}).
 
 A compromised intermediate or trust anchor can substitute a client's
 keys through the metadata in its Subordinate Statement
@@ -1010,7 +1010,8 @@ and `email_verified: true`, the Resource Authorization Server:
    about the Intermediate. Validates all signatures, applies
    `metadata_policy`, and verifies the Trust Mark signature.
 
-2. **Framework-specific checks ({{federation-checks}}).**
+2. **Framework-specific checks ({{federation-checks}} and
+   {{trust-method-openid-federation}}).**
    The terminal trust anchor matches `trust_anchors`; the policy-applied
    metadata declares entity type `openid_provider`; the `loa3` Trust
    Mark satisfies the requirement; the ID-JAG signing key is taken only

@@ -1113,11 +1113,10 @@ requirement.
 Evaluating Trust Methods makes the Resource Authorization Server
 fetch resources at locations an attacker can choose:
 
-- the Assertion Issuer's metadata and key sets;
-- Entity Statements reached through a leaf's `authority_hints`;
-- a Trust Mark Issuer's chain; and
-- policy documents named by a Subject Authority that the attacker
-  controls.
+- the Assertion Issuer's metadata and key sets; and
+- the evidence each Trust Method retrieves, at locations that the
+  assertion or other evidence names, such as a policy document named
+  by a Subject Authority that the attacker controls ({{DAI}}).
 
 For every such fetch, the Resource Authorization Server:
 

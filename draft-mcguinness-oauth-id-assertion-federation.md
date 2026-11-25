@@ -337,6 +337,10 @@ is, and is not used past its own `exp`. A Trust Mark without `exp` is re-validat
 at its Trust Mark Status endpoint ({{OIDF-FEDERATION}} §8.4) when the
 Trust Mark Issuer publishes one.
 
+The fetches that {{TRUST-FRAMEWORK}} §Outbound Fetches governs
+include the Entity Statements reached through the leaf's
+`authority_hints` and the chain of a Trust Mark Issuer.
+
 See {{relationship-to-oidf}} for positioning against OpenID
 Federation.
 

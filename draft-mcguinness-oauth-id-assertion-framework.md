@@ -1047,11 +1047,9 @@ channel that map to each state.
   assertion against that evidence.
 
 - **Negative**: the publication channel authoritatively reports the
-  absence of evidence. Examples: DNS NXDOMAIN or NODATA with a valid
-  (possibly DNSSEC-signed) authoritative answer where DNS is the
-  Trust Method's sole or final publication channel; for
-  `openid_federation` ({{FEDERATION}}), HTTP 404 for the leaf's
-  Entity Configuration.
+  absence of evidence, for example a DNS NXDOMAIN or NODATA with a
+  valid (possibly DNSSEC-signed) authoritative answer where DNS is
+  the Trust Method's sole or final publication channel.
   A Trust Method with several publication channels for the same
   evidence source reaches Negative only when the channels its lookup
   procedure consults authoritatively report no authorization. A

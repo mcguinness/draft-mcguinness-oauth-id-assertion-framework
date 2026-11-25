@@ -910,7 +910,9 @@ request, the Resource Authorization Server MUST:
       method and the assertion carries a namespace-bound Subject
       Identifier, the Resource Authorization Server MUST NOT use that
       Subject Identifier for subject resolution, account linking, or
-      authorization unless local policy independently establishes
+      authorization, or convey it as an attribute of the subject, such
+      as in an issued token or at consent, unless local policy
+      independently establishes that the Assertion Issuer has
       authority over the subject namespace. The rest of the assertion
       is evaluated as usual. A namespace-bound Subject
       Identifier is one whose format has a registered Subject

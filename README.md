@@ -1,35 +1,45 @@
-<!-- regenerate: on (set to off if you edit this file) -->
+<!-- regenerate: off (set to off if you edit this file) -->
 
 # OAuth Identity Assertion Trust Framework
 
 This is the working area for three related individual Internet-Drafts
-that together define an OAuth authority-delegation framework for
-identity-assertion trust evaluation.
+about one question: when a Resource Authorization Server receives an
+Identity Assertion JWT Authorization Grant (ID-JAG) for
+`alice@acme.example`, should it trust the issuer for that subject?
 
-1. **OAuth Identity Assertion Trust Framework** — the Authority
-   Delegation Model (vocabulary, trust-evaluation categories,
-   combination rule, lookup states), plus the Trust Policy
-   document, Trust Method machinery, Subject Authority
-   Determination, and OAuth grant-profile bindings.
+Two parties publish policy, and they are easy to confuse:
+
+- The **Resource Authorization Server** (the server that receives the
+  grant) publishes a **Trust Policy**: the Trust Methods an issuer
+  must satisfy, such as membership in a federation and authorization
+  by the subject's domain. Its full name is "Identity Assertion Issuer
+  Trust Policy", but no issuer publishes it.
+- The **Subject Authority** (the owner of `acme.example`) publishes an
+  **Issuer Authorization Policy**: the issuers it authorizes to assert
+  identities in its domain. DAI defines it.
+
+1. **OAuth Identity Assertion Trust Framework**: the Trust Policy
+   document, Trust Method categories and registries, Subject
+   Authority Determination, and the token-endpoint procedure, bound
+   to ID-JAG.
    * [Editor's Copy](https://mcguinness.github.io/draft-mcguinness-oauth-id-assertion-framework/#go.draft-mcguinness-oauth-id-assertion-framework.html)
    * [Datatracker Page](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-id-assertion-framework)
    * [Individual Draft](https://datatracker.ietf.org/doc/html/draft-mcguinness-oauth-id-assertion-framework)
 
-2. **OAuth Domain-Authorized Issuer Trust Method (DAI)** — a
-   Standards-Track profile of the framework. Defines the
+2. **OAuth Domain-Authorized Issuer Trust Method (DAI)**: the
    `domain_authorized_issuer` Trust Method and the Issuer
-   Authorization Policy wire format it consumes, published via
-   DNS+HTTPS by the namespace owner.
+   Authorization Policy that a Subject Authority publishes through
+   DNS and HTTPS.
    * [Editor's Copy](https://mcguinness.github.io/draft-mcguinness-oauth-id-assertion-framework/#go.draft-mcguinness-oauth-domain-authorized-issuer.html)
    * [Datatracker Page](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer)
    * [Individual Draft](https://datatracker.ietf.org/doc/html/draft-mcguinness-oauth-domain-authorized-issuer)
 
 3. **OpenID Federation Trust Methods for Identity Assertion Grants
-   (FED)**: a Standards-Track extension of the framework. Defines the
-   `openid_federation` Trust Method (issuer authentication through an
-   OpenID Federation trust chain), the `client_recognition` category,
-   the `client_trust_methods` Trust Policy member, and the
-   `openid_federation_client` Trust Method.
+   (FED)**: `openid_federation`, which authenticates the issuer
+   through an OpenID Federation trust chain, and
+   `openid_federation_client`, which recognizes the client presenting
+   the grant, with the `client_recognition` category and the
+   `client_trust_methods` Trust Policy member.
    * [Editor's Copy](https://mcguinness.github.io/draft-mcguinness-oauth-id-assertion-framework/#go.draft-mcguinness-oauth-id-assertion-federation.html)
    * [Datatracker Page](https://datatracker.ietf.org/doc/draft-mcguinness-oauth-id-assertion-federation)
    * [Individual Draft](https://datatracker.ietf.org/doc/html/draft-mcguinness-oauth-id-assertion-federation)
@@ -38,8 +48,8 @@ identity-assertion trust evaluation.
 
 ```
         OAuth Identity Assertion Trust Framework  (doc 1)
-              (Authority Delegation Model +
-               Trust Policy + Trust Methods)
+              (Trust Policy, Trust Methods,
+               token-endpoint procedure)
                  |                          |
                  | extended by              | extended by
                  v                          v
@@ -49,15 +59,7 @@ identity-assertion trust evaluation.
                                        client_recognition)
 ```
 
-A Resource Authorization Server publishes a Trust Policy declaring
-which Trust Methods it requires; each Trust Method realizes one
-trust-evaluation category. DAI defines the
-`domain_authorized_issuer` Trust Method that lets a namespace owner
-publish (via DNS+HTTPS) the set of Assertion Issuers authorized for
-its namespace. FED defines the OpenID Federation Trust Methods and
-the optional requirements on the client that presents an assertion.
-A Resource Authorization Server that uses only DAI does not need
-FED.
+A Resource Authorization Server that uses only DAI does not need FED.
 
 ## Contributing
 

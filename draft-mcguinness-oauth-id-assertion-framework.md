@@ -154,32 +154,12 @@ Namespace authorization lets the domain owner state once which
 issuers and tenants may assert about its subjects, for every
 Resource Authorization Server to check. It complements, and does not
 replace, the Resource Authorization Server's own account-linking
-defenses ({{scope-of-namespace-authorization}}).
-
-This is an open-world problem: the set of acceptable Assertion
-Issuers is often large, dynamic, or governed by external trust
-frameworks, so it cannot be enumerated in advance. This document
-therefore defines an Identity Assertion Issuer Trust Policy, in which
-a Resource Authorization Server publishes the conditions an Assertion
-Issuer must satisfy, such as membership in a recognized federation or
-authority for the asserted subject namespace, not a list of trusted
-Assertion Issuers. The Resource Authorization Server evaluates each
-condition from concrete evidence when an assertion is presented.
-Despite its name, the Trust Policy is published by the Resource
-Authorization Server, not an Assertion Issuer. A Subject Authority
-authorizes issuers in a separate document, the Issuer Authorization
-Policy ({{DAI}}).
-
-This document defines a binding only for ID-JAG ({{bindings}}). A
-Resource Authorization Server that evaluates a Trust Policy therefore
-rejects an identity assertion of any other grant profile unless a
-specification defines a binding for that profile and the policy lists
-it ({{rasp}} step 3). For ID-JAG, this document narrows {{ID-JAG}}:
-it limits which claims
-resolve the subject ({{rasp}} step 5c), requires `email_verified` for
-an `email` that the server uses ({{id-jag-profile}}), and requires the
-verification key to be bound to `iss` ({{rasp}} step 2).
-
+defenses ({{scope-of-namespace-authorization}}). The same gap arises
+in workforce single sign-on into multi-vendor SaaS, in AI agent
+platforms acting across tool boundaries
+({{example-agent-platform}}), in B2B integrations that carry end-user
+identity, and with shared-issuer multi-tenant Identity Providers
+({{DAI}} §Single-Issuer Multi-Tenant Identity Providers).
 
 ## Overview {#overview}
 
@@ -195,13 +175,20 @@ Server answers two separate questions about it:
 
 - Namespace authorization: is that issuer authorized for
   `acme.example`? Only the owner of `acme.example`, its Subject
-  Authority, can say. Under {{DAI}}, it publishes through DNS an
-  Issuer Authorization Policy that lists the Assertion Issuers it
-  authorizes. A recognized signer can name any domain, so a yes to
-  the first question does not answer the second.
+  Authority, can say. Under {{DAI}}, the Subject Authority publishes
+  through DNS an Issuer Authorization Policy that lists the Assertion
+  Issuers it authorizes. A recognized signer can name any domain, so
+  a yes to the first question does not answer the second.
 
-The Resource Authorization Server publishes a Trust Policy
-({{trust-policy-document}}) that names the Trust Methods it requires.
+The Resource Authorization Server publishes its own Trust Policy
+({{trust-policy-document}}), which names the Trust Methods it
+requires. Despite the policy's full name, Identity Assertion Issuer
+Trust Policy, no Assertion Issuer publishes it. It states the
+conditions an Assertion Issuer must satisfy, not a list of trusted
+Assertion Issuers, because the set of acceptable issuers is often
+large, dynamic, or governed by external trust frameworks and cannot
+be enumerated in advance. The Resource Authorization Server evaluates
+each condition from concrete evidence when an assertion is presented.
 When the policy lists methods in both categories, as below, both
 must pass:
 
@@ -233,23 +220,44 @@ which evaluate the client that presents the assertion.
 {{example-agent-platform}} walks through an exchange that uses
 `domain_authorized_issuer` alone.
 
-## Motivating Use Cases {#motivation}
+## Documents in the Family and Scope {#family}
 
-The gap between issuer authentication and namespace authorization
-matters in:
+This document, {{DAI}}, and {{FEDERATION}} form a three-document set:
 
-- Workforce SSO into multi-vendor SaaS, where per-customer issuer
-  configuration has no wire-format check that the customer
-  authorizes the configured Assertion Issuer.
-- AI agent platforms acting across tool boundaries, where the tool
-  needs to know the platform is entitled to assert about users in
-  the customer's namespace ({{example-agent-platform}}).
-- B2B integrations carrying end-user identity, which today accept
-  any authenticated Assertion Issuer or maintain manual allowlists.
-- Shared-issuer multi-tenant Identity Providers, where the
-  customer's choice of authorized tenant becomes observable on the
-  wire rather than implicit
-  ({{DAI}} §Single-Issuer Multi-Tenant Identity Providers).
+- **This document** defines the Trust Policy
+  ({{trust-policy-document}}), the Trust Method categories and
+  registries, Subject Authority Determination
+  ({{subject-authority-determination}}), and the token-endpoint
+  procedure that evaluates the policy ({{rasp}}) with the rules it
+  applies ({{delegation-model}}).
+- **{{DAI}}** defines the `domain_authorized_issuer` Trust Method and
+  the Issuer Authorization Policy that it consumes.
+- **{{FEDERATION}}** defines the `openid_federation` Trust Method and
+  the `client_recognition` category, which evaluates the client that
+  presents an assertion.
+
+A Resource Authorization Server that uses only {{DAI}} does not need
+{{FEDERATION}}.
+
+This document defines a binding only for ID-JAG ({{bindings}}). A
+Resource Authorization Server that evaluates a Trust Policy therefore
+rejects an identity assertion of any other grant profile unless a
+specification defines a binding for that profile and the policy lists
+it ({{rasp}} step 3). For ID-JAG, this document narrows {{ID-JAG}}:
+it limits which claims resolve the subject ({{rasp}} step 5c),
+requires `email_verified` for an `email` that the server uses
+({{id-jag-profile}}), and requires the verification key to be bound
+to `iss` ({{rasp}} step 2).
+
+Trust Methods for attribute authorities that are not namespace
+owners, such as issuers of government credentials, professional
+certifications, or employment attestations, are out of scope. When
+such an attestation is conveyed in an identity assertion whose
+subject is namespace-bound, the issuer-trust evaluation still
+applies. The `email` Subject Identifier extraction registered in
+this document is user-identity-oriented. Workload, agent, and other
+non-user subjects can be supported by registering additional
+extractions ({{iana-authority-registry}}).
 
 ## Relationship to Existing Mechanisms
 
@@ -261,51 +269,6 @@ answers the verifier-side question "may this issuer, having already
 produced an assertion, be trusted for this subject's namespace?"
 {{DAI}} §Following Existing DNS Authority Patterns compares DAI with
 related DNS and domain-verification mechanisms.
-
-
-## Documents in the Family {#family}
-
-This document, {{DAI}}, and {{FEDERATION}} form a three-document set:
-
-- **This document** defines the Trust Policy
-  ({{trust-policy-document}}) and the token-endpoint procedure that
-  evaluates it ({{rasp}}).
-- **{{DAI}}** defines the `domain_authorized_issuer` Trust Method and
-  the Issuer Authorization Policy that it consumes.
-- **{{FEDERATION}}** defines the `openid_federation` Trust Method and
-  the `client_recognition` category, which evaluates the client that
-  presents an assertion.
-
-A Resource Authorization Server that uses only {{DAI}} does not need
-{{FEDERATION}}.
-
-
-## Scope {#scope}
-
-The scope of this document is:
-
-- The Trust Policy document ({{trust-policy-document}}).
-- The Trust Method machinery (categories, registry).
-- The Subject Authority Determination concept and registry.
-- The token-endpoint procedure ({{rasp}}) and the rules it applies
-  ({{delegation-model}}): combination rule, lookup states, and
-  fail-closed handling.
-- The binding to ID-JAG ({{bindings}}).
-
-Trust Methods, and the publication mechanisms they use, live in
-dedicated specifications such as {{DAI}} and {{FEDERATION}}.
-
-Trust Methods for attribute authorities that are not namespace
-owners, such as issuers of government credentials, professional
-certifications, or employment attestations, are out of scope. When
-such an attestation is conveyed in an identity assertion whose
-subject is namespace-bound, the issuer-trust evaluation still
-applies.
-
-The `email` Subject Identifier extraction registered in this
-document is user-identity-oriented. Workload, agent, and other
-non-user subjects can be supported by registering additional
-extractions ({{iana-authority-registry}}).
 
 ## Conventions
 

@@ -62,10 +62,7 @@ informative:
     title: "OAuth Domain-Authorized Issuer Trust Method"
     target: https://datatracker.ietf.org/doc/draft-mcguinness-oauth-domain-authorized-issuer/
     date: false
-  I-D.shankarlingam-oauth-agent-dns-link:
-    title: "Linking an Agent's DNS Name to its OAuth Client"
-    target: https://datatracker.ietf.org/doc/draft-shankarlingam-oauth-agent-dns-link/
-    date: false
+
   I-D.ietf-oauth-client-id-metadata-document:
     title: "OAuth Client ID Metadata Document"
     target: https://datatracker.ietf.org/doc/draft-ietf-oauth-client-id-metadata-document/
@@ -851,29 +848,7 @@ authority comes from the separate `subject_namespace_authorization`
 category. The framework composes with federation rather than
 replacing it.
 
-# Future Extensions
 
-This appendix is non-normative. It sketches deferred directions that
-future specifications may register.
-
-## Additional Client Recognition Methods
-
-Other `client_recognition` methods can follow the pattern of
-{{DAI}} for clients identified by DNS names. For example,
-{{I-D.shankarlingam-oauth-agent-dns-link}} publishes, under an
-agent's DNS name, the issuer and client identifier the agent uses at
-its operator's authorization server, and has the agent present a
-fresh access token issued to that client. Such a Trust Method would
-need to define:
-
-- its lookup states, including Indeterminate on DNS failure;
-- how its record binds to the queried name, as {{DAI}}'s
-  `authority=` directive does; and
-- how the token is carried in a token request.
-
-A method for clients whose Explicit Registration
-({{OIDF-FEDERATION-CONNECT}} §12.2) `client_id` is not their Entity
-Identifier would take the Entity Identifier from the registration.
 
 # OpenID Federation Walkthrough {#example-federation-walkthrough}
 

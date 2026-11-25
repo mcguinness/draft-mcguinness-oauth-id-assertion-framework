@@ -340,6 +340,11 @@ Grant profile:
 : The OAuth assertion-grant specification under which an identity
 assertion arrives, such as {{ID-JAG}} ({{bindings}}).
 
+Subject Identifier:
+: The identifier of an identity assertion's subject in a named
+format, such as `email` ({{RFC9493}}), carried in the claim that the
+grant-profile binding designates ({{subject-authority-determination}}).
+
 Subject Authority:
 : The party that holds authority over a Subject Identifier namespace
 and can authorize Assertion Issuers to assert identities in it. The

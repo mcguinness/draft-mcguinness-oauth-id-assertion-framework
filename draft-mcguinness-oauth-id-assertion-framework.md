@@ -1191,20 +1191,13 @@ Provider gives an example. A match on `tenant` establishes that the
 Subject Authority authorized that (`iss`, `tenant`) pair for its
 namespace, not the recipient-tenant trust above.
 
-In addition to the processing in {{rasp}}, the Resource Authorization
-Server MUST:
-
-1. Verify that the `email` Subject Identifier, when the assertion
-   carries one, uses a format listed in
-   `subject_identifier_formats_supported`, if that Trust Policy member
-   is present.
-
-2. Use the `email` claim only as {{rasp}} step 5c permits and for
-   Subject Authority evaluation. The Resource Authorization Server
-   MUST NOT
-   treat the mere presence or value of the email claim as proof
-   that the ID-JAG issuer is authoritative for the subject. Issuer
-   acceptability is established only by evaluating the Trust Methods.
+The Resource Authorization Server uses the `email` claim only as
+{{rasp}} step 5c permits and for Subject Authority evaluation, and
+step 4 checks its format against
+`subject_identifier_formats_supported`. The Resource Authorization
+Server MUST NOT treat the mere presence or value of the claim as
+proof that the ID-JAG issuer is authoritative for the subject. Issuer
+acceptability is established only by evaluating the Trust Methods.
 
 # Security Considerations
 

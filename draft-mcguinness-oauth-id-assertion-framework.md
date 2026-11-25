@@ -847,10 +847,10 @@ request, the Resource Authorization Server MUST:
    ({{bindings}}) and is listed in
    `authorization_grant_profiles_supported`.
 
-4. If `subject_identifier_formats_supported` is present, verify that
-   the Subject Identifier format used by the assertion is listed,
-   unless the applicable grant profile defines a different format
-   selection rule.
+4. If `subject_identifier_formats_supported` is present and the
+   assertion uses a Subject Identifier format, verify that the format
+   is listed, unless the applicable grant profile defines a different
+   format selection rule.
 
 5. Verify that the Assertion Issuer identified by `iss`, and any
    other party that a listed category evaluates, satisfy the Trust

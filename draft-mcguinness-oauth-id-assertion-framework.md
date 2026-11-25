@@ -621,7 +621,8 @@ cannot be evaluated, and processing follows {{rasp}} step 5c.
 Extraction procedures are registered in {{iana-authority-registry}};
 this document registers the `email` extraction as the initial entry.
 Future specifications can register further formats without changing
-the rest of the framework.
+the rest of the framework, once a grant-profile binding designates
+the claim that carries the format ({{bindings}}).
 
 Initial extractions:
 

@@ -317,7 +317,7 @@ Identifier formats follow {{RFC9493}}; Trust Method identifiers are
 registered in {{iana-trust-methods-registry}}. This document defines
 the following terms.
 
-Resource Authorization Server (RAS):
+Resource Authorization Server:
 : The OAuth authorization server that receives an identity
 assertion as a grant, evaluates the Trust Policy, and issues access
 tokens for a protected resource. It is not a new OAuth protocol
@@ -1486,22 +1486,22 @@ Trust policies are typically unauthenticated HTTPS resources. An
 adversary can scrape them across many Resource Authorization Servers
 to learn:
 
-- which RASes participate in which federations;
-- which trust anchors are accepted; and
-- which Subject Identifier formats are honored.
+- which Trust Methods, and which evidence sources such as federation
+  trust anchors, each one accepts; and
+- which Subject Identifier formats each one honors.
 
 This aids targeted attacks, such as prioritizing compromise of a
-heavily relied-upon trust anchor. Operators SHOULD publish only what
-clients need to determine whether they can attempt issuance, and
-prefer trust-anchor or federation expression over enumerating
-individual issuers.
+heavily relied-upon evidence source. Operators SHOULD publish only
+what clients need to determine whether they can attempt issuance.
 
-Subject Authority lookup at the RAS reveals the queried Subject
-Authority to DNS resolvers and, for HTTPS retrieval, to the policy
-host. RASes verifying with `domain_authorized_issuer` should treat
-the Subject Authority and Assertion Issuer relationship as
-sensitive operational data and avoid sending full subject
-identifiers in policy URLs, query parameters, logs, or telemetry.
+A Subject Authority lookup by a Resource Authorization Server reveals
+the queried Subject Authority to the parties on the Trust Method's
+publication channel, such as DNS resolvers and a policy host
+({{DAI}} §Privacy Considerations). Resource Authorization Servers
+should treat the relationship between a Subject Authority and an
+Assertion Issuer as sensitive operational data and avoid sending
+full Subject Identifiers in policy URLs, query parameters, logs, or
+telemetry.
 
 # Internationalization Considerations
 

@@ -392,15 +392,10 @@ Assertion Issuer, identifies the same client ({{ID-JAG}} §4.4.1).
 Recognizing a client does not authorize any Assertion Issuer, and
 authorizing an Assertion Issuer does not recognize any client.
 
-The OAuth Client ID Metadata Document
-{{I-D.ietf-oauth-client-id-metadata-document}} is complementary: it
-lets an authorization server obtain a client's metadata and keys
-from its `client_id` URL but leaves the trust decision to that
-server. A client recognition method could use it as a key source
-only together with evidence that the Resource Authorization Server
-trusts. `openid_federation_client` does not use it: a client whose
-keys are published only in a Client ID Metadata Document does not
-satisfy that method ({{trust-method-openid-federation-client}}).
+A client whose keys are published only in an OAuth Client ID
+Metadata Document {{I-D.ietf-oauth-client-id-metadata-document}}
+does not satisfy `openid_federation_client`
+({{trust-method-openid-federation-client}}).
 
 ## The `client_trust_methods` Member {#client-trust-methods}
 

@@ -901,17 +901,18 @@ normative; the table is not. "Namespace method" means a
 `subject_namespace_authorization` method. Before either step, step 4
 rejects an
 assertion whose Subject Identifier format is not listed in
-`subject_identifier_formats_supported`, when that member is present.
+`subject_identifier_formats_supported`, when that member is present
+and the grant profile defines no different format selection rule.
 
 | Namespace method in the policy | The assertion carries | The assertion | Identifiers the server may use for the subject |
 |-|-|-|-|
 | Yes | A Subject Identifier whose Subject Authority authorizes the Assertion Issuer | Continues to step 6 | Issuer-scoped identifiers and the evaluated Subject Identifier |
-| Yes | No Subject Identifier, or one from which no Subject Authority can be determined, such as an `email` without `email_verified` | Rejected (step 5c) | None |
-| Yes | A Subject Identifier whose Subject Authority does not authorize the Assertion Issuer, or whose lookup is Indeterminate | Rejected (step 5b) | None |
+| Yes | No Subject Identifier, or one from which no Subject Authority can be determined, such as an `email` whose `email_verified` is not `true` | Rejected (step 5c) | None |
+| Yes | A Subject Identifier, but the `subject_namespace_authorization` category is not satisfied ({{multiple-sources}}) | Rejected (step 5b) | None |
 | No | No namespace-bound Subject Identifier | Continues to step 6 | Issuer-scoped identifiers |
 | No | A namespace-bound Subject Identifier, and local policy establishes that the Assertion Issuer has authority over its namespace | Continues to step 6 | Issuer-scoped identifiers, and the Subject Identifier if its extraction succeeds |
-| No | A namespace-bound Subject Identifier, otherwise | Continues to step 6 | Issuer-scoped identifiers only; the Subject Identifier is neither used nor conveyed (step 5e) |
-| Either | `aud_sub` or `sub_id` | As in the other rows | Those claims only when local configuration trusts the Assertion Issuer for them (step 5c) |
+| No | A namespace-bound Subject Identifier, otherwise | Continues to step 6 | Issuer-scoped identifiers; the Subject Identifier is neither used nor conveyed (step 5e) |
+| Either | Another subject claim that is not namespace-bound, such as `aud_sub` or `sub_id` | As in the other rows | That claim only when local configuration trusts the Assertion Issuer for it (step 5c) |
 
 Client authentication that the grant profile requires SHOULD be
 completed before step 2, so that unauthenticated requests cannot

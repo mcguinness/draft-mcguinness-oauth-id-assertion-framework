@@ -874,9 +874,9 @@ request, the Resource Authorization Server MUST:
       by the Subject Identifier that a
       `subject_namespace_authorization` method evaluated in step 5b,
       unless local configuration trusts the Assertion Issuer for
-      another subject claim. Step 5e, not that exception, governs a
+      another subject claim. That exception does not apply to a
       namespace-bound Subject Identifier that no namespace method
-      evaluated.
+      evaluated: step 5e alone decides whether it can be used.
 
       Issuer-scoped identifiers are `iss` and `sub`, with `tenant`
       when the assertion carries it ({{ID-JAG}} §6.3). Claims such as

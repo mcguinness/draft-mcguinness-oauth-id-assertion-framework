@@ -489,36 +489,42 @@ its `client_id` is an Entity Identifier in a listed federation.
 
 **Resource Authorization Server processing.** For a token request
 that presents an identity assertion, the Resource Authorization
-Server proceeds in this order:
+Server proceeds in the order below. Stages 2 and 3 apply only when
+the Trust Policy selected in stage 1 contains `client_trust_methods`.
 
-1. **Select the Trust Policy (step 1).** A Resource Authorization
-   Server that holds more than one Trust Policy selects one by client
-   only when the request's client authentication verifies against a
-   registration it holds. A public client does not authenticate
-   against its registration ({{RFC6749}} Section 2.3). Any other
-   request, including one that names a registered `client_id` without
-   authenticating as that client, gets the policy that applies without
-   regard to the client, such as the one it publishes
-   ({{TRUST-FRAMEWORK}} §Metadata Publication).
+1. **Select the Trust Policy (step 1).** Call the policy that applies
+   without regard to the client, such as the one the Resource
+   Authorization Server publishes ({{TRUST-FRAMEWORK}} §Metadata
+   Publication), the default policy. A Resource Authorization Server
+   that holds more than one Trust Policy selects in this order:
 
-   When that policy lists `openid_federation_client`, a registration
-   does not qualify for a request whose `client_id` is an `https` URL.
-   The Resource Authorization Server MUST NOT select a policy without
-   `client_trust_methods` for such a request, even when it holds a
-   registration for that `client_id`. One example is an Explicit
-   Registration that kept the Entity Identifier
-   ({{OIDF-FEDERATION-CONNECT}} §12.2.2). A Resource Authorization
-   Server that already uses `https` URLs as `client_id` values for
-   clients outside a federation therefore cannot list
-   `openid_federation_client` without rejecting those clients. This
-   document defines no other way to combine registered and federation
-   clients.
+   - When the default policy lists `openid_federation_client` and the
+     request's `client_id` is an `https` URL, the default policy. The
+     Resource Authorization Server MUST NOT select a policy without
+     `client_trust_methods` for such a request, even when it holds a
+     registration for that `client_id`. One example is an Explicit
+     Registration that kept the Entity Identifier
+     ({{OIDF-FEDERATION-CONNECT}} §12.2.2).
+   - Otherwise, when the request's client authentication verifies
+     against a registration the server holds, the policy for that
+     client. A public client does not authenticate against its
+     registration ({{RFC6749}} Section 2.3).
+   - Otherwise, including for a request that names a registered
+     `client_id` without authenticating as that client, the default
+     policy.
 
-   The remaining stages apply when the selected policy contains
-   `client_trust_methods`.
+   A Resource Authorization Server that already uses `https` URLs as
+   `client_id` values for clients outside a federation therefore
+   cannot list `openid_federation_client` in its default policy
+   without rejecting those clients. This document defines no other
+   way to combine registered and federation clients.
 
-2. **Authenticate the client (before step 2).** The Resource
-   Authorization Server MUST authenticate the client, and evaluate the
+2. **Authenticate the client (before step 2).** Step 5a of the
+   framework applies first to the objects in `client_trust_methods`:
+   an unrecognized or malformed object rejects the request with the
+   error that {{TRUST-FRAMEWORK}} §Resource Authorization Server
+   Processing specifies. The Resource Authorization Server MUST then
+   authenticate the client, and evaluate the
    `client_recognition` category (stage 3), before step 2. If the
    request carries no client authentication that the Resource
    Authorization Server accepts, it MUST reject the request with an
@@ -537,9 +543,8 @@ Server proceeds in this order:
    Authorization Server MUST evaluate the `client_recognition`
    category against the client that the request's client
    authentication ({{RFC6749}} Section 2.3) identifies, never against
-   a claim in the assertion. This is step 5 of the framework for that
-   category: steps 5a and 5b apply to the objects in
-   `client_trust_methods`, and the party that step 5b evaluates is the
+   a claim in the assertion. This is step 5b of the framework for
+   that category, and the party that step 5b evaluates is the
    authenticated client.
 
 4. **Process the assertion (steps 2 through 6).** The Resource

@@ -1326,12 +1326,14 @@ not mitigate the DNS compromise that selected that host.
 
 Absent DNSSEC or an authenticated resolver path, the inline DNS form's
 integrity is no stronger than the recursive resolver path between
-consumer and authoritative server. Deployments needing a stronger
-guarantee SHOULD sign the zone with DNSSEC or use the pointer
-form with the controls of {{TRUST-FRAMEWORK}} §Shared Infrastructure
-and Hosted Well-Known Paths. The inline form's "common case"
-simplicity ({{publication-profiles}}) is an operability tradeoff, not
-an integrity guarantee.
+consumer and authoritative server. The pointer form does not change
+that: DNS also selects the policy host and carries any `key=`
+thumbprint, so `key=` protects the policy against its host
+({{third-party-policy-hosts}}), not against DNS compromise.
+Deployments needing a stronger guarantee sign the zone with DNSSEC,
+as recommended below. The inline form's "common case" simplicity
+({{publication-profiles}}) is an operability tradeoff, not an
+integrity guarantee.
 
 Required framework defenses:
 
@@ -1620,10 +1622,9 @@ infrastructure. Specific guidance:
   therefore needs to list every issuer that method accepted. Before
   publishing, check the issuer list for completeness. Forgotten
   regional tenants and departing Identity Providers are the usual
-  omissions, and they surface as rejections at such servers. Subject
-  Authorities SHOULD sign the zone with DNSSEC or publish via the
-  pointer form, since every published decision carries the full
-  weight of the publication channel's integrity
+  omissions, and they surface as rejections at such servers. Every
+  published decision carries the full weight of the publication
+  channel's integrity, so sign the zone with DNSSEC
   ({{dns-integrity-and-compromise}}).
 - **Change management and TTLs.** Reduce DNS TTLs before any planned
   change to the record or `uri=` pointer

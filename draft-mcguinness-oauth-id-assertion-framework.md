@@ -825,7 +825,7 @@ request, the Resource Authorization Server MUST:
    through the `jwks_uri` in that issuer's metadata (located per
    {{ID-JAG}} §7.1, including its fallback to OpenID Connect
    Discovery), local configuration for that issuer, or a key source
-   authenticated by a Trust Method that counts toward step 5b. A key
+   authenticated by a Trust Method satisfied in step 5. A key
    or key location in the assertion's JOSE header, such as `jwk`,
    `jku`, or `x5u`, satisfies this only when one of those sources
    authenticates it. This strengthens {{ID-JAG}} §4.4.1, which only
@@ -833,8 +833,9 @@ request, the Resource Authorization Server MUST:
 
    A Trust Method MAY constrain the source of the verification key.
    For example, `openid_federation` requires a federation-resolved
-   key set ({{FEDERATION}}). Such a method MUST NOT count toward step
-   5b unless the assertion signature verifies under a key it permits,
+   key set ({{FEDERATION}}). Such a method MUST NOT be treated as
+   satisfied in step 5 unless the assertion signature verifies under a
+   key it permits,
    so a signature verified only under an unconstrained source, such as
    the `iss` URL's authorization server metadata, does not satisfy
    it. Signature verification can therefore complete in step 5, once

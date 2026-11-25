@@ -1054,10 +1054,13 @@ channel that map to each state.
   evidence source reaches Negative only when the channels its lookup
   procedure consults authoritatively report no authorization. A
   Trust Method specification MAY additionally define an explicitly
-  published denial. Its state mapping decides whether such a denial
-  maps to Negative or to an Affirmative retrieval that authorizes
-  nothing. A Negative state records that no authorization is in
-  effect through that channel and is final for that Trust Method;
+  published denial. For a `subject_namespace_authorization` method,
+  such a denial MUST map to an Affirmative retrieval that authorizes
+  nothing, so that it is final ({{multiple-sources}}). For other
+  methods, the specification's state mapping decides whether it maps
+  to Negative or to such an Affirmative retrieval. A Negative state
+  records that no authorization is in effect through that channel and
+  is final for that Trust Method;
   {{multiple-sources}} states its effect on other methods.
 
 - **Indeterminate**: the lookup did not produce an authoritative

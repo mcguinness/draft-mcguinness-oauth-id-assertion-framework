@@ -806,26 +806,20 @@ request, the Resource Authorization Server MUST:
    through the `jwks_uri` in that issuer's metadata (located per
    {{ID-JAG}} §7.1, including its fallback to OpenID Connect
    Discovery), local configuration for that issuer, or a key source
-   authenticated by a
-   Trust Method relied on in step 5. A key or key location in the
-   assertion's JOSE header, such as `jwk`, `jku`, or `x5u`, satisfies
-   this only when one of those sources authenticates it. This
-   strengthens {{ID-JAG}} §4.4.1, which only recommends `jwks_uri`.
-   The validation's
-   signing-key resolution is provisional. A Trust Method evaluated in
-   step 5 MAY constrain the source of the key used to verify the
-   assertion signature. For example, `openid_federation` requires a
-   federation-resolved JWKS ({{FEDERATION}}).
+   authenticated by a Trust Method that counts toward step 5b. A key
+   or key location in the assertion's JOSE header, such as `jwk`,
+   `jku`, or `x5u`, satisfies this only when one of those sources
+   authenticates it. This strengthens {{ID-JAG}} §4.4.1, which only
+   recommends `jwks_uri`.
 
-   The Resource Authorization Server MUST NOT accept the assertion
-   until it has verified the signature with a key permitted by each
-   key-source-constraining Trust Method it relies on to satisfy the
-   combination rule in step 5. Under the or-semantics of
-   {{combination-rule}}, a listed method that is not relied on
-   imposes no key-source constraint. A signature verified only
-   against an unconstrained source, such as the `iss` URL's
-   authorization server metadata, does not satisfy this step when the
-   relied-on Trust Method constrains the key source.
+   A Trust Method MAY constrain the source of the verification key.
+   For example, `openid_federation` requires a federation-resolved
+   key set ({{FEDERATION}}). Such a method MUST NOT count toward step
+   5b unless the assertion signature verifies under a key it permits,
+   so a signature verified only under an unconstrained source, such as
+   the `iss` URL's authorization server metadata, does not satisfy
+   it. Signature verification can therefore complete in step 5, once
+   the method's key source is resolved.
 
 3. Verify that the applicable grant profile has a binding
    ({{bindings}}) and is listed in

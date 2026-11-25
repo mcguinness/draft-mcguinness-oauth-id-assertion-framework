@@ -156,8 +156,10 @@ the policy requires.
 entity identifiers. An identifier does not authenticate the trust
 anchor: the Resource Authorization Server holds each listed trust
 anchor's public keys, initially obtained in a secure out-of-band way
-({{OIDF-FEDERATION}} §4). {{trust-anchor-rollover}} covers later key
-changes.
+({{OIDF-FEDERATION}} §4), not from the trust anchor's Entity
+Configuration alone. A chain to a listed trust anchor whose keys it
+does not hold is Indeterminate. {{trust-anchor-rollover}} covers
+later key changes.
 
 `trust_marks`
 : OPTIONAL. Non-empty JSON array of Trust Mark requirement objects. When

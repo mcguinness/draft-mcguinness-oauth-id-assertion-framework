@@ -633,31 +633,24 @@ The keys come from the trust chain, so the Resource Authorization
 Server resolves the client's trust chain and key set before it
 verifies client authentication. The error for a failure depends on
 the condition, not on when it is detected. When more than one
-condition applies, the first in this list determines the error:
+condition applies, the first row of this table that applies
+determines the error ({{RFC6749}} Section 5.2 defines
+`invalid_client` and `unauthorized_client`):
 
-1. `invalid_client` ({{RFC6749}} Section 5.2) when any of the
-   following holds:
-
-   - the `client_id` is not an Entity Identifier;
-   - no trust chain reaches a listed trust anchor;
-   - the chain or the key set is Indeterminate;
-   - the metadata declares neither entity type;
-   - the client authenticates with a method its metadata does not
-     declare; or
-   - client authentication does not verify under a key in the
-     federation key set.
-
-2. `unauthorized_client` ({{RFC6749}} Section 5.2) when the client is
-   authenticated but not recognized:
-
-   - it holds no Trust Mark that meets a requirement
-     ({{federation-chain-requirements}});
-   - the Trust Mark evaluation is Indeterminate; or
-   - its metadata does not list the request's grant type.
-
-3. Any failure of the assertion or of an issuer method gets the error
-   that {{TRUST-FRAMEWORK}} §Resource Authorization Server Processing
-   specifies.
+| What the server observes | What it has established | Error |
+|-|-|-|
+| The request carries no client authentication that the server accepts ({{client-recognition-processing}}) | The client is not authenticated | `invalid_client` |
+| The `client_id` is not an Entity Identifier | The client is not authenticated | `invalid_client` |
+| No trust chain reaches a listed trust anchor | The client is not authenticated | `invalid_client` |
+| The chain or the key set is Indeterminate | The client is not authenticated | `invalid_client` |
+| The metadata declares neither entity type | The client is not authenticated | `invalid_client` |
+| The client authenticates with a method its metadata does not declare | The client is not authenticated | `invalid_client` |
+| Client authentication does not verify under a key in the federation key set | The client is not authenticated | `invalid_client` |
+| The client holds no Trust Mark that meets a requirement ({{federation-chain-requirements}}) | The client is authenticated but not recognized | `unauthorized_client` |
+| The Trust Mark evaluation is Indeterminate | The client is authenticated but not recognized | `unauthorized_client` |
+| The client's metadata does not list the request's grant type | The client is authenticated but not recognized | `unauthorized_client` |
+| The ID-JAG's `client_id` claim names a different client ({{ID-JAG}} §4.4.1) | The client is recognized; the grant fails | `invalid_grant` |
+| The assertion or an issuer method fails otherwise | The client is recognized; the grant fails | The error that {{TRUST-FRAMEWORK}} §Resource Authorization Server Processing specifies |
 
 Any token request can name an `https` `client_id`, and so cause these
 fetches before the client is authenticated. They include a fetch for
@@ -1167,30 +1160,12 @@ assertion's JOSE header carries `typ` `client-authentication+jwt`
    client recognized in step 4, every category is satisfied, so it
    issues an access token.
 
-**Rejections:**
-
-- The request carries no client authentication: `invalid_client`
-  ({{client-recognition-processing}}).
-- The `client_id` is not an Entity Identifier: the method is
-  Negative, the request has no accepted client authentication, and
-  the result is `invalid_client`.
-- The trust chain ends at a trust anchor that is not listed:
-  `invalid_client`.
-- The client assertion is signed with a key that is not in the
-  federation key set, even one published in a client metadata
-  document: `invalid_client`.
-- The Entity Configuration fetch times out or returns a 5xx status:
-  the method is Indeterminate, and the result is `invalid_client`.
-- The policy required a Trust Mark that the client does not hold:
-  the client is authenticated but not recognized, and the result is
-  `unauthorized_client`.
-- The client lacks a required Trust Mark and the ID-JAG has also
-  expired: `unauthorized_client`, because client recognition is
-  evaluated before the ID-JAG.
-- The ID-JAG's `client_id` claim names a different client:
-  `invalid_grant` ({{ID-JAG}} §4.4.1).
-- The client is recognized, but the Assertion Issuer fails an issuer
-  method: `invalid_grant`.
+**Rejections.** The table in
+{{trust-method-openid-federation-client}} gives the error for each
+failure, and its first applicable row decides when several apply.
+For example, a client that lacks a required Trust Mark and presents
+an expired ID-JAG gets `unauthorized_client`, not `invalid_grant`,
+because client recognition is evaluated before the ID-JAG.
 
 **Later requests.** The Resource Authorization Server caches the
 trust chain no longer than its earliest `exp`

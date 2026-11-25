@@ -1164,15 +1164,21 @@ a `subject_namespace_authorization` method, {{rasp}} step 5c
 requires the ID-JAG to carry that Subject Identifier and requires
 rejection if it is absent or unresolvable.
 
+Passing step 5 of {{rasp}} is how the Resource Authorization Server
+decides that an ID-JAG's `iss` identifies an IdP Authorization Server
+it trusts ({{ID-JAG}} §4.4.1). It does not decide the trust in `iss`
+and `tenant` together that the same section requires of a
+multi-tenant issuer for the recipient tenant, which `aud`,
+`aud_tenant`, or the server's trust relationship with the issuer
+identifies. That trust remains the Resource Authorization Server's
+own configuration.
+
 A namespace method can bind authorization to a tenant using the
 `tenant` claim that {{ID-JAG}} §6.1 requires of a multi-tenant
 issuer. {{DAI}} §Shared Issuer Variant: Multi-Tenant Identity
 Provider gives an example. A match on `tenant` establishes that the
-Subject
-Authority authorized that (`iss`, `tenant`) pair for its namespace.
-It does not establish the trust in `iss` and `tenant` for the
-recipient tenant that {{ID-JAG}} §4.4.1 requires. That trust remains
-the Resource Authorization Server's own configuration.
+Subject Authority authorized that (`iss`, `tenant`) pair for its
+namespace, not the recipient-tenant trust above.
 
 In addition to the processing in {{rasp}}, the Resource Authorization
 Server MUST:

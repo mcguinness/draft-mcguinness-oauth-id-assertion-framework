@@ -874,16 +874,18 @@ request, the Resource Authorization Server MUST:
       by the Subject Identifier that a
       `subject_namespace_authorization` method evaluated in step 5b,
       unless local configuration trusts the Assertion Issuer for
-      another subject claim. That exception does not cover a
+      another subject claim. Step 5e, not that exception, governs a
       namespace-bound Subject Identifier that no namespace method
-      evaluated, which step 5e governs. Issuer-scoped identifiers are
-      `iss` and `sub`, with `tenant` when the assertion carries it
-      ({{ID-JAG}} §6.3). Claims such as `aud_sub` and `sub_id`
-      ({{ID-JAG}} §3.1) are outside the namespace check. An account
-      linked by `email` MUST be linked on
+      evaluated.
+
+      Issuer-scoped identifiers are `iss` and `sub`, with `tenant`
+      when the assertion carries it ({{ID-JAG}} §6.3). Claims such as
+      `aud_sub` and `sub_id` ({{ID-JAG}} §3.1) are outside the
+      namespace check. An account linked by `email` MUST be linked on
       the address with its full domain in the A-label form that
       {{subject-authority-determination}} computes, not on the
       registrable domain or the result of any other Unicode mapping.
+
       In addition, when the policy contains a
       `subject_namespace_authorization` Trust Method:
 
@@ -1171,9 +1173,9 @@ contains `urn:ietf:params:oauth:grant-profile:id-jag`. The Subject
 Identifier for ID-JAG is the top-level `email` claim, accompanied by
 `email_verified=true`, extracted per
 {{subject-authority-determination}}. {{ID-JAG}} §3.1 does not define
-`email_verified`, so an Assertion Issuer whose ID-JAGs a namespace
-method evaluates sends it, a narrowing of {{ID-JAG}}. When the Trust
-Policy contains
+`email_verified`, so requiring it narrows {{ID-JAG}}: an Assertion
+Issuer whose ID-JAGs a namespace method evaluates has to send it.
+When the Trust Policy contains
 a `subject_namespace_authorization` method, {{rasp}} step 5c
 requires the ID-JAG to carry that Subject Identifier and requires
 rejection if it is absent or unresolvable.

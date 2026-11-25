@@ -390,7 +390,9 @@ lets an authorization server obtain a client's metadata and keys
 from its `client_id` URL but leaves the trust decision to that
 server. A client recognition method could use it as a key source
 only together with evidence that the Resource Authorization Server
-trusts.
+trusts. `openid_federation_client` does not use it: a client whose
+keys are published only in a Client ID Metadata Document does not
+satisfy that method ({{trust-method-openid-federation-client}}).
 
 ## The `client_trust_methods` Member {#client-trust-methods}
 

@@ -658,12 +658,11 @@ every Entity in the client's `authority_hints` ({{OIDF-FEDERATION}}
 §18.1). Before the client is authenticated, the Resource
 Authorization Server:
 
-- MUST limit the number of `authority_hints` it follows;
+- MUST limit the number of `authority_hints` it follows; and
 - MUST apply a global rate limit to trust chain resolution for
-  unauthenticated requests;
-- SHOULD cache a Negative or Indeterminate outcome per `client_id`
-  for a bounded period; and
-- SHOULD also rate-limit trust chain resolution per `client_id`.
+  unauthenticated requests.
+
+{{operational}} adds per-`client_id` measures.
 
 A client that does not publish its Entity Configuration
 ({{OIDF-FEDERATION}} §9) can send its trust chain in a `trust_chain`
@@ -676,10 +675,8 @@ published Entity Configuration or a valid supplied chain, the client
 does not satisfy this method.
 
 The Resource Authorization Server caches the client's key set no
-longer than the trust chain ({{federation-lookup-states}}). A
-client assertion signed with a key whose `kid` the cached key set
-lacks MAY prompt one fresh fetch of the key set, rate-limited per
-client, before the request is rejected.
+longer than the trust chain ({{federation-lookup-states}}).
+{{operational}} covers a key the cached key set lacks.
 
 Clients registered through Explicit Registration
 ({{OIDF-FEDERATION-CONNECT}} §12.2) receive a `client_id` that need
@@ -687,6 +684,20 @@ not be their Entity Identifier. This method covers such a client only
 when its `client_id` is its Entity Identifier. Policy selection for a
 request whose `client_id` is an `https` URL is limited in
 {{client-recognition-processing}}.
+
+# Operational Considerations {#operational}
+
+These measures bound the work that token requests cause under
+`openid_federation_client` ({{trust-method-openid-federation-client}})
+and let clients rotate keys:
+
+- Before the client is authenticated, the Resource Authorization
+  Server SHOULD cache a Negative or Indeterminate outcome per
+  `client_id` for a bounded period, and SHOULD also rate-limit trust
+  chain resolution per `client_id`.
+- A client assertion signed with a key whose `kid` the cached key
+  set lacks MAY prompt one fresh fetch of the key set, rate-limited
+  per client, before the request is rejected.
 
 # Security Considerations
 

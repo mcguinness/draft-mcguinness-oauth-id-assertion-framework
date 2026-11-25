@@ -1818,8 +1818,8 @@ its own assertion claiming `email: alice@example.com,
 email_verified: true`, with a signature that validates against its
 own JWKS and the correct audience. The tool provider extracts
 Subject Authority `example.com`, looks up the customer's policy, and
-finds that `https://attacker.example` is not in
-`authorized_issuers`. The Trust Method fails, and the tool provider
+finds that `https://attacker.example` is not an authorized issuer.
+The Trust Method fails, and the tool provider
 rejects with `invalid_grant`. The self-asserted `email_verified`
 has no force: unless the customer lists `https://attacker.example`,
 that issuer cannot impersonate users in `example.com`.

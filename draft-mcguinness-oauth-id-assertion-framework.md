@@ -190,7 +190,8 @@ Server answers two separate questions about it:
 - Issuer authentication: who signed it? The server checks that the
   issuer named by `iss` is a recognized signer, for example through
   an OpenID Federation trust chain ({{FEDERATION}}), and that the
-  signature verifies under a key that this method permits.
+  signature verifies under a key that the trust chain binds to that
+  issuer.
 
 - Namespace authorization: is that issuer authorized for
   `acme.example`? Only the owner of `acme.example`, its Subject

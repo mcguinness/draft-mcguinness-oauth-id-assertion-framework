@@ -1123,7 +1123,8 @@ fetch resources at locations an attacker can choose:
   assertion or other evidence names, such as a policy document named
   by a Subject Authority that the attacker controls ({{DAI}}).
 
-For every such fetch, the Resource Authorization Server:
+Each redirect hop is a separate fetch under these rules. For every
+such fetch, the Resource Authorization Server:
 
 - MUST NOT connect to an address that is private-use, loopback,
   link-local, unique-local, or otherwise not globally routable,

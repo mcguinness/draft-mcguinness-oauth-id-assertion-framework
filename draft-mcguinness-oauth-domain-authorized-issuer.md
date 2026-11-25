@@ -2243,6 +2243,7 @@ The Resource Authorization Server publishes a Trust Policy that lists
      "iat": 1780166100,
      "jti": "5a17...",
      "sub": "user-9241ab",
+     "client_id": "8d0c63e1a2b4",
      "email": "alice@acme.example",
      "email_verified": true
    }

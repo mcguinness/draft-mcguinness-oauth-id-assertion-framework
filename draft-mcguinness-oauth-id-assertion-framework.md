@@ -906,9 +906,11 @@ request, the Resource Authorization Server MUST:
 
    e. When the policy lists no `subject_namespace_authorization`
       method and the assertion carries a namespace-bound Subject
-      Identifier, the Resource Authorization Server MUST reject the
-      assertion unless local policy independently establishes
-      authority over the subject namespace. A namespace-bound Subject
+      Identifier, the Resource Authorization Server MUST NOT use that
+      Subject Identifier for subject resolution, account linking, or
+      authorization unless local policy independently establishes
+      authority over the subject namespace. The rest of the assertion
+      is evaluated as usual. A namespace-bound Subject
       Identifier is one whose format has a registered Subject
       Authority extraction procedure ({{iana-authority-registry}}), so
       the Resource Authorization Server can recognize one without
@@ -978,8 +980,8 @@ be able to waive a listed category.
 Trust Method specifications MUST NOT define applicability conditions
 that depend on properties of the identity assertion under
 evaluation. The prohibition is directional: assertion properties
-never relax what the policy requires, but rejection rules keyed on
-them, such as {{rasp}} step 5e, only tighten it and are permitted.
+never relax what the policy requires, but rules keyed on them that
+only tighten it, such as {{rasp}} steps 5c and 5e, are permitted.
 Nor can published evidence waive the category. A Trust Method
 specification MUST NOT define a published state, such as a
 monitoring mode, under which an identity assertion whose issuer the

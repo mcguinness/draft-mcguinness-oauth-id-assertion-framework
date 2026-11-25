@@ -690,6 +690,12 @@ Superior can supply that metadata ({{OIDF-FEDERATION}} §3.1.1). A
 compromised intermediate or trust anchor can therefore substitute the
 key of a listed issuer beneath it, and both categories then pass.
 
+Requirement 3 accepts a key source from either `openid_provider` or
+`oauth_authorization_server` metadata. A Superior that constrains a
+leaf's key source through metadata policy therefore constrains it
+for both types; otherwise the leaf can supply an unconstrained key
+source under the other type.
+
 ## Client Recognition {#client-recognition-security}
 
 The `client_recognition` category evaluates the client identified by the

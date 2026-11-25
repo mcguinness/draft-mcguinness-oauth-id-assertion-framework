@@ -1184,7 +1184,8 @@ Identifier for ID-JAG is the top-level `email` claim, accompanied by
 `email_verified=true`, extracted per
 {{subject-authority-determination}}. {{ID-JAG}} §3.1 does not define
 `email_verified`, so requiring it narrows {{ID-JAG}}: an Assertion
-Issuer whose ID-JAGs a namespace method evaluates has to send it.
+Issuer whose `email` a Resource Authorization Server uses has to send
+it.
 When the Trust Policy contains
 a `subject_namespace_authorization` method, {{rasp}} step 5c
 requires the ID-JAG to carry that Subject Identifier and requires
@@ -1379,7 +1380,8 @@ issuer authorized for `attacker.example` can send an `email` in that
 namespace with an `aud_sub` or `sub_id` that names an account
 elsewhere. Step 5c of {{rasp}} therefore limits subject resolution,
 under every Trust Policy, to the evaluated Subject Identifier and
-issuer-scoped identifiers.
+issuer-scoped identifiers, apart from the local-configuration
+exceptions of steps 5c and 5e.
 
 Nor is the authorization audience-scoped. The
 `subject_namespace_authorization` category constrains which

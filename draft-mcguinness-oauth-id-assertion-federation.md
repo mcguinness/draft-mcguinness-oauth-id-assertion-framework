@@ -938,14 +938,7 @@ constrains `issuer` and requires `jwks_uri` via `metadata_policy`
 }
 ~~~
 
-The Subject Authority publishes a DAI record:
 
-~~~
-_oauth-issuer-policy.partner.example. IN TXT (
-    "v=oauth-issuer-policy1;"
-    "authority=partner.example;"
-    "issuer=https://idp.partner.example" )
-~~~
 
 **Verification.** When an ID-JAG arrives with
 `iss: https://idp.partner.example`, `email: alice@partner.example`,
@@ -966,9 +959,8 @@ and `email_verified: true`, the Resource Authorization Server:
    `.well-known/oauth-authorization-server`.
 
 3. **`subject_namespace_authorization` (domain_authorized_issuer).**
-   Extracts `partner.example` from the email claim, queries
-   `_oauth-issuer-policy.partner.example`, confirms
-   `https://idp.partner.example` is an authorized issuer.
+   Finds `https://idp.partner.example` in the Issuer Authorization
+   Policy that `partner.example` publishes ({{DAI}}).
 
 4. **Cross-category combination rule.** Both categories succeed;
    the Resource Authorization Server issues an access token.

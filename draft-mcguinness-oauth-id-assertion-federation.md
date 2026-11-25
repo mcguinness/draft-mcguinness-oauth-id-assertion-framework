@@ -275,12 +275,18 @@ requirements:
    anchor whose `trust_mark_issuers` claim applies when `issuer` is
    absent.
 
-The proposed Well-Known Binding mechanism {{OIDF-WKB}} illustrates the
-additional key-source path in requirement 3. It binds a JWK Set to the Entity
-Identifier by listing its digest in the leaf's Entity Configuration
-({{example-wkb-variant}}). This document does not require support for
-it. A consumer without a supported qualifying key source returns
-Indeterminate.
+The proposed Well-Known Binding mechanism {{OIDF-WKB}} is one such
+extension. It lets an {{RFC8414}} authorization server bind its
+existing JWK Set to its Entity Identifier by listing the set's digest
+in its Entity Configuration. It changes how issuer-authentication
+evidence is bound, not who holds authority over a subject namespace.
+This document does not require support for it. A consumer without a
+supported qualifying key source returns Indeterminate. Where
+{{OIDF-WKB}} §8.4 has an Entity return `trust_mark_required` for a
+missing Trust Mark, naming the missing types, a Resource
+Authorization Server applying the framework returns the error that
+{{TRUST-FRAMEWORK}} §Resource Authorization Server Processing
+specifies, which keeps trust-evaluation detail from public clients.
 
 Lookup states ({{TRUST-FRAMEWORK}} §Lookup States and Fail-Closed):
 
@@ -845,17 +851,6 @@ authority comes from the separate `subject_namespace_authorization`
 category. The framework composes with federation rather than
 replacing it.
 
-The proposed Well-Known Binding mechanism {{OIDF-WKB}} lets an
-{{RFC8414}} authorization server bind its existing JWK Set by digest
-through the extension path in {{trust-method-openid-federation}}. It
-changes how issuer-authentication evidence is bound, not who holds
-authority over a subject namespace. Where {{OIDF-WKB}} §8.4 has an
-Entity return `trust_mark_required` for a missing Trust Mark, naming
-the missing types, a Resource Authorization Server applying the
-framework returns the error that {{TRUST-FRAMEWORK}} §Resource
-Authorization Server Processing specifies, which keeps
-trust-evaluation detail from public clients.
-
 # Future Extensions
 
 This appendix is non-normative. It sketches deferred directions that
@@ -1021,8 +1016,9 @@ and `email_verified: true`, the Resource Authorization Server:
 - The federation-resolved JWKS does not match the ID-JAG signing key:
   `invalid_grant`. The metadata key source takes precedence, so there
   is no fallback to a separate JWKS referenced by
-  `.well-known/oauth-authorization-server`; {{example-wkb-variant}}
-  shows when such a JWKS is eligible.
+  `.well-known/oauth-authorization-server`. An extension-defined key
+  source is eligible only when the metadata carries none
+  ({{trust-method-openid-federation}}, requirement 3).
 - `partner.example` does not list the Assertion Issuer in DAI:
   `invalid_grant`, even though federation membership is valid.
 
@@ -1062,60 +1058,7 @@ satisfied if the array for this type were empty, which
 {{OIDF-FEDERATION}} §3.1.2 reads as allowing any issuer, or if the
 type were absent from `trust_mark_issuers`.
 
-## Well-Known Binding Variant {#example-wkb-variant}
 
-With the same cast and Trust Policy, a deployment implementing the
-proposed {{OIDF-WKB}} mechanism could instead publish the following
-leaf Entity Configuration excerpt. Digest strings are placeholders.
-The full Entity Configuration also contains the required timestamps,
-Federation Entity Keys, and the same Trust Mark as above. The
-abbreviated Entity Type metadata carries no key source.
-
-~~~ json
-{
-  "iss": "https://idp.partner.example",
-  "sub": "https://idp.partner.example",
-  "authority_hints": ["https://sector.example.org"],
-  "metadata": {
-    "oauth_authorization_server": {
-      "issuer": "https://idp.partner.example"
-    }
-  },
-  "well_known_bindings": {
-    "oauth-authorization-server": {
-      "digest_alg": "sha-256",
-      "digests": ["<digest of authorization server metadata>"],
-      "jwks_digests": ["<digest of the referenced JWK Set>"]
-    }
-  }
-}
-~~~
-
-The covered {{RFC8414}} document at
-`https://idp.partner.example/.well-known/oauth-authorization-server`
-identifies `https://idp.partner.example` as its `issuer` and
-references `https://idp.partner.example/jwks` in `jwks_uri`. Here the
-Intermediate neither supplies a protocol key source nor requires one
-through `metadata_policy`; the `openid_provider` policy shown above
-does not apply to this variant's `oauth_authorization_server` type.
-With no key source in the Entity Type metadata, requirement 3 selects the
-extension-defined source: the JWK Set at the covered document's
-`jwks_uri`, which `jwks_digests` binds.
-
-The consumer verifies the covered metadata and its JWK Set by the
-extension's rules, which include validating the trust chain, and
-checks that the metadata's `issuer` equals the leaf's Entity
-Identifier. Requirement 3 then permits the bound JWK Set for assertion
-verification. The Trust Mark and DAI checks are unchanged.
-
-If the Intermediate's policy instead marked `jwks_uri` `essential`,
-the leaf would carry it in Entity Type metadata, and requirement 3 would
-select that source. The binding covers that source only when it
-names the same URL as the covered document's `jwks_uri`; otherwise
-the key set relies on HTTPS alone. A key mismatch never authorizes
-fallback. An absent binding, digest mismatch, or unsupported
-extension with no other qualifying key source yields Indeterminate
-and `invalid_grant`.
 
 # Client Recognition Walkthrough {#example-client-recognition}
 

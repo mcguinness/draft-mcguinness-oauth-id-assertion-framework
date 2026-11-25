@@ -171,8 +171,10 @@ authorizes issuers in a separate document, the Issuer Authorization
 Policy ({{DAI}}).
 
 The trust evaluation that this document defines applies only to
-ID-JAG ({{bindings}}). It narrows {{ID-JAG}}, for example by limiting
-which claims resolve the subject ({{rasp}} step 5c).
+ID-JAG ({{bindings}}). It narrows {{ID-JAG}}: it limits which claims
+resolve the subject ({{rasp}} step 5c), requires `email_verified` with
+a namespace-bound `email` ({{id-jag-profile}}), and requires the
+verification key to be bound to `iss` ({{rasp}} step 2).
 
 
 ## Overview {#overview}
@@ -1161,7 +1163,10 @@ For ID-JAG {{ID-JAG}}, `authorization_grant_profiles_supported`
 contains `urn:ietf:params:oauth:grant-profile:id-jag`. The Subject
 Identifier for ID-JAG is the top-level `email` claim, accompanied by
 `email_verified=true`, extracted per
-{{subject-authority-determination}}. When the Trust Policy contains
+{{subject-authority-determination}}. {{ID-JAG}} §3.1 does not define
+`email_verified`, so an Assertion Issuer whose ID-JAGs a namespace
+method evaluates sends it, a narrowing of {{ID-JAG}}. When the Trust
+Policy contains
 a `subject_namespace_authorization` method, {{rasp}} step 5c
 requires the ID-JAG to carry that Subject Identifier and requires
 rejection if it is absent or unresolvable.

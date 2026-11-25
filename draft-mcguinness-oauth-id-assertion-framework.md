@@ -868,9 +868,10 @@ request, the Resource Authorization Server MUST:
       another subject claim. That exception does not cover a
       namespace-bound Subject Identifier that no namespace method
       evaluated, which step 5e governs. Issuer-scoped identifiers are
-      `iss` and `sub`, with `tenant` for a multi-tenant issuer. Claims
-      such as `aud_sub` and `sub_id` ({{ID-JAG}} §3.1) are outside the
-      namespace check. An account linked by `email` MUST be linked on
+      `iss` and `sub`, with `tenant` when the assertion carries it
+      ({{ID-JAG}} §6.3). Claims such as `aud_sub` and `sub_id`
+      ({{ID-JAG}} §3.1) are outside the namespace check. An account
+      linked by `email` MUST be linked on
       the address with its full domain in the A-label form that
       {{subject-authority-determination}} computes, not on the
       registrable domain or the result of any other Unicode mapping.

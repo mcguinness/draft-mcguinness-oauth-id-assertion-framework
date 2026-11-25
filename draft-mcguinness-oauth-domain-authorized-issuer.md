@@ -647,7 +647,8 @@ The following directives are defined:
 `uri=URL`
 : OPTIONAL. An HTTPS URL identifying an Issuer Authorization Policy
   document. The URL MAY be on a different host than `A`. MUST use the
-  `https://` scheme and MUST NOT contain a fragment component.
+  `https://` scheme and MUST NOT contain a userinfo or fragment
+  component.
 
 `issuer=ISSUER_URL`
 : OPTIONAL. An Assertion Issuer identifier authorized by the Subject

@@ -30,6 +30,7 @@ normative:
   RFC6749:
   RFC7523:
   RFC7591:
+  RFC10070:
   RFC8414:
   RFC8705:
   OIDF-FEDERATION:
@@ -527,10 +528,10 @@ and 3 are replaced by the following:
   set it returns. That key set relies on HTTPS to that endpoint. The
   permitted client authentication methods are:
 
-  - JWT client authentication ({{RFC7523}} Sections 2.2 and 3) with a
-    JWT, signed by such a key, whose `aud` claim is the Resource
-    Authorization Server's issuer identifier, as a string or as an
-    array with only that element; and
+  - JWT client authentication ({{RFC7523}} Sections 2.2 and 3, as
+    updated by {{RFC10070}}) with a JWT signed by such a key, whose
+    `aud` claim is the Resource Authorization Server's issuer
+    identifier as its sole value ({{RFC10070}} Section 4); and
   - self-signed certificate mutual TLS ({{RFC8705}} Section 2.2) with
     a certificate equal to the first certificate in the `x5c` value
     of such a key, without certificate chain validation.
@@ -540,11 +541,9 @@ and 3 are replaced by the following:
   a first token request, the client authenticates before any
   registration exists. The methods are narrower than
   {{OIDF-FEDERATION-CONNECT}} §12.1.4, under which a server should
-  accept any mutually supported method. They are also narrower than
-  {{RFC7523}} Section 3, which further allows the token endpoint URL
-  as `aud`. The `aud` value is the issuer identifier, not an Entity
-  Identifier, because the Resource Authorization Server need not be a
-  federation Entity.
+  accept any mutually supported method. The `aud` value is the issuer
+  identifier, not an Entity Identifier, because the Resource
+  Authorization Server need not be a federation Entity.
 
   A client that authenticates any other way does not satisfy this
   method. Keys the Resource Authorization Server knows only through
@@ -1174,7 +1173,8 @@ urn:ietf:params:oauth:client-assertion-type:jwt-bearer
 ~~~
 
 Line breaks in the request body are for display only. The client
-assertion's claims are:
+assertion's JOSE header carries `typ` `client-authentication+jwt`
+({{RFC10070}} Section 4), and its claims are:
 
 ~~~ json
 {

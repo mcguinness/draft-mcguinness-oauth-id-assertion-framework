@@ -401,7 +401,7 @@ This document registers the following Trust Method category
 token endpoint, recognized by an authority the Resource Authorization
 Server accepts? Methods in this category are listed in
 `client_trust_methods`. They evaluate the authenticated client, never a
-claim in the assertion ({{client-recognition-processing}}, step 5f).
+claim in the assertion ({{client-recognition-processing}}).
 Recognition does not authorize the client to act for a particular user.
 The grant profile's client binding does that (for ID-JAG, {{ID-JAG}}
 §4.4.1).
@@ -420,8 +420,8 @@ to any listed trust anchor.
 `client_recognition`-category methods are satisfied by evidence about
 the OAuth client that presents an identity assertion at the token
 endpoint. These methods evaluate the client that the grant profile's
-client authentication identifies ({{client-recognition-processing}},
-step 5f). For ID-JAG, the assertion's `client_id` claim, set by the
+client authentication identifies
+({{client-recognition-processing}}). For ID-JAG, the assertion's `client_id` claim, set by the
 Assertion Issuer, identifies the same client ({{ID-JAG}} §4.4.1).
 Recognizing a client does not authorize any Assertion Issuer, and
 authorizing an Assertion Issuer does not recognize any client.
@@ -464,56 +464,82 @@ the member would reject.
 
 ## Processing {#client-recognition-processing}
 
-This section adds to the procedure of {{TRUST-FRAMEWORK}} §Resource
-Authorization Server Processing, which lets a specification that
-registers a category state where in that procedure its checks run
-and how its errors rank. Step numbers below are those of that
-procedure, and the additions to steps 1 and 5 are part of those
-steps.
+This section adds a client recognition stage to the procedure of
+{{TRUST-FRAMEWORK}} §Resource Authorization Server Processing, which
+lets a specification that registers a category state where in that
+procedure its checks run and how its errors rank. Step numbers below
+are those of that procedure.
 
 **Client processing.** In step 4 of {{TRUST-FRAMEWORK}} §Client
 Processing, if the Trust Policy contains `client_trust_methods`, the
 client also determines whether it satisfies them, for example whether
 its `client_id` is an Entity Identifier in a listed federation.
 
-**Policy selection (step 1).** A Resource Authorization Server that
-holds more than one Trust Policy selects one by client only when the
-request's client authentication verifies against a registration it
-holds. {{trust-method-openid-federation-client}} limits which
-registrations qualify. Any other request gets the policy that applies
-without regard to the client, such as the one it publishes
-({{TRUST-FRAMEWORK}} §Metadata Publication).
+**Resource Authorization Server processing.** For a token request
+that presents an identity assertion, the Resource Authorization
+Server proceeds in this order:
 
-**Client evaluation (step 5).** When the policy contains
-`client_trust_methods`, step 5 also verifies that the authenticated
-client satisfies the Trust Method combination rule. For the
-`client_recognition` category, the party that step 5b evaluates is
-the authenticated client. This document adds step 5f:
+1. **Select the Trust Policy (step 1).** A Resource Authorization
+   Server that holds more than one Trust Policy selects one by client
+   only when the request's client authentication verifies against a
+   registration it holds. A public client does not authenticate
+   against its registration ({{RFC6749}} Section 2.3). Any other
+   request, including one that names a registered `client_id` without
+   authenticating as that client, gets the policy that applies without
+   regard to the client, such as the one it publishes
+   ({{TRUST-FRAMEWORK}} §Metadata Publication).
 
-**Step 5f.** When the policy contains `client_trust_methods`, the
-Resource Authorization Server MUST evaluate the `client_recognition`
-category against the client that the request's client authentication
-({{RFC6749}} Section 2.3) identifies, never against a claim in the
-assertion. If the request carries no client authentication that the
-Resource Authorization Server accepts, it MUST reject the request with
-an `invalid_client` error ({{RFC6749}} Section 5.2).
+   When that policy lists `openid_federation_client`, a registration
+   does not qualify for a request whose `client_id` is an `https` URL.
+   The Resource Authorization Server MUST NOT select a policy without
+   `client_trust_methods` for such a request, even when it holds a
+   registration for that `client_id`. One example is an Explicit
+   Registration that kept the Entity Identifier
+   ({{OIDF-FEDERATION-CONNECT}} §12.2.2). A Resource Authorization
+   Server that already uses `https` URLs as `client_id` values for
+   clients outside a federation therefore cannot list
+   `openid_federation_client` without rejecting those clients. This
+   document defines no other way to combine registered and federation
+   clients.
 
-**Ordering.** When the policy contains `client_trust_methods`, the
-Resource Authorization Server MUST authenticate the client, and evaluate
-the `client_recognition` category (step 5f), before step 2. Before
-authenticating the client, the Resource Authorization Server MUST NOT
-perform any lookup except those a `client_recognition` method needs to
-obtain the client's authentication keys. An example is the trust chain
-and key set that `openid_federation_client` resolves.
+   The remaining stages apply when the selected policy contains
+   `client_trust_methods`.
 
-**Errors.** An error from step 5f or from a `client_recognition` method
-takes precedence over any other error.
+2. **Authenticate the client (before step 2).** The Resource
+   Authorization Server MUST authenticate the client, and evaluate the
+   `client_recognition` category (stage 3), before step 2. If the
+   request carries no client authentication that the Resource
+   Authorization Server accepts, it MUST reject the request with an
+   `invalid_client` error ({{RFC6749}} Section 5.2). {{ID-JAG}} §4.4.1
+   lets a client that does not authenticate prove possession of the
+   key in the ID-JAG's `cnf` claim instead; such a request is rejected
+   with `invalid_client`, which narrows {{ID-JAG}} §4.4.1.
 
-**Grant-profile binding.** {{ID-JAG}} §4.4.1 lets a client that does
-not authenticate prove possession of the key in the ID-JAG's `cnf` claim
-instead. When the Trust Policy contains `client_trust_methods`, step 5f
-rejects such a request with `invalid_client`. This narrows {{ID-JAG}}
-§4.4.1.
+   Before authenticating the client, the Resource Authorization
+   Server MUST NOT perform any lookup except those a
+   `client_recognition` method needs to obtain the client's
+   authentication keys. An example is the trust chain and key set
+   that `openid_federation_client` resolves.
+
+3. **Recognize the client (before step 2).** The Resource
+   Authorization Server MUST evaluate the `client_recognition`
+   category against the client that the request's client
+   authentication ({{RFC6749}} Section 2.3) identifies, never against
+   a claim in the assertion. This is step 5 of the framework for that
+   category: steps 5a and 5b apply to the objects in
+   `client_trust_methods`, and the party that step 5b evaluates is the
+   authenticated client.
+
+4. **Process the assertion (steps 2 through 6).** The Resource
+   Authorization Server then validates the assertion and evaluates
+   the other categories that the policy lists, as the framework
+   specifies.
+
+**Errors.** An error from stage 2 or 3, or from a `client_recognition`
+method, takes precedence over any other error.
+
+{{example-client-recognition}} walks through first contact,
+rejection, cached trust, and coexistence with registered clients.
 
 ## The `openid_federation_client` Trust Method {#trust-method-openid-federation-client}
 
@@ -665,24 +691,9 @@ client, before the request is rejected.
 Clients registered through Explicit Registration
 ({{OIDF-FEDERATION-CONNECT}} §12.2) receive a `client_id` that need
 not be their Entity Identifier. This method covers such a client only
-when its `client_id` is its Entity Identifier.
-
-A Resource Authorization Server can apply a Trust Policy without
-`client_trust_methods` to a request that authenticates as a client the
-server registered itself, against that registration
-({{client-recognition-processing}}). It MUST NOT do so for a request
-whose `client_id` is an `https` URL, even when it holds a registration
-for that `client_id`. One example is an Explicit Registration that kept
-the Entity Identifier ({{OIDF-FEDERATION-CONNECT}} §12.2.2). A public
-client does not authenticate against its registration ({{RFC6749}}
-Section 2.3). Every other request, including one that names a registered
-`client_id` without authenticating as that client, gets the policy with
-`client_trust_methods`. A Resource Authorization Server that already
-uses `https` URLs as `client_id` values for clients outside a federation
-cannot list `client_trust_methods` without rejecting those clients. This
-document defines no other way to combine registered and federation
-clients. {{example-client-recognition}} walks through first contact,
-rejection, cached trust, and coexistence.
+when its `client_id` is its Entity Identifier. Policy selection for a
+request whose `client_id` is an `https` URL is limited in
+{{client-recognition-processing}}.
 
 # Security Considerations
 
@@ -725,7 +736,7 @@ source under the other type.
 
 The `client_recognition` category evaluates the client identified by the
 token request's client authentication
-({{client-recognition-processing}}, step 5f), not by the assertion. An
+({{client-recognition-processing}}), not by the assertion. An
 attacker who controls an assertion's claims therefore cannot choose
 which client is evaluated ({{TRUST-FRAMEWORK}} §Unverified Claim
 Exploitation). Recognition admits a client to the exchange. It does not
@@ -1138,7 +1149,7 @@ assertion's JOSE header carries `typ` `client-authentication+jwt`
 **Processing.** The Resource Authorization Server:
 
 1. Applies the policy above, because the `client_id` is an `https`
-   URL ({{trust-method-openid-federation-client}}).
+   URL ({{client-recognition-processing}}).
 2. Resolves the client's Entity Configuration and a trust chain to
    `https://federation.example.org`.
 3. Checks that the policy-applied metadata declares `oauth_client`.
@@ -1159,7 +1170,7 @@ assertion's JOSE header carries `typ` `client-authentication+jwt`
 **Rejections:**
 
 - The request carries no client authentication: `invalid_client`
-  ({{client-recognition-processing}}, step 5f).
+  ({{client-recognition-processing}}).
 - The `client_id` is not an Entity Identifier: the method is
   Negative, the request has no accepted client authentication, and
   the result is `invalid_client`.

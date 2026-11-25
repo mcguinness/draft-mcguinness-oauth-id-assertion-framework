@@ -1458,11 +1458,10 @@ across categories, such as satisfying only an
 ## Trust Policy Caching {#caching}
 
 Consumers cache the Trust Policy using HTTP caching ({{RFC9111}}),
-bounded by a local maximum cache lifetime. Independent of any
-policy-document cache expiration, revocation status of validated
-trust evidence MUST be checked at the cadence required by the
-applicable Trust Method specification. Transport integrity is
-addressed in {{integrity}}.
+bounded by a local maximum cache lifetime. Each Trust Method
+specification bounds the caching of the evidence it retrieves
+({{trust-method-spec-requirements}}), independently of the Trust
+Policy's cache. Transport integrity is addressed in {{integrity}}.
 
 ## Observability
 

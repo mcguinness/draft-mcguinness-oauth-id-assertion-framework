@@ -803,8 +803,10 @@ request, the Resource Authorization Server MUST:
 2. Validate the assertion per the applicable grant profile
    ({{RFC7521}}, {{RFC7523}}, {{ID-JAG}}). The verification key MUST
    be bound to the `iss` value independently of the assertion,
-   through the `jwks_uri` in that issuer's metadata, local
-   configuration for that issuer, or a key source authenticated by a
+   through the `jwks_uri` in that issuer's metadata (located per
+   {{ID-JAG}} §7.1, including its fallback to OpenID Connect
+   Discovery), local configuration for that issuer, or a key source
+   authenticated by a
    Trust Method relied on in step 5. A key or key location in the
    assertion's JOSE header, such as `jwk`, `jku`, or `x5u`, satisfies
    this only when one of those sources authenticates it. This

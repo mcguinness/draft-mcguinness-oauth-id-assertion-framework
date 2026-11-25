@@ -153,7 +153,11 @@ the policy requires.
 
 `trust_anchors`
 : REQUIRED. Non-empty JSON array of OpenID Federation trust anchor
-entity identifiers.
+entity identifiers. An identifier does not authenticate the trust
+anchor: the Resource Authorization Server holds each listed trust
+anchor's public keys, initially obtained in a secure out-of-band way
+({{OIDF-FEDERATION}} §4). {{trust-anchor-rollover}} covers later key
+changes.
 
 `trust_marks`
 : OPTIONAL. Non-empty JSON array of Trust Mark requirement objects. When
@@ -202,7 +206,9 @@ Lookup states ({{TRUST-FRAMEWORK}} §Lookup States and Fail-Closed):
     410 (the Assertion Issuer does not participate in federation);
   - the leaf's chains validate, but none reaches a listed trust
     anchor; or
-  - an Entity Statement authoritatively excludes the leaf.
+  - every Superior in the leaf's `authority_hints` answers the fetch
+    endpoint request for the leaf with the `not_found` error
+    ({{OIDF-FEDERATION}} §8.1.2 and §8.9).
 
 - **Indeterminate**: any other failure to obtain or validate the
   chain, such as:
@@ -218,7 +224,10 @@ caching follows the statements' own `exp` values per
 {{OIDF-FEDERATION}}, bounded by the consumer's local cache ceiling. A
 cached chain MUST NOT be used past the earliest `exp` in the chain, or
 more than 24 hours after it was obtained. The same 24-hour limit applies
-to a key set obtained through requirement 3. A Trust Mark that
+to a key set obtained through requirement 3. These limits hold while
+a fresh lookup is Indeterminate: this method allows no stale use
+beyond them ({{TRUST-FRAMEWORK}} §Fail-Closed Requirements). A Trust
+Mark that
 requirement 4 relies on is re-validated whenever the chain is, and is
 not used past its own `exp`. A Trust Mark without `exp` is re-validated
 at its Trust Mark Status endpoint ({{OIDF-FEDERATION}} §8.4) when the

@@ -870,7 +870,11 @@ request, the Resource Authorization Server MUST:
       evaluated, which step 5e governs. Issuer-scoped identifiers are
       `iss` and `sub`, with `tenant` for a multi-tenant issuer. Claims
       such as `aud_sub` and `sub_id` ({{ID-JAG}} §3.1) are outside the
-      namespace check. In addition, when the policy contains a
+      namespace check. An account linked by `email` MUST be linked on
+      the address with its full domain in the A-label form that
+      {{subject-authority-determination}} computes, not on the
+      registrable domain or the result of any other Unicode mapping.
+      In addition, when the policy contains a
       `subject_namespace_authorization` Trust Method:
 
       - The assertion MUST carry a Subject Identifier from which a
@@ -1501,10 +1505,10 @@ to different A-labels are different Subject Authorities, however
 similar they look. A-label comparison does not by itself defend
 against homograph confusion shown to a human at account-linking or
 display time, which is out of scope and left to the consuming
-application. Resource Authorization Servers that link accounts by
-email SHOULD compare the domain in this A-label form, so that a
-Unicode string that maps to a different Subject Authority cannot land
-on another user's account.
+application. A Resource Authorization Server that links accounts by
+email compares the full domain in this A-label form ({{rasp}} step
+5c), so that a Unicode string that maps to a different Subject
+Authority cannot land on another user's account.
 
 The `email` extraction uses the simple single-`@` rule, not the full
 {{RFC5321}} Mailbox grammar. Internationalized email addresses

@@ -150,9 +150,17 @@ requirements:
 | Category | `issuer_authentication` | `client_recognition` |
 | Leaf | The Assertion Issuer that `iss` names | The client that the token request authenticates |
 | Entity types | `openid_provider` or `oauth_authorization_server` | `oauth_client`, or `openid_relying_party` when the leaf declares no `oauth_client` |
-| Key source | The metadata of either entity type | The metadata of the selected entity type only |
+| Key source | The metadata of either entity type; an extension-defined source only when the metadata carries none | The metadata of the selected entity type only |
 | The key verifies | The ID-JAG signature | Client authentication |
 | Own requirements | {{trust-method-openid-federation}} | {{trust-method-openid-federation-client}} |
+
+The entity-type difference is deliberate. An Assertion Issuer can be
+both an OpenID Provider and an OAuth authorization server and publish
+keys as either. {{OIDF-FEDERATION-CONNECT}} §12 uses `oauth_client`
+for OAuth clients other than OpenID Connect Relying Parties, so the
+client method prefers that type and never combines the two.
+{{superior-key-substitution}} gives the consequence of accepting
+either type for an issuer.
 
 ## Members {#federation-members}
 
@@ -313,7 +321,8 @@ subject namespace.
 Under the `openid_federation` method, the Assertion Issuer is
 acceptable if its OpenID Federation {{OIDF-FEDERATION}} trust chain
 validates to a listed trust anchor and the leaf holds any Trust Marks
-the policy requires. The Assertion Issuer is the leaf of
+the policy requires. The Assertion Issuer, whose `iss` value is its
+Entity Identifier ({{TRUST-FRAMEWORK}} §Terminology), is the leaf of
 {{federation-checks}}, and the method's members are those of
 {{federation-members}}.
 
@@ -344,6 +353,11 @@ The following requirements also apply:
   leaf's policy-applied metadata designates, or that is otherwise
   bound to the leaf's Entity Identifier through the validated trust
   chain.
+
+  Key sources are permitted in this order: those in the leaf's
+  policy-applied metadata; when the metadata carries none, a source
+  that an extension of this method defines; never any other. The
+  paragraphs below give each in turn.
 
   The key sources defined in {{OIDF-FEDERATION}} §5.2.1 satisfy this
   requirement. Each is the `jwks`, `jwks_uri`, or `signed_jwks_uri`

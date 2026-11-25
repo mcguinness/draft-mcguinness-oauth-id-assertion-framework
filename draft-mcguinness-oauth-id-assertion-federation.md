@@ -774,7 +774,7 @@ Assertion Trust Methods Registry):
 Identifier:
 : `openid_federation`
 
-Categories:
+Category:
 : `issuer_authentication`
 
 Parameters:
@@ -790,7 +790,7 @@ Reference:
 Identifier:
 : `openid_federation_client`
 
-Categories:
+Category:
 : `client_recognition`
 
 Parameters:

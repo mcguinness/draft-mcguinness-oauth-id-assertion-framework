@@ -358,7 +358,7 @@ by a Resource Authorization Server to declare its trust criteria.
 
 Trust Method:
 : A registered, named evaluation procedure by which a Resource
-Authorization Server tests trust evidence in one or more categories,
+Authorization Server tests trust evidence in one category,
 such as evidence about an Assertion Issuer ({{trust-methods}}). A Trust
 Policy names the Trust Methods it requires.
 
@@ -542,7 +542,7 @@ assertion.
 
 ### Trust Method Categories {#trust-method-categories}
 
-Each Trust Method belongs to one or more categories registered in
+Each Trust Method belongs to exactly one category registered in
 {{iana-trust-method-categories-registry}}, such as the two below, and
 is itself registered in {{iana-trust-methods-registry}}. Evidence is
 combined across categories per {{combination-rule}}.
@@ -568,7 +568,7 @@ A specification defining a new Trust Method (a companion such as
 {{DAI}} or {{FEDERATION}}) MUST provide all of the following, so that
 the framework's deferral to the method is testable:
 
-- The Trust Method identifier and its categories
+- The Trust Method identifier and its category
   ({{iana-trust-methods-registry}}).
 - The evidence consumed and the exact procedure by which a Resource
   Authorization Server decides the method is satisfied for an (issuer,
@@ -851,18 +851,14 @@ request, the Resource Authorization Server MUST:
 
    a. Partition the Trust Method objects in `issuer_trust_methods`,
       and in any other Trust Policy member that lists Trust Method
-      objects, by category ({{trust-method-categories}}). A Trust
-      Method registered with multiple categories belongs to each
-      category that its member allows ({{trust-policy-document}}). A
+      objects, by category ({{trust-method-categories}}). A
       method listed in the wrong member is malformed
       ({{trust-policy-document}}). The Resource Authorization Server
       MUST reject the assertion if any object in such a member is not
       recognized, is malformed, or cannot be assigned to a category it
       knows. Silently ignoring the object would evaluate a strict
       subset of the requirements the operator declared: a fail-open
-      category downgrade. A single evidence item MUST NOT be counted
-      toward more than one category even when its Trust Method is
-      registered in several.
+      category downgrade.
 
    b. Each category present in the partitioned policy is applicable to
       every assertion evaluated under this policy, and nothing in the
@@ -1639,9 +1635,9 @@ Identifier:
 Identifiers MUST use the character set `[a-z0-9_]` and SHOULD
 describe the trust evaluation procedure.
 
-Categories:
-: One or more values registered in the Trust Method Categories
-registry ({{iana-trust-method-categories-registry}}).
+Category:
+: One value registered in the Trust Method Categories registry
+({{iana-trust-method-categories-registry}}).
 
 Parameters:
 : Additional JSON members defined for this Trust Method, with their
@@ -1656,7 +1652,7 @@ Reference:
 Designated Expert instructions: the expert verifies that:
 
 - the identifier is unique and descriptive;
-- each listed category is registered;
+- the category is registered;
 - the Trust Method's evidence and evaluation procedure are specified
   precisely enough for interoperable implementation (including its
   mapping onto the Affirmative/Negative/Indeterminate lookup states

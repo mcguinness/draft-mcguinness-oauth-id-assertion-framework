@@ -1738,7 +1738,7 @@ Assertion Trust Methods registry
 Identifier:
 : `domain_authorized_issuer`
 
-Categories:
+Category:
 : `subject_namespace_authorization`
 
 Parameters:

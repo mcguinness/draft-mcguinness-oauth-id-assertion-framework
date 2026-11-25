@@ -170,8 +170,12 @@ Authorization Server, not an Assertion Issuer. A Subject Authority
 authorizes issuers in a separate document, the Issuer Authorization
 Policy ({{DAI}}).
 
-The trust evaluation that this document defines applies only to
-ID-JAG ({{bindings}}). It narrows {{ID-JAG}}: it limits which claims
+This document defines a binding only for ID-JAG ({{bindings}}). A
+Resource Authorization Server that evaluates a Trust Policy therefore
+rejects an identity assertion of any other grant profile unless a
+specification defines a binding for that profile and the policy lists
+it ({{rasp}} step 3). For ID-JAG, this document narrows {{ID-JAG}}:
+it limits which claims
 resolve the subject ({{rasp}} step 5c), requires `email_verified` with
 a namespace-bound `email` ({{id-jag-profile}}), and requires the
 verification key to be bound to `iss` ({{rasp}} step 2).

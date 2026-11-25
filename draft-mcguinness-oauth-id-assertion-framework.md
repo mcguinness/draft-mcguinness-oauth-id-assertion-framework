@@ -991,17 +991,15 @@ header, request parameter, or fixed tuple) to exactly one evidence
 source or a deterministic failure, with no preference ordering and no
 fallback across candidates, and invariant under the presence,
 absence, or value of any input outside the function
-({{unverified-claim}}).
+({{unverified-claim}}). Within such a method's evaluation, a Resource
+Authorization Server MUST NOT fall through to a different evidence
+source if the selected evidence source's evaluation fails or is
+indeterminate ({{exception-handling}}).
 
 For `issuer_authentication`, every evidence source the Trust Policy
 lists is equally trusted, so a Trust Method specification MAY accept
 evidence from any of them. For `openid_federation`, this means a
 chain to any listed trust anchor ({{FEDERATION}}).
-
-Within one Trust Method's evaluation, a Resource Authorization Server
-MUST NOT fall through to a different evidence source if the
-originally-applicable evidence source's evaluation fails or is
-indeterminate ({{exception-handling}}).
 
 Across Trust Methods in the same category, or-semantics apply, with
 one exception, the finality rule. When a
@@ -1093,7 +1091,8 @@ beyond that specification's stated maximum. Once the cache expires,
 a live channel that remains Indeterminate does not satisfy the Trust
 Method. Treating Indeterminate as Affirmative, extending a cache
 across Indeterminate states, and falling through to another evidence
-source within one Trust Method's evaluation are the same downgrade:
+source within the evaluation of a method with deterministic source
+selection ({{multiple-sources}}) are the same downgrade:
 each lets an adversary who controls the availability of the
 publication channel turn a hard denial into a soft one.
 

@@ -294,12 +294,12 @@ The scope of this document is:
 Trust Methods, and the publication mechanisms they use, live in
 dedicated specifications such as {{DAI}} and {{FEDERATION}}.
 
-This document registers no Trust Methods for attribute authorities
-that are not namespace owners, such as issuers of government
-credentials, professional certifications, or employment
-attestations. When such an attestation is conveyed in an identity
-assertion whose subject is namespace-bound, the issuer-trust
-evaluation still applies.
+Trust Methods for attribute authorities that are not namespace
+owners, such as issuers of government credentials, professional
+certifications, or employment attestations, are out of scope. When
+such an attestation is conveyed in an identity assertion whose
+subject is namespace-bound, the issuer-trust evaluation still
+applies.
 
 The `email` Subject Identifier extraction registered in this
 document is user-identity-oriented. Workload, agent, and other

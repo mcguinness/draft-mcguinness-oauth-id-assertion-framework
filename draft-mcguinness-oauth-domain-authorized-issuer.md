@@ -1062,8 +1062,9 @@ Freshness and cache limits for the Issuer Authorization Policy:
 - **Negative results** SHOULD be cached, to bound lookup work under
   load ({{dos-ssrf}}). Negative results MUST NOT be cached for longer
   than the lesser of 1 hour and the lifetime of the DNS answer that
-  produced them. A cache lifetime of 5 minutes is RECOMMENDED for
-  Negative results. The lifetime of the DNS answer is the negative
+  produced them. A cache lifetime of 5 minutes, or the lifetime of
+  the DNS answer if that is shorter, is RECOMMENDED for Negative
+  results. The lifetime of the DNS answer is the negative
   TTL ({{RFC2308}}) for an NXDOMAIN or NODATA answer. For an answer
   with records but no recognized record, it is the remaining TTL of
   the TXT record set. The short cap lets consumers promptly see a

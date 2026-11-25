@@ -470,9 +470,11 @@ Table of Contents
 
    Consumers MUST reject a signed_policy whose exp is more than 24 hours
    after its iat.  For each Subject Authority, a consumer MUST retain
-   the highest iat it has accepted until the exp of that signed policy.
-   It MUST reject a signed_policy for that Subject Authority with an
-   earlier iat, even after the cached policy itself is gone.
+   the highest iat it has accepted until 24 hours after that iat, plus
+   any clock-skew allowance it applies to exp, by which time every
+   signed policy with an earlier iat has expired.  It MUST reject a
+   signed_policy for that Subject Authority with an earlier iat, even
+   after the cached policy itself is gone.
 
    The JOSE header SHOULD contain a kid identifying the signing key.
    The JWT payload SHOULD NOT contain a signed_policy claim.  The outer
@@ -538,8 +540,13 @@ Table of Contents
    To require signed_policy processing by all conforming consumers, a
    Subject Authority lists signed_policy in crit.  A consumer that does
    not implement that processing then rejects the document rather than
-   silently ignoring the signature.  Absent a crit entry, signed_policy
-   provides integrity only:
+   silently ignoring the signature.  So does a consumer that has no
+   verification key for the policy (above), and either rejection is
+   Indeterminate (Section 5.1), which leaves the namespace unauthorized
+   at that consumer.  A Subject Authority that lists signed_policy in
+   crit SHOULD therefore publish the key's thumbprint in a key=
+   directive (Section 4.3).  Absent a crit entry, signed_policy provides
+   integrity only:
 
    *  for consumers that support and verify it;
 
@@ -731,7 +738,8 @@ Table of Contents
 
    uri=URL  OPTIONAL.  An HTTPS URL identifying an Issuer Authorization
       Policy document.  The URL MAY be on a different host than A.  MUST
-      use the https:// scheme and MUST NOT contain a fragment component.
+      use the https:// scheme and MUST NOT contain a userinfo or
+      fragment component.
 
    issuer=ISSUER_URL  OPTIONAL.  An Assertion Issuer identifier
       authorized by the Subject Authority for A.  For OAuth
@@ -1208,14 +1216,15 @@ Table of Contents
    *  *Negative results* SHOULD be cached, to bound lookup work under
       load (Section 9.10).  Negative results MUST NOT be cached for
       longer than the lesser of 1 hour and the lifetime of the DNS
-      answer that produced them.  A cache lifetime of 5 minutes is
-      RECOMMENDED for Negative results.  The lifetime of the DNS answer
-      is the negative TTL ([RFC2308]) for an NXDOMAIN or NODATA answer.
-      For an answer with records but no recognized record, it is the
-      remaining TTL of the TXT record set.  The short cap lets consumers
-      promptly see a Subject Authority's first publication and its
-      recovery from a brief publication-channel takeover.  The same cap
-      SHOULD apply to a cached explicit-denial policy (Section 3).
+      answer that produced them.  A cache lifetime of 5 minutes, or the
+      lifetime of the DNS answer if that is shorter, is RECOMMENDED for
+      Negative results.  The lifetime of the DNS answer is the negative
+      TTL ([RFC2308]) for an NXDOMAIN or NODATA answer.  For an answer
+      with records but no recognized record, it is the remaining TTL of
+      the TXT record set.  The short cap lets consumers promptly see a
+      Subject Authority's first publication and its recovery from a
+      brief publication-channel takeover.  The same cap SHOULD apply to
+      a cached explicit-denial policy (Section 3).
 
    *  Indeterminate outcomes MAY be cached for a short period to absorb
       retry storms.  No more than 5 minutes is RECOMMENDED.  An
@@ -1468,12 +1477,13 @@ Table of Contents
 
    Absent DNSSEC or an authenticated resolver path, the inline DNS
    form's integrity is no stronger than the recursive resolver path
-   between consumer and authoritative server.  Deployments needing a
-   stronger guarantee SHOULD sign the zone with DNSSEC or use the
-   pointer form with the controls of [TRUST-FRAMEWORK] §Shared
-   Infrastructure and Hosted Well-Known Paths.  The inline form's
-   "common case" simplicity (Section 4.1) is an operability tradeoff,
-   not an integrity guarantee.
+   between consumer and authoritative server.  The pointer form does not
+   change that: DNS also selects the policy host and carries any key=
+   thumbprint, so key= protects the policy against its host
+   (Section 9.5), not against DNS compromise.  Deployments needing a
+   stronger guarantee sign the zone with DNSSEC, as recommended below.
+   The inline form's "common case" simplicity (Section 4.1) is an
+   operability tradeoff, not an integrity guarantee.
 
    Required framework defenses:
 
@@ -1631,7 +1641,9 @@ Table of Contents
       issuer= is malformed, so the inline form cannot publish an empty
       delegation set.  Under a grant profile that carries tenant, an
       inline record that names a shared multi-tenant issuer authorizes
-      none of its tenants (Section 9.9).
+      none of its tenants (Section 9.9).  Nor does one that names a per-
+      tenant issuer identifier whose assertions also carry tenant
+      (Section 8.1).
 
 9.8.  Email Local-Part Is Not Authenticated
 
@@ -1782,10 +1794,9 @@ Table of Contents
       issuer that method accepted.  Before publishing, check the issuer
       list for completeness.  Forgotten regional tenants and departing
       Identity Providers are the usual omissions, and they surface as
-      rejections at such servers.  Subject Authorities SHOULD sign the
-      zone with DNSSEC or publish via the pointer form, since every
-      published decision carries the full weight of the publication
-      channel's integrity (Section 9.4).
+      rejections at such servers.  Every published decision carries the
+      full weight of the publication channel's integrity, so sign the
+      zone with DNSSEC (Section 9.4).
 
    *  *Change management and TTLs.* Reduce DNS TTLs before any planned
       change to the record or uri= pointer (Section 9.5).  Choose
@@ -1895,7 +1906,7 @@ Table of Contents
 
    Identifier:  domain_authorized_issuer
 
-   Categories:  subject_namespace_authorization
+   Category:  subject_namespace_authorization
 
    Parameters:  lookup (string, OPTIONAL; the value https_only selects
       the HTTPS-only lookup mode, Section 8.2)
@@ -2634,6 +2645,7 @@ C.3.  Issuance and Token Request
         "iat": 1780166100,
         "jti": "5a17...",
         "sub": "user-9241ab",
+        "client_id": "8d0c63e1a2b4",
         "email": "alice@acme.example",
         "email_verified": true
       }
@@ -2811,6 +2823,10 @@ Appendix D.  Document History
       record without the default uri= as Indeterminate under HTTPS-only
       lookup, and forbid query components in OAuth issuer identifiers
       (#34).
+
+   *  Retain the highest signed-policy iat for 24 hours; publish key=
+      with a critical signed_policy; recommend DNSSEC, not the pointer
+      form, against DNS compromise; forbid userinfo in uri= (#46).
 
    *  Editorial changes for readability.
 

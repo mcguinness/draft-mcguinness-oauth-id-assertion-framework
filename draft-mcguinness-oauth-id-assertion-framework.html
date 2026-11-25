@@ -1288,7 +1288,7 @@ OAuth client presenting an assertion, are also defined separately.<a href="#sect
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
-            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-grant-profile-and-token-bin" class="internal xref">Grant Profile and Token Bindings</a></p>
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-grant-profile-bindings" class="internal xref">Grant Profile Bindings</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
                 <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-id-jag" class="internal xref">ID-JAG</a></p>
@@ -1454,9 +1454,15 @@ Despite its name, the Trust Policy is published by the Resource
 Authorization Server, not an Assertion Issuer. A Subject Authority
 authorizes issuers in a separate document, the Issuer Authorization
 Policy (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span>).<a href="#section-1-7" class="pilcrow">¶</a></p>
-<p id="section-1-8">The trust evaluation that this document defines applies only to
-ID-JAG (<a href="#bindings" class="auto internal xref">Section 5</a>). It narrows <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>, for example by limiting
-which claims resolve the subject (<a href="#rasp" class="auto internal xref">Section 4.2</a> step 5c).<a href="#section-1-8" class="pilcrow">¶</a></p>
+<p id="section-1-8">This document defines a binding only for ID-JAG (<a href="#bindings" class="auto internal xref">Section 5</a>). A
+Resource Authorization Server that evaluates a Trust Policy therefore
+rejects an identity assertion of any other grant profile unless a
+specification defines a binding for that profile and the policy lists
+it (<a href="#rasp" class="auto internal xref">Section 4.2</a> step 3). For ID-JAG, this document narrows <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>:
+it limits which claims
+resolve the subject (<a href="#rasp" class="auto internal xref">Section 4.2</a> step 5c), requires <code>email_verified</code> for
+an <code>email</code> that the server uses (<a href="#id-jag-profile" class="auto internal xref">Section 5.1</a>), and requires the
+verification key to be bound to <code>iss</code> (<a href="#rasp" class="auto internal xref">Section 4.2</a> step 2).<a href="#section-1-8" class="pilcrow">¶</a></p>
 <div id="overview">
 <section id="section-1.1">
         <h3 id="name-overview">
@@ -1470,7 +1476,8 @@ Server answers two separate questions about it:<a href="#section-1.1-1" class="p
             <p id="section-1.1-2.1.1">Issuer authentication: who signed it? The server checks that the
 issuer named by <code>iss</code> is a recognized signer, for example through
 an OpenID Federation trust chain (<span>[<a href="#FEDERATION" class="cite xref">FEDERATION</a>]</span>), and that the
-signature verifies under a key that this method permits.<a href="#section-1.1-2.1.1" class="pilcrow">¶</a></p>
+signature verifies under a key that the trust chain binds to that
+issuer.<a href="#section-1.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-1.1-2.2">
             <p id="section-1.1-2.2.1">Namespace authorization: is that issuer authorized for
@@ -1614,12 +1621,12 @@ fail-closed handling.<a href="#section-1.5-2.4.1" class="pilcrow">¶</a></p>
         </ul>
 <p id="section-1.5-3">Trust Methods, and the publication mechanisms they use, live in
 dedicated specifications such as <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> and <span>[<a href="#FEDERATION" class="cite xref">FEDERATION</a>]</span>.<a href="#section-1.5-3" class="pilcrow">¶</a></p>
-<p id="section-1.5-4">This document registers no Trust Methods for attribute authorities
-that are not namespace owners, such as issuers of government
-credentials, professional certifications, or employment
-attestations. When such an attestation is conveyed in an identity
-assertion whose subject is namespace-bound, the issuer-trust
-evaluation still applies.<a href="#section-1.5-4" class="pilcrow">¶</a></p>
+<p id="section-1.5-4">Trust Methods for attribute authorities that are not namespace
+owners, such as issuers of government credentials, professional
+certifications, or employment attestations, are out of scope. When
+such an attestation is conveyed in an identity assertion whose
+subject is namespace-bound, the issuer-trust evaluation still
+applies.<a href="#section-1.5-4" class="pilcrow">¶</a></p>
 <p id="section-1.5-5">The <code>email</code> Subject Identifier extraction registered in this
 document is user-identity-oriented. Workload, agent, and other
 non-user subjects can be supported by registering additional
@@ -1649,7 +1656,7 @@ Identifier formats follow <span>[<a href="#RFC9493" class="cite xref">RFC9493</a
 registered in <a href="#iana-trust-methods-registry" class="auto internal xref">Section 9.1.5</a>. This document defines
 the following terms.<a href="#section-2-1" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-2-2">
-        <dt id="section-2-2.1">Resource Authorization Server (RAS):</dt>
+        <dt id="section-2-2.1">Resource Authorization Server:</dt>
         <dd style="margin-left: 1.5em" id="section-2-2.2">
           <p id="section-2-2.2.1">The OAuth authorization server that receives an identity
 assertion as a grant, evaluates the Trust Policy, and issues access
@@ -1680,53 +1687,60 @@ platform, can play both.<a href="#section-2-2.6.1" class="pilcrow">¶</a></p>
 assertion arrives, such as <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> (<a href="#bindings" class="auto internal xref">Section 5</a>).<a href="#section-2-2.8.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-2-2.9">Subject Authority:</dt>
+<dt id="section-2-2.9">Subject Identifier:</dt>
         <dd style="margin-left: 1.5em" id="section-2-2.10">
-          <p id="section-2-2.10.1">The party that holds authority over a Subject Identifier namespace
+          <p id="section-2-2.10.1">The identifier of an identity assertion's subject in a named
+format, such as <code>email</code> (<span>[<a href="#RFC9493" class="cite xref">RFC9493</a>]</span>), carried in the claim that the
+grant-profile binding designates (<a href="#subject-authority-determination" class="auto internal xref">Section 3.4</a>).<a href="#section-2-2.10.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-2.11">Subject Authority:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.12">
+          <p id="section-2-2.12.1">The party that holds authority over a Subject Identifier namespace
 and can authorize Assertion Issuers to assert identities in it. The
 term also names the identifier of that authority, which for <code>email</code>
-is the registrable domain.<a href="#section-2-2.10.1" class="pilcrow">¶</a></p>
+is the registrable domain.<a href="#section-2-2.12.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-2-2.11">Trust Policy:</dt>
-        <dd style="margin-left: 1.5em" id="section-2-2.12">
-          <p id="section-2-2.12.1">The JSON document defined in <a href="#trust-policy-document" class="auto internal xref">Section 3.2</a>, published
-by a Resource Authorization Server to declare its trust criteria.<a href="#section-2-2.12.1" class="pilcrow">¶</a></p>
-</dd>
-        <dd class="break"></dd>
-<dt id="section-2-2.13">Trust Method:</dt>
+<dt id="section-2-2.13">Trust Policy:</dt>
         <dd style="margin-left: 1.5em" id="section-2-2.14">
-          <p id="section-2-2.14.1">A registered, named evaluation procedure by which a Resource
-Authorization Server tests trust evidence in one or more categories,
-such as evidence about an Assertion Issuer (<a href="#trust-methods" class="auto internal xref">Section 3.3</a>). A Trust
-Policy names the Trust Methods it requires.<a href="#section-2-2.14.1" class="pilcrow">¶</a></p>
+          <p id="section-2-2.14.1">The JSON document defined in <a href="#trust-policy-document" class="auto internal xref">Section 3.2</a>, published
+by a Resource Authorization Server to declare its trust criteria.<a href="#section-2-2.14.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-2-2.15">Issuer Authorization Policy:</dt>
+<dt id="section-2-2.15">Trust Method:</dt>
         <dd style="margin-left: 1.5em" id="section-2-2.16">
-          <p id="section-2-2.16.1">The document by which a Subject Authority declares the Assertion
+          <p id="section-2-2.16.1">A registered, named evaluation procedure by which a Resource
+Authorization Server tests trust evidence in one category,
+such as evidence about an Assertion Issuer (<a href="#trust-methods" class="auto internal xref">Section 3.3</a>). A Trust
+Policy names the Trust Methods it requires.<a href="#section-2-2.16.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-2.17">Issuer Authorization Policy:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.18">
+          <p id="section-2-2.18.1">The document by which a Subject Authority declares the Assertion
 Issuers it authorizes for its namespace. Its wire format,
 publication channel, and integrity protection are defined by each
-<code>subject_namespace_authorization</code> Trust Method specification.<a href="#section-2-2.16.1" class="pilcrow">¶</a></p>
+<code>subject_namespace_authorization</code> Trust Method specification.<a href="#section-2-2.18.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-2-2.17">Consumer:</dt>
-        <dd style="margin-left: 1.5em" id="section-2-2.18">
-          <p id="section-2-2.18.1">Any party that retrieves and processes a policy document (Trust
+<dt id="section-2-2.19">Consumer:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.20">
+          <p id="section-2-2.20.1">Any party that retrieves and processes a policy document (Trust
 Policy or Issuer Authorization Policy): a Resource Authorization
 Server evaluating an assertion, or a client reading a Trust Policy
 for capability discovery. Requirements addressed to consumers apply
-to both roles unless a narrower role is named.<a href="#section-2-2.18.1" class="pilcrow">¶</a></p>
+to both roles unless a narrower role is named.<a href="#section-2-2.20.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-2-2.19">Decision-affecting member:</dt>
-        <dd style="margin-left: 1.5em" id="section-2-2.20">
-          <p id="section-2-2.20.1">A member of a policy document whose value can change whether a
+<dt id="section-2-2.21">Decision-affecting member:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-2.22">
+          <p id="section-2-2.22.1">A member of a policy document whose value can change whether a
 consumer accepts an assertion. Every member that this document or a
 Trust Method specification registers for a policy document is
 decision-affecting unless it only records when the document was
 published, carries a signature over other members, or has a
-registration that says otherwise.<a href="#section-2-2.20.1" class="pilcrow">¶</a></p>
+registration that says otherwise.<a href="#section-2-2.22.1" class="pilcrow">¶</a></p>
 </dd>
       <dd class="break"></dd>
 </dl>
@@ -1939,7 +1953,7 @@ assertion.<a href="#section-3.3.1-2" class="pilcrow">¶</a></p>
           <h4 id="name-trust-method-categories">
 <a href="#section-3.3.2" class="section-number selfRef">3.3.2. </a><a href="#name-trust-method-categories" class="section-name selfRef">Trust Method Categories</a>
           </h4>
-<p id="section-3.3.2-1">Each Trust Method belongs to one or more categories registered in
+<p id="section-3.3.2-1">Each Trust Method belongs to exactly one category registered in
 <a href="#iana-trust-method-categories-registry" class="auto internal xref">Section 9.1.4</a>, such as the two below, and
 is itself registered in <a href="#iana-trust-methods-registry" class="auto internal xref">Section 9.1.5</a>. Evidence is
 combined across categories per <a href="#combination-rule" class="auto internal xref">Section 4.3.1</a>.<a href="#section-3.3.2-1" class="pilcrow">¶</a></p>
@@ -1975,7 +1989,7 @@ assertion.<a href="#section-3.3.2-3" class="pilcrow">¶</a></p>
 the framework's deferral to the method is testable:<a href="#section-3.3.3-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-3.3.3-2.1">
-              <p id="section-3.3.3-2.1.1">The Trust Method identifier and its categories
+              <p id="section-3.3.3-2.1.1">The Trust Method identifier and its category
 (<a href="#iana-trust-methods-registry" class="auto internal xref">Section 9.1.5</a>).<a href="#section-3.3.3-2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-3.3.3-2.2">
@@ -2045,7 +2059,13 @@ category and register them in <a href="#iana-trust-methods-registry" class="auto
         </h3>
 <p id="section-3.4-1">Determining the Subject Authority has two steps: identify which
 registered Subject Identifier format the assertion carries, then apply
-that format's extraction procedure. The grant-profile binding
+that format's extraction procedure. A Resource Authorization Server
+does both whenever it uses a namespace-bound Subject Identifier: when
+a <code>subject_namespace_authorization</code> method evaluates it, or under the
+local-policy exception of <a href="#rasp" class="auto internal xref">Section 4.2</a> step 5e. The procedure's
+rejections reject the assertion only in the first case. Under step
+5e, an identifier that the procedure rejects is not used, and the
+rest of the assertion is evaluated as usual. The grant-profile binding
 (<a href="#bindings" class="auto internal xref">Section 5</a>) designates which claim conveys the Subject Identifier
 and thus which format applies. A format is "used by the assertion"
 when the designated claim for that format is present. If the
@@ -2056,7 +2076,8 @@ cannot be evaluated, and processing follows <a href="#rasp" class="auto internal
 <p id="section-3.4-2">Extraction procedures are registered in <a href="#iana-authority-registry" class="auto internal xref">Section 9.2</a>;
 this document registers the <code>email</code> extraction as the initial entry.
 Future specifications can register further formats without changing
-the rest of the framework.<a href="#section-3.4-2" class="pilcrow">¶</a></p>
+the rest of the framework, once a grant-profile binding designates
+the claim that carries the format (<a href="#bindings" class="auto internal xref">Section 5</a>).<a href="#section-3.4-2" class="pilcrow">¶</a></p>
 <p id="section-3.4-3">Initial extractions:<a href="#section-3.4-3" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-3.4-4">
           <dt id="section-3.4-4.1"><code>email</code></dt>
@@ -2122,7 +2143,11 @@ only the ICANN division would compute a coarser Subject Authority
 and query a different name.<a href="#section-3.4-4.2.6" class="pilcrow">¶</a></p>
 <p id="section-3.4-4.2.7">The result is compared using case-insensitive ASCII comparison of
 A-labels. Consumers <span class="bcp14">MUST</span> reject an email whose domain is itself a
-public suffix (no registrable domain exists).<a href="#section-3.4-4.2.7" class="pilcrow">¶</a></p>
+public suffix (no registrable domain exists). Consumers <span class="bcp14">MUST</span> also
+reject an email whose domain no rule of the list matches, so that
+only the algorithm's default <code>*</code> rule would apply, such as a domain
+under a top-level domain that the list does not include (for
+example, <code>corp.internal</code>).<a href="#section-3.4-4.2.7" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
@@ -2281,27 +2306,24 @@ individual Trust Method objects.<a href="#section-4.2-3.1.1" class="pilcrow">¶<
             <p id="section-4.2-3.2.1">Validate the assertion per the applicable grant profile
 (<span>[<a href="#RFC7521" class="cite xref">RFC7521</a>]</span>, <span>[<a href="#RFC7523" class="cite xref">RFC7523</a>]</span>, <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>). The verification key <span class="bcp14">MUST</span>
 be bound to the <code>iss</code> value independently of the assertion,
-through the <code>jwks_uri</code> in that issuer's metadata, local
-configuration for that issuer, or a key source authenticated by a
-Trust Method relied on in step 5. A key or key location in the
-assertion's JOSE header, such as <code>jwk</code>, <code>jku</code>, or <code>x5u</code>, satisfies
-this only when one of those sources authenticates it. This
-strengthens <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1, which only recommends <code>jwks_uri</code>.
-The validation's
-signing-key resolution is provisional. A Trust Method evaluated in
-step 5 <span class="bcp14">MAY</span> constrain the source of the key used to verify the
-assertion signature. For example, <code>openid_federation</code> requires a
-federation-resolved JWKS (<span>[<a href="#FEDERATION" class="cite xref">FEDERATION</a>]</span>).<a href="#section-4.2-3.2.1" class="pilcrow">¶</a></p>
+through the <code>jwks_uri</code> in that issuer's metadata (located per
+<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §7.1, including its fallback to OpenID Connect
+Discovery), local configuration for that issuer, or a key source
+authenticated by a Trust Method satisfied in step 5. A key
+or key location in the assertion's JOSE header, such as <code>jwk</code>,
+<code>jku</code>, or <code>x5u</code>, satisfies this only when one of those sources
+authenticates it. This strengthens <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1, which only
+recommends <code>jwks_uri</code>.<a href="#section-4.2-3.2.1" class="pilcrow">¶</a></p>
 <p id="section-4.2-3.2.2">
-The Resource Authorization Server <span class="bcp14">MUST NOT</span> accept the assertion
-until it has verified the signature with a key permitted by each
-key-source-constraining Trust Method it relies on to satisfy the
-combination rule in step 5. Under the or-semantics of
-<a href="#combination-rule" class="auto internal xref">Section 4.3.1</a>, a listed method that is not relied on
-imposes no key-source constraint. A signature verified only
-against an unconstrained source, such as the <code>iss</code> URL's
-authorization server metadata, does not satisfy this step when the
-relied-on Trust Method constrains the key source.<a href="#section-4.2-3.2.2" class="pilcrow">¶</a></p>
+A Trust Method <span class="bcp14">MAY</span> constrain the source of the verification key.
+For example, <code>openid_federation</code> requires a federation-resolved
+key set (<span>[<a href="#FEDERATION" class="cite xref">FEDERATION</a>]</span>). Such a method <span class="bcp14">MUST NOT</span> be treated as
+satisfied in step 5 unless the assertion signature verifies under a
+key it permits,
+so a signature verified only under an unconstrained source, such as
+the <code>iss</code> URL's authorization server metadata, does not satisfy
+it. Signature verification can therefore complete in step 5, once
+the method's key source is resolved.<a href="#section-4.2-3.2.2" class="pilcrow">¶</a></p>
 </li>
           <li id="section-4.2-3.3">
             <p id="section-4.2-3.3.1">Verify that the applicable grant profile has a binding
@@ -2309,10 +2331,10 @@ relied-on Trust Method constrains the key source.<a href="#section-4.2-3.2.2" cl
 <code>authorization_grant_profiles_supported</code>.<a href="#section-4.2-3.3.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-4.2-3.4">
-            <p id="section-4.2-3.4.1">If <code>subject_identifier_formats_supported</code> is present, verify that
-the Subject Identifier format used by the assertion is listed,
-unless the applicable grant profile defines a different format
-selection rule.<a href="#section-4.2-3.4.1" class="pilcrow">¶</a></p>
+            <p id="section-4.2-3.4.1">If <code>subject_identifier_formats_supported</code> is present and the
+assertion uses a Subject Identifier format, verify that the format
+is listed, unless the applicable grant profile defines a different
+format selection rule.<a href="#section-4.2-3.4.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-4.2-3.5">
             <p id="section-4.2-3.5.1">Verify that the Assertion Issuer identified by <code>iss</code>, and any
@@ -2321,18 +2343,14 @@ Method combination rule:<a href="#section-4.2-3.5.1" class="pilcrow">¶</a></p>
 <p id="section-4.2-3.5.2">
 a. Partition the Trust Method objects in <code>issuer_trust_methods</code>,
    and in any other Trust Policy member that lists Trust Method
-   objects, by category (<a href="#trust-method-categories" class="auto internal xref">Section 3.3.2</a>). A Trust
-   Method registered with multiple categories belongs to each
-   category that its member allows (<a href="#trust-policy-document" class="auto internal xref">Section 3.2</a>). A
+   objects, by category (<a href="#trust-method-categories" class="auto internal xref">Section 3.3.2</a>). A
    method listed in the wrong member is malformed
    (<a href="#trust-policy-document" class="auto internal xref">Section 3.2</a>). The Resource Authorization Server
    <span class="bcp14">MUST</span> reject the assertion if any object in such a member is not
    recognized, is malformed, or cannot be assigned to a category it
    knows. Silently ignoring the object would evaluate a strict
    subset of the requirements the operator declared: a fail-open
-   category downgrade. A single evidence item <span class="bcp14">MUST NOT</span> be counted
-   toward more than one category even when its Trust Method is
-   registered in several.<a href="#section-4.2-3.5.2" class="pilcrow">¶</a></p>
+   category downgrade.<a href="#section-4.2-3.5.2" class="pilcrow">¶</a></p>
 <p id="section-4.2-3.5.3">
 b. Each category present in the partitioned policy is applicable to
    every assertion evaluated under this policy, and nothing in the
@@ -2342,53 +2360,65 @@ b. Each category present in the partitioned policy is applicable to
    Issuer, <span class="bcp14">MUST</span> satisfy at least one Trust Method from that
    category, subject to the finality rule of <a href="#multiple-sources" class="auto internal xref">Section 4.3.2</a>.<a href="#section-4.2-3.5.3" class="pilcrow">¶</a></p>
 <p id="section-4.2-3.5.4">
-c. When the policy contains a <code>subject_namespace_authorization</code>
-   Trust Method:<a href="#section-4.2-3.5.4" class="pilcrow">¶</a></p>
+c. Whatever categories the policy lists, the Resource Authorization
+   Server <span class="bcp14">MUST</span> identify the subject, for subject resolution, account
+   linking, and authorization, only by issuer-scoped identifiers or
+   by the Subject Identifier that a
+   <code>subject_namespace_authorization</code> method evaluated in step 5b,
+   unless local configuration trusts the Assertion Issuer for
+   another subject claim. That exception does not apply to a
+   namespace-bound Subject Identifier that no namespace method
+   evaluated: step 5e alone decides whether it can be used.<a href="#section-4.2-3.5.4" class="pilcrow">¶</a></p>
+<p id="section-4.2-3.5.5">
+Issuer-scoped identifiers are <code>iss</code> and <code>sub</code>, with <code>tenant</code>
+   when the assertion carries it (<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §6.3). Claims such as
+   <code>aud_sub</code> and <code>sub_id</code> (<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §3.1) are outside the
+   namespace check. An account linked by <code>email</code> <span class="bcp14">MUST</span> be linked on
+   the address with its full domain in the A-label form that
+   <a href="#subject-authority-determination" class="auto internal xref">Section 3.4</a> computes, not on the
+   registrable domain or the result of any other Unicode mapping.<a href="#section-4.2-3.5.5" class="pilcrow">¶</a></p>
+<p id="section-4.2-3.5.6">
+In addition, when the policy contains a
+   <code>subject_namespace_authorization</code> Trust Method:<a href="#section-4.2-3.5.6" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-4.2-3.5.5.1">
-                <p id="section-4.2-3.5.5.1.1">The assertion <span class="bcp14">MUST</span> carry a Subject Identifier from which a
+<li class="normal" id="section-4.2-3.5.7.1">
+                <p id="section-4.2-3.5.7.1.1">The assertion <span class="bcp14">MUST</span> carry a Subject Identifier from which a
 Subject Authority can be determined per
 <a href="#subject-authority-determination" class="auto internal xref">Section 3.4</a> or an equivalent
 registry. If the assertion carries no such Subject
 Identifier, or no Subject Authority can be determined, the
-Resource Authorization Server <span class="bcp14">MUST</span> reject the assertion.<a href="#section-4.2-3.5.5.1.1" class="pilcrow">¶</a></p>
+Resource Authorization Server <span class="bcp14">MUST</span> reject the assertion.<a href="#section-4.2-3.5.7.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.2-3.5.5.2">
-                <p id="section-4.2-3.5.5.2.1">The Resource Authorization Server <span class="bcp14">MUST NOT</span> treat the
+              <li class="normal" id="section-4.2-3.5.7.2">
+                <p id="section-4.2-3.5.7.2.1">The Resource Authorization Server <span class="bcp14">MUST NOT</span> treat the
 <code>subject_namespace_authorization</code> category as inapplicable
-because the assertion omits a Subject Identifier.<a href="#section-4.2-3.5.5.2.1" class="pilcrow">¶</a></p>
+because the assertion omits a Subject Identifier.<a href="#section-4.2-3.5.7.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-4.2-3.5.5.3">
-                <p id="section-4.2-3.5.5.3.1">When the namespace category is present but cannot be
+              <li class="normal" id="section-4.2-3.5.7.3">
+                <p id="section-4.2-3.5.7.3.1">When the namespace category is present but cannot be
 evaluated, the Resource Authorization Server <span class="bcp14">MUST NOT</span> consume
 any subject or identity claim from the assertion for account
-linking, authorization, or subject resolution.<a href="#section-4.2-3.5.5.3.1" class="pilcrow">¶</a></p>
-</li>
-              <li class="normal" id="section-4.2-3.5.5.4">
-                <p id="section-4.2-3.5.5.4.1">When the category is satisfied, the Resource Authorization
-Server <span class="bcp14">MUST</span> resolve and link the subject only from the
-Subject Identifier the category evaluated or from
-issuer-scoped identifiers, unless local configuration trusts
-the Assertion Issuer for another subject claim.
-Issuer-scoped identifiers are <code>iss</code> and <code>sub</code>, with <code>tenant</code>
-for a multi-tenant issuer. Claims such as <code>aud_sub</code> and
-<code>sub_id</code> (<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §3.1) are outside the namespace check.<a href="#section-4.2-3.5.5.4.1" class="pilcrow">¶</a></p>
+linking, authorization, or subject resolution.<a href="#section-4.2-3.5.7.3.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
-<p id="section-4.2-3.5.6">
+<p id="section-4.2-3.5.8">
 d. Local policy <span class="bcp14">MAY</span> require satisfaction of additional Trust
-   Methods for specific clients, subjects, or scopes.<a href="#section-4.2-3.5.6" class="pilcrow">¶</a></p>
-<p id="section-4.2-3.5.7">
+   Methods for specific clients, subjects, or scopes.<a href="#section-4.2-3.5.8" class="pilcrow">¶</a></p>
+<p id="section-4.2-3.5.9">
 e. When the policy lists no <code>subject_namespace_authorization</code>
    method and the assertion carries a namespace-bound Subject
-   Identifier, the Resource Authorization Server <span class="bcp14">MUST</span> reject the
-   assertion unless local policy independently establishes
-   authority over the subject namespace. A namespace-bound Subject
+   Identifier, the Resource Authorization Server <span class="bcp14">MUST NOT</span> use that
+   Subject Identifier for subject resolution, account linking, or
+   authorization, or convey it as an attribute of the subject, such
+   as in an issued token or at consent, unless local policy
+   independently establishes that the Assertion Issuer has
+   authority over the subject namespace. The rest of the assertion
+   is evaluated as usual. A namespace-bound Subject
    Identifier is one whose format has a registered Subject
    Authority extraction procedure (<a href="#iana-authority-registry" class="auto internal xref">Section 9.2</a>), so
    the Resource Authorization Server can recognize one without
    running a namespace method. Federation membership alone does not
-   establish authority over a particular subject namespace.<a href="#section-4.2-3.5.7" class="pilcrow">¶</a></p>
+   establish authority over a particular subject namespace.<a href="#section-4.2-3.5.9" class="pilcrow">¶</a></p>
 </li>
           <li id="section-4.2-3.6">
             <p id="section-4.2-3.6.1">Apply local policy (account-linking, consent, authorization,
@@ -2397,9 +2427,9 @@ this document specifies neither.<a href="#section-4.2-3.6.1" class="pilcrow">¶<
 </li>
         </ol>
 <p id="section-4.2-4">Client authentication that the grant profile requires <span class="bcp14">SHOULD</span> be
-completed before step 5, so that unauthenticated requests cannot
-cause the lookups that step performs. Every fetch in this processing
-follows <a href="#outbound-fetches" class="auto internal xref">Section 4.4</a>.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+completed before step 2, so that unauthenticated requests cannot
+cause the fetches that steps 2 and 5 perform. Every fetch in this
+processing follows <a href="#outbound-fetches" class="auto internal xref">Section 4.4</a>.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
 <p id="section-4.2-5">Rejection at any of steps 1 through 5 <span class="bcp14">MUST</span> result in an OAuth
 <code>invalid_grant</code> error unless another error is defined by the
 applicable grant profile, by the specification of a category that
@@ -2459,8 +2489,8 @@ be able to waive a listed category.<a href="#section-4.3.1.1-1" class="pilcrow">
 <p id="section-4.3.1.1-2">Trust Method specifications <span class="bcp14">MUST NOT</span> define applicability conditions
 that depend on properties of the identity assertion under
 evaluation. The prohibition is directional: assertion properties
-never relax what the policy requires, but rejection rules keyed on
-them, such as <a href="#rasp" class="auto internal xref">Section 4.2</a> step 5e, only tighten it and are permitted.
+never relax what the policy requires, but rules keyed on them that
+only tighten it, such as <a href="#rasp" class="auto internal xref">Section 4.2</a> steps 5c and 5e, are permitted.
 Nor can published evidence waive the category. A Trust Method
 specification <span class="bcp14">MUST NOT</span> define a published state, such as a
 monitoring mode, under which an identity assertion whose issuer the
@@ -2487,16 +2517,15 @@ header, request parameter, or fixed tuple) to exactly one evidence
 source or a deterministic failure, with no preference ordering and no
 fallback across candidates, and invariant under the presence,
 absence, or value of any input outside the function
-(<a href="#unverified-claim" class="auto internal xref">Section 6.2</a>).<a href="#section-4.3.2-1" class="pilcrow">¶</a></p>
+(<a href="#unverified-claim" class="auto internal xref">Section 6.2</a>). Within such a method's evaluation, a Resource
+Authorization Server <span class="bcp14">MUST NOT</span> fall through to a different evidence
+source if the selected evidence source's evaluation fails or is
+indeterminate (<a href="#exception-handling" class="auto internal xref">Section 4.3.3</a>).<a href="#section-4.3.2-1" class="pilcrow">¶</a></p>
 <p id="section-4.3.2-2">For <code>issuer_authentication</code>, every evidence source the Trust Policy
 lists is equally trusted, so a Trust Method specification <span class="bcp14">MAY</span> accept
 evidence from any of them. For <code>openid_federation</code>, this means a
 chain to any listed trust anchor (<span>[<a href="#FEDERATION" class="cite xref">FEDERATION</a>]</span>).<a href="#section-4.3.2-2" class="pilcrow">¶</a></p>
-<p id="section-4.3.2-3">Within one Trust Method's evaluation, a Resource Authorization Server
-<span class="bcp14">MUST NOT</span> fall through to a different evidence source if the
-originally-applicable evidence source's evaluation fails or is
-indeterminate (<a href="#exception-handling" class="auto internal xref">Section 4.3.3</a>).<a href="#section-4.3.2-3" class="pilcrow">¶</a></p>
-<p id="section-4.3.2-4">Across Trust Methods in the same category, or-semantics apply, with
+<p id="section-4.3.2-3">Across Trust Methods in the same category, or-semantics apply, with
 one exception, the finality rule. When a
 <code>subject_namespace_authorization</code> method retrieves Affirmative
 evidence from the Subject Authority that does not authorize the
@@ -2511,9 +2540,9 @@ methods in the category can still supply evidence. If that channel
 does not authenticate negative answers, as with DNS without DNSSEC,
 an attacker who forges one can turn a published denial into a
 Negative and let another method decide (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §DNS Integrity and
-Compromise).<a href="#section-4.3.2-4" class="pilcrow">¶</a></p>
-<p id="section-4.3.2-5">For a <code>subject_namespace_authorization</code> method that consults the
-Subject Authority's own publication:<a href="#section-4.3.2-5" class="pilcrow">¶</a></p>
+Compromise).<a href="#section-4.3.2-3" class="pilcrow">¶</a></p>
+<p id="section-4.3.2-4">For a <code>subject_namespace_authorization</code> method that consults the
+Subject Authority's own publication:<a href="#section-4.3.2-4" class="pilcrow">¶</a></p>
 <table class="center" id="table-1">
             <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
 <thead>
@@ -2568,19 +2597,21 @@ assertion against that evidence.<a href="#section-4.3.3.1-1.1.1" class="pilcrow"
 </li>
               <li class="normal" id="section-4.3.3.1-1.2">
                 <p id="section-4.3.3.1-1.2.1"><strong>Negative</strong>: the publication channel authoritatively reports the
-absence of evidence. Examples: DNS NXDOMAIN or NODATA with a valid
-(possibly DNSSEC-signed) authoritative answer where DNS is the
-Trust Method's sole or final publication channel; for
-<code>openid_federation</code> (<span>[<a href="#FEDERATION" class="cite xref">FEDERATION</a>]</span>), HTTP 404 for the leaf's
-Entity Configuration.
+absence of evidence, for example a DNS NXDOMAIN or NODATA with a
+valid (possibly DNSSEC-signed) authoritative answer where DNS is
+the Trust Method's sole or final publication channel.
 A Trust Method with several publication channels for the same
 evidence source reaches Negative only when the channels its lookup
 procedure consults authoritatively report no authorization. A
 Trust Method specification <span class="bcp14">MAY</span> additionally define an explicitly
-published denial. Its state mapping decides whether such a denial
-maps to Negative or to an Affirmative retrieval that authorizes
-nothing. A Negative state records that no authorization is in
-effect through that channel and is final for that Trust Method;
+published denial. For a <code>subject_namespace_authorization</code> method,
+such a denial <span class="bcp14">MUST</span> map to an Affirmative retrieval that does not
+authorize the denied issuer, so that it is final
+(<a href="#multiple-sources" class="auto internal xref">Section 4.3.2</a>). For other
+methods, the specification's state mapping decides whether it maps
+to Negative or to such an Affirmative retrieval. A Negative state
+records that no authorization is in effect through that channel and
+is final for that Trust Method;
 <a href="#multiple-sources" class="auto internal xref">Section 4.3.2</a> states its effect on other methods.<a href="#section-4.3.3.1-1.2.1" class="pilcrow">¶</a></p>
 </li>
               <li class="normal" id="section-4.3.3.1-1.3">
@@ -2620,7 +2651,8 @@ beyond that specification's stated maximum. Once the cache expires,
 a live channel that remains Indeterminate does not satisfy the Trust
 Method. Treating Indeterminate as Affirmative, extending a cache
 across Indeterminate states, and falling through to another evidence
-source within one Trust Method's evaluation are the same downgrade:
+source within the evaluation of a method with deterministic source
+selection (<a href="#multiple-sources" class="auto internal xref">Section 4.3.2</a>) are the same downgrade:
 each lets an adversary who controls the availability of the
 publication channel turn a hard denial into a soft one.<a href="#section-4.3.3.2-2" class="pilcrow">¶</a></p>
 <p id="section-4.3.3.2-3">Trust Method specifications <span class="bcp14">MAY</span> define additional lookup states (for
@@ -2644,20 +2676,16 @@ requirement.<a href="#section-4.3.3.2-3" class="pilcrow">¶</a></p>
 fetch resources at locations an attacker can choose:<a href="#section-4.4-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-4.4-2.1">
-            <p id="section-4.4-2.1.1">the Assertion Issuer's metadata and key sets;<a href="#section-4.4-2.1.1" class="pilcrow">¶</a></p>
+            <p id="section-4.4-2.1.1">the Assertion Issuer's metadata and key sets; and<a href="#section-4.4-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-4.4-2.2">
-            <p id="section-4.4-2.2.1">Entity Statements reached through a leaf's <code>authority_hints</code>;<a href="#section-4.4-2.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-4.4-2.3">
-            <p id="section-4.4-2.3.1">a Trust Mark Issuer's chain; and<a href="#section-4.4-2.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li class="normal" id="section-4.4-2.4">
-            <p id="section-4.4-2.4.1">policy documents named by a Subject Authority that the attacker
-controls.<a href="#section-4.4-2.4.1" class="pilcrow">¶</a></p>
+            <p id="section-4.4-2.2.1">the evidence each Trust Method retrieves, at locations that the
+assertion or other evidence names, such as a policy document named
+by a Subject Authority that the attacker controls (<span>[<a href="#DAI" class="cite xref">DAI</a>]</span>).<a href="#section-4.4-2.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-4.4-3">For every such fetch, the Resource Authorization Server:<a href="#section-4.4-3" class="pilcrow">¶</a></p>
+<p id="section-4.4-3">Each redirect hop is a separate fetch under these rules. For every
+such fetch, the Resource Authorization Server:<a href="#section-4.4-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-4.4-4.1">
             <p id="section-4.4-4.1.1"><span class="bcp14">MUST NOT</span> connect to an address that is private-use, loopback,
@@ -2689,8 +2717,8 @@ bound is Indeterminate.<a href="#section-4.4-4.4.1" class="pilcrow">¶</a></p>
 </div>
 <div id="bindings">
 <section id="section-5">
-      <h2 id="name-grant-profile-and-token-bin">
-<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-grant-profile-and-token-bin" class="section-name selfRef">Grant Profile and Token Bindings</a>
+      <h2 id="name-grant-profile-bindings">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-grant-profile-bindings" class="section-name selfRef">Grant Profile Bindings</a>
       </h2>
 <p id="section-5-1">This section defines the binding for ID-JAG (<a href="#id-jag-profile" class="auto internal xref">Section 5.1</a>),
 the only grant profile to which this document applies.
@@ -2716,36 +2744,35 @@ for its grant profile and the Trust Policy lists that profile.<a href="#section-
 contains <code>urn:ietf:params:oauth:grant-profile:id-jag</code>. The Subject
 Identifier for ID-JAG is the top-level <code>email</code> claim, accompanied by
 <code>email_verified=true</code>, extracted per
-<a href="#subject-authority-determination" class="auto internal xref">Section 3.4</a>. When the Trust Policy contains
+<a href="#subject-authority-determination" class="auto internal xref">Section 3.4</a>. <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §3.1 does not define
+<code>email_verified</code>, so requiring it narrows <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span>: an Assertion
+Issuer whose <code>email</code> a Resource Authorization Server uses has to send
+it.
+When the Trust Policy contains
 a <code>subject_namespace_authorization</code> method, <a href="#rasp" class="auto internal xref">Section 4.2</a> step 5c
 requires the ID-JAG to carry that Subject Identifier and requires
 rejection if it is absent or unresolvable.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
-<p id="section-5.1-2">A namespace method can bind authorization to a tenant using the
+<p id="section-5.1-2">Passing step 5 of <a href="#rasp" class="auto internal xref">Section 4.2</a> is how the Resource Authorization Server
+decides that an ID-JAG's <code>iss</code> identifies an IdP Authorization Server
+it trusts (<span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1). It does not decide the trust in <code>iss</code>
+and <code>tenant</code> together that the same section requires of a
+multi-tenant issuer for the recipient tenant, which <code>aud</code>,
+<code>aud_tenant</code>, or the server's trust relationship with the issuer
+identifies. That trust remains the Resource Authorization Server's
+own configuration.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.1-3">A namespace method can bind authorization to a tenant using the
 <code>tenant</code> claim that <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §6.1 requires of a multi-tenant
 issuer. <span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Shared Issuer Variant: Multi-Tenant Identity
 Provider gives an example. A match on <code>tenant</code> establishes that the
-Subject
-Authority authorized that (<code>iss</code>, <code>tenant</code>) pair for its namespace.
-It does not establish the trust in <code>iss</code> and <code>tenant</code> for the
-recipient tenant that <span>[<a href="#ID-JAG" class="cite xref">ID-JAG</a>]</span> §4.4.1 requires. That trust remains
-the Resource Authorization Server's own configuration.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
-<p id="section-5.1-3">In addition to the processing in <a href="#rasp" class="auto internal xref">Section 4.2</a>, the Resource Authorization
-Server <span class="bcp14">MUST</span>:<a href="#section-5.1-3" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-5.1-4">
-<li id="section-5.1-4.1">
-            <p id="section-5.1-4.1.1">Verify that the <code>email</code> Subject Identifier, when the assertion
-carries one, uses a format listed in
-<code>subject_identifier_formats_supported</code>, if that Trust Policy member
-is present.<a href="#section-5.1-4.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-5.1-4.2">
-            <p id="section-5.1-4.2.1">Use the email attribution only for subject resolution and Subject
-Authority evaluation. The Resource Authorization Server <span class="bcp14">MUST NOT</span>
-treat the mere presence or value of the email claim as proof
-that the ID-JAG issuer is authoritative for the subject. Issuer
-acceptability is established only by evaluating the Trust Methods.<a href="#section-5.1-4.2.1" class="pilcrow">¶</a></p>
-</li>
-        </ol>
+Subject Authority authorized that (<code>iss</code>, <code>tenant</code>) pair for its
+namespace, not the recipient-tenant trust above.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+<p id="section-5.1-4">The Resource Authorization Server uses the <code>email</code> claim only as
+<a href="#rasp" class="auto internal xref">Section 4.2</a> step 5c permits and for Subject Authority evaluation, and
+step 4 checks its format against
+<code>subject_identifier_formats_supported</code>. The Resource Authorization
+Server <span class="bcp14">MUST NOT</span> treat the mere presence or value of the claim as
+proof that the ID-JAG issuer is authoritative for the subject. Issuer
+acceptability is established only by evaluating the Trust Methods.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2947,8 +2974,10 @@ its own account-linking rules.<a href="#section-6.7-4" class="pilcrow">¶</a></p
 <p id="section-6.7-5">Nor does namespace authorization cover other subject claims. An
 issuer authorized for <code>attacker.example</code> can send an <code>email</code> in that
 namespace with an <code>aud_sub</code> or <code>sub_id</code> that names an account
-elsewhere. Step 5c of <a href="#rasp" class="auto internal xref">Section 4.2</a> therefore limits subject resolution
-to the evaluated Subject Identifier and issuer-scoped identifiers.<a href="#section-6.7-5" class="pilcrow">¶</a></p>
+elsewhere. Step 5c of <a href="#rasp" class="auto internal xref">Section 4.2</a> therefore limits subject resolution,
+under every Trust Policy, to the evaluated Subject Identifier and
+issuer-scoped identifiers, apart from the local-configuration
+exceptions of steps 5c and 5e.<a href="#section-6.7-5" class="pilcrow">¶</a></p>
 <p id="section-6.7-6">Nor is the authorization audience-scoped. The
 <code>subject_namespace_authorization</code> category constrains which
 Assertion Issuers can assert about a namespace, not which Resource
@@ -3068,11 +3097,10 @@ across categories, such as satisfying only an
 <a href="#section-6.12" class="section-number selfRef">6.12. </a><a href="#name-trust-policy-caching" class="section-name selfRef">Trust Policy Caching</a>
         </h3>
 <p id="section-6.12-1">Consumers cache the Trust Policy using HTTP caching (<span>[<a href="#RFC9111" class="cite xref">RFC9111</a>]</span>),
-bounded by a local maximum cache lifetime. Independent of any
-policy-document cache expiration, revocation status of validated
-trust evidence <span class="bcp14">MUST</span> be checked at the cadence required by the
-applicable Trust Method specification. Transport integrity is
-addressed in <a href="#integrity" class="auto internal xref">Section 6.9</a>.<a href="#section-6.12-1" class="pilcrow">¶</a></p>
+bounded by a local maximum cache lifetime. Each Trust Method
+specification bounds the caching of the evidence it retrieves
+(<a href="#trust-method-spec-requirements" class="auto internal xref">Section 3.3.3</a>), independently of the Trust
+Policy's cache. Transport integrity is addressed in <a href="#integrity" class="auto internal xref">Section 6.9</a>.<a href="#section-6.12-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="observability">
@@ -3119,26 +3147,24 @@ adversary can scrape them across many Resource Authorization Servers
 to learn:<a href="#section-7-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-7-2.1">
-          <p id="section-7-2.1.1">which RASes participate in which federations;<a href="#section-7-2.1.1" class="pilcrow">¶</a></p>
+          <p id="section-7-2.1.1">which Trust Methods, and which evidence sources such as federation
+trust anchors, each one accepts; and<a href="#section-7-2.1.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="section-7-2.2">
-          <p id="section-7-2.2.1">which trust anchors are accepted; and<a href="#section-7-2.2.1" class="pilcrow">¶</a></p>
-</li>
-        <li class="normal" id="section-7-2.3">
-          <p id="section-7-2.3.1">which Subject Identifier formats are honored.<a href="#section-7-2.3.1" class="pilcrow">¶</a></p>
+          <p id="section-7-2.2.1">which Subject Identifier formats each one honors.<a href="#section-7-2.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-7-3">This aids targeted attacks, such as prioritizing compromise of a
-heavily relied-upon trust anchor. Operators <span class="bcp14">SHOULD</span> publish only what
-clients need to determine whether they can attempt issuance, and
-prefer trust-anchor or federation expression over enumerating
-individual issuers.<a href="#section-7-3" class="pilcrow">¶</a></p>
-<p id="section-7-4">Subject Authority lookup at the RAS reveals the queried Subject
-Authority to DNS resolvers and, for HTTPS retrieval, to the policy
-host. RASes verifying with <code>domain_authorized_issuer</code> should treat
-the Subject Authority and Assertion Issuer relationship as
-sensitive operational data and avoid sending full subject
-identifiers in policy URLs, query parameters, logs, or telemetry.<a href="#section-7-4" class="pilcrow">¶</a></p>
+heavily relied-upon evidence source. Operators <span class="bcp14">SHOULD</span> publish only
+what clients need to determine whether they can attempt issuance.<a href="#section-7-3" class="pilcrow">¶</a></p>
+<p id="section-7-4">A Subject Authority lookup by a Resource Authorization Server reveals
+the queried Subject Authority to the parties on the Trust Method's
+publication channel, such as DNS resolvers and a policy host
+(<span>[<a href="#DAI" class="cite xref">DAI</a>]</span> §Privacy Considerations). Resource Authorization Servers
+should treat the relationship between a Subject Authority and an
+Assertion Issuer as sensitive operational data and avoid sending
+full Subject Identifiers in policy URLs, query parameters, logs, or
+telemetry.<a href="#section-7-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="internationalization-considerations">
@@ -3156,10 +3182,10 @@ to different A-labels are different Subject Authorities, however
 similar they look. A-label comparison does not by itself defend
 against homograph confusion shown to a human at account-linking or
 display time, which is out of scope and left to the consuming
-application. Resource Authorization Servers that link accounts by
-email <span class="bcp14">SHOULD</span> compare the domain in this A-label form, so that a
-Unicode string that maps to a different Subject Authority cannot land
-on another user's account.<a href="#section-8-2" class="pilcrow">¶</a></p>
+application. A Resource Authorization Server that links accounts by
+email compares the full domain in this A-label form (<a href="#rasp" class="auto internal xref">Section 4.2</a> step
+5c), so that a Unicode string that maps to a different Subject
+Authority cannot land on another user's account.<a href="#section-8-2" class="pilcrow">¶</a></p>
 <p id="section-8-3">The <code>email</code> extraction uses the simple single-<code>@</code> rule, not the full
 <span>[<a href="#RFC5321" class="cite xref">RFC5321</a>]</span> Mailbox grammar. Internationalized email addresses
 (SMTPUTF8, <span>[<a href="#RFC6530" class="cite xref">RFC6530</a>]</span>) whose local-part requires UTF-8 are outside
@@ -3344,10 +3370,10 @@ Identifiers <span class="bcp14">MUST</span> use the character set <code>[a-z0-9_
 describe the trust evaluation procedure.<a href="#section-9.1.5-4.2.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-9.1.5-4.3">Categories:</dt>
+<dt id="section-9.1.5-4.3">Category:</dt>
             <dd style="margin-left: 1.5em" id="section-9.1.5-4.4">
-              <p id="section-9.1.5-4.4.1">One or more values registered in the Trust Method Categories
-registry (<a href="#iana-trust-method-categories-registry" class="auto internal xref">Section 9.1.4</a>).<a href="#section-9.1.5-4.4.1" class="pilcrow">¶</a></p>
+              <p id="section-9.1.5-4.4.1">One value registered in the Trust Method Categories registry
+(<a href="#iana-trust-method-categories-registry" class="auto internal xref">Section 9.1.4</a>).<a href="#section-9.1.5-4.4.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
 <dt id="section-9.1.5-4.5">Parameters:</dt>
@@ -3373,7 +3399,7 @@ JSON types and whether each is <span class="bcp14">REQUIRED</span> or <span clas
               <p id="section-9.1.5-6.1.1">the identifier is unique and descriptive;<a href="#section-9.1.5-6.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.1.5-6.2">
-              <p id="section-9.1.5-6.2.1">each listed category is registered;<a href="#section-9.1.5-6.2.1" class="pilcrow">¶</a></p>
+              <p id="section-9.1.5-6.2.1">the category is registered;<a href="#section-9.1.5-6.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.1.5-6.3">
               <p id="section-9.1.5-6.3.1">the Trust Method's evidence and evaluation procedure are specified
@@ -3786,8 +3812,8 @@ its own assertion claiming <code>email: alice@example.com,
 email_verified: true</code>, with a signature that validates against its
 own JWKS and the correct audience. The tool provider extracts
 Subject Authority <code>example.com</code>, looks up the customer's policy, and
-finds that <code>https://attacker.example</code> is not in
-<code>authorized_issuers</code>. The Trust Method fails, and the tool provider
+finds that <code>https://attacker.example</code> is not an authorized issuer.
+The Trust Method fails, and the tool provider
 rejects with <code>invalid_grant</code>. The self-asserted <code>email_verified</code>
 has no force: unless the customer lists <code>https://attacker.example</code>,
 that issuer cannot impersonate users in <code>example.com</code>.<a href="#appendix-A-9" class="pilcrow">¶</a></p>
@@ -3859,7 +3885,20 @@ Introduction and Security Considerations (#38).<a href="#appendix-B-3.10.1" clas
 independently of the assertion (#38).<a href="#appendix-B-3.11.1" class="pilcrow">¶</a></p>
 </li>
         <li class="normal" id="appendix-B-3.12">
-          <p id="appendix-B-3.12.1">Editorial changes for readability.<a href="#appendix-B-3.12.1" class="pilcrow">¶</a></p>
+          <p id="appendix-B-3.12.1">Limit subject resolution under every Trust Policy; link accounts
+by the full A-label email domain; make a namespace method's
+explicit denial final; limit the no-fall-through rule to namespace
+methods; state that passing the Trust Policy is how a server
+trusts an ID-JAG's issuer (#46).<a href="#appendix-B-3.12.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-B-3.13">
+          <p id="appendix-B-3.13.1">Under a policy with no namespace method, stop using or conveying
+an unevaluated <code>email</code> instead of rejecting the assertion; reject
+an email domain matched only by the Public Suffix List's default
+rule; allow one category per Trust Method (#46).<a href="#appendix-B-3.13.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-B-3.14">
+          <p id="appendix-B-3.14.1">Editorial changes for readability.<a href="#appendix-B-3.14.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="appendix-B-4">-00<a href="#appendix-B-4" class="pilcrow">¶</a></p>

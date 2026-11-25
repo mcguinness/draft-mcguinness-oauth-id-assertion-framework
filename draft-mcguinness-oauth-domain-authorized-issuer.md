@@ -485,7 +485,13 @@ tooling.
 To require `signed_policy` processing by all conforming consumers, a
 Subject Authority lists `signed_policy` in `crit`. A consumer that
 does not implement that processing then rejects the document rather
-than silently ignoring the signature. Absent a `crit` entry,
+than silently ignoring the signature. So does a consumer that has no
+verification key for the policy (above), and either rejection is
+Indeterminate ({{dii-failures}}), which leaves the namespace
+unauthorized at that consumer. A Subject Authority that lists
+`signed_policy` in `crit` SHOULD therefore publish the key's
+thumbprint in a `key=` directive ({{dii-dns-record}}). Absent a
+`crit` entry,
 `signed_policy` provides integrity only:
 
 - for consumers that support and verify it;

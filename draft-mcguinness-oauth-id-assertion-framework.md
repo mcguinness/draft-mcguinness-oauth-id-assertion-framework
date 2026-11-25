@@ -684,7 +684,11 @@ Initial extractions:
 
   The result is compared using case-insensitive ASCII comparison of
   A-labels. Consumers MUST reject an email whose domain is itself a
-  public suffix (no registrable domain exists).
+  public suffix (no registrable domain exists). Consumers MUST also
+  reject an email whose domain no rule of the list matches, so that
+  only the algorithm's default `*` rule would apply, such as a domain
+  under a top-level domain that the list does not include (for
+  example, `corp.internal`).
 
 Subject Authority extraction MUST be exact-match: wildcard, suffix,
 regular-expression, and substring matching against Subject Authority

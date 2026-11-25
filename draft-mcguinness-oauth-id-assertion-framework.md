@@ -1073,8 +1073,9 @@ channel that map to each state.
   procedure consults authoritatively report no authorization. A
   Trust Method specification MAY additionally define an explicitly
   published denial. For a `subject_namespace_authorization` method,
-  such a denial MUST map to an Affirmative retrieval that authorizes
-  nothing, so that it is final ({{multiple-sources}}). For other
+  such a denial MUST map to an Affirmative retrieval that does not
+  authorize the denied issuer, so that it is final
+  ({{multiple-sources}}). For other
   methods, the specification's state mapping decides whether it maps
   to Negative or to such an Affirmative retrieval. A Negative state
   records that no authorization is in effect through that channel and

@@ -654,7 +654,8 @@ verifies client authentication. The error for a failure depends on
 the condition, not on when it is detected. When more than one
 condition applies, the first row of this table that applies
 determines the error ({{RFC6749}} Section 5.2 defines
-`invalid_client` and `unauthorized_client`):
+`invalid_client` and `unauthorized_client`). "Authenticated" means
+authenticated under a key that this method permits:
 
 | What the server observes | What it has established | Error |
 |-|-|-|
@@ -663,6 +664,7 @@ determines the error ({{RFC6749}} Section 5.2 defines
 | No trust chain reaches a listed trust anchor | The client is not authenticated | `invalid_client` |
 | The chain or the key set is Indeterminate | The client is not authenticated | `invalid_client` |
 | The metadata declares neither entity type | The client is not authenticated | `invalid_client` |
+| The client authenticates by a method that this method does not permit, such as with a client secret | The client is not authenticated | `invalid_client` |
 | The client authenticates with a method its metadata does not declare | The client is not authenticated | `invalid_client` |
 | Client authentication does not verify under a key in the federation key set | The client is not authenticated | `invalid_client` |
 | The client holds no Trust Mark that meets a requirement ({{federation-chain-requirements}}) | The client is authenticated but not recognized | `unauthorized_client` |

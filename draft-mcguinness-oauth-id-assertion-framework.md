@@ -1463,19 +1463,13 @@ Policy's cache. Transport integrity is addressed in {{integrity}}.
 
 ## Observability
 
-Trust-policy evaluation is a security-critical decision. For each
-processed assertion, deployments are encouraged to log at minimum:
-
-- the Assertion Issuer identifier;
-- the version or configuration identifier of the Trust Policy in
-  effect;
-- the Trust Methods that succeeded;
-- the matched trust anchor or Issuer Authorization Policy origin;
-- the Subject Identifier format; and
-- the accept/reject outcome.
-
-Deployments are also encouraged to support correlation across the
-issuance and verification halves of an identity-chain transaction.
+Trust-policy evaluation is a security-critical decision, so
+deployments are encouraged to log, for each processed assertion, the
+Assertion Issuer, the Trust Policy version in effect, the Trust
+Methods that succeeded, the matched trust anchor or Issuer
+Authorization Policy origin, the Subject Identifier format, and the
+outcome. Correlating these records with the issuance side of an
+identity-chain transaction also helps.
 
 # Privacy Considerations
 

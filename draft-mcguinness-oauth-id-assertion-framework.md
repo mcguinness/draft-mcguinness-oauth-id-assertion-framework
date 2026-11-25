@@ -920,9 +920,9 @@ request, the Resource Authorization Server MUST:
    this document specifies neither.
 
 Client authentication that the grant profile requires SHOULD be
-completed before step 5, so that unauthenticated requests cannot
-cause the lookups that step performs. Every fetch in this processing
-follows {{outbound-fetches}}.
+completed before step 2, so that unauthenticated requests cannot
+cause the fetches that steps 2 and 5 perform. Every fetch in this
+processing follows {{outbound-fetches}}.
 
 Rejection at any of steps 1 through 5 MUST result in an OAuth
 `invalid_grant` error unless another error is defined by the

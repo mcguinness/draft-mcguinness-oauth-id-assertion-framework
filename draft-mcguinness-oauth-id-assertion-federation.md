@@ -545,7 +545,8 @@ and 3 are replaced by the following:
   - JWT client authentication ({{RFC7523}} Sections 2.2 and 3, as
     updated by {{RFC10070}}) with a JWT signed by such a key, whose
     `aud` claim is the Resource Authorization Server's issuer
-    identifier as its sole value ({{RFC10070}} Section 4); and
+    identifier as its sole value, as a string or as an array with only
+    that element ({{RFC10070}} Section 4); and
   - self-signed certificate mutual TLS ({{RFC8705}} Section 2.2) with
     a certificate equal to the first certificate in the `x5c` value
     of such a key, without certificate chain validation.
